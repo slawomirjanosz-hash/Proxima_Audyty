@@ -102,6 +102,11 @@ return [
         'users' => [
             'title' => 'Users and permissions',
             'subtitle' => 'Manage user accounts and assign system roles',
+            'first_name' => 'First name',
+            'last_name' => 'Last name',
+            'phone' => 'Phone',
+            'password' => 'Password',
+            'password_placeholder' => 'Leave empty to keep unchanged',
             'columns' => [
                 'name' => 'Name',
                 'email' => 'E-mail',

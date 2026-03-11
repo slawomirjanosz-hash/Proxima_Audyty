@@ -102,6 +102,11 @@ return [
         'users' => [
             'title' => 'Użytkownicy i uprawnienia',
             'subtitle' => 'Zarządzaj kontami użytkowników i przypisuj role systemowe',
+            'first_name' => 'Imię',
+            'last_name' => 'Nazwisko',
+            'phone' => 'Telefon',
+            'password' => 'Hasło',
+            'password_placeholder' => 'Pozostaw puste, aby nie zmieniać',
             'columns' => [
                 'name' => 'Imię i nazwisko',
                 'email' => 'E-mail',

@@ -7,6 +7,8 @@ use App\Models\Company;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\View\View;
 
@@ -16,7 +18,10 @@ class SettingsController extends Controller
     {
         $user = $request->user();
 
-        $users = User::query()->orderBy('name')->get();
+        $users = User::query()
+            ->where('role', '!=', UserRole::SuperAdmin->value)
+            ->orderBy('name')
+            ->get();
         $companies = Company::with(['client', 'auditor'])->orderBy('name')->get();
         $auditors = User::where('role', UserRole::Auditor)->orderBy('name')->get();
         $clients = User::where('role', UserRole::Client)->orderBy('name')->get();
@@ -40,22 +45,24 @@ class SettingsController extends Controller
             abort(403);
         }
 
-        if ($user->isSuperAdmin() && ! $actor->isSuperAdmin()) {
-            abort(403);
+        if ($user->isSuperAdmin()) {
+            abort(404);
         }
 
         $validated = $request->validate([
-            'role' => ['required', new Enum(UserRole::class)],
+            'first_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['nullable', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'password' => ['nullable', 'string', 'min:8'],
+            'role' => ['required', Rule::in([
+                UserRole::Admin->value,
+                UserRole::Auditor->value,
+                UserRole::Client->value,
+            ])],
             'tabs' => ['array'],
             'tabs.*' => ['nullable', 'boolean'],
         ]);
-
-        if (
-            $validated['role'] === UserRole::SuperAdmin
-            && ! $actor->isSuperAdmin()
-        ) {
-            abort(403);
-        }
 
         $allTabs = array_keys(User::tabLabels());
         $submittedTabs = (array) ($validated['tabs'] ?? []);
@@ -65,10 +72,46 @@ class SettingsController extends Controller
             $permissions[$tab] = (bool) ($submittedTabs[$tab] ?? false);
         }
 
-        $user->update([
+        $firstName = trim((string) ($validated['first_name'] ?? ''));
+        $lastName = trim((string) ($validated['last_name'] ?? ''));
+
+        if ($firstName === '' && Schema::hasColumn('users', 'first_name')) {
+            $firstName = (string) ($user->first_name ?? '');
+        }
+
+        if ($lastName === '' && Schema::hasColumn('users', 'last_name')) {
+            $lastName = (string) ($user->last_name ?? '');
+        }
+
+        $computedName = trim($firstName.' '.$lastName);
+        if ($computedName === '') {
+            $computedName = (string) $user->name;
+        }
+
+        $payload = [
+            'name' => $computedName,
+            'email' => $validated['email'],
             'role' => $validated['role'],
             'tab_permissions' => $permissions,
-        ]);
+        ];
+
+        if (Schema::hasColumn('users', 'first_name')) {
+            $payload['first_name'] = $firstName !== '' ? $firstName : null;
+        }
+
+        if (Schema::hasColumn('users', 'last_name')) {
+            $payload['last_name'] = $lastName !== '' ? $lastName : null;
+        }
+
+        if (Schema::hasColumn('users', 'phone')) {
+            $payload['phone'] = $validated['phone'] ?? null;
+        }
+
+        if (! empty($validated['password'])) {
+            $payload['password'] = $validated['password'];
+        }
+
+        $user->update($payload);
 
         return back()->with('status', __('ui.messages.user_permissions_updated'));
     }
@@ -81,8 +124,8 @@ class SettingsController extends Controller
             abort(403);
         }
 
-        if ($user->isSuperAdmin() && ! $actor->isSuperAdmin()) {
-            abort(403);
+        if ($user->isSuperAdmin()) {
+            abort(404);
         }
 
         $validated = $request->validate([

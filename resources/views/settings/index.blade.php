@@ -13,6 +13,12 @@
         @endif
     </section>
 
+    @if ($errors->any())
+        <section class="panel" style="margin-top:14px; background:#fff3f3; border-color:#ffc9c9; color:#9f1f1f;">
+            {{ $errors->first() }}
+        </section>
+    @endif
+
     <style>
         .accordion { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
         .acc-item { background: #fff; border: 1px solid #d5e0ea; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 16px rgba(14,55,85,.05); }
@@ -117,9 +123,28 @@
                                                 @method('PATCH')
 
                                                 <div class="inline-form" style="margin-bottom:10px;">
+                                                    <label for="first-name-{{ $user->id }}" style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.first_name') }}</label>
+                                                    <input id="first-name-{{ $user->id }}" type="text" name="first_name" value="{{ old('first_name', $user->first_name) }}">
+
+                                                    <label for="last-name-{{ $user->id }}" style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.last_name') }}</label>
+                                                    <input id="last-name-{{ $user->id }}" type="text" name="last_name" value="{{ old('last_name', $user->last_name) }}">
+                                                </div>
+
+                                                <div class="inline-form" style="margin-bottom:10px;">
+                                                    <label for="email-{{ $user->id }}" style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.columns.email') }}</label>
+                                                    <input id="email-{{ $user->id }}" type="email" name="email" value="{{ old('email', $user->email) }}" required>
+
+                                                    <label for="phone-{{ $user->id }}" style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.phone') }}</label>
+                                                    <input id="phone-{{ $user->id }}" type="text" name="phone" value="{{ old('phone', $user->phone) }}">
+                                                </div>
+
+                                                <div class="inline-form" style="margin-bottom:10px;">
+                                                    <label for="password-{{ $user->id }}" style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.password') }}</label>
+                                                    <input id="password-{{ $user->id }}" type="password" name="password" placeholder="{{ __('ui.settings.users.password_placeholder') }}">
+
                                                     <label for="role-{{ $user->id }}" style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.role_label') }}</label>
                                                     <select id="role-{{ $user->id }}" name="role">
-                                                        @foreach (\App\Enums\UserRole::cases() as $role)
+                                                        @foreach ([\App\Enums\UserRole::Admin, \App\Enums\UserRole::Auditor, \App\Enums\UserRole::Client] as $role)
                                                             <option value="{{ $role->value }}" @selected($user->role === $role)>{{ $role->label() }}</option>
                                                         @endforeach
                                                     </select>
