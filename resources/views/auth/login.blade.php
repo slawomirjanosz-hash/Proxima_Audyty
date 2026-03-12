@@ -19,7 +19,7 @@
     </style>
 </head>
 <body>
-    <form class="card" method="POST" action="{{ route('login.store') }}">
+    <form class="card" method="POST" action="{{ route('login.store', [], false) }}">
         @csrf
         <div class="brand">
             <div class="logo">E</div>

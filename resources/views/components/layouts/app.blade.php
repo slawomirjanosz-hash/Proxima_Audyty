@@ -86,14 +86,14 @@
         <header class="topbar">
             <strong>{{ __('ui.company') }}</strong>
             <div style="display:flex; align-items:center; gap:8px;">
-                <form method="GET" action="{{ route('locale.switch') }}">
+                <form method="GET" action="{{ route('locale.switch', [], false) }}">
                     <select name="locale" onchange="this.form.submit()" style="height:36px; border-radius:9px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.12); color:#fff; padding:0 10px; font-weight:600;">
                         @foreach(config('localization.supported_locales', ['pl' => 'Polski', 'en' => 'English']) as $localeCode => $localeLabel)
                             <option value="{{ $localeCode }}" @selected(app()->getLocale() === $localeCode) style="color:#0f2330;">{{ $localeLabel }}</option>
                         @endforeach
                     </select>
                 </form>
-                <form method="POST" action="{{ route('logout') }}">
+                <form method="POST" action="{{ route('logout', [], false) }}">
                     @csrf
                     <button class="login-btn" type="submit">{{ __('ui.actions.logout') }}</button>
                 </form>
