@@ -1,3 +1,58 @@
+    public function storeUser(Request $request): RedirectResponse
+    {
+        $actor = $request->user();
+        if (! $actor->canManageEverything()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'first_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['nullable', 'string', 'max:255'],
+            'short_name' => ['required', 'string', 'max:32'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'password' => ['required', 'string', 'min:8'],
+            'role' => ['required', Rule::in([
+                UserRole::Admin->value,
+                UserRole::Auditor->value,
+                UserRole::Client->value,
+            ])],
+            'tabs' => ['array'],
+            'tabs.*' => ['nullable', 'boolean'],
+        ]);
+
+        if (empty($validated['short_name']) && (empty($validated['first_name']) || empty($validated['last_name']))) {
+            return back()->withErrors(['short_name' => __('ui.settings.users.short_name_required')])->withInput();
+        }
+
+        $allTabs = array_keys(User::tabLabels());
+        $submittedTabs = (array) ($validated['tabs'] ?? []);
+        $permissions = [];
+        foreach ($allTabs as $tab) {
+            $permissions[$tab] = (bool) ($submittedTabs[$tab] ?? false);
+        }
+
+        $firstName = trim((string) ($validated['first_name'] ?? ''));
+        $lastName = trim((string) ($validated['last_name'] ?? ''));
+        $computedName = trim($firstName.' '.$lastName);
+        if ($computedName === '') {
+            $computedName = $validated['email'];
+        }
+
+        $user = User::create([
+            'name' => $computedName,
+            'first_name' => $firstName !== '' ? $firstName : null,
+            'last_name' => $lastName !== '' ? $lastName : null,
+            'short_name' => $validated['short_name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
+            'password' => $validated['password'],
+            'role' => $validated['role'],
+            'tab_permissions' => $permissions,
+        ]);
+
+        return back()->with('status', __('ui.settings.users.created'));
+    }
 <?php
 
 namespace App\Http\Controllers;

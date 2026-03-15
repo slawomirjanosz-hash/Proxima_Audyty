@@ -43,6 +43,7 @@ return [
             'auditor' => 'Auditor',
             'status' => 'Status',
             'updated' => 'Updated',
+            'created' => 'User has been created.',
         ],
     ],
     'client' => [

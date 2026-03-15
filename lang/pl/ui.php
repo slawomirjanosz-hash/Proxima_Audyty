@@ -43,6 +43,7 @@ return [
             'auditor' => 'Audytor',
             'status' => 'Status',
             'updated' => 'Aktualizacja',
+            'created' => 'Użytkownik został dodany.',
         ],
     ],
     'client' => [

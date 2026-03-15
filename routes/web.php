@@ -39,6 +39,10 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/strefa-klienta', [ClientController::class, 'index'])->name('strefa-klienta');
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
 
+    Route::post('/settings/users', [SettingsController::class, 'storeUser'])
+        ->middleware('role:admin')
+        ->name('settings.user-store');
+
     Route::patch('/settings/users/{user}/role', [SettingsController::class, 'updateRole'])
         ->middleware('role:admin')
         ->name('settings.user-role');

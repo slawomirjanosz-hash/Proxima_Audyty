@@ -19,6 +19,61 @@
         </section>
     @endif
 
+    @if($canManage)
+    <section class="panel" style="margin-bottom:18px;">
+        <form method="POST" action="{{ route('settings.user-store') }}" style="display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end;">
+            @csrf
+            <div style="display:flex; flex-direction:column;">
+                <label style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.first_name') }}</label>
+                <input type="text" name="first_name" value="{{ old('first_name') }}">
+            </div>
+            <div style="display:flex; flex-direction:column;">
+                <label style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.last_name') }}</label>
+                <input type="text" name="last_name" value="{{ old('last_name') }}">
+            </div>
+            <div style="display:flex; flex-direction:column;">
+                <label style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.short_name') }} <span style="color:#d00">*</span></label>
+                <input type="text" name="short_name" maxlength="32" required value="{{ old('short_name') }}">
+                @error('short_name')
+                    <span style="color:#d00; font-size:12px;">{{ $message }}</span>
+                @enderror
+            </div>
+            <div style="display:flex; flex-direction:column;">
+                <label style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.columns.email') }}</label>
+                <input type="email" name="email" required value="{{ old('email') }}">
+            </div>
+            <div style="display:flex; flex-direction:column;">
+                <label style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.phone') }}</label>
+                <input type="text" name="phone" value="{{ old('phone') }}">
+            </div>
+            <div style="display:flex; flex-direction:column;">
+                <label style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.password') }} <span style="color:#d00">*</span></label>
+                <input type="password" name="password" required placeholder="{{ __('ui.settings.users.password_placeholder') }}">
+            </div>
+            <div style="display:flex; flex-direction:column;">
+                <label style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.role_label') }}</label>
+                <select name="role" required>
+                    @foreach ([\App\Enums\UserRole::Admin, \App\Enums\UserRole::Auditor, \App\Enums\UserRole::Client] as $role)
+                        <option value="{{ $role->value }}" @selected(old('role') === $role->value)>{{ $role->label() }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div style="display:flex; flex-direction:column; min-width:180px;">
+                <label style="font-size:12px; font-weight:700; color:#4c6373;">Uprawnienia</label>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    @foreach($tabLabels as $tabKey => $tabLabel)
+                        <label style="font-size:12px;">
+                            <input type="checkbox" name="tabs[{{ $tabKey }}]" value="1" @checked(old('tabs.'.$tabKey))>
+                            {{ $tabLabel }}
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+            <button type="submit" style="background:#0e89d8; color:#fff; border:0; border-radius:9px; padding:8px 18px; font-weight:700;">Dodaj użytkownika</button>
+        </form>
+    </section>
+    @endif
+
     <style>
         .accordion { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
         .acc-item { background: #fff; border: 1px solid #d5e0ea; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 16px rgba(14,55,85,.05); }
