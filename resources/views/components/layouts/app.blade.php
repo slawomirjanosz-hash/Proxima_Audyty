@@ -108,11 +108,11 @@
         {{ $slot }}
     </main>
 </div>
-<div class="built-by" title="Built by ProximaLumine">
-    <img class="built-by__logo" src="/Proxima_Lumine5.png" alt="ProximaLumine">
+<div class="built-by" title="Built by ProLum">
+    <img class="built-by__logo" src="/Proxima_Lumine5.png" alt="ProLum">
     <div class="built-by__text">
         <span class="built-by__label">Built by</span>
-        <span class="built-by__name">ProximaLumine</span>
+        <span class="built-by__name">ProLum</span>
     </div>
 </div>
 </body>

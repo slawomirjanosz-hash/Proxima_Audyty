@@ -167,7 +167,19 @@
 
                                                 <div class="permissions-actions">
                                                     <button type="submit">{{ __('ui.settings.actions.save_permissions') }}</button>
-                                                    <button type="button" class="btn-secondary" onclick="toggleUserEditor({{ $user->id }})">{{ __('ui.settings.actions.cancel') }}</button>
+                                                    <button type="button" class="btn-secondary" onclick="if(document.getElementById('short-name-{{ $user->id }}').value.trim()===''){alert('{{ __('ui.settings.users.short_name_required') }}');return false;}toggleUserEditor({{ $user->id }})">{{ __('ui.settings.actions.cancel') }}</button>
+                                                </script>
+                                                <script>
+                                                // Prevent closing user editor if short_name is empty (also on outside click, if such logic exists)
+                                                window.preventUserEditorCloseIfShortNameEmpty = function(userId) {
+                                                    var input = document.getElementById('short-name-' + userId);
+                                                    if (input && input.value.trim() === '') {
+                                                        alert('{{ __('ui.settings.users.short_name_required') }}');
+                                                        return false;
+                                                    }
+                                                    return true;
+                                                }
+                                                </script>
                                                 </div>
                                             </form>
                                         </div>
