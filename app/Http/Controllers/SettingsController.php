@@ -52,6 +52,7 @@ class SettingsController extends Controller
         $validated = $request->validate([
             'first_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['nullable', 'string', 'max:255'],
+            'short_name' => ['nullable', 'string', 'max:32'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'phone' => ['nullable', 'string', 'max:50'],
             'password' => ['nullable', 'string', 'min:8'],
@@ -88,11 +89,17 @@ class SettingsController extends Controller
             $computedName = (string) $user->name;
         }
 
+        $shortName = $validated['short_name'] ?? null;
+        if ($shortName === null || $shortName === '') {
+            $shortName = mb_substr($firstName, 0, 3) . mb_substr($lastName, 0, 3);
+        }
+
         $payload = [
             'name' => $computedName,
             'email' => $validated['email'],
             'role' => $validated['role'],
             'tab_permissions' => $permissions,
+            'short_name' => $shortName,
         ];
 
         if (Schema::hasColumn('users', 'first_name')) {

@@ -106,6 +106,7 @@ return [
             'subtitle' => 'Zarządzaj kontami użytkowników i przypisuj role systemowe',
             'first_name' => 'Imię',
             'last_name' => 'Nazwisko',
+            'short_name' => 'Skrócona nazwa',
             'phone' => 'Telefon',
             'password' => 'Hasło',
             'password_placeholder' => 'Pozostaw puste, aby nie zmieniać',
