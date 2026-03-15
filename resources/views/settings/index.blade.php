@@ -129,8 +129,11 @@
                                                     <label for="last-name-{{ $user->id }}" style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.last_name') }}</label>
                                                     <input id="last-name-{{ $user->id }}" type="text" name="last_name" value="{{ old('last_name', $user->last_name) }}">
 
-                                                    <label for="short-name-{{ $user->id }}" style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.short_name') }}</label>
-                                                    <input id="short-name-{{ $user->id }}" type="text" name="short_name" maxlength="32" value="{{ old('short_name', $user->short_name ?? (\Illuminate\Support\Str::substr($user->first_name,0,3).\Illuminate\Support\Str::substr($user->last_name,0,3))) }}">
+                                                    <label for="short-name-{{ $user->id }}" style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.short_name') }} <span style="color:#d00">*</span></label>
+                                                    <input id="short-name-{{ $user->id }}" type="text" name="short_name" maxlength="32" required value="{{ old('short_name', $user->short_name ?? (\Illuminate\Support\Str::substr($user->first_name,0,3).\Illuminate\Support\Str::substr($user->last_name,0,3))) }}">
+                                                    @error('short_name')
+                                                        <span style="color:#d00; font-size:12px;">{{ $message }}</span>
+                                                    @enderror
                                                 </div>
 
                                                 <div class="inline-form" style="margin-bottom:10px;">

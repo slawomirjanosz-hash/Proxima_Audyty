@@ -107,6 +107,7 @@ return [
             'first_name' => 'First name',
             'last_name' => 'Last name',
             'short_name' => 'Short name',
+            'short_name_required' => 'Short name cannot be empty. First and last name are required if short name is not provided.',
             'phone' => 'Phone',
             'password' => 'Password',
             'password_placeholder' => 'Leave empty to keep unchanged',

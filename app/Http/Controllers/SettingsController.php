@@ -52,7 +52,7 @@ class SettingsController extends Controller
         $validated = $request->validate([
             'first_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['nullable', 'string', 'max:255'],
-            'short_name' => ['nullable', 'string', 'max:32'],
+            'short_name' => ['required', 'string', 'max:32'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'phone' => ['nullable', 'string', 'max:50'],
             'password' => ['nullable', 'string', 'min:8'],
@@ -64,6 +64,11 @@ class SettingsController extends Controller
             'tabs' => ['array'],
             'tabs.*' => ['nullable', 'boolean'],
         ]);
+
+        // Custom validation: short_name must not be empty, and if empty, both first_name and last_name must be present
+        if (empty($validated['short_name']) && (empty($validated['first_name']) || empty($validated['last_name']))) {
+            return back()->withErrors(['short_name' => __('ui.settings.users.short_name_required')])->withInput();
+        }
 
         $allTabs = array_keys(User::tabLabels());
         $submittedTabs = (array) ($validated['tabs'] ?? []);
@@ -89,11 +94,7 @@ class SettingsController extends Controller
             $computedName = (string) $user->name;
         }
 
-        $shortName = $validated['short_name'] ?? null;
-        if ($shortName === null || $shortName === '') {
-            $shortName = mb_substr($firstName, 0, 3) . mb_substr($lastName, 0, 3);
-        }
-
+        $shortName = $validated['short_name'];
         $payload = [
             'name' => $computedName,
             'email' => $validated['email'],

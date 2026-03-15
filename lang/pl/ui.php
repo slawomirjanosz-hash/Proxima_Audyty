@@ -107,6 +107,7 @@ return [
             'first_name' => 'Imię',
             'last_name' => 'Nazwisko',
             'short_name' => 'Skrócona nazwa',
+            'short_name_required' => 'Skrócona nazwa nie może być pusta. Wymagane jest też imię i nazwisko jeśli nie podano skrótu.',
             'phone' => 'Telefon',
             'password' => 'Hasło',
             'password_placeholder' => 'Pozostaw puste, aby nie zmieniać',
