@@ -17,6 +17,8 @@ return [
         'sign_in' => 'Sign in',
         'remember_me' => 'Remember me',
     ],
+    'online_users' => 'users online',
+    'logged_in_as' => 'Logged in as',
     'messages' => [
         'invalid_credentials' => 'Invalid email or password.',
         'logged_out' => 'You have been logged out.',
