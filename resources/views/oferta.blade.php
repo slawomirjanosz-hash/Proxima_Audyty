@@ -340,7 +340,7 @@
                 <li><a href="{{ route('home') }}">{{ __('ui.menu.home') }}</a></li>
                 <li><a href="{{ route('dashboard') }}">{{ __('ui.menu.dashboard') }}</a></li>
                 <li><a href="{{ route('oferta') }}" class="menu-active">{{ __('ui.menu.offer') }}</a></li>
-                <li><a href="{{ route('dashboard') }}">{{ __('ui.menu.audits') }}</a></li>
+                <li><a href="{{ route('audits.index') }}">{{ __('ui.menu.audits') }}</a></li>
                 <li><a href="{{ route('strefa-klienta') }}">{{ __('ui.menu.client_zone') }}</a></li>
                 <li><a href="{{ route('settings.index') }}">{{ __('ui.menu.settings') }}</a></li>
             </ul>

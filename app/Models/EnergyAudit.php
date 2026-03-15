@@ -12,10 +12,24 @@ class EnergyAudit extends Model
 
     protected $fillable = [
         'title',
+        'audit_type',
+        'audit_type_id',
         'status',
+        'completed_at',
+        'data_payload',
         'company_id',
         'auditor_id',
     ];
+
+    protected $casts = [
+        'completed_at' => 'datetime',
+        'data_payload' => 'array',
+    ];
+
+    public function auditType(): BelongsTo
+    {
+        return $this->belongsTo(AuditType::class);
+    }
 
     public function company(): BelongsTo
     {

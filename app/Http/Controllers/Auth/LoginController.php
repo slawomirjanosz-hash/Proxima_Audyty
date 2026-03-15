@@ -50,6 +50,10 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
+        if (Auth::user()?->isClient()) {
+            return redirect()->route('strefa-klienta');
+        }
+
         return redirect()->intended(route('home'));
     }
 

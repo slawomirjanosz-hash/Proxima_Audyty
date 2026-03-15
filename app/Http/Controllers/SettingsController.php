@@ -1,58 +1,3 @@
-    public function storeUser(Request $request): RedirectResponse
-    {
-        $actor = $request->user();
-        if (! $actor->canManageEverything()) {
-            abort(403);
-        }
-
-        $validated = $request->validate([
-            'first_name' => ['nullable', 'string', 'max:255'],
-            'last_name' => ['nullable', 'string', 'max:255'],
-            'short_name' => ['required', 'string', 'max:32'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'phone' => ['nullable', 'string', 'max:50'],
-            'password' => ['required', 'string', 'min:8'],
-            'role' => ['required', Rule::in([
-                UserRole::Admin->value,
-                UserRole::Auditor->value,
-                UserRole::Client->value,
-            ])],
-            'tabs' => ['array'],
-            'tabs.*' => ['nullable', 'boolean'],
-        ]);
-
-        if (empty($validated['short_name']) && (empty($validated['first_name']) || empty($validated['last_name']))) {
-            return back()->withErrors(['short_name' => __('ui.settings.users.short_name_required')])->withInput();
-        }
-
-        $allTabs = array_keys(User::tabLabels());
-        $submittedTabs = (array) ($validated['tabs'] ?? []);
-        $permissions = [];
-        foreach ($allTabs as $tab) {
-            $permissions[$tab] = (bool) ($submittedTabs[$tab] ?? false);
-        }
-
-        $firstName = trim((string) ($validated['first_name'] ?? ''));
-        $lastName = trim((string) ($validated['last_name'] ?? ''));
-        $computedName = trim($firstName.' '.$lastName);
-        if ($computedName === '') {
-            $computedName = $validated['email'];
-        }
-
-        $user = User::create([
-            'name' => $computedName,
-            'first_name' => $firstName !== '' ? $firstName : null,
-            'last_name' => $lastName !== '' ? $lastName : null,
-            'short_name' => $validated['short_name'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'] ?? null,
-            'password' => $validated['password'],
-            'role' => $validated['role'],
-            'tab_permissions' => $permissions,
-        ]);
-
-        return back()->with('status', __('ui.settings.users.created'));
-    }
 <?php
 
 namespace App\Http\Controllers;
@@ -60,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Enums\UserRole;
 use App\Models\Company;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
@@ -77,8 +24,8 @@ class SettingsController extends Controller
             ->where('role', '!=', UserRole::SuperAdmin->value)
             ->orderBy('name')
             ->get();
-        $companies = Company::with(['client', 'auditor'])->orderBy('name')->get();
-        $auditors = User::where('role', UserRole::Auditor)->orderBy('name')->get();
+        $companies = Company::with(['auditor', 'assignedUsers'])->orderBy('name')->get();
+        $auditors = User::whereIn('role', [UserRole::Auditor->value, UserRole::Admin->value])->orderBy('name')->get();
         $clients = User::where('role', UserRole::Client)->orderBy('name')->get();
 
         return view('settings.index', [
@@ -107,7 +54,7 @@ class SettingsController extends Controller
         $validated = $request->validate([
             'first_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['nullable', 'string', 'max:255'],
-            'short_name' => ['required', 'string', 'max:32'],
+            'short_name' => ['nullable', 'string', 'max:32'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'phone' => ['nullable', 'string', 'max:50'],
             'password' => ['nullable', 'string', 'min:8'],
@@ -119,11 +66,6 @@ class SettingsController extends Controller
             'tabs' => ['array'],
             'tabs.*' => ['nullable', 'boolean'],
         ]);
-
-        // Custom validation: short_name must not be empty, and if empty, both first_name and last_name must be present
-        if (empty($validated['short_name']) && (empty($validated['first_name']) || empty($validated['last_name']))) {
-            return back()->withErrors(['short_name' => __('ui.settings.users.short_name_required')])->withInput();
-        }
 
         $allTabs = array_keys(User::tabLabels());
         $submittedTabs = (array) ($validated['tabs'] ?? []);
@@ -149,7 +91,11 @@ class SettingsController extends Controller
             $computedName = (string) $user->name;
         }
 
-        $shortName = $validated['short_name'];
+        $shortName = $validated['short_name'] ?? null;
+        if ($shortName === null || $shortName === '') {
+            $shortName = mb_substr($firstName, 0, 3) . mb_substr($lastName, 0, 3);
+        }
+
         $payload = [
             'name' => $computedName,
             'email' => $validated['email'],
@@ -217,11 +163,329 @@ class SettingsController extends Controller
 
         $validated = $request->validate([
             'auditor_id' => ['nullable', 'exists:users,id'],
-            'client_id' => ['nullable', 'exists:users,id'],
         ]);
 
         $company->update($validated);
 
         return back()->with('status', __('ui.messages.company_assignments_updated'));
     }
+
+    public function storeCompany(Request $request): RedirectResponse
+    {
+        if (! $request->user()->canManageEverything()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'nip' => ['nullable', 'string', 'max:20'],
+            'name' => ['required', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'street' => ['nullable', 'string', 'max:255'],
+            'postal_code' => ['nullable', 'string', 'max:20'],
+            'description' => ['nullable', 'string', 'max:2000'],
+            'auditor_id' => ['nullable', 'exists:users,id'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'email' => ['nullable', 'email', 'max:255'],
+        ]);
+
+        $normalizedName = Company::normalizeLegalForm(trim((string) $validated['name']));
+        $shortName = mb_substr($normalizedName, 0, 3);
+
+        $payload = [
+            'name' => $normalizedName,
+            'short_name' => $shortName,
+            'city' => $validated['city'] ?? null,
+            'street' => $validated['street'] ?? null,
+            'postal_code' => $validated['postal_code'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'auditor_id' => $validated['auditor_id'] ?? null,
+            'phone' => $validated['phone'] ?? null,
+            'email' => $validated['email'] ?? null,
+        ];
+
+        if (Schema::hasColumn('companies', 'nip')) {
+            $payload['nip'] = ! empty($validated['nip']) ? preg_replace('/\D+/', '', (string) $validated['nip']) : null;
+        }
+
+        Company::create($payload);
+
+        return back()->with('status', __('ui.messages.company_created'));
+    }
+
+    public function lookupCompanyByNip(Request $request): JsonResponse
+    {
+        if (! $request->user()->canManageEverything()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'nip' => ['required', 'string', 'min:10', 'max:20'],
+        ]);
+
+        $nip = preg_replace('/\D+/', '', (string) $validated['nip']);
+
+        if (strlen($nip) !== 10) {
+            return response()->json([
+                'ok' => false,
+                'message' => __('ui.settings.clients.lookup.invalid_nip'),
+            ], 422);
+        }
+
+        $date = now()->format('Y-m-d');
+        $response = Http::timeout(8)
+            ->acceptJson()
+            ->get("https://wl-api.mf.gov.pl/api/search/nip/{$nip}", [
+                'date' => $date,
+            ]);
+
+        if (! $response->ok()) {
+            return response()->json([
+                'ok' => false,
+                'message' => __('ui.settings.clients.lookup.not_found'),
+            ], 404);
+        }
+
+        $subject = $response->json('result.subject');
+
+        if (! is_array($subject) || empty($subject['name'])) {
+            return response()->json([
+                'ok' => false,
+                'message' => __('ui.settings.clients.lookup.not_found'),
+            ], 404);
+        }
+
+        $name = trim((string) ($subject['name'] ?? ''));
+        $address = trim((string) ($subject['workingAddress'] ?? $subject['residenceAddress'] ?? ''));
+        $street = '';
+        $postalCode = '';
+        $city = '';
+
+        if ($address !== '') {
+            $parts = preg_split('/\s*,\s*/', $address);
+            $street = trim((string) ($parts[0] ?? ''));
+            $cityPart = trim((string) ($parts[1] ?? $parts[0] ?? ''));
+
+            if (preg_match('/(?<postal>\d{2}-\d{3})\s+(?<city>.+)$/u', $cityPart, $matches) === 1) {
+                $postalCode = trim((string) ($matches['postal'] ?? ''));
+                $city = trim((string) ($matches['city'] ?? ''));
+            } else {
+                $city = $cityPart;
+            }
+        }
+
+        return response()->json([
+            'ok' => true,
+            'data' => [
+                'nip' => $nip,
+                'name' => $name,
+                'street' => $street,
+                'postal_code' => $postalCode,
+                'city' => $city,
+            ],
+        ]);
+    }
+
+    public function storeCompanyClient(Request $request, Company $company): RedirectResponse
+    {
+        if (! $request->user()->canManageEverything()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'first_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['nullable', 'string', 'max:255'],
+            'short_name' => ['nullable', 'string', 'max:32'],
+            'email' => ['required', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'password' => ['nullable', 'string', 'min:8'],
+        ]);
+
+        $existingUser = User::where('email', $validated['email'])->first();
+
+        if ($existingUser) {
+            if (! $existingUser->isClient()) {
+                return back()->withErrors([
+                    'email' => __('ui.settings.clients.assigned_person_must_be_client'),
+                ])->withInput();
+            }
+
+            $existingUser->assignedCompanies()->syncWithoutDetaching([$company->id]);
+
+            $allTabs = array_keys(User::tabLabels());
+            $tabPermissions = array_fill_keys($allTabs, false);
+            $tabPermissions[User::TAB_HOME] = true;
+            $tabPermissions[User::TAB_CLIENT_ZONE] = true;
+
+            $existingUser->update([
+                'role' => UserRole::Client->value,
+                'tab_permissions' => $tabPermissions,
+            ]);
+
+            if (empty($existingUser->company_id)) {
+                $existingUser->update(['company_id' => $company->id]);
+            }
+
+            return back()->with('status', __('ui.messages.company_client_created'));
+        }
+
+        if (empty($validated['password'])) {
+            return back()->withErrors([
+                'password' => __('ui.settings.clients.password_required_for_new_person'),
+            ])->withInput();
+        }
+
+        $firstName = trim((string) ($validated['first_name'] ?? ''));
+        $lastName = trim((string) ($validated['last_name'] ?? ''));
+
+        $shortName = trim((string) ($validated['short_name'] ?? ''));
+        if ($shortName === '') {
+            $shortName = mb_substr($firstName, 0, 3) . mb_substr($lastName, 0, 3);
+        }
+
+        $computedName = trim($firstName.' '.$lastName);
+        if ($computedName === '') {
+            $computedName = $validated['email'];
+        }
+
+        $allTabs = array_keys(User::tabLabels());
+        $tabPermissions = array_fill_keys($allTabs, false);
+        $tabPermissions[User::TAB_HOME] = true;
+        $tabPermissions[User::TAB_CLIENT_ZONE] = true;
+
+        $clientUser = User::create([
+            'name' => $computedName,
+            'first_name' => $firstName !== '' ? $firstName : null,
+            'last_name' => $lastName !== '' ? $lastName : null,
+            'short_name' => $shortName,
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
+            'password' => $validated['password'],
+            'role' => UserRole::Client->value,
+            'company_id' => $company->id,
+            'tab_permissions' => $tabPermissions,
+        ]);
+
+        $clientUser->assignedCompanies()->syncWithoutDetaching([$company->id]);
+
+        return back()->with('status', __('ui.messages.company_client_created'));
+    }
+
+    public function updateCompanyClient(Request $request, Company $company, User $user): RedirectResponse
+    {
+        if (! $request->user()->canManageEverything()) {
+            abort(403);
+        }
+
+        if (! $user->isClient()) {
+            abort(404);
+        }
+
+        $isAssigned = $company->assignedUsers()->where('users.id', $user->id)->exists();
+        if (! $isAssigned) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'first_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['nullable', 'string', 'max:255'],
+            'short_name' => ['nullable', 'string', 'max:32'],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'password' => ['nullable', 'string', 'min:8'],
+        ]);
+
+        $firstName = trim((string) ($validated['first_name'] ?? ''));
+        $lastName = trim((string) ($validated['last_name'] ?? ''));
+        $shortName = trim((string) ($validated['short_name'] ?? ''));
+        if ($shortName === '') {
+            $shortName = mb_substr($firstName, 0, 3) . mb_substr($lastName, 0, 3);
+        }
+
+        $computedName = trim($firstName.' '.$lastName);
+        if ($computedName === '') {
+            $computedName = $validated['email'];
+        }
+
+        $allTabs = array_keys(User::tabLabels());
+        $tabPermissions = array_fill_keys($allTabs, false);
+        $tabPermissions[User::TAB_HOME] = true;
+        $tabPermissions[User::TAB_CLIENT_ZONE] = true;
+
+        $payload = [
+            'name' => $computedName,
+            'first_name' => $firstName !== '' ? $firstName : null,
+            'last_name' => $lastName !== '' ? $lastName : null,
+            'short_name' => $shortName !== '' ? $shortName : null,
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
+            'role' => UserRole::Client->value,
+            'tab_permissions' => $tabPermissions,
+        ];
+
+        if (! empty($validated['password'])) {
+            $payload['password'] = $validated['password'];
+        }
+
+        $user->update($payload);
+
+        return back()->with('status', __('ui.messages.company_client_updated'));
+    }
+
+    public function updateCompany(Request $request, Company $company): RedirectResponse
+    {
+        if (! $request->user()->canManageEverything()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'short_name' => ['nullable', 'string', 'max:32'],
+            'street' => ['nullable', 'string', 'max:255'],
+            'postal_code' => ['nullable', 'string', 'max:20'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:2000'],
+            'nip' => ['nullable', 'string', 'max:20'],
+            'auditor_id' => ['nullable', 'exists:users,id'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'email' => ['nullable', 'email', 'max:255'],
+        ]);
+
+        $normalizedName = Company::normalizeLegalForm(trim((string) $validated['name']));
+        $shortName = trim((string) ($validated['short_name'] ?? ''));
+        if ($shortName === '') {
+            $shortName = mb_substr($normalizedName, 0, 3);
+        }
+
+        $payload = [
+            'name' => $normalizedName,
+            'short_name' => $shortName,
+            'street' => $validated['street'] ?? null,
+            'postal_code' => $validated['postal_code'] ?? null,
+            'city' => $validated['city'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'auditor_id' => $validated['auditor_id'] ?? null,
+            'phone' => $validated['phone'] ?? null,
+            'email' => $validated['email'] ?? null,
+        ];
+
+        if (Schema::hasColumn('companies', 'nip')) {
+            $payload['nip'] = ! empty($validated['nip']) ? preg_replace('/\D+/', '', (string) $validated['nip']) : null;
+        }
+
+        $company->update($payload);
+
+        return back()->with('status', __('ui.messages.company_updated'));
+    }
+
+    public function destroyCompany(Request $request, Company $company): RedirectResponse
+    {
+        if (! $request->user()->canManageEverything()) {
+            abort(403);
+        }
+
+        $company->delete();
+
+        return back()->with('status', __('ui.messages.company_deleted'));
+    }
+
 }

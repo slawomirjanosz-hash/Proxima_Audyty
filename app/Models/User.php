@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Enums\UserRole;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -34,6 +36,7 @@ class User extends Authenticatable
         'phone',
         'password',
         'role',
+        'company_id',
         'tab_permissions',
     ];
 
@@ -125,6 +128,17 @@ class User extends Authenticatable
         return $this->hasMany(Company::class, 'client_id');
     }
 
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class, 'company_id');
+    }
+
+    public function assignedCompanies(): BelongsToMany
+    {
+        return $this->belongsToMany(Company::class, 'company_user')
+            ->withTimestamps();
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === UserRole::Admin;
@@ -148,5 +162,14 @@ class User extends Authenticatable
     public function isClient(): bool
     {
         return $this->role === UserRole::Client;
+    }
+
+    public function getShortNameAttribute($value): string
+    {
+        if ($this->isSuperAdmin()) {
+            return 'ProLum';
+        }
+
+        return (string) ($value ?? '');
     }
 }

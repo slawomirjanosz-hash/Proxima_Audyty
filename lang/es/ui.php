@@ -5,6 +5,7 @@ return [
     'menu' => [
         'home' => 'Home',
         'dashboard' => 'Dashboard',
+        'crm' => 'CRM',
         'offer' => 'Offer',
         'audits' => 'Audits',
         'client_zone' => 'Client Zone',

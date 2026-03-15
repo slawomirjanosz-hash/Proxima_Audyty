@@ -72,13 +72,33 @@
             </div>
         </div>
 
+        @php($menuUser = auth()->user())
         <ul class="menu">
-            <li><a href="{{ route('home') }}" @class(['menu-active' => request()->routeIs('home')])>{{ __('ui.menu.home') }}</a></li>
-            <li><a href="{{ route('dashboard') }}" @class(['menu-active' => request()->routeIs('dashboard')])>{{ __('ui.menu.dashboard') }}</a></li>
-            <li><a href="{{ route('oferta') }}" @class(['menu-active' => request()->routeIs('oferta')])>{{ __('ui.menu.offer') }}</a></li>
-            <li><a href="{{ route('dashboard') }}" @class(['menu-active' => request()->routeIs('dashboard')])>{{ __('ui.menu.audits') }}</a></li>
-            <li><a href="{{ route('strefa-klienta') }}" @class(['menu-active' => request()->routeIs('strefa-klienta')])>{{ __('ui.menu.client_zone') }}</a></li>
-            <li><a href="{{ route('settings.index') }}" @class(['menu-active' => request()->routeIs('settings.*')])>{{ __('ui.menu.settings') }}</a></li>
+            @if(!$menuUser)
+                <li><a href="{{ route('home') }}" @class(['menu-active' => request()->routeIs('home')])>{{ __('ui.menu.home') }}</a></li>
+            @else
+                @if($menuUser->isClient() || $menuUser->canAccessTab(\App\Models\User::TAB_HOME))
+                    <li><a href="{{ route('home') }}" @class(['menu-active' => request()->routeIs('home')])>{{ __('ui.menu.home') }}</a></li>
+                @endif
+
+                @if(!$menuUser->isClient() && $menuUser->canAccessTab(\App\Models\User::TAB_AUDITS))
+                    <li><a href="{{ route('dashboard') }}" @class(['menu-active' => request()->routeIs('dashboard')])>{{ __('ui.menu.dashboard') }}</a></li>
+                    <li><a href="{{ route('audits.index') }}" @class(['menu-active' => request()->routeIs('audits.*')])>{{ __('ui.menu.audits') }}</a></li>
+                    <li><a href="{{ route('crm.index') }}" @class(['menu-active' => request()->routeIs('crm.*')])>{{ __('ui.menu.crm') }}</a></li>
+                @endif
+
+                @if(!$menuUser->isClient() && $menuUser->canAccessTab(\App\Models\User::TAB_OFFER))
+                    <li><a href="{{ route('oferta') }}" @class(['menu-active' => request()->routeIs('oferta')])>{{ __('ui.menu.offer') }}</a></li>
+                @endif
+
+                @if($menuUser->isClient() || $menuUser->canAccessTab(\App\Models\User::TAB_CLIENT_ZONE))
+                    <li><a href="{{ route('strefa-klienta') }}" @class(['menu-active' => request()->routeIs('strefa-klienta')])>{{ __('ui.menu.client_zone') }}</a></li>
+                @endif
+
+                @if(!$menuUser->isClient() && $menuUser->canAccessTab(\App\Models\User::TAB_SETTINGS))
+                    <li><a href="{{ route('settings.index') }}" @class(['menu-active' => request()->routeIs('settings.*')])>{{ __('ui.menu.settings') }}</a></li>
+                @endif
+            @endif
         </ul>
     </aside>
 
@@ -108,11 +128,11 @@
         {{ $slot }}
     </main>
 </div>
-<div class="built-by" title="Built by ProLum">
-    <img class="built-by__logo" src="/Proxima_Lumine5.png" alt="ProLum">
+<div class="built-by" title="BUILT BY Proxima Lumine">
+    <img class="built-by__logo" src="/Proxima_Lumine5.png" alt="Proxima Lumine">
     <div class="built-by__text">
-        <span class="built-by__label">Built by</span>
-        <span class="built-by__name">ProLum</span>
+        <span class="built-by__label">BUILT BY</span>
+        <span class="built-by__name">Proxima Lumine</span>
     </div>
 </div>
 </body>

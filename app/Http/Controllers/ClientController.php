@@ -27,8 +27,17 @@ class ClientController extends Controller
             ]);
         }
 
+        $assignedCompanyIds = $user->assignedCompanies()->pluck('companies.id');
+
         $companies = Company::with(['client', 'auditor'])
-            ->where('client_id', $user->id)
+            ->where(function ($query) use ($user, $assignedCompanyIds) {
+                $query->where('client_id', $user->id)
+                    ->orWhereIn('id', $assignedCompanyIds);
+
+                if ($user->company_id) {
+                    $query->orWhere('id', $user->company_id);
+                }
+            })
             ->latest()
             ->get();
 

@@ -5,6 +5,7 @@ return [
     'menu' => [
         'home' => 'Home',
         'dashboard' => 'Dashboard',
+        'crm' => 'CRM',
         'offer' => 'Offer',
         'audits' => 'Audits',
         'client_zone' => 'Client Zone',
@@ -25,6 +26,12 @@ return [
         'user_permissions_updated' => 'User permissions have been updated.',
         'user_role_updated' => 'User role has been updated.',
         'company_assignments_updated' => 'Company assignments have been updated.',
+        'company_created' => 'Company has been created.',
+        'company_client_created' => 'Client person has been added to company.',
+        'company_updated' => 'Company has been updated.',
+        'company_deleted' => 'Company has been deleted.',
+        'company_contact_created' => 'Assigned person has been added to company.',
+        'company_client_updated' => 'Assigned person has been updated.',
     ],
     'auth' => [
         'title' => 'Login',
@@ -43,7 +50,6 @@ return [
             'auditor' => 'Auditor',
             'status' => 'Status',
             'updated' => 'Updated',
-            'created' => 'User has been created.',
         ],
     ],
     'client' => [
@@ -108,7 +114,6 @@ return [
             'first_name' => 'First name',
             'last_name' => 'Last name',
             'short_name' => 'Short name',
-            'short_name_required' => 'Short name cannot be empty. First and last name are required if short name is not provided.',
             'phone' => 'Phone',
             'password' => 'Password',
             'password_placeholder' => 'Leave empty to keep unchanged',
@@ -123,6 +128,12 @@ return [
         'clients' => [
             'title' => 'Clients and company assignments',
             'subtitle' => 'Assign clients and auditors to companies',
+            'add_button' => 'Add company',
+            'short_name' => 'Short name',
+            'add_client_person' => 'Add client person',
+            'client_people' => 'Client people',
+            'assigned_person_must_be_client' => 'The provided e-mail belongs to a user who is not a client.',
+            'password_required_for_new_person' => 'Password is required when creating a new assigned person.',
             'columns' => [
                 'company' => 'Company',
                 'current_client' => 'Current client',
@@ -131,6 +142,15 @@ return [
             ],
             'no_client' => 'No client',
             'no_auditor' => 'No auditor',
+            'lookup' => [
+                'button' => 'Fill by NIP',
+                'enter_nip' => 'Enter NIP to fetch company data.',
+                'loading' => 'Fetching company data by NIP...',
+                'success' => 'Company data has been filled in.',
+                'not_found' => 'No company data found for the provided NIP.',
+                'invalid_nip' => 'NIP must contain 10 digits.',
+                'error' => 'An error occurred while fetching company data by NIP.',
+            ],
         ],
         'pricing' => [
             'title' => 'Offer pricing',

@@ -5,6 +5,7 @@ return [
     'menu' => [
         'home' => 'Strona główna',
         'dashboard' => 'Dashboard',
+        'crm' => 'CRM',
         'offer' => 'Oferta',
         'audits' => 'Audyty',
         'client_zone' => 'Strefa klienta',
@@ -25,6 +26,12 @@ return [
         'user_permissions_updated' => 'Uprawnienia użytkownika zostały zaktualizowane.',
         'user_role_updated' => 'Rola użytkownika została zaktualizowana.',
         'company_assignments_updated' => 'Przypisania firmy zostały zaktualizowane.',
+        'company_created' => 'Firma została dodana.',
+        'company_client_created' => 'Osoba-klient została dodana do firmy.',
+        'company_updated' => 'Dane firmy zostały zaktualizowane.',
+        'company_deleted' => 'Firma została usunięta.',
+        'company_contact_created' => 'Osoba przypisana została dodana do firmy.',
+        'company_client_updated' => 'Dane osoby przypisanej zostały zaktualizowane.',
     ],
     'auth' => [
         'title' => 'Logowanie',
@@ -43,7 +50,6 @@ return [
             'auditor' => 'Audytor',
             'status' => 'Status',
             'updated' => 'Aktualizacja',
-            'created' => 'Użytkownik został dodany.',
         ],
     ],
     'client' => [
@@ -108,7 +114,6 @@ return [
             'first_name' => 'Imię',
             'last_name' => 'Nazwisko',
             'short_name' => 'Skrócona nazwa',
-            'short_name_required' => 'Skrócona nazwa nie może być pusta. Wymagane jest też imię i nazwisko jeśli nie podano skrótu.',
             'phone' => 'Telefon',
             'password' => 'Hasło',
             'password_placeholder' => 'Pozostaw puste, aby nie zmieniać',
@@ -123,6 +128,12 @@ return [
         'clients' => [
             'title' => 'Klienci i przypisania firm',
             'subtitle' => 'Przypisuj klientów i audytorów do firm',
+            'add_button' => 'Dodaj firmę',
+            'short_name' => 'Skrócona nazwa',
+            'add_client_person' => 'Dodaj osobę (klienta)',
+            'client_people' => 'Osoby klienta',
+            'assigned_person_must_be_client' => 'Podany e-mail należy do użytkownika, który nie jest klientem.',
+            'password_required_for_new_person' => 'Hasło jest wymagane przy tworzeniu nowej osoby przypisanej.',
             'columns' => [
                 'company' => 'Firma',
                 'current_client' => 'Aktualny klient',
@@ -131,6 +142,15 @@ return [
             ],
             'no_client' => 'Brak klienta',
             'no_auditor' => 'Brak audytora',
+            'lookup' => [
+                'button' => 'Uzupełnij po NIP',
+                'enter_nip' => 'Wpisz NIP, aby pobrać dane firmy.',
+                'loading' => 'Pobieranie danych z NIP...',
+                'success' => 'Dane firmy zostały uzupełnione.',
+                'not_found' => 'Nie znaleziono danych firmy dla podanego NIP.',
+                'invalid_nip' => 'NIP musi mieć 10 cyfr.',
+                'error' => 'Wystąpił błąd podczas pobierania danych po NIP.',
+            ],
         ],
         'pricing' => [
             'title' => 'Ceny ofert',

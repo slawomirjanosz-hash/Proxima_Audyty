@@ -19,61 +19,6 @@
         </section>
     @endif
 
-    @if($canManage)
-    <section class="panel" style="margin-bottom:18px;">
-        <form method="POST" action="{{ route('settings.user-store') }}" style="display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end;">
-            @csrf
-            <div style="display:flex; flex-direction:column;">
-                <label style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.first_name') }}</label>
-                <input type="text" name="first_name" value="{{ old('first_name') }}">
-            </div>
-            <div style="display:flex; flex-direction:column;">
-                <label style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.last_name') }}</label>
-                <input type="text" name="last_name" value="{{ old('last_name') }}">
-            </div>
-            <div style="display:flex; flex-direction:column;">
-                <label style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.short_name') }} <span style="color:#d00">*</span></label>
-                <input type="text" name="short_name" maxlength="32" required value="{{ old('short_name') }}">
-                @error('short_name')
-                    <span style="color:#d00; font-size:12px;">{{ $message }}</span>
-                @enderror
-            </div>
-            <div style="display:flex; flex-direction:column;">
-                <label style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.columns.email') }}</label>
-                <input type="email" name="email" required value="{{ old('email') }}">
-            </div>
-            <div style="display:flex; flex-direction:column;">
-                <label style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.phone') }}</label>
-                <input type="text" name="phone" value="{{ old('phone') }}">
-            </div>
-            <div style="display:flex; flex-direction:column;">
-                <label style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.password') }} <span style="color:#d00">*</span></label>
-                <input type="password" name="password" required placeholder="{{ __('ui.settings.users.password_placeholder') }}">
-            </div>
-            <div style="display:flex; flex-direction:column;">
-                <label style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.role_label') }}</label>
-                <select name="role" required>
-                    @foreach ([\App\Enums\UserRole::Admin, \App\Enums\UserRole::Auditor, \App\Enums\UserRole::Client] as $role)
-                        <option value="{{ $role->value }}" @selected(old('role') === $role->value)>{{ $role->label() }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div style="display:flex; flex-direction:column; min-width:180px;">
-                <label style="font-size:12px; font-weight:700; color:#4c6373;">Uprawnienia</label>
-                <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                    @foreach($tabLabels as $tabKey => $tabLabel)
-                        <label style="font-size:12px;">
-                            <input type="checkbox" name="tabs[{{ $tabKey }}]" value="1" @checked(old('tabs.'.$tabKey))>
-                            {{ $tabLabel }}
-                        </label>
-                    @endforeach
-                </div>
-            </div>
-            <button type="submit" style="background:#0e89d8; color:#fff; border:0; border-radius:9px; padding:8px 18px; font-weight:700;">Dodaj użytkownika</button>
-        </form>
-    </section>
-    @endif
-
     <style>
         .accordion { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
         .acc-item { background: #fff; border: 1px solid #d5e0ea; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 16px rgba(14,55,85,.05); }
@@ -123,6 +68,9 @@
         .perm-item input { margin: 0; }
         .permissions-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         .btn-secondary { background: #dbe9f5; color: #1d4f73; }
+        .audit-type-card { border: 1px solid #dfeaf3; border-radius: 10px; padding: 10px; margin-top: 10px; background:#fbfdff; }
+        .audit-type-section { margin-top: 8px; padding: 8px; border:1px solid #edf2f7; border-radius:8px; background:#fff; }
+        .audit-builder { display:none; margin-top:14px; padding:12px; border:1px solid #dfeaf3; border-radius:10px; background:#f9fcff; }
         @media (max-width: 960px) {
             .permissions-grid { grid-template-columns: 1fr 1fr; }
         }
@@ -184,11 +132,8 @@
                                                     <label for="last-name-{{ $user->id }}" style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.last_name') }}</label>
                                                     <input id="last-name-{{ $user->id }}" type="text" name="last_name" value="{{ old('last_name', $user->last_name) }}">
 
-                                                    <label for="short-name-{{ $user->id }}" style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.short_name') }} <span style="color:#d00">*</span></label>
-                                                    <input id="short-name-{{ $user->id }}" type="text" name="short_name" maxlength="32" required value="{{ old('short_name', $user->short_name ?? (\Illuminate\Support\Str::substr($user->first_name,0,3).\Illuminate\Support\Str::substr($user->last_name,0,3))) }}">
-                                                    @error('short_name')
-                                                        <span style="color:#d00; font-size:12px;">{{ $message }}</span>
-                                                    @enderror
+                                                    <label for="short-name-{{ $user->id }}" style="font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.short_name') }}</label>
+                                                    <input id="short-name-{{ $user->id }}" type="text" name="short_name" maxlength="32" value="{{ old('short_name', $user->short_name ?? (\Illuminate\Support\Str::substr($user->first_name,0,3).\Illuminate\Support\Str::substr($user->last_name,0,3))) }}">
                                                 </div>
 
                                                 <div class="inline-form" style="margin-bottom:10px;">
@@ -222,19 +167,7 @@
 
                                                 <div class="permissions-actions">
                                                     <button type="submit">{{ __('ui.settings.actions.save_permissions') }}</button>
-                                                    <button type="button" class="btn-secondary" onclick="if(document.getElementById('short-name-{{ $user->id }}').value.trim()===''){alert('{{ __('ui.settings.users.short_name_required') }}');return false;}toggleUserEditor({{ $user->id }})">{{ __('ui.settings.actions.cancel') }}</button>
-                                                </script>
-                                                <script>
-                                                // Prevent closing user editor if short_name is empty (also on outside click, if such logic exists)
-                                                window.preventUserEditorCloseIfShortNameEmpty = function(userId) {
-                                                    var input = document.getElementById('short-name-' + userId);
-                                                    if (input && input.value.trim() === '') {
-                                                        alert('{{ __('ui.settings.users.short_name_required') }}');
-                                                        return false;
-                                                    }
-                                                    return true;
-                                                }
-                                                </script>
+                                                    <button type="button" class="btn-secondary" onclick="toggleUserEditor({{ $user->id }})">{{ __('ui.settings.actions.cancel') }}</button>
                                                 </div>
                                             </form>
                                         </div>
@@ -258,44 +191,214 @@
                 <span class="acc-chevron">&#9660;</span>
             </button>
             <div class="acc-body">
+                @if($canManage)
+                    <button type="button" class="edit-user-btn" onclick="toggleAddCompanyForm()">{{ __('ui.settings.clients.add_button') }}</button>
+                    <form id="add-company-form" method="POST" action="{{ route('settings.company-store') }}" style="display:none; margin-top:14px; padding:12px; border:1px solid #dfeaf3; border-radius:10px; background:#f9fcff; flex-wrap:wrap; gap:10px; align-items:end;">
+                        @csrf
+                        <input type="hidden" name="open_add_company" value="1">
+                        <div>
+                            <label for="new-company-nip" style="display:block; font-size:12px; font-weight:700; color:#4c6373;">NIP</label>
+                            <input id="new-company-nip" type="text" name="nip" value="{{ old('nip') }}" placeholder="np. 5252445767">
+                        </div>
+                        <div>
+                            <label for="new-company-name" style="display:block; font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.clients.columns.company') }}</label>
+                            <input id="new-company-name" type="text" name="name" value="{{ old('name') }}" required>
+                        </div>
+                        <div>
+                            <label for="new-company-city" style="display:block; font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.client.tables.companies.columns.city') }}</label>
+                            <input id="new-company-city" type="text" name="city" value="{{ old('city') }}">
+                        </div>
+                        <div>
+                            <label for="new-company-street" style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Ulica</label>
+                            <input id="new-company-street" type="text" name="street" value="{{ old('street') }}">
+                        </div>
+                        <div>
+                            <label for="new-company-postal" style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Kod pocztowy</label>
+                            <input id="new-company-postal" type="text" name="postal_code" value="{{ old('postal_code') }}">
+                        </div>
+                        <div>
+                            <label for="new-company-auditor" style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Przypisany audytor</label>
+                            <select id="new-company-auditor" name="auditor_id">
+                                <option value="">{{ __('ui.settings.clients.no_auditor') }}</option>
+                                @foreach($auditors as $auditor)
+                                    <option value="{{ $auditor->id }}" @selected((string) old('auditor_id') === (string) $auditor->id)>{{ $auditor->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label for="new-company-phone" style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Telefon</label>
+                            <input id="new-company-phone" type="text" name="phone" value="{{ old('phone') }}">
+                        </div>
+                        <div>
+                            <label for="new-company-email" style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Email</label>
+                            <input id="new-company-email" type="email" name="email" value="{{ old('email') }}">
+                        </div>
+                        <div style="min-width:280px; flex:1;">
+                            <label for="new-company-description" style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Krótki opis</label>
+                            <input id="new-company-description" type="text" name="description" value="{{ old('description') }}">
+                        </div>
+                        <button type="button" class="btn-secondary" onclick="lookupCompanyByNip()">{{ __('ui.settings.clients.lookup.button') }}</button>
+                        <button type="submit">{{ __('ui.settings.clients.add_button') }}</button>
+                    </form>
+                    <div id="nip-lookup-message" style="margin-top:8px; font-size:12px; color:#4c6373;"></div>
+                @endif
+
                 <table>
                     <thead>
                         <tr>
                             <th>{{ __('ui.settings.clients.columns.company') }}</th>
-                            <th>{{ __('ui.settings.clients.columns.current_client') }}</th>
-                            <th>{{ __('ui.settings.clients.columns.current_auditor') }}</th>
                             <th>{{ __('ui.settings.clients.columns.action') }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($companies as $company)
                             <tr>
-                                <td><strong>{{ $company->name }}</strong></td>
-                                <td>{{ $company->client?->name ?? '—' }}</td>
-                                <td>{{ $company->auditor?->name ?? '—' }}</td>
+                                <td>
+                                    <button type="button" class="btn-secondary" style="font-weight:700;" onclick="toggleCompanyInfo({{ $company->id }})">{{ $company->name }}</button>
+                                </td>
                                 <td>
                                     @if($canManage)
-                                        <form class="inline-form" method="POST" action="{{ route('settings.company-assignments', $company) }}">
-                                            @csrf @method('PATCH')
-                                            <select name="client_id">
-                                                <option value="">{{ __('ui.settings.clients.no_client') }}</option>
-                                                @foreach($clients as $client)
-                                                    <option value="{{ $client->id }}" @selected($company->client_id === $client->id)>{{ $client->name }}</option>
-                                                @endforeach
-                                            </select>
-                                            <select name="auditor_id">
-                                                <option value="">{{ __('ui.settings.clients.no_auditor') }}</option>
-                                                @foreach($auditors as $auditor)
-                                                    <option value="{{ $auditor->id }}" @selected($company->auditor_id === $auditor->id)>{{ $auditor->name }}</option>
-                                                @endforeach
-                                            </select>
-                                            <button type="submit">{{ __('ui.settings.actions.save') }}</button>
+                                        <button type="button" class="edit-user-btn" onclick="toggleCompanyEditor({{ $company->id }})">Edytuj</button>
+                                        <form method="POST" action="{{ route('settings.company-destroy', $company) }}" style="display:inline-flex; margin-left:8px;" onsubmit="return confirm('Czy na pewno usunąć firmę?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn-secondary">Usuń</button>
                                         </form>
                                     @else
                                         <span style="color:#9ab4c5;font-size:13px;">—</span>
                                     @endif
                                 </td>
                             </tr>
+                            <tr id="company-info-{{ $company->id }}" class="permissions-row" style="display:none;">
+                                <td colspan="2">
+                                    <div class="permissions-panel" style="font-size:13px; color:#0f2330;">
+                                        <div><strong>Audytor:</strong> {{ $company->auditor?->name ?? '—' }}</div>
+                                        <div style="margin-top:6px;"><strong>Osoby przypisane:</strong>
+                                            @if($company->assignedUsers->isNotEmpty())
+                                                {{ $company->assignedUsers->map(fn($u) => ($u->short_name ?: $u->name).' ('.$u->email.')')->implode(', ') }}
+                                            @else
+                                                —
+                                            @endif
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            @if($canManage)
+                                <tr id="company-editor-{{ $company->id }}" class="permissions-row" style="display:none;">
+                                    <td colspan="2">
+                                        <div class="permissions-panel">
+                                            <form method="POST" action="{{ route('settings.company-update', $company) }}" style="display:grid; grid-template-columns:repeat(3, minmax(220px,1fr)); gap:10px 14px;">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="open_company_editor_id" value="{{ $company->id }}">
+
+                                                <div>
+                                                    <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Nazwa</label>
+                                                    <input type="text" name="name" value="{{ $company->name }}" required>
+                                                </div>
+                                                <div>
+                                                    <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Nazwa skrócona</label>
+                                                    <input type="text" name="short_name" maxlength="32" value="{{ $company->short_name ?: \Illuminate\Support\Str::substr($company->name,0,3) }}">
+                                                </div>
+                                                <div>
+                                                    <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">NIP</label>
+                                                    <input type="text" name="nip" value="{{ $company->nip }}">
+                                                </div>
+                                                <div>
+                                                    <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Ulica</label>
+                                                    <input type="text" name="street" value="{{ $company->street }}">
+                                                </div>
+                                                <div>
+                                                    <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Kod pocztowy</label>
+                                                    <input type="text" name="postal_code" value="{{ $company->postal_code }}">
+                                                </div>
+                                                <div>
+                                                    <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Miejscowość</label>
+                                                    <input type="text" name="city" value="{{ $company->city }}">
+                                                </div>
+                                                <div>
+                                                    <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Telefon</label>
+                                                    <input type="text" name="phone" value="{{ $company->phone }}">
+                                                </div>
+                                                <div>
+                                                    <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Email</label>
+                                                    <input type="email" name="email" value="{{ $company->email }}">
+                                                </div>
+                                                <div>
+                                                    <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Przypisany audytor</label>
+                                                    <select name="auditor_id">
+                                                        <option value="">{{ __('ui.settings.clients.no_auditor') }}</option>
+                                                        @foreach($auditors as $auditor)
+                                                            <option value="{{ $auditor->id }}" @selected($company->auditor_id === $auditor->id)>{{ $auditor->name }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <div style="grid-column:1 / -1;">
+                                                    <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Krótki opis</label>
+                                                    <textarea name="description" rows="2" style="width:100%; border:1px solid #c9d7e3; border-radius:9px; padding:8px 10px; font-size:14px;">{{ $company->description }}</textarea>
+                                                </div>
+                                                <div class="permissions-actions" style="grid-column:1 / -1;">
+                                                    <button type="submit">{{ __('ui.settings.actions.save') }}</button>
+                                                </div>
+                                            </form>
+
+                                            <div style="margin-top:12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                                                <button type="button" class="btn-secondary" onclick="toggleCompanyContactsForm({{ $company->id }})">Osoby przypisane</button>
+                                                @if($company->assignedUsers->isNotEmpty())
+                                                    <span style="font-size:12px; color:#4c6373;">{{ $company->assignedUsers->pluck('short_name')->filter()->implode(', ') }}</span>
+                                                @endif
+                                            </div>
+
+                                            <form id="company-contacts-form-{{ $company->id }}" method="POST" action="{{ route('settings.company-client-store', $company) }}" style="display:none; margin-top:10px;" class="inline-form">
+                                                @csrf
+                                                <input type="hidden" name="open_company_editor_id" value="{{ $company->id }}">
+                                                <input type="hidden" name="open_company_contacts" value="1">
+                                                <input type="text" name="first_name" placeholder="Imię">
+                                                <input type="text" name="last_name" placeholder="Nazwisko">
+                                                <input type="text" name="short_name" placeholder="Skrócona nazwa">
+                                                <input type="email" name="email" placeholder="Email" required>
+                                                <input type="text" name="phone" placeholder="Telefon">
+                                                <input type="password" name="password" placeholder="Hasło (dla nowej osoby)">
+                                                <button type="submit">Dodaj osobę przypisaną</button>
+                                            </form>
+
+                                            @if($company->assignedUsers->isNotEmpty())
+                                                <div style="margin-top:10px; display:grid; gap:6px;">
+                                                    @foreach($company->assignedUsers as $assignedUser)
+                                                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                                            <span style="font-size:12px; color:#4c6373; min-width:220px;">
+                                                                {{ $assignedUser->short_name ?: $assignedUser->name }} ({{ $assignedUser->email }})
+                                                            </span>
+                                                            <button type="button" class="btn-secondary" onclick="toggleAssignedUserEditor({{ $company->id }}, {{ $assignedUser->id }})">Edytuj osobę</button>
+                                                        </div>
+
+                                                        <form id="assigned-user-editor-{{ $company->id }}-{{ $assignedUser->id }}" method="POST" action="{{ route('settings.company-client-update', [$company, $assignedUser]) }}" class="inline-form" style="display:none; margin-left:16px; flex-wrap:wrap;">
+                                                            @csrf
+                                                            @method('PATCH')
+                                                            <input type="hidden" name="open_company_editor_id" value="{{ $company->id }}">
+                                                            <input type="hidden" name="open_company_contacts" value="1">
+                                                            <input type="hidden" name="open_assigned_user_id" value="{{ $assignedUser->id }}">
+                                                            <input type="text" name="first_name" value="{{ old('open_assigned_user_id') == $assignedUser->id ? old('first_name', $assignedUser->first_name) : $assignedUser->first_name }}" placeholder="Imię">
+                                                            <input type="text" name="last_name" value="{{ old('open_assigned_user_id') == $assignedUser->id ? old('last_name', $assignedUser->last_name) : $assignedUser->last_name }}" placeholder="Nazwisko">
+                                                            <input type="text" name="short_name" value="{{ old('open_assigned_user_id') == $assignedUser->id ? old('short_name', $assignedUser->short_name) : $assignedUser->short_name }}" placeholder="Skrócona nazwa">
+                                                            <input type="email" name="email" value="{{ old('open_assigned_user_id') == $assignedUser->id ? old('email', $assignedUser->email) : $assignedUser->email }}" placeholder="Email" required>
+                                                            <input type="text" name="phone" value="{{ old('open_assigned_user_id') == $assignedUser->id ? old('phone', $assignedUser->phone) : $assignedUser->phone }}" placeholder="Telefon">
+                                                            <input type="password" name="password" placeholder="Nowe hasło (opcjonalnie)">
+                                                            <button type="submit">Zapisz osobę</button>
+                                                        </form>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+
+                                            @if($errors->has('password') || $errors->has('email'))
+                                                <div style="margin-top:6px; font-size:12px; color:#b42318;">
+                                                    {{ $errors->first('password') ?: $errors->first('email') }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endif
                         @endforeach
                     </tbody>
                 </table>
@@ -370,6 +473,141 @@
             const visible = row.style.display !== 'none';
             row.style.display = visible ? 'none' : 'table-row';
         }
+
+        function toggleCompanyEditor(companyId) {
+            const row = document.getElementById('company-editor-' + companyId);
+            if (!row) {
+                return;
+            }
+
+            const visible = row.style.display !== 'none';
+            row.style.display = visible ? 'none' : 'table-row';
+        }
+
+        function toggleCompanyInfo(companyId) {
+            const row = document.getElementById('company-info-' + companyId);
+            if (!row) {
+                return;
+            }
+
+            const visible = row.style.display !== 'none';
+            row.style.display = visible ? 'none' : 'table-row';
+        }
+
+        function toggleCompanyContactsForm(companyId) {
+            const form = document.getElementById('company-contacts-form-' + companyId);
+            if (!form) {
+                return;
+            }
+
+            const visible = form.style.display !== 'none';
+            form.style.display = visible ? 'none' : 'flex';
+        }
+
+        function toggleAssignedUserEditor(companyId, userId) {
+            const form = document.getElementById('assigned-user-editor-' + companyId + '-' + userId);
+            if (!form) {
+                return;
+            }
+
+            const visible = form.style.display !== 'none';
+            form.style.display = visible ? 'none' : 'flex';
+        }
+
+        function toggleAddCompanyForm() {
+            const form = document.getElementById('add-company-form');
+            if (!form) {
+                return;
+            }
+
+            const visible = form.style.display !== 'none';
+            form.style.display = visible ? 'none' : 'flex';
+        }
+
+
+        async function lookupCompanyByNip() {
+            const nipInput = document.getElementById('new-company-nip');
+            const nameInput = document.getElementById('new-company-name');
+            const streetInput = document.getElementById('new-company-street');
+            const postalInput = document.getElementById('new-company-postal');
+            const cityInput = document.getElementById('new-company-city');
+            const messageBox = document.getElementById('nip-lookup-message');
+
+            if (!nipInput || !nameInput || !streetInput || !postalInput || !cityInput || !messageBox) {
+                return;
+            }
+
+            const nip = nipInput.value.trim();
+
+            if (!nip) {
+                messageBox.textContent = '{{ __('ui.settings.clients.lookup.enter_nip') }}';
+                return;
+            }
+
+            messageBox.textContent = '{{ __('ui.settings.clients.lookup.loading') }}';
+
+            try {
+                const params = new URLSearchParams({ nip });
+                const response = await fetch(`{{ route('settings.company-lookup-by-nip', [], false) }}?${params.toString()}`, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
+
+                const payload = await response.json();
+
+                if (!response.ok || !payload.ok) {
+                    messageBox.textContent = payload.message || '{{ __('ui.settings.clients.lookup.not_found') }}';
+                    return;
+                }
+
+                nameInput.value = payload.data?.name ?? '';
+                streetInput.value = payload.data?.street ?? '';
+                postalInput.value = payload.data?.postal_code ?? '';
+                cityInput.value = payload.data?.city ?? '';
+                nipInput.value = payload.data?.nip ?? nip;
+                messageBox.textContent = '{{ __('ui.settings.clients.lookup.success') }}';
+            } catch (error) {
+                messageBox.textContent = '{{ __('ui.settings.clients.lookup.error') }}';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const openAddCompany = @json(old('open_add_company'));
+            const openCompanyEditorId = @json(old('open_company_editor_id'));
+            const openCompanyContacts = @json(old('open_company_contacts'));
+            const openAssignedUserId = @json(old('open_assigned_user_id'));
+
+            if (openAddCompany) {
+                const addForm = document.getElementById('add-company-form');
+                if (addForm) {
+                    addForm.style.display = 'flex';
+                }
+            }
+
+            if (openCompanyEditorId) {
+                const editorRow = document.getElementById('company-editor-' + openCompanyEditorId);
+                if (editorRow) {
+                    editorRow.style.display = 'table-row';
+                }
+
+                if (openCompanyContacts) {
+                    const contactsForm = document.getElementById('company-contacts-form-' + openCompanyEditorId);
+                    if (contactsForm) {
+                        contactsForm.style.display = 'flex';
+                    }
+                }
+
+                if (openAssignedUserId) {
+                    const userEditForm = document.getElementById('assigned-user-editor-' + openCompanyEditorId + '-' + openAssignedUserId);
+                    if (userEditForm) {
+                        userEditForm.style.display = 'flex';
+                    }
+                }
+            }
+
+        });
     </script>
 
 </x-layouts.app>
