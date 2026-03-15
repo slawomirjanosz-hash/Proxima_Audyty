@@ -66,6 +66,18 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/audyty/ustawienia/rodzaje', [AuditsController::class, 'storeAuditType'])
         ->middleware('role:admin,auditor')
         ->name('audits.settings.audit-type-store');
+    Route::patch('/audyty/ustawienia/rodzaje/{auditType}', [AuditsController::class, 'updateAuditType'])
+        ->middleware('role:admin,auditor')
+        ->name('audits.settings.audit-type-update');
+    Route::post('/audyty/ustawienia/jednostki', [AuditsController::class, 'storeUnit'])
+        ->middleware('role:admin,auditor')
+        ->name('audits.settings.unit-store');
+    Route::patch('/audyty/ustawienia/jednostki/{unit}', [AuditsController::class, 'updateUnit'])
+        ->middleware('role:admin,auditor')
+        ->name('audits.settings.unit-update');
+    Route::delete('/audyty/ustawienia/jednostki/{unit}', [AuditsController::class, 'destroyUnit'])
+        ->middleware('role:admin,auditor')
+        ->name('audits.settings.unit-destroy');
     Route::delete('/audyty/ustawienia/rodzaje/{auditType}', [AuditsController::class, 'destroyAuditType'])
         ->middleware('role:admin,auditor')
         ->name('audits.settings.audit-type-destroy');
@@ -163,6 +175,10 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/settings', [SettingsController::class, 'index'])
         ->middleware('role:admin')
         ->name('settings.index');
+
+    Route::post('/settings/users', [SettingsController::class, 'storeUser'])
+        ->middleware('role:admin')
+        ->name('settings.user-store');
 
     Route::patch('/settings/users/{user}/role', [SettingsController::class, 'updateRole'])
         ->middleware('role:admin')

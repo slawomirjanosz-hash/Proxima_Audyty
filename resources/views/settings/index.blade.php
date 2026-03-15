@@ -89,6 +89,57 @@
                 <span class="acc-chevron">&#9660;</span>
             </button>
             <div class="acc-body">
+                @if($canManage)
+                    <button type="button" class="edit-user-btn" onclick="toggleAddUserForm()">{{ __('ui.settings.users.add_button') }}</button>
+                    <form id="add-user-form" method="POST" action="{{ route('settings.user-store') }}" style="display:none; margin-top:14px; padding:12px; border:1px solid #dfeaf3; border-radius:10px; background:#f9fcff; flex-wrap:wrap; gap:10px; align-items:end;">
+                        @csrf
+                        <input type="hidden" name="open_add_user" value="1">
+
+                        <div>
+                            <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.first_name') }}</label>
+                            <input type="text" name="first_name" value="{{ old('first_name') }}" required>
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.last_name') }}</label>
+                            <input type="text" name="last_name" value="{{ old('last_name') }}" required>
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.columns.email') }}</label>
+                            <input type="email" name="email" value="{{ old('email') }}" required>
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.phone') }}</label>
+                            <input type="text" name="phone" value="{{ old('phone') }}">
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.password') }}</label>
+                            <input type="password" name="password" required>
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">{{ __('ui.settings.users.role_label') }}</label>
+                            <select name="role" required>
+                                @foreach ([\App\Enums\UserRole::Admin, \App\Enums\UserRole::Auditor, \App\Enums\UserRole::Client] as $role)
+                                    <option value="{{ $role->value }}" @selected(old('role') === $role->value)>{{ $role->label() }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div style="display:flex; flex-direction:column; min-width:220px;">
+                            <label style="font-size:12px; font-weight:700; color:#4c6373;">Uprawnienia zakładek</label>
+                            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                @foreach($tabLabels as $tabKey => $tabLabel)
+                                    <label style="font-size:12px;">
+                                        <input type="checkbox" name="tabs[{{ $tabKey }}]" value="1" @checked(old('tabs.'.$tabKey))>
+                                        {{ $tabLabel }}
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <button type="submit">{{ __('ui.settings.users.add_button') }}</button>
+                    </form>
+                @endif
+
                 <table>
                     <thead>
                         <tr>
@@ -474,6 +525,16 @@
             row.style.display = visible ? 'none' : 'table-row';
         }
 
+        function toggleAddUserForm() {
+            const form = document.getElementById('add-user-form');
+            if (!form) {
+                return;
+            }
+
+            const visible = form.style.display !== 'none';
+            form.style.display = visible ? 'none' : 'flex';
+        }
+
         function toggleCompanyEditor(companyId) {
             const row = document.getElementById('company-editor-' + companyId);
             if (!row) {
@@ -574,10 +635,18 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
+            const openAddUser = @json(old('open_add_user'));
             const openAddCompany = @json(old('open_add_company'));
             const openCompanyEditorId = @json(old('open_company_editor_id'));
             const openCompanyContacts = @json(old('open_company_contacts'));
             const openAssignedUserId = @json(old('open_assigned_user_id'));
+
+            if (openAddUser) {
+                const addUserForm = document.getElementById('add-user-form');
+                if (addUserForm) {
+                    addUserForm.style.display = 'flex';
+                }
+            }
 
             if (openAddCompany) {
                 const addForm = document.getElementById('add-company-form');

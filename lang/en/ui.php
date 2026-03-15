@@ -23,6 +23,7 @@ return [
     'messages' => [
         'invalid_credentials' => 'Invalid email or password.',
         'logged_out' => 'You have been logged out.',
+        'user_created' => 'User has been created.',
         'user_permissions_updated' => 'User permissions have been updated.',
         'user_role_updated' => 'User role has been updated.',
         'company_assignments_updated' => 'Company assignments have been updated.',
@@ -111,6 +112,7 @@ return [
         'users' => [
             'title' => 'Users and permissions',
             'subtitle' => 'Manage user accounts and assign system roles',
+            'add_button' => 'Add user',
             'first_name' => 'First name',
             'last_name' => 'Last name',
             'short_name' => 'Short name',

@@ -23,6 +23,7 @@ return [
     'messages' => [
         'invalid_credentials' => 'Nieprawidłowy e-mail lub hasło.',
         'logged_out' => 'Zostałeś wylogowany.',
+        'user_created' => 'Użytkownik został dodany.',
         'user_permissions_updated' => 'Uprawnienia użytkownika zostały zaktualizowane.',
         'user_role_updated' => 'Rola użytkownika została zaktualizowana.',
         'company_assignments_updated' => 'Przypisania firmy zostały zaktualizowane.',
@@ -111,6 +112,7 @@ return [
         'users' => [
             'title' => 'Użytkownicy i uprawnienia',
             'subtitle' => 'Zarządzaj kontami użytkowników i przypisuj role systemowe',
+            'add_button' => 'Dodaj użytkownika',
             'first_name' => 'Imię',
             'last_name' => 'Nazwisko',
             'short_name' => 'Skrócona nazwa',

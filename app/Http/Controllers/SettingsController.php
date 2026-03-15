@@ -16,6 +16,69 @@ use Illuminate\View\View;
 
 class SettingsController extends Controller
 {
+    public function storeUser(Request $request): RedirectResponse
+    {
+        if (! $request->user()->canManageEverything()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'first_name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'password' => ['required', 'string', 'min:8'],
+            'role' => ['required', Rule::in([
+                UserRole::Admin->value,
+                UserRole::Auditor->value,
+                UserRole::Client->value,
+            ])],
+            'tabs' => ['array'],
+            'tabs.*' => ['nullable', 'boolean'],
+        ]);
+
+        $firstName = trim((string) $validated['first_name']);
+        $lastName = trim((string) $validated['last_name']);
+        $computedName = trim($firstName.' '.$lastName);
+
+        $shortName = mb_substr($firstName, 0, 3).mb_substr($lastName, 0, 3);
+        if ($shortName === '') {
+            $shortName = mb_substr((string) $validated['email'], 0, 6);
+        }
+
+        $allTabs = array_keys(User::tabLabels());
+        $submittedTabs = (array) ($validated['tabs'] ?? []);
+        $permissions = [];
+        foreach ($allTabs as $tab) {
+            $permissions[$tab] = (bool) ($submittedTabs[$tab] ?? false);
+        }
+
+        $payload = [
+            'name' => $computedName,
+            'short_name' => $shortName,
+            'email' => $validated['email'],
+            'password' => $validated['password'],
+            'role' => $validated['role'],
+            'tab_permissions' => $permissions,
+        ];
+
+        if (Schema::hasColumn('users', 'first_name')) {
+            $payload['first_name'] = $firstName;
+        }
+
+        if (Schema::hasColumn('users', 'last_name')) {
+            $payload['last_name'] = $lastName;
+        }
+
+        if (Schema::hasColumn('users', 'phone')) {
+            $payload['phone'] = $validated['phone'] ?? null;
+        }
+
+        User::create($payload);
+
+        return back()->with('status', __('ui.messages.user_created'));
+    }
+
     public function index(Request $request): View
     {
         $user = $request->user();

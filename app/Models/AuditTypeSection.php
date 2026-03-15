@@ -16,11 +16,13 @@ class AuditTypeSection extends Model
         'position',
         'tasks',
         'data_fields',
+        'formulas',
     ];
 
     protected $casts = [
         'tasks' => 'array',
         'data_fields' => 'array',
+        'formulas' => 'array',
     ];
 
     public function auditType(): BelongsTo
