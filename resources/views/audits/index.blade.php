@@ -122,6 +122,7 @@
                                 </div>
                             </div>
                             <div class="audit-actions">
+                                <a class="btn-secondary" style="text-decoration:none; padding:8px 10px; border-radius:9px;" href="{{ route('audits.show', $audit) }}">Info</a>
                                 <form method="POST" action="{{ route('audits.complete', $audit) }}" style="display:inline;">
                                     @csrf
                                     @method('PATCH')
@@ -165,6 +166,7 @@
                                 </div>
                             </div>
                             <div class="audit-actions">
+                                <a class="btn-secondary" style="text-decoration:none; padding:8px 10px; border-radius:9px;" href="{{ route('audits.show', $audit) }}">Info</a>
                                 <form method="POST" action="{{ route('audits.reopen', $audit) }}" style="display:inline;">
                                     @csrf
                                     @method('PATCH')

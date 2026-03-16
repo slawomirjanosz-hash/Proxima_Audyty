@@ -4,6 +4,7 @@
             .settings-section { border: 1px solid #d2e3f1; border-radius: 14px; background: #fff; margin-top: 14px; overflow: hidden; box-shadow: 0 4px 14px rgba(18, 72, 110, 0.06); }
             .settings-toggle { width: 100%; border: none; background: #fafdff; display:flex; justify-content:space-between; align-items:center; gap:10px; padding: 14px 14px; cursor:pointer; }
             .settings-toggle:hover { background:#f2f8fe; }
+            .settings-toggle-content { text-align:left; display:flex; flex-direction:column; align-items:flex-start; }
             .settings-toggle h2 { margin:0; font-size:19px; font-weight:800; color:#10344c; letter-spacing:.2px; }
             .settings-toggle .muted { margin:5px 0 0; font-size:13px; color:#355c77; }
             .settings-body { display:none; padding: 0 12px 12px; border-top:1px solid #e8f1f8; }
@@ -40,9 +41,9 @@
 
         <div class="settings-section open" id="settings-audit-types">
             <button type="button" class="settings-toggle" onclick="toggleSettingsSection('settings-audit-types')">
-                <div>
-                    <h2 style="margin:0;">Rodzaje audytów</h2>
-                    <p class="muted" style="margin:4px 0 0;">Tworzenie rodzaju audytu jako osobna sekcja.</p>
+                <div class="settings-toggle-content">
+                    <h2>Rodzaje audytów</h2>
+                    <p class="muted">Tworzenie rodzaju audytu jako osobna sekcja.</p>
                 </div>
                 <span class="settings-chevron">&#9660;</span>
             </button>
@@ -315,9 +316,9 @@
 
         <div class="settings-section" id="settings-units">
             <button type="button" class="settings-toggle" onclick="toggleSettingsSection('settings-units')">
-                <div>
-                    <h2 style="margin:0;">Jednostki</h2>
-                    <p class="muted" style="margin:4px 0 0;">Kolejna sekcja ustawień audytów, z możliwością dodawania kolejnych jednostek.</p>
+                <div class="settings-toggle-content">
+                    <h2>Jednostki</h2>
+                    <p class="muted">Kolejna sekcja ustawień audytów, z możliwością dodawania kolejnych jednostek.</p>
                 </div>
                 <span class="settings-chevron">&#9660;</span>
             </button>

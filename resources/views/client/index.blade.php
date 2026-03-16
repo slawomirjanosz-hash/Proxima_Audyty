@@ -118,6 +118,19 @@
             border-bottom: 2px solid #e8f0f7;
             margin-bottom: 0;
         }
+        .company-list { display:grid; gap:10px; margin-top:14px; }
+        .company-item { border:1px solid #d7e5f0; border-radius:12px; overflow:hidden; background:#fbfdff; }
+        .company-header { width:100%; border:none; background:#f6fbff; padding:12px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; text-align:left; }
+        .company-header:hover { background:#eef6ff; }
+        .company-main { display:flex; flex-direction:column; gap:3px; }
+        .company-title { font-weight:800; color:#10344c; }
+        .company-meta { font-size:12px; color:#4c6373; }
+        .company-chevron { color:#6b8aa3; font-size:16px; transition:transform .2s; }
+        .company-item.open .company-chevron { transform:rotate(180deg); }
+        .company-body { display:none; padding:12px; border-top:1px solid #e0ecf5; }
+        .company-item.open .company-body { display:block; }
+        .company-audits-list { margin:0; padding-left:18px; display:grid; gap:6px; }
+        .company-audits-list li { color:#2f4e65; font-size:13px; }
         @media (max-width: 800px) {
             .stat-grid { grid-template-columns: 1fr 1fr; }
             .client-hero { padding: 24px 22px; }
@@ -161,100 +174,65 @@
             <div class="stat-sub">{{ __('ui.client.stats.companies_sub') }}</div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">{{ __('ui.client.stats.active_offers') }}</div>
-            <div class="stat-value">{{ $offers->count() }}</div>
-            <div class="stat-sub">{{ __('ui.client.stats.active_offers_sub') }}</div>
-        </div>
-        <div class="stat-card">
             <div class="stat-label">{{ __('ui.client.stats.audits') }}</div>
             <div class="stat-value">{{ $audits->count() }}</div>
             <div class="stat-sub">{{ __('ui.client.stats.audits_sub') }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Firmy z audytami</div>
+            <div class="stat-value">{{ ($auditsByCompany ?? collect())->count() }}</div>
+            <div class="stat-sub">kliknij firmę, aby zobaczyć przypisane audyty</div>
         </div>
     </div>
 
     {{-- Companies table --}}
     <section class="panel">
         <p class="section-title">{{ __('ui.client.tables.companies.title') }}</p>
-        <table style="margin-top:14px;">
-            <thead>
-                <tr>
-                    <th>{{ __('ui.client.tables.companies.columns.company_name') }}</th>
-                    <th>{{ __('ui.client.tables.companies.columns.city') }}</th>
-                    <th>{{ __('ui.client.tables.companies.columns.assigned_auditor') }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($companies as $company)
-                    <tr>
-                        <td><strong>{{ $company->name }}</strong></td>
-                        <td>{{ $company->city ?? '—' }}</td>
-                        <td>{{ $company->auditor?->name ?? '—' }}</td>
-                    </tr>
-                @empty
-                    <tr><td colspan="3" style="color:#9ab4c5; text-align:center; padding:24px;">{{ __('ui.client.tables.companies.empty') }}</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+        <div class="company-list">
+            @forelse($companies as $company)
+                @php($companyAudits = ($auditsByCompany[(string) $company->id] ?? collect()))
+                <div class="company-item" id="company-item-{{ $company->id }}">
+                    <button type="button" class="company-header" onclick="toggleCompanyItem('{{ $company->id }}')">
+                        <div class="company-main">
+                            <span class="company-title">{{ $loop->iteration }}. {{ $company->name }}</span>
+                            <span class="company-meta">{{ __('ui.client.tables.companies.columns.city') }}: {{ $company->city ?? '—' }} • {{ __('ui.client.tables.companies.columns.assigned_auditor') }}: {{ $company->auditor?->name ?? '—' }}</span>
+                        </div>
+                        <span class="company-chevron">&#9660;</span>
+                    </button>
+                    <div class="company-body">
+                        <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:#4c6373; margin-bottom:8px;">Przypisane audyty</div>
+                        @if($companyAudits->isNotEmpty())
+                            <ul class="company-audits-list">
+                                @foreach($companyAudits as $audit)
+                                    <li>
+                                        <strong>{{ $audit->title }}</strong>
+                                        — status: {{ $audit->status }}
+                                        @if($audit->auditor)
+                                            — audytor: {{ $audit->auditor->name }}
+                                        @endif
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @else
+                            <div style="color:#9ab4c5; font-size:13px;">Brak przypisanych audytów.</div>
+                        @endif
+                    </div>
+                </div>
+            @empty
+                <div style="color:#9ab4c5; text-align:center; padding:24px;">{{ __('ui.client.tables.companies.empty') }}</div>
+            @endforelse
+        </div>
     </section>
 
-    {{-- Offers --}}
-    <section class="panel">
-        <p class="section-title">{{ __('ui.client.tables.offers.title') }}</p>
-        <table style="margin-top:14px;">
-            <thead>
-                <tr>
-                    <th>{{ __('ui.client.tables.offers.columns.title') }}</th>
-                    <th>{{ __('ui.client.tables.offers.columns.status') }}</th>
-                    <th>{{ __('ui.client.tables.offers.columns.company') }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($offers as $offer)
-                    <tr>
-                        <td><strong>{{ $offer->title }}</strong></td>
-                        <td>
-                            <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;background:#eaf2ff;color:#154f93;">
-                                {{ $offer->status }}
-                            </span>
-                        </td>
-                        <td>{{ $offer->company?->name ?? '—' }}</td>
-                    </tr>
-                @empty
-                    <tr><td colspan="3" style="color:#9ab4c5; text-align:center; padding:24px;">{{ __('ui.client.tables.offers.empty') }}</td></tr>
-                @endforelse
-            </tbody>
-        </table>
-    </section>
+    <script>
+        function toggleCompanyItem(companyId) {
+            const item = document.getElementById('company-item-' + companyId);
+            if (!item) {
+                return;
+            }
 
-    {{-- Audits --}}
-    <section class="panel">
-        <p class="section-title">{{ __('ui.client.tables.audits.title') }}</p>
-        <table style="margin-top:14px;">
-            <thead>
-                <tr>
-                    <th>{{ __('ui.client.tables.audits.columns.title') }}</th>
-                    <th>{{ __('ui.client.tables.audits.columns.status') }}</th>
-                    <th>{{ __('ui.client.tables.audits.columns.company') }}</th>
-                    <th>{{ __('ui.client.tables.audits.columns.auditor') }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($audits as $audit)
-                    <tr>
-                        <td><strong>{{ $audit->title }}</strong></td>
-                        <td>
-                            <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;background:#d9f6e3;color:#0c5f28;">
-                                {{ $audit->status }}
-                            </span>
-                        </td>
-                        <td>{{ $audit->company?->name ?? '—' }}</td>
-                        <td>{{ $audit->auditor?->name ?? '—' }}</td>
-                    </tr>
-                @empty
-                    <tr><td colspan="4" style="color:#9ab4c5; text-align:center; padding:24px;">{{ __('ui.client.tables.audits.empty') }}</td></tr>
-                @endforelse
-            </tbody>
-        </table>
-    </section>
+            item.classList.toggle('open');
+        }
+    </script>
 
 </x-layouts.app>

@@ -18,11 +18,15 @@ class ClientController extends Controller
             $companies = Company::with(['client', 'auditor'])->latest()->get();
             $offers = Offer::with('company')->latest()->get();
             $audits = EnergyAudit::with(['company', 'auditor'])->latest()->get();
+            $auditsByCompany = $audits
+                ->filter(fn ($audit) => $audit->company_id !== null)
+                ->groupBy(fn ($audit) => (string) $audit->company_id);
 
             return view('client.index', [
                 'companies' => $companies,
                 'offers' => $offers,
                 'audits' => $audits,
+                'auditsByCompany' => $auditsByCompany,
                 'previewMode' => true,
             ]);
         }
@@ -53,10 +57,15 @@ class ClientController extends Controller
             ->latest()
             ->get();
 
+        $auditsByCompany = $audits
+            ->filter(fn ($audit) => $audit->company_id !== null)
+            ->groupBy(fn ($audit) => (string) $audit->company_id);
+
         return view('client.index', [
             'companies' => $companies,
             'offers'    => $offers,
             'audits'    => $audits,
+            'auditsByCompany' => $auditsByCompany,
             'previewMode' => false,
         ]);
     }

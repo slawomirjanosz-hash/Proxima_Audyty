@@ -48,6 +48,9 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/audyty', [AuditsController::class, 'store'])
         ->middleware('role:admin,auditor')
         ->name('audits.store');
+    Route::get('/audyty/{audit}/info', [AuditsController::class, 'show'])
+        ->middleware('role:admin,auditor')
+        ->name('audits.show');
     Route::get('/audyty/{audit}/edytuj', [AuditsController::class, 'edit'])
         ->middleware('role:admin,auditor')
         ->name('audits.edit');

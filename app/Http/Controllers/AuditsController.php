@@ -90,6 +90,15 @@ class AuditsController extends Controller
         ]);
     }
 
+    public function show(EnergyAudit $audit): View
+    {
+        $audit->load(['company', 'auditor', 'auditType.sections']);
+
+        return view('audits.show', [
+            'audit' => $audit,
+        ]);
+    }
+
     public function update(Request $request, EnergyAudit $audit): RedirectResponse
     {
         $validated = $request->validate([
