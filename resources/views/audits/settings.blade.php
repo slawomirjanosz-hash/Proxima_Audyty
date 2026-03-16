@@ -12,6 +12,13 @@
             .settings-chevron { color:#6b8aa3; font-size:18px; transition:transform .2s; }
             .settings-section.open .settings-chevron { transform: rotate(180deg); }
             .audit-type-card { border: 1px solid #dfeaf3; border-radius: 10px; padding: 10px; margin-top: 10px; background:#fbfdff; }
+            .audit-type-header { display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
+            .audit-type-title-btn { border:none; background:transparent; padding:0; margin:0; font:inherit; cursor:pointer; color:#10344c; font-weight:800; font-size:15px; display:flex; align-items:center; gap:8px; }
+            .audit-type-index { display:inline-flex; align-items:center; justify-content:center; min-width:24px; height:24px; border-radius:999px; background:#e8f3ff; color:#1d4f73; font-size:12px; font-weight:800; }
+            .audit-type-chevron { color:#6b8aa3; font-size:16px; transition:transform .2s; }
+            .audit-type-card.open .audit-type-chevron { transform:rotate(180deg); }
+            .audit-type-details { display:none; margin-top:10px; }
+            .audit-type-card.open .audit-type-details { display:block; }
             .audit-type-section { margin-top: 10px; padding: 10px; border:1px solid #dfeaf7; border-left:4px solid #7fb4e1; border-radius:10px; background:#f8fbff; }
             .audit-type-card .audit-type-section:nth-of-type(even) { border-left-color:#7ed0b2; background:#f6fcfa; }
             .audit-type-section strong { font-size:13px; color:#163f5b; }
@@ -68,9 +75,13 @@
 
                 <div style="margin-top:12px;">
                 @forelse($auditTypes as $type)
-                    <div class="audit-type-card">
-                        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
-                            <strong>{{ $type->name }}</strong>
+                    <div class="audit-type-card" id="audit-type-card-{{ $type->id }}">
+                        <div class="audit-type-header">
+                            <button type="button" class="audit-type-title-btn" onclick="toggleAuditTypeDetails({{ $type->id }})">
+                                <span class="audit-type-index">{{ $loop->iteration }}</span>
+                                <span>{{ $type->name }}</span>
+                                <span class="audit-type-chevron">&#9660;</span>
+                            </button>
                             <div style="display:flex; gap:8px; align-items:center;">
                                 <button type="button" class="btn-secondary" onclick="toggleAuditTypeEditForm({{ $type->id }})">Edytuj</button>
                                 <form method="POST" action="{{ route('audits.settings.audit-type-destroy', $type) }}" onsubmit="return confirm('Usunąć rodzaj audytu?')">
@@ -80,6 +91,8 @@
                                 </form>
                             </div>
                         </div>
+
+                        <div class="audit-type-details">
 
                         <form id="edit-audit-type-form-{{ $type->id }}" method="POST" action="{{ route('audits.settings.audit-type-update', $type) }}" class="audit-builder" style="margin-top:10px;">
                             @csrf
@@ -291,6 +304,7 @@
                         @empty
                             <div class="muted" style="margin-top:8px;">Brak sekcji</div>
                         @endforelse
+                        </div>
                     </div>
                 @empty
                     <div class="muted">Brak zdefiniowanych rodzajów audytu.</div>
@@ -430,11 +444,25 @@
 
         function toggleAuditTypeEditForm(typeId) {
             const form = document.getElementById('edit-audit-type-form-' + typeId);
+            const card = document.getElementById('audit-type-card-' + typeId);
             if (!form) {
                 return;
             }
 
+            if (card) {
+                card.classList.add('open');
+            }
+
             form.style.display = 'block';
+        }
+
+        function toggleAuditTypeDetails(typeId) {
+            const card = document.getElementById('audit-type-card-' + typeId);
+            if (!card) {
+                return;
+            }
+
+            card.classList.toggle('open');
         }
 
         function addAuditTypeSection(containerId = 'audit-type-sections', defaults = {}) {
