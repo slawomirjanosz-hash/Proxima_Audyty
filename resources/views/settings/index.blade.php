@@ -163,6 +163,11 @@
                                 <td>
                                     @if($canManage)
                                         <button type="button" class="edit-user-btn" onclick="toggleUserEditor({{ $user->id }})">{{ __('ui.settings.actions.edit') }}</button>
+                                        <form method="POST" action="{{ route('settings.user-destroy', $user) }}" style="display:inline" onsubmit="return confirm('Czy na pewno usunąć użytkownika?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="edit-user-btn" style="color:#b91c1c;">Usuń</button>
+                                        </form>
                                     @else
                                         <span style="color:#9ab4c5;font-size:13px;">—</span>
                                     @endif

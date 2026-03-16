@@ -348,6 +348,12 @@ class AuditsController extends Controller
             $position++;
         }
 
+        if (count($savedSectionIds) === 0) {
+            $auditType->sections()->delete();
+
+            return;
+        }
+
         $auditType->sections()
             ->whereNotIn('id', $savedSectionIds)
             ->delete();

@@ -26,6 +26,7 @@ return [
         'user_created' => 'Użytkownik został dodany.',
         'user_permissions_updated' => 'Uprawnienia użytkownika zostały zaktualizowane.',
         'user_role_updated' => 'Rola użytkownika została zaktualizowana.',
+        'user_deleted' => 'Użytkownik został usunięty.',
         'company_assignments_updated' => 'Przypisania firmy zostały zaktualizowane.',
         'company_created' => 'Firma została dodana.',
         'company_client_created' => 'Osoba-klient została dodana do firmy.',

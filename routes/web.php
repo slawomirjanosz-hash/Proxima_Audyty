@@ -188,6 +188,10 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('role:admin')
         ->name('settings.user-access');
 
+    Route::delete('/settings/users/{user}', [SettingsController::class, 'destroyUser'])
+        ->middleware('role:admin')
+        ->name('settings.user-destroy');
+
     Route::patch('/settings/companies/{company}/assignments', [SettingsController::class, 'updateCompanyAssignments'])
         ->middleware('role:admin')
         ->name('settings.company-assignments');

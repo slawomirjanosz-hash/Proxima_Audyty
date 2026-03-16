@@ -188,6 +188,23 @@ class SettingsController extends Controller
         return back()->with('status', __('ui.messages.user_permissions_updated'));
     }
 
+    public function destroyUser(Request $request, User $user): RedirectResponse
+    {
+        $actor = $request->user();
+
+        if (! $actor->canManageEverything()) {
+            abort(403);
+        }
+
+        if ($user->isSuperAdmin() || $user->id === $actor->id) {
+            abort(403);
+        }
+
+        $user->delete();
+
+        return back()->with('status', __('ui.messages.user_deleted'));
+    }
+
     public function updateRole(Request $request, User $user): RedirectResponse
     {
         $actor = $request->user();
