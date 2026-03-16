@@ -9,8 +9,24 @@
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
             <a href="{{ route('audits.settings') }}" class="btn" style="text-decoration:none;">Powrót do ustawień audytów</a>
             <a href="{{ route('audits.diagnostics') }}" class="btn" style="text-decoration:none; background:#0e89d8;">Odśwież testy</a>
+            <form method="POST" action="{{ route('audits.diagnostics.repair') }}" style="display:inline;">
+                @csrf
+                <button type="submit" class="btn" style="background:#b45309;">Napraw schema audytów</button>
+            </form>
         </div>
     </section>
+
+    @if(session('status'))
+        <section class="panel" style="margin-top:12px; border-color:#b6ebc8; background:#f1fbf4; color:#0b7a30;">
+            {{ session('status') }}
+        </section>
+    @endif
+
+    @if(session('error'))
+        <section class="panel" style="margin-top:12px; border-color:#ffc9c9; background:#fff2f2; color:#9f1f1f;">
+            {{ session('error') }}
+        </section>
+    @endif
 
     <section class="panel" style="margin-top:12px; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
         <span style="font-size:13px; color:#4c6373;">Wygenerowano: <strong>{{ $generatedAt->format('Y-m-d H:i:s') }}</strong></span>

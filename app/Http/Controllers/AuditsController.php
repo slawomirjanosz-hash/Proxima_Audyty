@@ -10,6 +10,7 @@ use App\Models\EnergyAudit;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -313,6 +314,52 @@ class AuditsController extends Controller
             'okCount' => count($checks) - $failed,
             'generatedAt' => now(),
         ]);
+    }
+
+    public function runDiagnosticsRepair(Request $request): RedirectResponse
+    {
+        $actor = $request->user();
+        if (! $actor || ! $actor->canManageEverything()) {
+            abort(403);
+        }
+
+        $messages = [];
+
+        try {
+            Artisan::call('migrate', ['--force' => true]);
+            $messages[] = 'Migracje uruchomione.';
+        } catch (Throwable $e) {
+            $messages[] = 'Błąd migrate: '.$e::class.': '.$e->getMessage();
+        }
+
+        try {
+            if (Schema::hasTable('audit_types') && ! Schema::hasColumn('audit_types', 'formulas')) {
+                Schema::table('audit_types', function ($table) {
+                    $table->json('formulas')->nullable()->after('name');
+                });
+                $messages[] = 'Dodano kolumnę audit_types.formulas.';
+            }
+
+            if (Schema::hasTable('audit_type_sections') && ! Schema::hasColumn('audit_type_sections', 'formulas')) {
+                Schema::table('audit_type_sections', function ($table) {
+                    $table->json('formulas')->nullable()->after('data_fields');
+                });
+                $messages[] = 'Dodano kolumnę audit_type_sections.formulas.';
+            }
+        } catch (Throwable $e) {
+            $messages[] = 'Błąd naprawy schema: '.$e::class.': '.$e->getMessage();
+        }
+
+        $isFixed = Schema::hasTable('audit_types')
+            && Schema::hasTable('audit_type_sections')
+            && Schema::hasColumn('audit_types', 'formulas')
+            && Schema::hasColumn('audit_type_sections', 'formulas');
+
+        if ($isFixed) {
+            return redirect()->route('audits.diagnostics')->with('status', 'Naprawa wykonana. '.implode(' ', $messages));
+        }
+
+        return redirect()->route('audits.diagnostics')->with('error', 'Naprawa niepełna. '.implode(' ', $messages));
     }
 
     public function storeAuditType(Request $request): RedirectResponse
