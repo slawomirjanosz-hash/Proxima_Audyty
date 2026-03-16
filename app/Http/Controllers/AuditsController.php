@@ -10,9 +10,14 @@ use App\Models\EnergyAudit;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Throwable;
 
 class AuditsController extends Controller
 {
@@ -137,6 +142,176 @@ class AuditsController extends Controller
         return view('audits.settings', [
             'auditTypes' => $auditTypes,
             'units' => $units,
+        ]);
+    }
+
+    public function diagnostics(): View
+    {
+        $checks = [];
+        $failed = 0;
+
+        $pushCheck = function (string $group, string $name, bool $ok, string $details = '') use (&$checks, &$failed): void {
+            $checks[] = [
+                'group' => $group,
+                'name' => $name,
+                'ok' => $ok,
+                'details' => $details,
+            ];
+
+            if (! $ok) {
+                $failed++;
+            }
+        };
+
+        $pushCheck('Środowisko', 'APP_ENV', ! empty(config('app.env')), (string) config('app.env'));
+        $pushCheck('Środowisko', 'APP_DEBUG', config('app.debug') !== null, config('app.debug') ? 'true' : 'false');
+        $pushCheck('Środowisko', 'APP_URL', ! empty(config('app.url')), (string) config('app.url'));
+        $pushCheck('Środowisko', 'Wersja PHP', version_compare(PHP_VERSION, '8.2.0', '>='), PHP_VERSION);
+        $pushCheck('Środowisko', 'Wersja Laravel', true, app()->version());
+
+        $dbConnected = false;
+        try {
+            DB::connection()->getPdo();
+            $dbConnected = true;
+            $pushCheck('Baza danych', 'Połączenie DB', true, 'Połączono z: '.config('database.default'));
+        } catch (Throwable $e) {
+            $pushCheck('Baza danych', 'Połączenie DB', false, $e::class.': '.$e->getMessage());
+        }
+
+        $requiredTables = [
+            'audit_types',
+            'audit_type_sections',
+            'audit_units',
+            'energy_audits',
+            'migrations',
+        ];
+
+        foreach ($requiredTables as $table) {
+            $exists = Schema::hasTable($table);
+            $pushCheck('Baza danych', "Tabela {$table}", $exists, $exists ? 'OK' : 'Brak tabeli');
+        }
+
+        $requiredColumns = [
+            'audit_types' => ['id', 'name', 'formulas', 'created_at', 'updated_at'],
+            'audit_type_sections' => ['id', 'audit_type_id', 'name', 'position', 'tasks', 'data_fields', 'formulas'],
+            'energy_audits' => ['id', 'audit_type_id', 'audit_type', 'data_payload'],
+        ];
+
+        foreach ($requiredColumns as $table => $columns) {
+            foreach ($columns as $column) {
+                $exists = Schema::hasTable($table) && Schema::hasColumn($table, $column);
+                $pushCheck('Baza danych', "Kolumna {$table}.{$column}", $exists, $exists ? 'OK' : 'Brak kolumny');
+            }
+        }
+
+        $requiredMigrations = [
+            '2026_03_15_201000_create_audit_types_table',
+            '2026_03_15_201100_create_audit_type_sections_table',
+            '2026_03_15_201200_add_audit_type_id_and_data_payload_to_energy_audits_table',
+            '2026_03_15_223000_add_formulas_to_audit_types_table',
+            '2026_03_15_224000_add_formulas_to_audit_type_sections_table',
+        ];
+
+        if ($dbConnected && Schema::hasTable('migrations')) {
+            try {
+                $ran = DB::table('migrations')->pluck('migration')->all();
+                foreach ($requiredMigrations as $migration) {
+                    $ok = in_array($migration, $ran, true);
+                    $pushCheck('Migracje', $migration, $ok, $ok ? 'Wykonana' : 'Brak wykonania');
+                }
+            } catch (Throwable $e) {
+                $pushCheck('Migracje', 'Odczyt tabeli migrations', false, $e::class.': '.$e->getMessage());
+            }
+        } else {
+            $pushCheck('Migracje', 'Weryfikacja migracji', false, 'Brak połączenia DB lub tabeli migrations');
+        }
+
+        try {
+            $cacheKey = 'audit_diag_'.Str::random(10);
+            Cache::put($cacheKey, 'ok', now()->addMinutes(1));
+            $value = Cache::get($cacheKey);
+            Cache::forget($cacheKey);
+            $pushCheck('Cache / Sesja', 'Zapis/odczyt cache', $value === 'ok', 'Driver: '.config('cache.default'));
+        } catch (Throwable $e) {
+            $pushCheck('Cache / Sesja', 'Zapis/odczyt cache', false, $e::class.': '.$e->getMessage());
+        }
+
+        try {
+            $disk = config('filesystems.default');
+            $path = 'diagnostics/audits_'.Str::random(10).'.txt';
+            Storage::disk($disk)->put($path, 'ok '.now()->toDateTimeString());
+            $exists = Storage::disk($disk)->exists($path);
+            Storage::disk($disk)->delete($path);
+            $pushCheck('Pliki', 'Zapis/odczyt storage', $exists, 'Disk: '.$disk);
+        } catch (Throwable $e) {
+            $pushCheck('Pliki', 'Zapis/odczyt storage', false, $e::class.': '.$e->getMessage());
+        }
+
+        $requiredExtensions = ['pdo', 'pdo_pgsql', 'mbstring', 'json', 'openssl'];
+        foreach ($requiredExtensions as $ext) {
+            $loaded = extension_loaded($ext);
+            $pushCheck('PHP Extensions', $ext, $loaded, $loaded ? 'Załadowane' : 'Brak rozszerzenia');
+        }
+
+        if (
+            $dbConnected
+            && Schema::hasTable('audit_types')
+            && Schema::hasTable('audit_type_sections')
+            && Schema::hasColumn('audit_types', 'formulas')
+            && Schema::hasColumn('audit_type_sections', 'formulas')
+        ) {
+            DB::beginTransaction();
+            try {
+                $auditType = AuditType::create([
+                    'name' => 'diagnostyka_'.Str::random(14),
+                ]);
+
+                $this->syncAuditTypeSections($auditType, [
+                    [
+                        'name' => 'Sekcja testowa',
+                        'tasks_text' => "Krok 1\nKrok 2",
+                        'rows' => [
+                            [
+                                'key' => 'zuzycie',
+                                'name' => 'Zużycie',
+                                'unit' => 'kWh',
+                                'default_value' => '10',
+                                'notes' => 'test',
+                                'options_text' => '',
+                            ],
+                        ],
+                        'formulas' => [
+                            [
+                                'label' => 'Suma',
+                                'expression' => '1 + 1',
+                                'unit' => 'kWh',
+                            ],
+                        ],
+                    ],
+                ]);
+
+                $auditType->update(['name' => $auditType->name.'_upd']);
+
+                $this->syncAuditTypeSections($auditType, []);
+
+                DB::rollBack();
+                $pushCheck('Symulacja zapisu rodzaju audytu', 'Create + update + sync sections', true, 'Symulacja zakończona bez wyjątku (transakcja rollback)');
+            } catch (Throwable $e) {
+                DB::rollBack();
+                $pushCheck('Symulacja zapisu rodzaju audytu', 'Create + update + sync sections', false, $e::class.': '.$e->getMessage());
+            }
+        } else {
+            $pushCheck('Symulacja zapisu rodzaju audytu', 'Create + update + sync sections', false, 'Pominięto: brak wymaganych tabel/kolumn lub połączenia DB');
+        }
+
+        $groupedChecks = collect($checks)->groupBy('group')->all();
+
+        return view('audits.diagnostics', [
+            'checks' => $checks,
+            'groupedChecks' => $groupedChecks,
+            'failedCount' => $failed,
+            'okCount' => count($checks) - $failed,
+            'generatedAt' => now(),
         ]);
     }
 

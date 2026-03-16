@@ -63,6 +63,9 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/audyty/ustawienia', [AuditsController::class, 'settings'])
         ->middleware('role:admin,auditor')
         ->name('audits.settings');
+    Route::get('/audyty/diagnostyka', [AuditsController::class, 'diagnostics'])
+        ->middleware('role:admin,auditor')
+        ->name('audits.diagnostics');
     Route::post('/audyty/ustawienia/rodzaje', [AuditsController::class, 'storeAuditType'])
         ->middleware('role:admin,auditor')
         ->name('audits.settings.audit-type-store');
