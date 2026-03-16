@@ -16,6 +16,7 @@ class User extends Authenticatable
     public const TAB_HOME = 'home';
     public const TAB_OFFER = 'offer';
     public const TAB_AUDITS = 'audits';
+    public const TAB_INFO = 'info';
     public const TAB_CLIENT_ZONE = 'client_zone';
     public const TAB_SETTINGS = 'settings';
 
@@ -71,6 +72,7 @@ class User extends Authenticatable
             self::TAB_HOME => 'Strona główna',
             self::TAB_OFFER => 'Oferta',
             self::TAB_AUDITS => 'Audyty',
+            self::TAB_INFO => 'Informacje',
             self::TAB_CLIENT_ZONE => 'Strefa klienta',
             self::TAB_SETTINGS => 'Ustawienia',
         ];
@@ -87,6 +89,7 @@ class User extends Authenticatable
                 self::TAB_HOME => true,
                 self::TAB_OFFER => true,
                 self::TAB_AUDITS => true,
+                self::TAB_INFO => true,
                 self::TAB_CLIENT_ZONE => true,
                 self::TAB_SETTINGS => true,
             ];
@@ -96,6 +99,7 @@ class User extends Authenticatable
             self::TAB_HOME => true,
             self::TAB_OFFER => true,
             self::TAB_AUDITS => true,
+            self::TAB_INFO => true,
             self::TAB_CLIENT_ZONE => true,
             self::TAB_SETTINGS => true,
         ];

@@ -45,6 +45,7 @@ return [
             'account' => 'Account',
             'access_level' => 'Access level',
             'session_date' => 'Session date',
+                'info' => 'Informations',
         ],
         'preview_title' => 'Preview mode:',
         'preview_text' => 'You are viewing Client Zone data as a privileged account.',

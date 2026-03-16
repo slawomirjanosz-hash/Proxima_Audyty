@@ -336,13 +336,39 @@
                 </div>
             </div>
 
+            @php($menuUser = auth()->user())
             <ul class="menu">
-                <li><a href="{{ route('home') }}">{{ __('ui.menu.home') }}</a></li>
-                <li><a href="{{ route('dashboard') }}">{{ __('ui.menu.dashboard') }}</a></li>
-                <li><a href="{{ route('oferta') }}" class="menu-active">{{ __('ui.menu.offer') }}</a></li>
-                <li><a href="{{ route('audits.index') }}">{{ __('ui.menu.audits') }}</a></li>
-                <li><a href="{{ route('strefa-klienta') }}">{{ __('ui.menu.client_zone') }}</a></li>
-                <li><a href="{{ route('settings.index') }}">{{ __('ui.menu.settings') }}</a></li>
+                @if(!$menuUser)
+                    <li><a href="{{ route('home') }}">{{ __('ui.menu.home') }}</a></li>
+                    <li><a href="{{ route('information.index') }}">{{ __('ui.menu.info') }}</a></li>
+                    <li><a href="{{ route('oferta') }}" class="menu-active">{{ __('ui.menu.offer') }}</a></li>
+                @else
+                    @if($menuUser->isClient() || $menuUser->canAccessTab(\App\Models\User::TAB_HOME))
+                        <li><a href="{{ route('home') }}">{{ __('ui.menu.home') }}</a></li>
+                    @endif
+
+                    @if(!$menuUser->isClient() && $menuUser->canAccessTab(\App\Models\User::TAB_INFO))
+                        <li><a href="{{ route('information.index') }}">{{ __('ui.menu.info') }}</a></li>
+                    @endif
+
+                    @if(!$menuUser->isClient() && $menuUser->canAccessTab(\App\Models\User::TAB_AUDITS))
+                        <li><a href="{{ route('dashboard') }}">{{ __('ui.menu.dashboard') }}</a></li>
+                        <li><a href="{{ route('audits.index') }}">{{ __('ui.menu.audits') }}</a></li>
+                        <li><a href="{{ route('crm.index') }}">{{ __('ui.menu.crm') }}</a></li>
+                    @endif
+
+                    @if(!$menuUser->isClient() && $menuUser->canAccessTab(\App\Models\User::TAB_OFFER))
+                        <li><a href="{{ route('oferta') }}" class="menu-active">{{ __('ui.menu.offer') }}</a></li>
+                    @endif
+
+                    @if($menuUser->isClient() || $menuUser->canAccessTab(\App\Models\User::TAB_CLIENT_ZONE))
+                        <li><a href="{{ route('strefa-klienta') }}">{{ __('ui.menu.client_zone') }}</a></li>
+                    @endif
+
+                    @if(!$menuUser->isClient() && $menuUser->canAccessTab(\App\Models\User::TAB_SETTINGS))
+                        <li><a href="{{ route('settings.index') }}">{{ __('ui.menu.settings') }}</a></li>
+                    @endif
+                @endif
             </ul>
         </aside>
 

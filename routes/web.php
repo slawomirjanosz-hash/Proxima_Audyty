@@ -7,6 +7,7 @@ use App\Http\Controllers\CrmController;
 use App\Http\Controllers\CrmCustomerTypeController;
 use App\Http\Controllers\CrmStageController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\InformationController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
@@ -35,6 +36,11 @@ Route::middleware('guest')->group(function (): void {
     Route::get('/login', [LoginController::class, 'create'])->name('login');
     Route::post('/login', [LoginController::class, 'store'])->name('login.store');
 });
+
+Route::get('/informacje', [InformationController::class, 'index'])
+    ->name('information.index');
+Route::get('/informacje/pse-kse', [InformationController::class, 'snapshot'])
+    ->name('information.pse-kse');
 
 Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');

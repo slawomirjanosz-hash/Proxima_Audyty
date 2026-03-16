@@ -54,98 +54,203 @@
             </div>
         </div>
 
-        @php($payload = is_array($audit->data_payload) ? $audit->data_payload : [])
+        @php
+            $payload = is_array($audit->data_payload) ? $audit->data_payload : [];
+            $sections = $audit->auditType?->sections ?? collect();
+        @endphp
 
         <div style="margin-top:14px;">
-            @forelse(($audit->auditType?->sections ?? collect()) as $section)
-                @php
-                    $sectionPayload = $payload[(string) $section->id] ?? [];
-                    $taskValues = is_array($sectionPayload['tasks'] ?? null) ? $sectionPayload['tasks'] : [];
-                    $fieldRows = collect($section->data_fields ?? [])->map(function ($field) {
-                        if (is_array($field)) {
+            <?php if ($sections->isNotEmpty()): ?>
+                <?php foreach ($sections as $sectionIndex => $section): ?>
+                    @php
+                        $sectionPayload = $payload[(string) $section->id] ?? [];
+                        $taskValues = is_array($sectionPayload['tasks'] ?? null) ? $sectionPayload['tasks'] : [];
+                        $sectionTasks = is_array($section->tasks ?? null) ? $section->tasks : [];
+                        $sectionFormulas = is_array($section->formulas ?? null) ? $section->formulas : [];
+                        $fieldRows = collect($section->data_fields ?? [])->map(function ($field) {
+                            if (is_array($field)) {
+                                return [
+                                    'key' => trim((string) ($field['key'] ?? \Illuminate\Support\Str::slug((string) ($field['name'] ?? ''), '_'))),
+                                    'name' => trim((string) ($field['name'] ?? '')),
+                                    'unit' => trim((string) ($field['unit'] ?? '')),
+                                ];
+                            }
+
                             return [
-                                'key' => trim((string) ($field['key'] ?? \Illuminate\Support\Str::slug((string) ($field['name'] ?? ''), '_'))),
-                                'name' => trim((string) ($field['name'] ?? '')),
-                                'unit' => trim((string) ($field['unit'] ?? '')),
+                                'key' => \Illuminate\Support\Str::slug((string) $field, '_'),
+                                'name' => trim((string) $field),
+                                'unit' => '',
                             ];
-                        }
+                        })->filter(fn ($field) => $field['name'] !== '')->values();
 
-                        return [
-                            'key' => \Illuminate\Support\Str::slug((string) $field, '_'),
-                            'name' => trim((string) $field),
-                            'unit' => '',
-                        ];
-                    })->filter(fn ($field) => $field['name'] !== '')->values();
+                        $payloadRows = is_array($sectionPayload['fields'] ?? null) ? $sectionPayload['fields'] : [];
+                    @endphp
+                    <div class="audit-section" data-audit-section="{{ $section->id }}">
+                        <h4>{{ $sectionIndex + 1 }}. {{ $section->name }}</h4>
 
-                    $payloadRows = is_array($sectionPayload['fields'] ?? null) ? $sectionPayload['fields'] : [];
-                @endphp
-                <div class="audit-section">
-                    <h4>{{ $loop->iteration }}. {{ $section->name }}</h4>
+                        <?php if (!empty($sectionTasks)): ?>
+                            <div style="font-size:12px; color:#4c6373; margin-bottom:6px;"><strong>Zadania:</strong></div>
+                            <ul style="margin:0 0 8px 18px; padding:0; display:grid; gap:4px; color:#355468;">
+                                <?php foreach ($sectionTasks as $task): ?>
+                                    <li>
+                                        {{ $task }}
+                                        <?php if (!empty($taskValues[$task])): ?>
+                                            <span style="color:#0c5f28; font-weight:700;">(wykonane)</span>
+                                        <?php endif; ?>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        <?php endif; ?>
 
-                    @if(!empty($section->tasks))
-                        <div style="font-size:12px; color:#4c6373; margin-bottom:6px;"><strong>Zadania:</strong></div>
-                        <ul style="margin:0 0 8px 18px; padding:0; display:grid; gap:4px; color:#355468;">
-                            @foreach($section->tasks as $task)
-                                <li>
-                                    {{ $task }}
-                                    @if(!empty($taskValues[$task]))
-                                        <span style="color:#0c5f28; font-weight:700;">(wykonane)</span>
-                                    @endif
-                                </li>
-                            @endforeach
-                        </ul>
-                    @endif
-
-                    @if($fieldRows->isNotEmpty())
-                        <table class="audit-data-table">
-                            <thead>
-                            <tr>
-                                <th>Dana</th>
-                                <th>Jednostka</th>
-                                <th>Wartość</th>
-                                <th>Uwagi</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            @foreach($fieldRows as $rowIndex => $field)
-                                @php
-                                    $rowPayload = is_array($payloadRows[$rowIndex] ?? null) ? $payloadRows[$rowIndex] : [];
-                                    $legacyValue = is_array($payloadRows) ? ($payloadRows[$field['name']] ?? '') : '';
-                                    $value = (string) ($rowPayload['value'] ?? $legacyValue ?? '');
-                                    $notes = (string) ($rowPayload['notes'] ?? '');
-                                @endphp
+                        <?php if ($fieldRows->isNotEmpty()): ?>
+                            <table class="audit-data-table">
+                                <thead>
                                 <tr>
-                                    <td>{{ $field['name'] }}</td>
-                                    <td>{{ $field['unit'] !== '' ? $field['unit'] : '—' }}</td>
-                                    <td>{{ $value !== '' ? $value : '—' }}</td>
-                                    <td>{{ $notes !== '' ? $notes : '—' }}</td>
+                                    <th>Dana</th>
+                                    <th>Jednostka</th>
+                                    <th>Wartość</th>
+                                    <th>Uwagi</th>
                                 </tr>
-                            @endforeach
-                            </tbody>
-                        </table>
-                    @endif
+                                </thead>
+                                <tbody>
+                                <?php foreach ($fieldRows as $rowIndex => $field): ?>
+                                    @php
+                                        $rowPayload = is_array($payloadRows[$rowIndex] ?? null) ? $payloadRows[$rowIndex] : [];
+                                        $legacyValue = is_array($payloadRows) ? ($payloadRows[$field['name']] ?? '') : '';
+                                        $value = (string) ($rowPayload['value'] ?? $legacyValue ?? '');
+                                        $notes = (string) ($rowPayload['notes'] ?? '');
+                                    @endphp
+                                    <tr>
+                                        <td>{{ $field['name'] }}</td>
+                                        <td>{{ $field['unit'] !== '' ? $field['unit'] : '—' }}</td>
+                                        <td>
+                                            <span
+                                                class="formula-source"
+                                                data-audit-section="{{ $section->id }}"
+                                                data-field-token="{{ $field['key'] }}"
+                                                data-field-value="{{ $value }}"
+                                            >{{ $value !== '' ? $value : '—' }}</span>
+                                        </td>
+                                        <td>{{ $notes !== '' ? $notes : '—' }}</td>
+                                    </tr>
+                                <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        <?php endif; ?>
 
-                    @if(!empty($section->formulas))
-                        <div class="audit-formulas">
-                            <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#6b8aa3; margin-bottom:6px;">Wzory sekcji</div>
-                            @foreach($section->formulas as $formula)
-                                @if(!empty($formula['label']) && !empty($formula['expression']))
-                                    <div class="formula-line">
-                                        <span class="formula-label">{{ $formula['label'] }}</span>
-                                        <span>=</span>
-                                        <span>{{ $formula['expression'] }}</span>
-                                        @if(!empty($formula['unit']))
-                                            <span>({{ $formula['unit'] }})</span>
-                                        @endif
-                                    </div>
-                                @endif
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
-            @empty
-                <div class="muted">Ten audyt nie ma zdefiniowanych sekcji w rodzaju audytu.</div>
-            @endforelse
+                        <?php if (!empty($sectionFormulas)): ?>
+                            <div class="audit-formulas">
+                                <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#6b8aa3; margin-bottom:6px;">Wyniki obliczeń</div>
+                                <?php foreach ($sectionFormulas as $formula): ?>
+                                    <?php if (!empty($formula['label']) && !empty($formula['expression'])): ?>
+                                        <div class="formula-line">
+                                            <span class="formula-label">{{ $formula['label'] }}</span>
+                                            <span>=</span>
+                                            <strong data-audit-section="{{ $section->id }}" data-formula-expression="{{ $formula['expression'] }}" data-formula-unit="{{ (string) ($formula['unit'] ?? '') }}">—</strong>
+                                        </div>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+
+            <?php if ($sections->isEmpty()): ?>
+                <?php if (!empty($payload)): ?>
+                    <div class="audit-section">
+                        <h4>Zapisane dane audytu</h4>
+                        <div class="muted" style="margin-bottom:8px;">Nie znaleziono aktualnych sekcji rodzaju audytu, ale zapisane dane są nadal dostępne.</div>
+                        <pre style="white-space:pre-wrap; margin:0; font-size:12px; color:#2c4e67;">{{ json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                    </div>
+                <?php else: ?>
+                    <div class="muted">Ten audyt nie ma zdefiniowanych sekcji w rodzaju audytu.</div>
+                <?php endif; ?>
+            <?php endif; ?>
         </div>
     </section>
+
+    <script>
+        function recalculateFormulasForSection(sectionId) {
+            const section = document.querySelector(`.audit-section[data-audit-section="${sectionId}"]`);
+            if (!section) {
+                return;
+            }
+
+            const values = {};
+            section.querySelectorAll(`.formula-source[data-audit-section="${sectionId}"]`).forEach((input) => {
+                const token = input.getAttribute('data-field-token');
+                if (!token) {
+                    return;
+                }
+
+                let raw = String(input.getAttribute('data-field-value') ?? '').trim();
+                if (raw === '') {
+                    values[token] = null;
+                    return;
+                }
+
+                if (raw.toLowerCase() === 'tak') {
+                    values[token] = 1;
+                    return;
+                }
+
+                if (raw.toLowerCase() === 'nie') {
+                    values[token] = 0;
+                    return;
+                }
+
+                raw = raw.replace(',', '.');
+
+                const number = Number(raw);
+                values[token] = Number.isFinite(number) ? number : null;
+            });
+
+            section.querySelectorAll(`[data-formula-expression][data-audit-section="${sectionId}"]`).forEach((output) => {
+                const expression = String(output.getAttribute('data-formula-expression') ?? '').trim();
+                const unit = String(output.getAttribute('data-formula-unit') ?? '').trim();
+                const usedTokens = Array.from(new Set(Array.from(expression.matchAll(/\{([a-zA-Z0-9_]+)\}/g)).map((match) => match[1])));
+
+                if (usedTokens.some((token) => values[token] === null || values[token] === undefined)) {
+                    output.textContent = '—';
+                    return;
+                }
+
+                const replaced = expression.replace(/\{([a-zA-Z0-9_]+)\}/g, (_, token) => String(values[token] ?? 0));
+                const normalized = replaced.replace(/,/g, '.');
+
+                if (!/^[0-9+\-*/().\s]+$/.test(normalized)) {
+                    output.textContent = '—';
+                    return;
+                }
+
+                try {
+                    const result = Function('return (' + normalized + ')')();
+                    if (Number.isFinite(result)) {
+                        const rounded = String(Math.round((result + Number.EPSILON) * 1000000) / 1000000);
+                        output.textContent = unit !== '' ? `${rounded} ${unit}` : rounded;
+                    } else {
+                        output.textContent = '—';
+                    }
+                } catch (error) {
+                    output.textContent = '—';
+                }
+            });
+        }
+
+        function recalculateFormulas() {
+            document.querySelectorAll('.audit-section[data-audit-section]').forEach((section) => {
+                const sectionId = section.getAttribute('data-audit-section');
+                if (!sectionId) {
+                    return;
+                }
+
+                recalculateFormulasForSection(sectionId);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            recalculateFormulas();
+        });
+    </script>
 </x-layouts.app>

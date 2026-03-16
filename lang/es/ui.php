@@ -6,6 +6,7 @@ return [
         'home' => 'Home',
         'dashboard' => 'Dashboard',
         'crm' => 'CRM',
+            'info' => 'Información',
         'offer' => 'Offer',
         'audits' => 'Audits',
         'client_zone' => 'Client Zone',

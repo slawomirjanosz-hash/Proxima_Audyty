@@ -8,6 +8,7 @@ return [
         'crm' => 'CRM',
         'offer' => 'Offer',
         'audits' => 'Audits',
+           'info' => 'Informationen',
         'client_zone' => 'Client Zone',
         'settings' => 'Settings',
     ],

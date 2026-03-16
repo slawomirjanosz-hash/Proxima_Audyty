@@ -76,9 +76,14 @@
         <ul class="menu">
             @if(!$menuUser)
                 <li><a href="{{ route('home') }}" @class(['menu-active' => request()->routeIs('home')])>{{ __('ui.menu.home') }}</a></li>
+                <li><a href="{{ route('information.index') }}" @class(['menu-active' => request()->routeIs('information.*')])>{{ __('ui.menu.info') }}</a></li>
             @else
                 @if($menuUser->isClient() || $menuUser->canAccessTab(\App\Models\User::TAB_HOME))
                     <li><a href="{{ route('home') }}" @class(['menu-active' => request()->routeIs('home')])>{{ __('ui.menu.home') }}</a></li>
+                @endif
+
+                @if(!$menuUser->isClient() && $menuUser->canAccessTab(\App\Models\User::TAB_INFO))
+                    <li><a href="{{ route('information.index') }}" @class(['menu-active' => request()->routeIs('information.*')])>{{ __('ui.menu.info') }}</a></li>
                 @endif
 
                 @if(!$menuUser->isClient() && $menuUser->canAccessTab(\App\Models\User::TAB_AUDITS))
@@ -106,7 +111,9 @@
         <header class="topbar">
             <strong>{{ __('ui.company') }}</strong>
             <div style="display:flex; align-items:center; gap:18px;">
-                <x-online-users-info />
+                @auth
+                    <x-online-users-info />
+                @endauth
                 <form method="GET" action="{{ route('locale.switch', [], false) }}">
                     <select name="locale" onchange="this.form.submit()" style="height:36px; border-radius:9px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.12); color:#fff; padding:0 10px; font-weight:600;">
                         @foreach(config('localization.supported_locales', ['pl' => 'Polski', 'en' => 'English']) as $localeCode => $localeLabel)
@@ -114,10 +121,14 @@
                         @endforeach
                     </select>
                 </form>
-                <form method="POST" action="{{ route('logout', [], false) }}">
-                    @csrf
-                    <button class="login-btn" type="submit">{{ __('ui.actions.logout') }}</button>
-                </form>
+                @auth
+                    <form method="POST" action="{{ route('logout', [], false) }}">
+                        @csrf
+                        <button class="login-btn" type="submit">{{ __('ui.actions.logout') }}</button>
+                    </form>
+                @else
+                    <a class="login-btn" href="{{ route('home', ['login' => 1]) }}">{{ __('ui.actions.login') }}</a>
+                @endauth
             </div>
         </header>
 
