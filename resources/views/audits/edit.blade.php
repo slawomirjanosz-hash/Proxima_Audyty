@@ -3,8 +3,12 @@
         <style>
             .audit-edit-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px; }
             .audit-edit-grid input, .audit-edit-grid select, .audit-edit-grid textarea { width:100%; }
-            .audit-section { border:1px solid #d7e5f0; border-radius:12px; padding:12px; background:#f9fcff; margin-top:10px; }
-            .audit-section h4 { margin:0 0 8px; }
+            .audit-section { border:1px solid #d7e5f0; border-left:5px solid #7fb4e1; border-radius:12px; padding:12px; background:#f8fbff; margin-top:12px; }
+            .audit-type-sections .audit-section:nth-of-type(even) { border-left-color:#7ed0b2; background:#f6fcfa; }
+            .audit-type-sections .audit-section:nth-of-type(3n) { border-left-color:#f0b67a; background:#fffaf5; }
+            .audit-section-head { display:flex; align-items:center; gap:10px; margin:0 0 10px; }
+            .audit-section-badge { font-size:11px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; color:#154f7a; background:#e7f2ff; border:1px solid #cbe2f7; border-radius:999px; padding:3px 8px; }
+            .audit-section h4 { margin:0; font-size:16px; color:#10344c; }
             .audit-task-list { display:grid; gap:6px; }
             .audit-data-table { width:100%; border-collapse:collapse; margin-top:10px; }
             .audit-data-table th, .audit-data-table td { border:1px solid #e0ecf5; padding:8px; font-size:13px; text-align:left; }
@@ -106,7 +110,10 @@
                                 $payloadRows = is_array($sectionPayload['fields'] ?? null) ? $sectionPayload['fields'] : [];
                             @endphp
                             <div class="audit-section" data-audit-section="{{ $section->id }}">
-                                <h4>{{ $section->name }}</h4>
+                                <div class="audit-section-head">
+                                    <span class="audit-section-badge">Sekcja {{ $loop->iteration }}</span>
+                                    <h4>{{ $section->name }}</h4>
+                                </div>
 
                                 @if(!empty($section->tasks))
                                     <div class="audit-task-list">

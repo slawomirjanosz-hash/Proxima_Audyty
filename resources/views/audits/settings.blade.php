@@ -1,15 +1,20 @@
 <x-layouts.app>
     <section class="panel">
         <style>
-            .settings-section { border: 1px solid #dfeaf3; border-radius: 12px; background: #fff; margin-top: 12px; overflow: hidden; }
-            .settings-toggle { width: 100%; border: none; background: #fff; display:flex; justify-content:space-between; align-items:center; gap:8px; padding: 12px; cursor:pointer; }
-            .settings-toggle:hover { background:#f7fbff; }
+            .settings-section { border: 1px solid #d2e3f1; border-radius: 14px; background: #fff; margin-top: 14px; overflow: hidden; box-shadow: 0 4px 14px rgba(18, 72, 110, 0.06); }
+            .settings-toggle { width: 100%; border: none; background: #fafdff; display:flex; justify-content:space-between; align-items:center; gap:10px; padding: 14px 14px; cursor:pointer; }
+            .settings-toggle:hover { background:#f2f8fe; }
+            .settings-toggle h2 { margin:0; font-size:19px; font-weight:800; color:#10344c; letter-spacing:.2px; }
+            .settings-toggle .muted { margin:5px 0 0; font-size:13px; color:#355c77; }
             .settings-body { display:none; padding: 0 12px 12px; border-top:1px solid #e8f1f8; }
             .settings-section.open .settings-body { display:block; }
+            .settings-section.open .settings-toggle { background:#eef6ff; }
             .settings-chevron { color:#6b8aa3; font-size:18px; transition:transform .2s; }
             .settings-section.open .settings-chevron { transform: rotate(180deg); }
             .audit-type-card { border: 1px solid #dfeaf3; border-radius: 10px; padding: 10px; margin-top: 10px; background:#fbfdff; }
-            .audit-type-section { margin-top: 8px; padding: 8px; border:1px solid #edf2f7; border-radius:8px; background:#fff; }
+            .audit-type-section { margin-top: 10px; padding: 10px; border:1px solid #dfeaf7; border-left:4px solid #7fb4e1; border-radius:10px; background:#f8fbff; }
+            .audit-type-card .audit-type-section:nth-of-type(even) { border-left-color:#7ed0b2; background:#f6fcfa; }
+            .audit-type-section strong { font-size:13px; color:#163f5b; }
             .audit-builder { display:none; margin-top:14px; padding:12px; border:1px solid #dfeaf3; border-radius:10px; background:#f9fcff; }
             .data-table { width:100%; border-collapse: collapse; margin-top:8px; }
             .data-table th, .data-table td { border:1px solid #e5eef6; padding:8px; font-size:13px; text-align:left; }
@@ -120,7 +125,7 @@
                                     @endphp
                                     <div class="audit-type-section">
                                         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px;">
-                                            <strong style="font-size:12px; color:#1d4f73;">Sekcja {{ $sectionIndex + 1 }}</strong>
+                                            <strong style="font-size:14px; color:#10344c;">Sekcja {{ $sectionIndex + 1 }}</strong>
                                             <button type="button" class="btn-secondary" onclick="this.closest('.audit-type-section').remove()">Usuń</button>
                                         </div>
 
@@ -224,7 +229,7 @@
 
                         @forelse($type->sections as $section)
                             <div class="audit-type-section">
-                                <div style="font-weight:700; margin-bottom:6px;">{{ $section->name }}</div>
+                                <div style="font-weight:800; font-size:14px; color:#10344c; margin-bottom:6px;">{{ $section->name }}</div>
                                 <div style="font-size:12px; color:#4c6373;"><strong>Zadania:</strong> {{ !empty($section->tasks) ? implode(', ', $section->tasks) : 'Brak' }}</div>
 
                                 @php
