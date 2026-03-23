@@ -382,6 +382,8 @@ class AuditsController extends Controller
             'sections.*.rows.*.key' => ['nullable', 'string', 'max:255'],
             'sections.*.rows.*.name' => ['nullable', 'string', 'max:255'],
             'sections.*.rows.*.unit' => ['nullable', 'string', 'max:64'],
+            'sections.*.rows.*.parent_token' => ['nullable', 'string', 'max:255'],
+            'sections.*.rows.*.show_when' => ['nullable', 'string', 'max:255'],
             'sections.*.rows.*.default_value' => ['nullable', 'string', 'max:255'],
             'sections.*.rows.*.notes' => ['nullable', 'string', 'max:1000'],
             'sections.*.rows.*.options_text' => ['nullable', 'string', 'max:5000'],
@@ -397,7 +399,7 @@ class AuditsController extends Controller
 
         $this->syncAuditTypeSections($auditType, $validated['sections'] ?? []);
 
-        return back()->with('status', 'Rodzaj audytu został dodany.');
+        return redirect()->route('audits.settings')->with('status', 'Rodzaj audytu został dodany.');
     }
 
     public function updateAuditType(Request $request, AuditType $auditType): RedirectResponse
@@ -411,6 +413,8 @@ class AuditsController extends Controller
             'sections.*.rows.*.key' => ['nullable', 'string', 'max:255'],
             'sections.*.rows.*.name' => ['nullable', 'string', 'max:255'],
             'sections.*.rows.*.unit' => ['nullable', 'string', 'max:64'],
+            'sections.*.rows.*.parent_token' => ['nullable', 'string', 'max:255'],
+            'sections.*.rows.*.show_when' => ['nullable', 'string', 'max:255'],
             'sections.*.rows.*.default_value' => ['nullable', 'string', 'max:255'],
             'sections.*.rows.*.notes' => ['nullable', 'string', 'max:1000'],
             'sections.*.rows.*.options_text' => ['nullable', 'string', 'max:5000'],
@@ -426,14 +430,14 @@ class AuditsController extends Controller
 
         $this->syncAuditTypeSections($auditType, $validated['sections'] ?? []);
 
-        return back()->with('status', 'Rodzaj audytu został zaktualizowany.');
+        return redirect()->route('audits.settings')->with('status', 'Rodzaj audytu został zaktualizowany.');
     }
 
     public function destroyAuditType(AuditType $auditType): RedirectResponse
     {
         $auditType->delete();
 
-        return back()->with('status', 'Rodzaj audytu został usunięty.');
+        return redirect()->route('audits.settings')->with('status', 'Rodzaj audytu został usunięty.');
     }
 
     public function storeUnit(Request $request): RedirectResponse
@@ -448,7 +452,7 @@ class AuditsController extends Controller
             'kind' => $validated['kind'],
         ]);
 
-        return back()->with('status', 'Jednostka została dodana.');
+        return redirect()->route('audits.settings')->with('status', 'Jednostka została dodana.');
     }
 
     public function updateUnit(Request $request, AuditUnit $unit): RedirectResponse
@@ -463,14 +467,14 @@ class AuditsController extends Controller
             'kind' => $validated['kind'],
         ]);
 
-        return back()->with('status', 'Jednostka została zaktualizowana.');
+        return redirect()->route('audits.settings')->with('status', 'Jednostka została zaktualizowana.');
     }
 
     public function destroyUnit(AuditUnit $unit): RedirectResponse
     {
         $unit->delete();
 
-        return back()->with('status', 'Jednostka została usunięta.');
+        return redirect()->route('audits.settings')->with('status', 'Jednostka została usunięta.');
     }
 
     private function syncAuditTypeSections(AuditType $auditType, array $sections): void
@@ -519,6 +523,8 @@ class AuditsController extends Controller
                         'key' => $candidateKey,
                         'name' => $fieldName,
                         'unit' => trim((string) ($row['unit'] ?? '')),
+                        'parent_token' => Str::slug(trim((string) ($row['parent_token'] ?? '')), '_'),
+                        'show_when' => trim((string) ($row['show_when'] ?? '')),
                         'default_value' => trim((string) ($row['default_value'] ?? '')),
                         'notes' => trim((string) ($row['notes'] ?? '')),
                         'options_text' => trim((string) ($row['options_text'] ?? '')),
@@ -548,6 +554,8 @@ class AuditsController extends Controller
                         'name' => (string) ($row['name'] ?? ''),
                         'unit' => $unitName,
                         'kind' => $kind,
+                        'parent_token' => (string) ($row['parent_token'] ?? ''),
+                        'show_when' => (string) ($row['show_when'] ?? ''),
                         'options' => $options,
                         'default_value' => (string) ($row['default_value'] ?? ''),
                         'notes' => (string) ($row['notes'] ?? ''),

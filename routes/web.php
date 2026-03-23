@@ -81,12 +81,20 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/audyty/ustawienia/rodzaje', [AuditsController::class, 'storeAuditType'])
         ->middleware('role:admin,auditor')
         ->name('audits.settings.audit-type-store');
+    Route::get('/audyty/ustawienia/rodzaje', function () {
+        return redirect()->route('audits.settings');
+    })
+        ->middleware('role:admin,auditor');
     Route::patch('/audyty/ustawienia/rodzaje/{auditType}', [AuditsController::class, 'updateAuditType'])
         ->middleware('role:admin,auditor')
         ->name('audits.settings.audit-type-update');
     Route::post('/audyty/ustawienia/jednostki', [AuditsController::class, 'storeUnit'])
         ->middleware('role:admin,auditor')
         ->name('audits.settings.unit-store');
+    Route::get('/audyty/ustawienia/jednostki', function () {
+        return redirect()->route('audits.settings');
+    })
+        ->middleware('role:admin,auditor');
     Route::patch('/audyty/ustawienia/jednostki/{unit}', [AuditsController::class, 'updateUnit'])
         ->middleware('role:admin,auditor')
         ->name('audits.settings.unit-update');

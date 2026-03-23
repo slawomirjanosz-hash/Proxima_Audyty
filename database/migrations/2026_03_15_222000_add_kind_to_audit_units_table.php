@@ -8,15 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('audit_units', function (Blueprint $table) {
-            $table->string('kind', 20)->default('number')->after('name');
-        });
+        if (! Schema::hasColumn('audit_units', 'kind')) {
+            Schema::table('audit_units', function (Blueprint $table) {
+                $table->string('kind', 20)->default('number')->after('name');
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('audit_units', function (Blueprint $table) {
-            $table->dropColumn('kind');
-        });
+        if (Schema::hasColumn('audit_units', 'kind')) {
+            Schema::table('audit_units', function (Blueprint $table) {
+                $table->dropColumn('kind');
+            });
+        }
     }
 };
