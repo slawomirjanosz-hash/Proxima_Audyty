@@ -28,13 +28,24 @@
             .data-table th, .data-table td { border:1px solid #e5eef6; padding:8px; font-size:13px; text-align:left; }
             .data-table th { background:#f3f8fd; color:#34556f; font-weight:700; }
             .data-table input, .data-table select { width:100%; }
+            .data-table-fields th, .data-table-fields td { padding:5px 6px; font-size:12px; vertical-align:middle; }
+            .data-table-fields th { font-size:11px; letter-spacing:.3px; }
+            .data-table-fields input,
+            .data-table-fields select,
+            .data-table-fields textarea { width:100%; font-size:12px; padding:5px 7px; min-height:30px; border-radius:8px; }
+            .data-table-fields textarea { min-height:30px; line-height:1.2; }
+            .data-table-fields th:nth-child(3), .data-table-fields td:nth-child(3) { width:17%; min-width:160px; }
+            .data-table-fields th:nth-child(4), .data-table-fields td:nth-child(4) { width:17%; min-width:160px; }
+            .data-table-fields th:nth-child(9), .data-table-fields td:nth-child(9) { width:10%; min-width:110px; }
+            .data-table-fields th:nth-child(11), .data-table-fields td:nth-child(11) { width:56px; text-align:center; }
+            .row-insert-anchor { width:14px !important; height:14px !important; min-height:14px !important; margin:0; accent-color:#2f78af; cursor:pointer; }
             .data-table-wrap { position:relative; }
             .dependency-tree-overlay { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:2; }
             .dependency-tree-overlay .dependency-path { fill:none; stroke:#9ec2df; stroke-width:1.35; stroke-linecap:round; stroke-linejoin:round; opacity:.9; transition:stroke .15s, stroke-width .15s, opacity .15s; }
             .dependency-tree-overlay .dependency-path.dependency-path-active { stroke:#2f78af; stroke-width:2.2; opacity:1; }
-            .data-table tr.dependency-branch-active td:nth-child(2) { background:#eef6ff; }
-            .data-table tr.is-dependent-row td:nth-child(2) { position:relative; padding-left:calc(38px + (var(--dependency-depth, 1) - 1) * 24px); color:#264e6b; }
-            .data-table tr.is-dependent-row td:nth-child(2)::before { content:attr(data-dependency-label); position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#1d4f73; font-weight:800; font-size:14px; line-height:1; letter-spacing:-1px; min-width:18px; text-align:center; }
+            .data-table tr.dependency-branch-active td:nth-child(3) { background:#eef6ff; }
+            .data-table tr.is-dependent-row td:nth-child(3) { position:relative; padding-left:calc(38px + (var(--dependency-depth, 1) - 1) * 24px); color:#264e6b; }
+            .data-table tr.is-dependent-row td:nth-child(3)::before { content:attr(data-dependency-label); position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#1d4f73; font-weight:800; font-size:14px; line-height:1; letter-spacing:-1px; min-width:18px; text-align:center; }
             .btn-secondary { background: #dbe9f5; color: #1d4f73; }
             .row-drag-handle { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; cursor:grab; color:#68849a; user-select:none; font-size:12px; letter-spacing:-1px; }
             .row-drag-handle:active { cursor:grabbing; }
@@ -52,6 +63,8 @@
             .token-chip { border:1px solid #c6daeb; border-radius:999px; background:#fff; color:#1d4f73; padding:4px 8px; font-size:12px; cursor:pointer; }
             .token-chip:hover { background:#eef6ff; }
             .token-helper-hint { font-size:11px; color:#5f7688; margin-top:6px; }
+            .btn-trash-icon { width:28px; height:28px; min-height:28px; padding:0; border-radius:8px; background:#e9f1f8; color:#35556f; border:1px solid #c9dceb; font-size:14px; line-height:1; display:inline-flex; align-items:center; justify-content:center; }
+            .btn-trash-icon:hover { background:#dceaf6; }
         </style>
 
         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
@@ -187,10 +200,11 @@
                                                     <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin:0;">Tabela danych sekcji</label>
                                                     <button type="button" class="btn-secondary" onclick="addSectionDataRow('edit-section-data-table-{{ $type->id }}-{{ $sectionIndex }}', {{ $sectionIndex }})">+ Dodaj wiersz</button>
                                                 </div>
-                                                <table class="data-table" id="edit-section-data-table-{{ $type->id }}-{{ $sectionIndex }}">
+                                                <table class="data-table data-table-fields" id="edit-section-data-table-{{ $type->id }}-{{ $sectionIndex }}">
                                                     <thead>
                                                         <tr>
                                                             <th style="width:34px;"></th>
+                                                            <th style="width:28px; text-align:center;">+</th>
                                                             <th>Dana</th>
                                                             <th>Token</th>
                                                             <th>Zależność od</th>
@@ -206,6 +220,7 @@
                                                         @foreach($sectionRows as $rowIndex => $row)
                                                             <tr data-draggable-row="1" draggable="false" class="{{ !empty($row['parent_token']) ? 'is-dependent-row' : '' }}">
                                                                 <td><span class="row-drag-handle" title="Przeciągnij wiersz">•••</span></td>
+                                                                <td style="text-align:center;"><input type="checkbox" class="row-insert-anchor" title="Dodawaj nowy wiersz pod tym wierszem" aria-label="Wstawianie pod tym wierszem"></td>
                                                                 <td><input type="text" name="sections[{{ $sectionIndex }}][rows][{{ $rowIndex }}][name]" value="{{ $row['name'] }}" oninput="updateRowToken(this)"></td>
                                                                 <td>
                                                                     <input type="text" class="row-token-preview" name="sections[{{ $sectionIndex }}][rows][{{ $rowIndex }}][key]" value="{{ $row['key'] !== '' ? $row['key'] : \Illuminate\Support\Str::slug((string) $row['name'], '_') }}" onfocus="rememberTokenBeforeEdit(this)" oninput="handleTokenEdit(this)" onblur="handleTokenEdit(this)">
@@ -237,7 +252,7 @@
                                                                 <td>
                                                                     <textarea class="row-options-input" name="sections[{{ $sectionIndex }}][rows][{{ $rowIndex }}][options_text]" rows="2" placeholder="Jedna opcja w linii" style="display:{{ ($row['kind'] ?? 'number') === 'select' ? 'block' : 'none' }};">{{ $row['options_text'] ?? '' }}</textarea>
                                                                 </td>
-                                                                <td><button type="button" class="btn-secondary" onclick="removeDataRow(this)">Usuń</button></td>
+                                                                <td><button type="button" class="btn-trash-icon" onclick="removeDataRow(this)" title="Usuń wiersz" aria-label="Usuń wiersz">🗑</button></td>
                                                             </tr>
                                                         @endforeach
                                                     </tbody>
@@ -555,10 +570,11 @@
                             <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin:0;">Tabela danych sekcji</label>
                             <button type="button" class="btn-secondary" onclick="addSectionDataRow('${containerId}-table-${index}', ${index})">+ Dodaj wiersz</button>
                         </div>
-                        <table class="data-table" id="${containerId}-table-${index}">
+                        <table class="data-table data-table-fields" id="${containerId}-table-${index}">
                             <thead>
                                 <tr>
                                     <th style="width:34px;"></th>
+                                    <th style="width:28px; text-align:center;">+</th>
                                     <th>Dana</th>
                                     <th>Token</th>
                                     <th>Zależność od</th>
@@ -633,6 +649,7 @@
 
             row.innerHTML = `
                 <td><span class="row-drag-handle" title="Przeciągnij wiersz">•••</span></td>
+                <td style="text-align:center;"><input type="checkbox" class="row-insert-anchor" title="Dodawaj nowy wiersz pod tym wierszem" aria-label="Wstawianie pod tym wierszem"></td>
                 <td><input type="text" name="sections[${sectionIndex}][rows][${rowIndex}][name]" placeholder="Np. Moc nominalna" oninput="updateRowToken(this)"></td>
                 <td><input type="text" class="row-token-preview" name="sections[${sectionIndex}][rows][${rowIndex}][key]" value="pole" onfocus="rememberTokenBeforeEdit(this)" oninput="handleTokenEdit(this)" onblur="handleTokenEdit(this)"></td>
                 <td>
@@ -649,10 +666,17 @@
                 <td><input type="text" name="sections[${sectionIndex}][rows][${rowIndex}][default_value]" placeholder="Wartość domyślna (opcjonalnie)"></td>
                 <td><input type="text" name="sections[${sectionIndex}][rows][${rowIndex}][notes]" placeholder="Uwagi (opcjonalnie)"></td>
                 <td><textarea class="row-options-input" name="sections[${sectionIndex}][rows][${rowIndex}][options_text]" rows="2" placeholder="Jedna opcja w linii" style="display:none;"></textarea></td>
-                <td><button type="button" class="btn-secondary" onclick="removeDataRow(this)">Usuń</button></td>
+                <td><button type="button" class="btn-trash-icon" onclick="removeDataRow(this)" title="Usuń wiersz" aria-label="Usuń wiersz">🗑</button></td>
             `;
 
-            table.appendChild(row);
+            const currentTable = table.closest('table');
+            const insertAfterRow = resolveInsertAfterSelectedRow(currentTable);
+
+            if (insertAfterRow && insertAfterRow.parentElement === table) {
+                table.insertBefore(row, insertAfterRow.nextElementSibling);
+            } else {
+                table.appendChild(row);
+            }
             const nameInput = row.querySelector('input[name$="[name]"]');
             if (nameInput) {
                 updateRowToken(nameInput);
@@ -677,6 +701,49 @@
             refreshTokenHelpersInScope(getTokenScopeRoot(row));
             const parentSelect = row.querySelector('.row-parent-token');
             syncDependencyRowVisual(parentSelect);
+        }
+
+        function resolveInsertAfterSelectedRow(tableElement) {
+            if (!tableElement) {
+                return null;
+            }
+
+            const tbody = tableElement.querySelector('tbody');
+            if (!tbody) {
+                return null;
+            }
+
+            const checkedAnchor = tbody.querySelector('.row-insert-anchor:checked');
+            const checkedRow = checkedAnchor?.closest('tr[data-draggable-row]');
+            if (checkedRow && checkedRow.parentElement === tbody) {
+                return checkedRow;
+            }
+
+            const activeElement = document.activeElement;
+            if (!(activeElement instanceof HTMLElement)) {
+                return null;
+            }
+
+            if (!tbody.contains(activeElement)) {
+                return null;
+            }
+
+            const activeRow = activeElement.closest('tr[data-draggable-row]');
+            if (!activeRow || activeRow.parentElement !== tbody) {
+                return null;
+            }
+
+            return activeRow;
+        }
+
+        function setInsertAnchorForRow(row, tbody) {
+            if (!row || !tbody) {
+                return;
+            }
+
+            tbody.querySelectorAll('.row-insert-anchor').forEach((checkbox) => {
+                checkbox.checked = checkbox.closest('tr[data-draggable-row]') === row;
+            });
         }
 
         function removeAuditTypeSection(button) {
@@ -1036,6 +1103,31 @@
 
             tbody.dataset.dndReady = '1';
 
+            tbody.addEventListener('focusin', function (event) {
+                const row = event.target.closest('tr[data-draggable-row]');
+                if (!row || row.parentElement !== tbody) {
+                    return;
+                }
+
+                setInsertAnchorForRow(row, tbody);
+            });
+
+            tbody.addEventListener('change', function (event) {
+                const checkbox = event.target.closest('.row-insert-anchor');
+                if (!checkbox) {
+                    return;
+                }
+
+                const row = checkbox.closest('tr[data-draggable-row]');
+                if (!row || row.parentElement !== tbody) {
+                    return;
+                }
+
+                if (checkbox.checked) {
+                    setInsertAnchorForRow(row, tbody);
+                }
+            });
+
             let draggingRow = null;
             let isDragging = false;
 
@@ -1110,15 +1202,35 @@
         }
 
         function generateTokenFromName(rawName) {
+            const polishMap = {
+                'ą': 'a',
+                'ć': 'c',
+                'ę': 'e',
+                'ł': 'l',
+                'ń': 'n',
+                'ó': 'o',
+                'ś': 's',
+                'ź': 'z',
+                'ż': 'z',
+            };
+
             const normalized = String(rawName || '')
                 .toLowerCase()
+                .replace(/[ąćęłńóśźż]/g, (char) => polishMap[char] || char)
                 .normalize('NFD')
                 .replace(/[\u0300-\u036f]/g, '')
-                .replace(/[^a-z0-9]+/g, '_')
-                .replace(/^_+|_+$/g, '')
-                .replace(/_+/g, '_');
+                .replace(/[^a-z0-9]+/g, ' ')
+                .trim();
 
-            return normalized || 'pole';
+            const words = normalized
+                .split(/\s+/)
+                .filter((word) => word !== '');
+
+            if (words.length === 0) {
+                return 'pol';
+            }
+
+            return words.map((word) => word.slice(0, 3)).join('_');
         }
 
         function normalizeToken(rawToken) {
@@ -1369,8 +1481,8 @@
                     return;
                 }
 
-                const rowCell = row.children[1];
-                const parentCell = parentRow.children[1];
+                const rowCell = row.children[2];
+                const parentCell = parentRow.children[2];
                 if (!rowCell || !parentCell) {
                     return;
                 }

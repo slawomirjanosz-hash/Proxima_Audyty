@@ -4,6 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>ENESA | Oferta</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="shortcut icon" type="image/png" href="/logo.png">
+    <link rel="apple-touch-icon" href="/logo.png">
     <style>
         :root {
             --bg-1: #eff8f0;

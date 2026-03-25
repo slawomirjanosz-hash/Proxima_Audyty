@@ -4,6 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Logowanie | ENESA</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="shortcut icon" type="image/png" href="/logo.png">
+    <link rel="apple-touch-icon" href="/logo.png">
     <style>
         body { margin:0; font-family: "Segoe UI", Tahoma, Arial, sans-serif; min-height:100vh; display:grid; place-items:center; background: linear-gradient(150deg, #e9f8ee 0%, #e8f2fb 100%); }
         .card { width:min(430px, 92vw); background:#fff; border:1px solid #d7e6f0; border-radius:16px; padding:22px; box-shadow:0 14px 28px rgba(13,58,90,.08); }
