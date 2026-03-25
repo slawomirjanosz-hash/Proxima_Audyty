@@ -498,8 +498,10 @@ class AuditsController extends Controller
                 ->values()
                 ->all();
 
+            $tokenMap = [];
+
             $rows = collect($section['rows'] ?? [])
-                ->map(function ($row) use (&$usedFieldKeys) {
+                ->map(function ($row) use (&$usedFieldKeys, &$tokenMap) {
                     $fieldName = trim((string) ($row['name'] ?? ''));
                     if ($fieldName === '') {
                         return null;
@@ -519,6 +521,10 @@ class AuditsController extends Controller
                     }
                     $usedFieldKeys[] = $candidateKey;
 
+                    if ($providedKey !== '') {
+                        $tokenMap[$providedKey] = $candidateKey;
+                    }
+
                     return [
                         'key' => $candidateKey,
                         'name' => $fieldName,
@@ -531,6 +537,22 @@ class AuditsController extends Controller
                     ];
                 })
                 ->filter()
+                ->values()
+                ->all();
+
+            $rows = collect($rows)
+                ->map(function (array $row) use ($tokenMap): array {
+                    $parentToken = (string) ($row['parent_token'] ?? '');
+                    $resolvedParentToken = (string) ($tokenMap[$parentToken] ?? $parentToken);
+
+                    if ($resolvedParentToken === (string) ($row['key'] ?? '')) {
+                        $resolvedParentToken = '';
+                    }
+
+                    $row['parent_token'] = $resolvedParentToken;
+
+                    return $row;
+                })
                 ->values()
                 ->all();
 
@@ -569,7 +591,7 @@ class AuditsController extends Controller
                 'position' => $position,
                 'tasks' => $tasks,
                 'data_fields' => $rows,
-                'formulas' => $this->normalizeFormulas($section['formulas'] ?? []),
+                'formulas' => $this->normalizeFormulasWithTokenMap($section['formulas'] ?? [], $tokenMap),
             ];
 
             $existingSection = $existingSections->get($position - 1);
@@ -691,6 +713,34 @@ class AuditsController extends Controller
                 ];
             })
             ->filter()
+            ->values()
+            ->all();
+    }
+
+    private function normalizeFormulasWithTokenMap(array $formulas, array $tokenMap): array
+    {
+        $normalized = $this->normalizeFormulas($formulas);
+
+        if ($tokenMap === []) {
+            return $normalized;
+        }
+
+        return collect($normalized)
+            ->map(function (array $formula) use ($tokenMap): array {
+                $expression = (string) ($formula['expression'] ?? '');
+
+                foreach ($tokenMap as $oldToken => $newToken) {
+                    if ($oldToken === '' || $oldToken === $newToken) {
+                        continue;
+                    }
+
+                    $expression = preg_replace('/\{'.preg_quote($oldToken, '/').'\}/', '{'.$newToken.'}', $expression) ?? $expression;
+                }
+
+                $formula['expression'] = $expression;
+
+                return $formula;
+            })
             ->values()
             ->all();
     }
