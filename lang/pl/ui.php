@@ -9,6 +9,7 @@ return [
         'info' => 'Informacje',
         'offer' => 'Oferta',
         'audits' => 'Audyty',
+        'iso50001' => 'ISO50001',
         'client_zone' => 'Strefa klienta',
         'settings' => 'Ustawienia',
     ],

@@ -78,7 +78,7 @@
         }
         .stat-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 14px;
             margin-top: 14px;
         }
@@ -131,6 +131,36 @@
         .company-item.open .company-body { display:block; }
         .company-audits-list { margin:0; padding-left:18px; display:grid; gap:6px; }
         .company-audits-list li { color:#2f4e65; font-size:13px; }
+        .iso-audit-table td, .iso-audit-table th { font-size:13px; }
+        .iso-progress-pill {
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            min-width:86px;
+            padding:4px 8px;
+            border-radius:999px;
+            background:#eef8ff;
+            border:1px solid #cae3f6;
+            color:#1c4e73;
+            font-weight:700;
+            font-size:12px;
+        }
+        .iso-status-pill {
+            display:inline-flex;
+            align-items:center;
+            padding:4px 8px;
+            border-radius:999px;
+            border:1px solid #d4e4f0;
+            background:#f7fbff;
+            color:#31566f;
+            font-size:11px;
+            font-weight:700;
+            text-transform:uppercase;
+        }
+        .iso-status-pill.status-approved { background:#e6f8ed; border-color:#bde9ca; color:#1f6a3c; }
+        .iso-status-pill.status-changes_required { background:#fff4df; border-color:#f8d8a3; color:#875605; }
+        .iso-status-pill.status-in_review { background:#f0ebff; border-color:#d7cbff; color:#563a98; }
+        .iso-status-pill.status-submitted { background:#e9f4ff; border-color:#c5e1ff; color:#1d5f94; }
         @media (max-width: 800px) {
             .stat-grid { grid-template-columns: 1fr 1fr; }
             .client-hero { padding: 24px 22px; }
@@ -183,7 +213,49 @@
             <div class="stat-value">{{ ($auditsByCompany ?? collect())->count() }}</div>
             <div class="stat-sub">kliknij firmę, aby zobaczyć przypisane audyty</div>
         </div>
+        <div class="stat-card">
+            <div class="stat-label">Audyty ISO50001</div>
+            <div class="stat-value">{{ ($isoAudits ?? collect())->count() }}</div>
+            <div class="stat-sub">Twoje audyty krok po kroku z terminem i postepem</div>
+        </div>
     </div>
+
+    <section class="panel">
+        <p class="section-title">Twoje audyty ISO50001</p>
+
+        <table class="iso-audit-table" style="margin-top:12px;">
+            <thead>
+            <tr>
+                <th>Audyt</th>
+                <th>Firma</th>
+                <th>Status</th>
+                <th>Data zakonczenia</th>
+                <th>Postep</th>
+                <th>Akcja</th>
+            </tr>
+            </thead>
+            <tbody>
+            @forelse(($isoAudits ?? collect()) as $isoAudit)
+                @php($statusClass = 'status-'.str_replace(' ', '_', $isoAudit->status))
+                <tr>
+                    <td>{{ $isoAudit->title }}</td>
+                    <td>{{ $isoAudit->company?->name ?? '—' }}</td>
+                    <td><span class="iso-status-pill {{ $statusClass }}">{{ \App\Models\Iso50001Audit::statusLabels()[$isoAudit->status] ?? $isoAudit->status }}</span></td>
+                    <td>{{ $isoAudit->due_date?->format('d.m.Y') ?? '—' }}</td>
+                    <td><span class="iso-progress-pill">{{ (int) ($isoAudit->progress_filled ?? 0) }}/{{ (int) ($isoAudit->progress_max ?? ($maxIsoTasks ?? 0)) }}</span></td>
+                    <td style="display:flex; gap:6px; white-space:nowrap;">
+                        <a href="{{ route('iso50001.step', ['isoAudit' => $isoAudit, 'step' => max(1, (int) $isoAudit->current_step)]) }}" style="display:inline-block; background:#0e89d8; color:#fff; padding:6px 10px; border-radius:8px; text-decoration:none;">Edytuj</a>
+                        <a href="{{ route('iso50001.review', $isoAudit) }}" style="display:inline-block; background:#eff6fb; color:#174666; padding:6px 10px; border-radius:8px; text-decoration:none; border:1px solid #d3e4f1;">Podglad</a>
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="6" class="muted" style="text-align:center;">Brak przypisanych audytow ISO50001.</td>
+                </tr>
+            @endforelse
+            </tbody>
+        </table>
+    </section>
 
     {{-- Companies table --}}
     <section class="panel">

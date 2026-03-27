@@ -13,10 +13,12 @@ class AuditType extends Model
     protected $fillable = [
         'name',
         'formulas',
+        'variables',
     ];
 
     protected $casts = [
         'formulas' => 'array',
+        'variables' => 'array',
     ];
 
     public function sections(): HasMany

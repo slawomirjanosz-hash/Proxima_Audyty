@@ -62,6 +62,9 @@
             .token-list { display:flex; flex-wrap:wrap; gap:6px; }
             .token-chip { border:1px solid #c6daeb; border-radius:999px; background:#fff; color:#1d4f73; padding:4px 8px; font-size:12px; cursor:pointer; }
             .token-chip:hover { background:#eef6ff; }
+            .token-chip-formula { border-color:#b0d9c8; color:#0a5c46; background:#f4fdf9; }
+            .token-chip-formula:hover { background:#d9f5eb; }
+            .token-chip-separator { font-size:12px; color:#9ab5c8; align-self:center; }
             .token-helper-hint { font-size:11px; color:#5f7688; margin-top:6px; }
             .btn-trash-icon { width:28px; height:28px; min-height:28px; padding:0; border-radius:8px; background:#e9f1f8; color:#35556f; border:1px solid #c9dceb; font-size:14px; line-height:1; display:inline-flex; align-items:center; justify-content:center; }
             .btn-trash-icon:hover { background:#dceaf6; }
@@ -98,6 +101,27 @@
                     </div>
                 </div>
 
+                <div style="margin-top:14px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;">
+                        <div>
+                            <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin:0;">Zmienne globalne rodzaju audytu</label>
+                            <div style="font-size:11px; color:#6b8294; margin-top:2px;">Stałe i parametry dostępne we wzorach wszystkich sekcji jako <strong>{token}</strong>.</div>
+                        </div>
+                        <button type="button" class="btn-secondary" onclick="addVariableRow('new-type-variables-table')">+ Dodaj zmienną</button>
+                    </div>
+                    <table class="data-table" id="new-type-variables-table">
+                        <thead>
+                            <tr>
+                                <th>Nazwa zmiennej</th>
+                                <th>Token</th>
+                                <th>Wartość domyślna</th>
+                                <th style="width:40px;">Akcja</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
                 <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
                     <strong style="font-size:13px; color:#1d4f73;">Sekcje audytu</strong>
                     <button type="button" class="btn-secondary" onclick="addAuditTypeSection()">+ Dodaj sekcję</button>
@@ -121,6 +145,10 @@
                             </button>
                             <div style="display:flex; gap:8px; align-items:center;">
                                 <button type="button" class="btn-secondary" onclick="toggleAuditTypeEditForm({{ $type->id }})">Edytuj</button>
+                                <form method="POST" action="{{ route('audits.settings.audit-type-copy', $type) }}" onsubmit="return confirm('Skopiować rodzaj audytu?')">
+                                    @csrf
+                                    <button type="submit" class="btn-secondary">Kopiuj</button>
+                                </form>
                                 <form method="POST" action="{{ route('audits.settings.audit-type-destroy', $type) }}" onsubmit="return confirm('Usunąć rodzaj audytu?')">
                                     @csrf
                                     @method('DELETE')
@@ -137,6 +165,36 @@
                             <div>
                                 <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Nazwa rodzaju audytu</label>
                                 <input type="text" name="name" value="{{ $type->name }}" required>
+                            </div>
+
+                            <div style="margin-top:14px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;">
+                                    <div>
+                                        <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin:0;">Zmienne globalne rodzaju audytu</label>
+                                        <div style="font-size:11px; color:#6b8294; margin-top:2px;">Stałe i parametry dostępne we wzorach wszystkich sekcji jako <strong>{token}</strong>.</div>
+                                    </div>
+                                    <button type="button" class="btn-secondary" onclick="addVariableRow('edit-type-variables-table-{{ $type->id }}')">+ Dodaj zmienną</button>
+                                </div>
+                                <table class="data-table" id="edit-type-variables-table-{{ $type->id }}">
+                                    <thead>
+                                        <tr>
+                                            <th>Nazwa zmiennej</th>
+                                            <th>Token</th>
+                                            <th>Wartość domyślna</th>
+                                            <th style="width:40px;">Akcja</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($type->variables ?? [] as $varIndex => $var)
+                                            <tr data-variable-item="1">
+                                                <td><input type="text" name="variables[{{ $varIndex }}][name]" value="{{ $var['name'] ?? '' }}" placeholder="Np. Sprawność" oninput="updateVariableToken(this)"></td>
+                                                <td><input type="text" class="variable-token-preview" name="variables[{{ $varIndex }}][key]" value="{{ $var['key'] ?? '' }}"></td>
+                                                <td><input type="text" name="variables[{{ $varIndex }}][default_value]" value="{{ $var['default_value'] ?? '' }}" placeholder="Np. 0.85"></td>
+                                                <td><button type="button" class="btn-trash-icon" onclick="removeVariableRow(this)" title="Usuń zmienną" aria-label="Usuń zmienną">🗑</button></td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
                             </div>
 
                             <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
@@ -264,11 +322,11 @@
                                                     <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin:0;">Wzory sekcji</label>
                                                     <button type="button" class="btn-secondary" onclick="addSectionFormulaRow('edit-section-formulas-{{ $type->id }}-{{ $sectionIndex }}', {{ $sectionIndex }}, 'edit-section-data-table-{{ $type->id }}-{{ $sectionIndex }}')">+ Dodaj wzór</button>
                                                 </div>
-                                                <div style="font-size:12px; color:#4c6373; margin:0 0 6px;">Tokeny pól: <strong>{token}</strong>, np. <strong>({moc_nominalna} * 1.2) / 1000</strong>. We wzorze wpisuj tylko liczby, operatory i tokeny (bez jednostek typu <strong>kW</strong>).</div>
+                                                <div style="font-size:12px; color:#4c6373; margin:0 0 6px;">Tokeny pól: <strong>{token}</strong>, np. <strong>({moc_nominalna} * 1.2) / 1000</strong>. Możesz też używać tokenu wyniku innego wzoru. We wzorze wpisuj tylko liczby, operatory i tokeny (bez jednostek).</div>
                                                 <div class="token-helper">
                                                     <div class="token-helper-title">Kliknij token, aby wstawić go do wzoru</div>
                                                     <div class="token-list section-token-list"></div>
-                                                    <div class="token-helper-hint">Przy zmianie tokenu jego wystąpienia we wzorach tej sekcji aktualizują się automatycznie.</div>
+                                                    <div class="token-helper-hint">Pola danych: nieb. | Wyniki wzorów: ziel. Przy zmianie tokenu jego wystąpienia we wzorach tej sekcji aktualizują się automatycznie.</div>
                                                 </div>
                                                 <div id="edit-section-formulas-{{ $type->id }}-{{ $sectionIndex }}" style="display:grid; gap:8px;">
                                                     @foreach(($section->formulas ?? []) as $formulaIndex => $formula)
@@ -280,10 +338,14 @@
                                                                 </div>
                                                                 <button type="button" class="btn-secondary" onclick="removeFormulaRow(this)">Usuń</button>
                                                             </div>
-                                                            <div class="formula-collapsible-content" style="display:grid; grid-template-columns:1fr 180px; gap:8px;">
+                                                            <div class="formula-collapsible-content" style="display:grid; grid-template-columns:1fr 160px 160px; gap:8px;">
                                                                 <div>
                                                                     <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Co obliczyć</label>
                                                                     <input type="text" class="formula-name-input" name="sections[{{ $sectionIndex }}][formulas][{{ $formulaIndex }}][label]" value="{{ (string) ($formula['label'] ?? '') }}" placeholder="Np. Zużycie roczne" oninput="updateFormulaHeaderTitle(this)">
+                                                                </div>
+                                                                <div>
+                                                                    <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Token wyniku</label>
+                                                                    <input type="text" class="formula-token-preview" name="sections[{{ $sectionIndex }}][formulas][{{ $formulaIndex }}][key]" value="{{ (string) ($formula['key'] ?? '') }}" placeholder="auto" onfocus="rememberTokenBeforeEdit(this)" oninput="handleFormulaTokenEdit(this)" onblur="handleFormulaTokenEdit(this)">
                                                                 </div>
                                                                 <div>
                                                                     <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Jednostka wyniku</label>
@@ -311,6 +373,24 @@
                                 <button type="submit">Zapisz zmiany rodzaju audytu</button>
                             </div>
                         </form>
+
+                        @if(!empty($type->variables))
+                            <div style="margin-bottom:10px;">
+                                <div style="font-size:12px; font-weight:700; color:#4c6373; margin-bottom:4px;">Zmienne globalne:</div>
+                                <table class="data-table" style="margin:0;">
+                                    <thead><tr><th>Nazwa</th><th>Token</th><th>Wartość domyślna</th></tr></thead>
+                                    <tbody>
+                                        @foreach($type->variables as $var)
+                                            <tr>
+                                                <td>{{ $var['name'] ?? '' }}</td>
+                                                <td><code>{{ $var['key'] ?? '' }}</code></td>
+                                                <td>{{ $var['default_value'] ?? '—' }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
 
                         @forelse($type->sections as $section)
                             <div class="audit-type-section">
@@ -381,6 +461,125 @@
                 @empty
                     <div class="muted">Brak zdefiniowanych rodzajów audytu.</div>
                 @endforelse
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-section" id="settings-iso50001">
+            <button type="button" class="settings-toggle" onclick="toggleSettingsSection('settings-iso50001')">
+                <div class="settings-toggle-content">
+                    <h2>Audyty ISO50001</h2>
+                    <p class="muted">Konfiguracja formularza i zarzadzanie audytami ISO 50001 przypisanymi klientom.</p>
+                </div>
+                <span class="settings-chevron">&#9660;</span>
+            </button>
+
+            <div class="settings-body">
+                <div style="display:grid; grid-template-columns: 1fr; gap:14px; margin-top:10px;">
+                    <section class="audit-type-card">
+                        <h3 style="margin:0 0 10px;">Przykladowy audyt do edycji (szablon krokow)</h3>
+                        <form method="POST" action="{{ route('audits.settings.iso50001.template-update') }}" style="display:grid; gap:10px;">
+                            @csrf
+                            @method('PATCH')
+                            <div>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Nazwa szablonu</label>
+                                <input type="text" name="name" value="{{ old('name', $isoTemplate->name ?? 'Szablon ISO 50001') }}" required>
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Definicja krokow (JSON)</label>
+                                <textarea name="template_json" rows="16" style="width:100%; border:1px solid #c9d7e3; border-radius:9px; padding:8px 10px; font-size:13px; font-family: Consolas, monospace;">{{ old('template_json', $isoTemplateJson ?? '[]') }}</textarea>
+                            </div>
+                            <div style="display:flex; justify-content:flex-end;">
+                                <button type="submit">Zapisz konfiguracje ISO50001</button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <section class="audit-type-card">
+                        <h3 style="margin:0 0 10px;">Utworz audyt ISO50001 dla klienta</h3>
+                        <form method="POST" action="{{ route('audits.settings.iso50001.audit-store') }}" style="display:grid; grid-template-columns: 1fr 1fr 220px auto; gap:10px; align-items:end;">
+                            @csrf
+                            <div>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Klient</label>
+                                <select name="client_user_id" required>
+                                    <option value="">Wybierz klienta</option>
+                                    @foreach($isoClients as $client)
+                                        <option value="{{ $client->id }}">{{ $client->name }} ({{ $client->email }})</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Firma</label>
+                                <select name="company_id" required>
+                                    <option value="">Wybierz firme</option>
+                                    @foreach($isoCompanies as $company)
+                                        <option value="{{ $company->id }}">{{ $company->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Data zakonczenia audytu</label>
+                                <input type="date" name="due_date" value="{{ old('due_date') }}">
+                            </div>
+                            <div>
+                                <button type="submit">Utworz audyt</button>
+                            </div>
+                            <div style="grid-column:1 / -1;">
+                                <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Nazwa audytu</label>
+                                <input type="text" name="title" value="{{ old('title', 'Audyt ISO 50001 - '.now()->format('Y-m-d')) }}" required>
+                            </div>
+                        </form>
+                    </section>
+
+                    <section class="audit-type-card">
+                        <h3 style="margin:0 0 10px;">Istniejace audyty ISO50001 (edycja)</h3>
+                        <div style="display:grid; gap:8px;">
+                            @forelse($isoAudits as $isoAudit)
+                                <form method="POST" action="{{ route('audits.settings.iso50001.audit-update', $isoAudit) }}" style="border:1px solid #dfeaf3; border-radius:10px; padding:10px; background:#fbfdff; display:grid; grid-template-columns: 1fr 1fr 1fr 180px 170px auto; gap:8px; align-items:end;">
+                                    @csrf
+                                    @method('PATCH')
+                                    <div>
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#4c6373;">Nazwa audytu</label>
+                                        <input type="text" name="title" value="{{ $isoAudit->title }}" required>
+                                    </div>
+                                    <div>
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#4c6373;">Klient</label>
+                                        <select name="client_user_id" required>
+                                            @foreach($isoClients as $client)
+                                                <option value="{{ $client->id }}" @selected((int) $isoAudit->created_by_user_id === (int) $client->id)>{{ $client->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#4c6373;">Firma</label>
+                                        <select name="company_id" required>
+                                            @foreach($isoCompanies as $company)
+                                                <option value="{{ $company->id }}" @selected((int) $isoAudit->company_id === (int) $company->id)>{{ $company->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#4c6373;">Data zakonczenia</label>
+                                        <input type="date" name="due_date" value="{{ $isoAudit->due_date?->format('Y-m-d') }}">
+                                    </div>
+                                    <div>
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#4c6373;">Status</label>
+                                        <select name="status" required>
+                                            @foreach($isoStatusOptions as $statusKey => $statusLabel)
+                                                <option value="{{ $statusKey }}" @selected($isoAudit->status === $statusKey)>{{ $statusLabel }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div style="display:flex; gap:6px;">
+                                        <button type="submit">Zapisz</button>
+                                        <a href="{{ route('iso50001.review', $isoAudit) }}" class="btn-secondary" style="text-decoration:none; padding:8px 10px; border-radius:9px; display:inline-flex; align-items:center;">Podglad</a>
+                                    </div>
+                                </form>
+                            @empty
+                                <div class="muted">Brak audytow ISO50001.</div>
+                            @endforelse
+                        </div>
+                    </section>
                 </div>
             </div>
         </div>
@@ -595,11 +794,11 @@
                             <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin:0;">Wzory sekcji</label>
                             <button type="button" class="btn-secondary" onclick="addSectionFormulaRow('${containerId}-formulas-${index}', ${index}, '${containerId}-table-${index}')">+ Dodaj wzór</button>
                         </div>
-                        <div style="font-size:12px; color:#4c6373; margin:0 0 6px;">Tokeny pól: <strong>{token}</strong>, np. <strong>({moc_nominalna} * 1.2) / 1000</strong>. We wzorze wpisuj tylko liczby, operatory i tokeny (bez jednostek typu <strong>kW</strong>).</div>
+                        <div style="font-size:12px; color:#4c6373; margin:0 0 6px;">Tokeny pól: <strong>{token}</strong>, np. <strong>({moc_nominalna} * 1.2) / 1000</strong>. Możesz też używać tokenu wyniku innego wzoru. We wzorze wpisuj tylko liczby, operatory i tokeny (bez jednostek).</div>
                         <div class="token-helper">
                             <div class="token-helper-title">Kliknij token, aby wstawić go do wzoru</div>
                             <div class="token-list section-token-list"></div>
-                            <div class="token-helper-hint">Przy zmianie tokenu jego wystąpienia we wzorach tej sekcji aktualizują się automatycznie.</div>
+                            <div class="token-helper-hint">Pola danych: nieb. | Wyniki wzorów: ziel. Przy zmianie tokenu jego wystąpienia we wzorach tej sekcji aktualizują się automatycznie.</div>
                         </div>
                         <div id="${containerId}-formulas-${index}" style="display:grid; gap:8px;"></div>
                     </div>
@@ -773,6 +972,74 @@
             section.draggable = isCollapsed;
         }
 
+        function addVariableRow(tableId) {
+            const table = document.querySelector(`#${tableId} tbody`);
+            if (!table) {
+                return;
+            }
+
+            const index = table.querySelectorAll('tr[data-variable-item]').length;
+            const row = document.createElement('tr');
+            row.setAttribute('data-variable-item', '1');
+            row.innerHTML = `
+                <td><input type="text" name="variables[${index}][name]" placeholder="Np. Sprawność" oninput="updateVariableToken(this)"></td>
+                <td><input type="text" class="variable-token-preview" name="variables[${index}][key]" value="zmienna"></td>
+                <td><input type="text" name="variables[${index}][default_value]" placeholder="Np. 0.85"></td>
+                <td><button type="button" class="btn-trash-icon" onclick="removeVariableRow(this)" title="Usuń zmienną" aria-label="Usuń zmienną">🗑</button></td>
+            `;
+            table.appendChild(row);
+            refreshTokenHelpersInScope(getTokenScopeRoot(row));
+        }
+
+        function removeVariableRow(button) {
+            const row = button?.closest('tr[data-variable-item]');
+            const table = row?.closest('table');
+            const scopeRoot = getTokenScopeRoot(button);
+            if (!row) {
+                return;
+            }
+
+            row.remove();
+            if (table) {
+                renumberVariableRows(table);
+            }
+            refreshTokenHelpersInScope(scopeRoot);
+        }
+
+        function updateVariableToken(nameInput) {
+            const row = nameInput?.closest('tr[data-variable-item]');
+            if (!row) {
+                return;
+            }
+
+            const tokenInput = row.querySelector('.variable-token-preview');
+            if (!tokenInput) {
+                return;
+            }
+
+            const raw = normalizeToken(nameInput.value);
+            const unique = ensureUniqueTokenInScope(tokenInput, raw !== '' ? raw : 'zmienna');
+            tokenInput.value = unique;
+            refreshTokenHelpersInScope(getTokenScopeRoot(tokenInput));
+        }
+
+        function renumberVariableRows(tableElement) {
+            if (!tableElement) {
+                return;
+            }
+
+            Array.from(tableElement.querySelectorAll('tbody > tr[data-variable-item]')).forEach((row, idx) => {
+                row.querySelectorAll('input[name]').forEach((field) => {
+                    const currentName = field.getAttribute('name') || '';
+                    if (!currentName.includes('variables[')) {
+                        return;
+                    }
+                    field.setAttribute('name', currentName.replace(/variables\[\d+\]/, `variables[${idx}]`));
+                });
+            });
+        }
+
+
         function removeFormulaRow(button) {
             const formulaRow = button?.closest('[data-formula-item]');
             const container = formulaRow?.parentElement;
@@ -802,6 +1069,32 @@
         function updateFormulaHeaderTitle(input) {
             const formulaRow = input?.closest('[data-formula-item]');
             syncFormulaHeaderTitle(formulaRow);
+            updateFormulaToken(input);
+        }
+
+        function updateFormulaToken(labelInput) {
+            const formulaRow = labelInput?.closest('[data-formula-item]');
+            if (!formulaRow) {
+                return;
+            }
+
+            const tokenInput = formulaRow.querySelector('.formula-token-preview');
+            if (!tokenInput || tokenInput.dataset.manualEdit === '1') {
+                return;
+            }
+
+            const raw = normalizeToken(labelInput.value);
+            const base = raw !== '' ? raw : 'wzor';
+            const oldToken = normalizeToken(tokenInput.dataset.prevToken || tokenInput.value);
+            const unique = ensureUniqueTokenInScope(tokenInput, base);
+            tokenInput.value = unique;
+            tokenInput.dataset.prevToken = unique;
+
+            if (oldToken !== '' && oldToken !== unique) {
+                replaceTokenInScopeFormulas(getTokenScopeRoot(tokenInput), oldToken, unique);
+            }
+
+            refreshTokenHelpersInScope(getTokenScopeRoot(tokenInput));
         }
 
         function toggleFormulaCollapse(button) {
@@ -1589,6 +1882,26 @@
             refreshDependencySelectorsInScope(getTokenScopeRoot(tokenInput));
         }
 
+        function handleFormulaTokenEdit(tokenInput) {
+            if (!tokenInput) {
+                return;
+            }
+
+            tokenInput.dataset.manualEdit = '1';
+            const oldToken = normalizeToken(tokenInput.dataset.prevToken || tokenInput.value);
+            const desiredToken = normalizeToken(tokenInput.value);
+            const uniqueToken = ensureUniqueTokenInScope(tokenInput, desiredToken !== '' ? desiredToken : 'wzor');
+
+            tokenInput.value = uniqueToken;
+            tokenInput.dataset.prevToken = uniqueToken;
+
+            if (oldToken !== '' && oldToken !== uniqueToken) {
+                replaceTokenInScopeFormulas(getTokenScopeRoot(tokenInput), oldToken, uniqueToken);
+            }
+
+            refreshTokenHelpersInScope(getTokenScopeRoot(tokenInput));
+        }
+
         function rememberTokenBeforeEdit(tokenInput) {
             if (!tokenInput) {
                 return;
@@ -1630,7 +1943,11 @@
                 return baseToken;
             }
 
-            const used = Array.from(scopeRoot.querySelectorAll('.row-token-preview'))
+            const used = [
+                ...Array.from(scopeRoot.querySelectorAll('.row-token-preview')),
+                ...Array.from(scopeRoot.querySelectorAll('.variable-token-preview')),
+                ...Array.from(scopeRoot.querySelectorAll('.formula-token-preview')),
+            ]
                 .filter((input) => input !== tokenInput)
                 .map((input) => normalizeToken(input.value))
                 .filter((value) => value !== '');
@@ -1716,7 +2033,13 @@
                 return [];
             }
 
-            return Array.from(scopeRoot.querySelectorAll('.row-token-preview'))
+            const allTokenInputs = [
+                ...Array.from(scopeRoot.querySelectorAll('.row-token-preview')),
+                ...Array.from(scopeRoot.querySelectorAll('.variable-token-preview')),
+                ...Array.from(scopeRoot.querySelectorAll('.formula-token-preview')),
+            ];
+
+            return allTokenInputs
                 .map((input) => normalizeToken(input.value))
                 .filter((token, index, array) => token !== '' && array.indexOf(token) === index);
         }
@@ -1788,12 +2111,21 @@
                 return;
             }
 
-            const tokens = collectTokensInScope(scopeRoot);
+            const dataTokens = [
+                ...Array.from(scopeRoot.querySelectorAll('.row-token-preview')),
+                ...Array.from(scopeRoot.querySelectorAll('.variable-token-preview')),
+            ]
+                .map((input) => normalizeToken(input.value))
+                .filter((token, index, array) => token !== '' && array.indexOf(token) === index);
+
+            const formulaTokens = Array.from(scopeRoot.querySelectorAll('.formula-token-preview'))
+                .map((input) => normalizeToken(input.value))
+                .filter((token, index, array) => token !== '' && array.indexOf(token) === index);
 
             tokenLists.forEach((list) => {
                 list.innerHTML = '';
 
-                if (tokens.length === 0) {
+                if (dataTokens.length === 0 && formulaTokens.length === 0) {
                     const empty = document.createElement('span');
                     empty.style.fontSize = '12px';
                     empty.style.color = '#6b8294';
@@ -1802,16 +2134,38 @@
                     return;
                 }
 
-                tokens.forEach((token) => {
+                dataTokens.forEach((token) => {
                     const button = document.createElement('button');
                     button.type = 'button';
                     button.className = 'token-chip';
+                    button.title = 'Pole danych';
                     button.textContent = `{${token}}`;
                     button.addEventListener('click', function () {
                         insertTokenToFormula(scopeRoot, list.closest('.audit-type-section'), token);
                     });
                     list.appendChild(button);
                 });
+
+                if (formulaTokens.length > 0) {
+                    if (dataTokens.length > 0) {
+                        const sep = document.createElement('span');
+                        sep.className = 'token-chip-separator';
+                        sep.textContent = '|';
+                        list.appendChild(sep);
+                    }
+
+                    formulaTokens.forEach((token) => {
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.className = 'token-chip token-chip-formula';
+                        button.title = 'Wynik wzoru';
+                        button.textContent = `{${token}}`;
+                        button.addEventListener('click', function () {
+                            insertTokenToFormula(scopeRoot, list.closest('.audit-type-section'), token);
+                        });
+                        list.appendChild(button);
+                    });
+                }
             });
         }
 
@@ -1850,10 +2204,14 @@
                     </div>
                     <button type="button" class="btn-secondary" onclick="removeFormulaRow(this)">Usuń</button>
                 </div>
-                <div class="formula-collapsible-content" style="display:grid; grid-template-columns:1fr 180px; gap:8px;">
+                <div class="formula-collapsible-content" style="display:grid; grid-template-columns:1fr 160px 160px; gap:8px;">
                     <div>
                         <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Co obliczyć</label>
                         <input type="text" class="formula-name-input" name="sections[${sectionIndex}][formulas][${index}][label]" value="${defaults.label || ''}" placeholder="Np. Zużycie roczne" oninput="updateFormulaHeaderTitle(this)">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Token wyniku</label>
+                        <input type="text" class="formula-token-preview" name="sections[${sectionIndex}][formulas][${index}][key]" value="${defaults.key || ''}" placeholder="auto" onfocus="rememberTokenBeforeEdit(this)" oninput="handleFormulaTokenEdit(this)" onblur="handleFormulaTokenEdit(this)">
                     </div>
                     <div>
                         <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Jednostka wyniku</label>
@@ -1966,6 +2324,11 @@
 
             document.querySelectorAll('.row-token-preview').forEach((input) => {
                 input.dataset.prevToken = normalizeToken(input.value);
+            });
+
+            document.querySelectorAll('.formula-token-preview').forEach((input) => {
+                input.dataset.prevToken = normalizeToken(input.value);
+                input.dataset.manualEdit = input.value !== '' ? '1' : '0';
             });
 
             document.querySelectorAll('textarea[name$="[expression]"]').forEach((textarea) => {

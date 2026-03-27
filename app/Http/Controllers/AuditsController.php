@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRole;
 use App\Models\AuditType;
 use App\Models\AuditTypeSection;
 use App\Models\AuditUnit;
 use App\Models\Company;
 use App\Models\EnergyAudit;
+use App\Models\Iso50001Audit;
+use App\Models\Iso50001Template;
 use App\Models\User;
+use App\Support\Iso50001TemplateDefinition;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -148,11 +152,124 @@ class AuditsController extends Controller
     {
         $auditTypes = AuditType::with('sections')->orderBy('name')->get();
         $units = AuditUnit::query()->orderBy('name')->get();
+        $template = Iso50001Template::query()->first();
+
+        if (! $template) {
+            $template = Iso50001Template::query()->create([
+                'name' => 'Szablon ISO 50001',
+                'steps' => Iso50001TemplateDefinition::defaultSteps(),
+            ]);
+        }
+
+        $steps = Iso50001TemplateDefinition::normalizeSteps((array) $template->steps);
+        if ($steps !== (array) $template->steps) {
+            $template->update(['steps' => $steps]);
+        }
+
+        $clients = User::query()
+            ->where('role', UserRole::Client->value)
+            ->orderBy('name')
+            ->get();
+
+        $companies = Company::query()->orderBy('name')->get();
+        $isoAudits = Iso50001Audit::with(['company', 'creator', 'reviewer'])->latest()->get();
 
         return view('audits.settings', [
             'auditTypes' => $auditTypes,
             'units' => $units,
+            'isoTemplate' => $template,
+            'isoTemplateJson' => json_encode($steps, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+            'isoStatusOptions' => Iso50001Audit::statusLabels(),
+            'isoClients' => $clients,
+            'isoCompanies' => $companies,
+            'isoAudits' => $isoAudits,
         ]);
+    }
+
+    public function updateIso50001Template(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'template_json' => ['required', 'string'],
+        ]);
+
+        $decoded = json_decode((string) $validated['template_json'], true);
+
+        if (! is_array($decoded)) {
+            return redirect()->route('audits.settings')
+                ->with('status', 'Blad: nieprawidlowy JSON szablonu ISO 50001.');
+        }
+
+        $normalizedSteps = Iso50001TemplateDefinition::normalizeSteps($decoded);
+
+        $template = Iso50001Template::query()->first();
+        if (! $template) {
+            $template = new Iso50001Template();
+        }
+
+        $template->fill([
+            'name' => trim((string) $validated['name']),
+            'steps' => $normalizedSteps,
+        ]);
+        $template->save();
+
+        return redirect()->route('audits.settings')->with('status', 'Konfiguracja audytu ISO 50001 zostala zapisana.');
+    }
+
+    public function storeIso50001Audit(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'client_user_id' => ['required', Rule::exists('users', 'id')->where('role', UserRole::Client->value)],
+            'company_id' => ['required', 'exists:companies,id'],
+            'due_date' => ['nullable', 'date'],
+        ]);
+
+        $client = User::query()->findOrFail((int) $validated['client_user_id']);
+        $clientCompanyIds = $this->clientCompanyIds($client)->all();
+        if (! in_array((int) $validated['company_id'], $clientCompanyIds, true)) {
+            return redirect()->route('audits.settings')->with('status', 'Blad: wybrana firma nie jest przypisana do wybranego klienta.');
+        }
+
+        Iso50001Audit::create([
+            'title' => trim((string) $validated['title']),
+            'company_id' => (int) $validated['company_id'],
+            'created_by_user_id' => (int) $validated['client_user_id'],
+            'reviewer_id' => $request->user()?->id,
+            'status' => 'draft',
+            'current_step' => 1,
+            'due_date' => $validated['due_date'] ?? null,
+            'answers' => [],
+        ]);
+
+        return redirect()->route('audits.settings')->with('status', 'Audyt ISO 50001 zostal utworzony i przypisany klientowi.');
+    }
+
+    public function updateIso50001Audit(Request $request, Iso50001Audit $isoAudit): RedirectResponse
+    {
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'client_user_id' => ['required', Rule::exists('users', 'id')->where('role', UserRole::Client->value)],
+            'company_id' => ['required', 'exists:companies,id'],
+            'due_date' => ['nullable', 'date'],
+            'status' => ['required', Rule::in(array_keys(Iso50001Audit::statusLabels()))],
+        ]);
+
+        $client = User::query()->findOrFail((int) $validated['client_user_id']);
+        $clientCompanyIds = $this->clientCompanyIds($client)->all();
+        if (! in_array((int) $validated['company_id'], $clientCompanyIds, true)) {
+            return redirect()->route('audits.settings')->with('status', 'Blad: wybrana firma nie jest przypisana do wybranego klienta.');
+        }
+
+        $isoAudit->update([
+            'title' => trim((string) $validated['title']),
+            'created_by_user_id' => (int) $validated['client_user_id'],
+            'company_id' => (int) $validated['company_id'],
+            'due_date' => $validated['due_date'] ?? null,
+            'status' => $validated['status'],
+        ]);
+
+        return redirect()->route('audits.settings')->with('status', 'Audyt ISO 50001 zostal zaktualizowany.');
     }
 
     public function diagnostics(): View
@@ -375,6 +492,10 @@ class AuditsController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('audit_types', 'name')],
+            'variables' => ['nullable', 'array'],
+            'variables.*.name' => ['nullable', 'string', 'max:255'],
+            'variables.*.key' => ['nullable', 'string', 'max:255'],
+            'variables.*.default_value' => ['nullable', 'string', 'max:255'],
             'sections' => ['nullable', 'array'],
             'sections.*.name' => ['nullable', 'string', 'max:255'],
             'sections.*.tasks_text' => ['nullable', 'string', 'max:5000'],
@@ -388,6 +509,7 @@ class AuditsController extends Controller
             'sections.*.rows.*.notes' => ['nullable', 'string', 'max:1000'],
             'sections.*.rows.*.options_text' => ['nullable', 'string', 'max:5000'],
             'sections.*.formulas' => ['nullable', 'array'],
+            'sections.*.formulas.*.key' => ['nullable', 'string', 'max:255'],
             'sections.*.formulas.*.label' => ['nullable', 'string', 'max:255'],
             'sections.*.formulas.*.expression' => ['nullable', 'string', 'max:2000'],
             'sections.*.formulas.*.unit' => ['nullable', 'string', 'max:64'],
@@ -395,6 +517,7 @@ class AuditsController extends Controller
 
         $auditType = AuditType::create([
             'name' => trim((string) $validated['name']),
+            'variables' => $this->normalizeVariables($validated['variables'] ?? []),
         ]);
 
         $this->syncAuditTypeSections($auditType, $validated['sections'] ?? []);
@@ -406,6 +529,10 @@ class AuditsController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('audit_types', 'name')->ignore($auditType->id)],
+            'variables' => ['nullable', 'array'],
+            'variables.*.name' => ['nullable', 'string', 'max:255'],
+            'variables.*.key' => ['nullable', 'string', 'max:255'],
+            'variables.*.default_value' => ['nullable', 'string', 'max:255'],
             'sections' => ['nullable', 'array'],
             'sections.*.name' => ['nullable', 'string', 'max:255'],
             'sections.*.tasks_text' => ['nullable', 'string', 'max:5000'],
@@ -419,6 +546,7 @@ class AuditsController extends Controller
             'sections.*.rows.*.notes' => ['nullable', 'string', 'max:1000'],
             'sections.*.rows.*.options_text' => ['nullable', 'string', 'max:5000'],
             'sections.*.formulas' => ['nullable', 'array'],
+            'sections.*.formulas.*.key' => ['nullable', 'string', 'max:255'],
             'sections.*.formulas.*.label' => ['nullable', 'string', 'max:255'],
             'sections.*.formulas.*.expression' => ['nullable', 'string', 'max:2000'],
             'sections.*.formulas.*.unit' => ['nullable', 'string', 'max:64'],
@@ -426,6 +554,7 @@ class AuditsController extends Controller
 
         $auditType->update([
             'name' => trim((string) $validated['name']),
+            'variables' => $this->normalizeVariables($validated['variables'] ?? []),
         ]);
 
         $this->syncAuditTypeSections($auditType, $validated['sections'] ?? []);
@@ -438,6 +567,27 @@ class AuditsController extends Controller
         $auditType->delete();
 
         return redirect()->route('audits.settings')->with('status', 'Rodzaj audytu został usunięty.');
+    }
+
+    public function copyAuditType(AuditType $auditType): RedirectResponse
+    {
+        $copy = AuditType::create([
+            'name' => $auditType->name.' (kopia)',
+            'variables' => $auditType->variables,
+        ]);
+
+        foreach ($auditType->sections as $section) {
+            AuditTypeSection::create([
+                'audit_type_id' => $copy->id,
+                'name' => $section->name,
+                'position' => $section->position,
+                'tasks' => $section->tasks,
+                'data_fields' => $section->data_fields,
+                'formulas' => $section->formulas,
+            ]);
+        }
+
+        return redirect()->route('audits.settings')->with('status', 'Rodzaj audytu został skopiowany.');
     }
 
     public function storeUnit(Request $request): RedirectResponse
@@ -696,8 +846,10 @@ class AuditsController extends Controller
 
     private function normalizeFormulas(array $formulas): array
     {
+        $usedKeys = [];
+
         return collect($formulas)
-            ->map(function ($formula) {
+            ->map(function ($formula) use (&$usedKeys) {
                 $label = trim((string) ($formula['label'] ?? ''));
                 $expression = trim((string) ($formula['expression'] ?? ''));
                 $unit = trim((string) ($formula['unit'] ?? ''));
@@ -706,7 +858,22 @@ class AuditsController extends Controller
                     return null;
                 }
 
+                $providedKey = Str::slug(trim((string) ($formula['key'] ?? '')), '_');
+                $baseKey = $providedKey !== '' ? $providedKey : Str::slug($label, '_');
+                if ($baseKey === '') {
+                    $baseKey = 'wzor';
+                }
+
+                $candidateKey = $baseKey;
+                $suffix = 2;
+                while (in_array($candidateKey, $usedKeys, true)) {
+                    $candidateKey = $baseKey.'_'.$suffix;
+                    $suffix++;
+                }
+                $usedKeys[] = $candidateKey;
+
                 return [
+                    'key' => $candidateKey,
                     'label' => $label,
                     'expression' => $expression,
                     'unit' => $unit,
@@ -743,5 +910,60 @@ class AuditsController extends Controller
             })
             ->values()
             ->all();
+    }
+
+    private function normalizeVariables(array $variables): array
+    {
+        $usedKeys = [];
+
+        return collect($variables)
+            ->map(function (array $var) use (&$usedKeys): ?array {
+                $name = trim((string) ($var['name'] ?? ''));
+                if ($name === '') {
+                    return null;
+                }
+
+                $providedKey = Str::slug(trim((string) ($var['key'] ?? '')), '_');
+                $baseKey = $providedKey !== '' ? $providedKey : Str::slug($name, '_');
+                if ($baseKey === '') {
+                    $baseKey = 'zmienna';
+                }
+
+                $candidateKey = $baseKey;
+                $suffix = 2;
+                while (in_array($candidateKey, $usedKeys, true)) {
+                    $candidateKey = $baseKey.'_'.$suffix;
+                    $suffix++;
+                }
+                $usedKeys[] = $candidateKey;
+
+                return [
+                    'key' => $candidateKey,
+                    'name' => $name,
+                    'default_value' => trim((string) ($var['default_value'] ?? '')),
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, int>
+     */
+    private function clientCompanyIds(User $user): \Illuminate\Database\Eloquent\Collection
+    {
+        $assignedCompanyIds = $user->assignedCompanies()->pluck('companies.id');
+
+        return Company::query()
+            ->where(function ($query) use ($user, $assignedCompanyIds): void {
+                $query->where('client_id', $user->id)
+                    ->orWhereIn('id', $assignedCompanyIds);
+
+                if ($user->company_id) {
+                    $query->orWhere('id', $user->company_id);
+                }
+            })
+            ->pluck('id');
     }
 }

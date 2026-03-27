@@ -152,6 +152,22 @@
                             </table>
                         <?php endif; ?>
 
+                        <?php
+                            $usedFormulaKeys = [];
+                            $sectionFormulas = collect($sectionFormulas)->map(function ($formula, $idx) use (&$usedFormulaKeys) {
+                                if (empty($formula['key'])) {
+                                    $label = (string) ($formula['label'] ?? '');
+                                    $baseKey = \Illuminate\Support\Str::slug($label, '_');
+                                    if ($baseKey === '') { $baseKey = 'wzor'; }
+                                    $key = $baseKey;
+                                    $suffix = 2;
+                                    while (in_array($key, $usedFormulaKeys, true)) { $key = $baseKey . '_' . $suffix; $suffix++; }
+                                    $formula['key'] = $key;
+                                }
+                                $usedFormulaKeys[] = $formula['key'];
+                                return $formula;
+                            })->all();
+                        ?>
                         <?php if (!empty($sectionFormulas)): ?>
                             <div class="audit-formulas">
                                 <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#6b8aa3; margin-bottom:6px;">Wyniki obliczeń</div>
@@ -160,7 +176,7 @@
                                         <div class="formula-line">
                                             <span class="formula-label">{{ $formula['label'] }}</span>
                                             <span>=</span>
-                                            <strong data-audit-section="{{ $section->id }}" data-formula-expression="{{ $formula['expression'] }}" data-formula-unit="{{ (string) ($formula['unit'] ?? '') }}">—</strong>
+                                            <strong data-audit-section="{{ $section->id }}" data-formula-expression="{{ $formula['expression'] }}" data-formula-unit="{{ (string) ($formula['unit'] ?? '') }}" data-formula-key="{{ (string) ($formula['key'] ?? '') }}">—</strong>
                                         </div>
                                     <?php endif; ?>
                                 <?php endforeach; ?>
@@ -521,6 +537,7 @@
 
             applyFieldDependenciesForSection(sectionId);
 
+            // values holds resolved tokens: number (computed), null (empty/hidden/error), or absent (not yet evaluated)
             const values = {};
             section.querySelectorAll(`.formula-source[data-audit-section="${sectionId}"]`).forEach((input) => {
                 const token = input.getAttribute('data-field-token');
@@ -556,36 +573,97 @@
                 values[token] = Number.isFinite(number) ? number : null;
             });
 
-            section.querySelectorAll(`[data-formula-expression][data-audit-section="${sectionId}"]`).forEach((output) => {
-                const expression = String(output.getAttribute('data-formula-expression') ?? '').trim();
-                const unit = String(output.getAttribute('data-formula-unit') ?? '').trim();
-                const usedTokens = Array.from(new Set(Array.from(expression.matchAll(/\{([a-zA-Z0-9_]+)\}/g)).map((match) => match[1])));
+            const outputs = Array.from(section.querySelectorAll(`[data-formula-expression][data-audit-section="${sectionId}"]`));
+            const evaluated = new Set();
 
-                if (usedTokens.some((token) => values[token] === null || values[token] === undefined)) {
-                    output.textContent = '—';
-                    return;
-                }
+            // Multi-pass evaluation: resolves arbitrary dependency order between formula results.
+            // Each pass evaluates any formula whose tokens are all resolved; repeats until no progress.
+            const MAX_PASSES = outputs.length + 1;
+            for (let pass = 0; pass < MAX_PASSES; pass++) {
+                let progress = false;
 
-                const replaced = expression.replace(/\{([a-zA-Z0-9_]+)\}/g, (_, token) => String(values[token] ?? 0));
-                const normalized = replaced.replace(/,/g, '.');
-
-                if (!/^[0-9+\-*/().\s]+$/.test(normalized)) {
-                    output.textContent = '—';
-                    return;
-                }
-
-                try {
-                    const result = Function('return (' + normalized + ')')();
-                    if (Number.isFinite(result)) {
-                        const rounded = String(Math.round((result + Number.EPSILON) * 1000000) / 1000000);
-                        output.textContent = unit !== '' ? `${rounded} ${unit}` : rounded;
-                    } else {
-                        output.textContent = '—';
+                for (const output of outputs) {
+                    if (evaluated.has(output)) {
+                        continue;
                     }
-                } catch (error) {
-                    output.textContent = '—';
+
+                    const expression = String(output.getAttribute('data-formula-expression') ?? '').trim();
+                    const unit = String(output.getAttribute('data-formula-unit') ?? '').trim();
+                    const formulaKey = String(output.getAttribute('data-formula-key') ?? '').trim();
+                    const usedTokens = Array.from(new Set(Array.from(expression.matchAll(/\{([a-zA-Z0-9_]+)\}/g)).map((match) => match[1])));
+
+                    // If any token is not yet in values (formula result not yet evaluated), defer to next pass
+                    if (usedTokens.some((token) => !(token in values))) {
+                        continue;
+                    }
+
+                    // All tokens are resolved — evaluate now
+                    if (usedTokens.some((token) => values[token] === null)) {
+                        output.textContent = '—';
+                        if (formulaKey !== '') {
+                            values[formulaKey] = null;
+                        }
+                        evaluated.add(output);
+                        progress = true;
+                        continue;
+                    }
+
+                    const replaced = expression.replace(/\{([a-zA-Z0-9_]+)\}/g, (_, token) => String(values[token] ?? 0));
+                    const normalized = replaced.replace(/,/g, '.');
+
+                    if (!/^[0-9+\-*/().\s]+$/.test(normalized)) {
+                        output.textContent = '—';
+                        if (formulaKey !== '') {
+                            values[formulaKey] = null;
+                        }
+                        evaluated.add(output);
+                        progress = true;
+                        continue;
+                    }
+
+                    try {
+                        const result = Function('return (' + normalized + ')')();
+                        if (Number.isFinite(result)) {
+                            const display = parseFloat(result.toFixed(2));
+                            output.textContent = unit !== '' ? `${display} ${unit}` : String(display);
+                            if (formulaKey !== '') {
+                                values[formulaKey] = result; // store full precision for downstream formulas
+                            }
+                            evaluated.add(output);
+                            progress = true;
+                        } else {
+                            output.textContent = '—';
+                            if (formulaKey !== '') {
+                                values[formulaKey] = null;
+                            }
+                            evaluated.add(output);
+                            progress = true;
+                        }
+                    } catch (error) {
+                        output.textContent = '—';
+                        if (formulaKey !== '') {
+                            values[formulaKey] = null;
+                        }
+                        evaluated.add(output);
+                        progress = true;
+                    }
                 }
-            });
+
+                if (!progress) {
+                    break;
+                }
+            }
+
+            // Any formulas still not resolved (circular/missing deps) → show —
+            for (const output of outputs) {
+                if (!evaluated.has(output)) {
+                    output.textContent = '—';
+                    const formulaKey = String(output.getAttribute('data-formula-key') ?? '').trim();
+                    if (formulaKey !== '') {
+                        values[formulaKey] = null;
+                    }
+                }
+            }
         }
 
         function recalculateFormulas() {

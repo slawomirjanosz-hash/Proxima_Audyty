@@ -8,6 +8,7 @@ use App\Http\Controllers\CrmCustomerTypeController;
 use App\Http\Controllers\CrmStageController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InformationController;
+use App\Http\Controllers\Iso50001AuditController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
@@ -104,6 +105,19 @@ Route::middleware('auth')->group(function (): void {
     Route::delete('/audyty/ustawienia/rodzaje/{auditType}', [AuditsController::class, 'destroyAuditType'])
         ->middleware('role:admin,auditor')
         ->name('audits.settings.audit-type-destroy');
+    Route::post('/audyty/ustawienia/rodzaje/{auditType}/kopiuj', [AuditsController::class, 'copyAuditType'])
+        ->middleware('role:admin,auditor')
+        ->name('audits.settings.audit-type-copy');
+    Route::patch('/audyty/ustawienia/iso50001/template', [AuditsController::class, 'updateIso50001Template'])
+        ->middleware('role:admin,auditor')
+        ->name('audits.settings.iso50001.template-update');
+    Route::post('/audyty/ustawienia/iso50001/audits', [AuditsController::class, 'storeIso50001Audit'])
+        ->middleware('role:admin,auditor')
+        ->name('audits.settings.iso50001.audit-store');
+    Route::patch('/audyty/ustawienia/iso50001/audits/{isoAudit}', [AuditsController::class, 'updateIso50001Audit'])
+        ->middleware('role:admin,auditor')
+        ->name('audits.settings.iso50001.audit-update');
+
     Route::get('/crm', [CrmController::class, 'index'])
         ->middleware('role:admin,auditor')
         ->name('crm.index');
@@ -195,6 +209,24 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('role:admin,auditor')
         ->name('crm.stage.delete');
     Route::get('/strefa-klienta', [ClientController::class, 'index'])->name('strefa-klienta');
+    Route::get('/iso50001', [Iso50001AuditController::class, 'index'])
+        ->name('iso50001.index');
+    Route::post('/iso50001', [Iso50001AuditController::class, 'store'])
+        ->middleware('role:admin,auditor,client')
+        ->name('iso50001.store');
+    Route::get('/iso50001/{isoAudit}/krok/{step}', [Iso50001AuditController::class, 'showStep'])
+        ->name('iso50001.step');
+    Route::patch('/iso50001/{isoAudit}/krok/{step}', [Iso50001AuditController::class, 'saveStep'])
+        ->name('iso50001.step.update');
+    Route::patch('/iso50001/{isoAudit}/submit', [Iso50001AuditController::class, 'submit'])
+        ->middleware('role:client')
+        ->name('iso50001.submit');
+    Route::get('/iso50001/{isoAudit}/review', [Iso50001AuditController::class, 'review'])
+        ->name('iso50001.review');
+    Route::patch('/iso50001/{isoAudit}/review', [Iso50001AuditController::class, 'updateReview'])
+        ->middleware('role:admin,auditor')
+        ->name('iso50001.review.update');
+
     Route::get('/settings', [SettingsController::class, 'index'])
         ->middleware('role:admin')
         ->name('settings.index');

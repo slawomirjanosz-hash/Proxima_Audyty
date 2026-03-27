@@ -8,6 +8,7 @@ return [
         'crm' => 'CRM',
         'offer' => 'Offer',
         'audits' => 'Audits',
+          'iso50001' => 'ISO50001',
            'info' => 'Informationen',
         'client_zone' => 'Client Zone',
         'settings' => 'Settings',
