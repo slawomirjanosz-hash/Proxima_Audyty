@@ -8,15 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('audit_types', function (Blueprint $table) {
-            $table->json('formulas')->nullable()->after('name');
-        });
+        if (! Schema::hasColumn('audit_types', 'formulas')) {
+            Schema::table('audit_types', function (Blueprint $table) {
+                $table->json('formulas')->nullable()->after('name');
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('audit_types', function (Blueprint $table) {
-            $table->dropColumn('formulas');
-        });
+        if (Schema::hasColumn('audit_types', 'formulas')) {
+            Schema::table('audit_types', function (Blueprint $table) {
+                $table->dropColumn('formulas');
+            });
+        }
     }
 };
