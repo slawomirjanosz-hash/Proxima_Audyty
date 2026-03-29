@@ -7,6 +7,7 @@ use App\Http\Controllers\CrmController;
 use App\Http\Controllers\CrmCustomerTypeController;
 use App\Http\Controllers\CrmStageController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DiagnosticsController;
 use App\Http\Controllers\InformationController;
 use App\Http\Controllers\Iso50001AuditController;
 use App\Http\Controllers\ProfileController;
@@ -43,6 +44,16 @@ Route::get('/informacje', [InformationController::class, 'index'])
     ->name('information.index');
 Route::get('/informacje/pse-kse', [InformationController::class, 'snapshot'])
     ->name('information.pse-kse');
+
+// Diagnostics – dostępne bez logowania (tylko informacje o stanie serwera)
+Route::get('/admin/diagnostyka', [DiagnosticsController::class, 'index'])
+    ->name('diagnostics.index');
+Route::post('/admin/diagnostyka/migrate', [DiagnosticsController::class, 'migrate'])
+    ->middleware('auth')
+    ->name('diagnostics.migrate');
+Route::post('/admin/diagnostyka/cache-clear', [DiagnosticsController::class, 'clearCache'])
+    ->middleware('auth')
+    ->name('diagnostics.cache-clear');
 
 Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');

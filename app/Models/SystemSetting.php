@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Throwable;
 
 class SystemSetting extends Model
 {
@@ -13,13 +14,17 @@ class SystemSetting extends Model
 
     protected $fillable = ['key', 'value', 'description', 'updated_by'];
 
-    /** Get a setting value with optional default. */
+    /** Get a setting value with optional default. Gracefully returns default if table missing. */
     public static function get(string $key, mixed $default = null): mixed
     {
-        return Cache::remember("system_setting_{$key}", 300, function () use ($key, $default) {
-            $setting = static::find($key);
-            return $setting ? $setting->value : $default;
-        });
+        try {
+            return Cache::remember("system_setting_{$key}", 300, function () use ($key, $default) {
+                $setting = static::find($key);
+                return $setting ? $setting->value : $default;
+            });
+        } catch (Throwable) {
+            return $default;
+        }
     }
 
     /** Save a setting value and clear its cache. */

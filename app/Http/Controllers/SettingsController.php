@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\View\View;
+use Throwable;
 
 class SettingsController extends Controller
 {
@@ -104,8 +105,17 @@ class SettingsController extends Controller
             'co2ElCombFactor' => (int) SystemSetting::get('co2_el_comb_factor', '717'),
             'co2ElNatFactor'  => (int) SystemSetting::get('co2_el_nat_factor',  '552'),
             'co2ElYear'       => (string) SystemSetting::get('co2_el_year', '2024'),
-            'co2History'      => Co2IndicatorHistory::orderByDesc('year')->get(),
+            'co2History'      => $this->getCo2History(),
         ]);
+    }
+
+    private function getCo2History(): \Illuminate\Support\Collection
+    {
+        try {
+            return Co2IndicatorHistory::orderByDesc('year')->get();
+        } catch (Throwable) {
+            return collect();
+        }
     }
 
     public function updateEnergyIndicators(Request $request): RedirectResponse
