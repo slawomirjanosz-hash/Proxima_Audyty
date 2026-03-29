@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SystemSetting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -58,8 +59,12 @@ class InformationController extends Controller
     public function index(): View
     {
         return view('information.index', [
-            'generationData' => $this->getGenerationStructureSnapshot(),
-            'toePricePln'    => $this->getToePricePln(),
+            'generationData'  => $this->getGenerationStructureSnapshot(),
+            'toePricePln'     => $this->getToePricePln(),
+            'co2ElCombFactor' => (float) SystemSetting::get('co2_el_comb_factor', '0.710'),
+            'co2ElNatFactor'  => (float) SystemSetting::get('co2_el_nat_factor',  '0.640'),
+            'co2ElGridDisplay'=> (int)   SystemSetting::get('co2_el_grid_display', '553'),
+            'co2ElYear'       => (string)SystemSetting::get('co2_el_year', '2024'),
         ]);
     }
 

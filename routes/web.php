@@ -280,4 +280,8 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/settings/companies/lookup-by-nip', [SettingsController::class, 'lookupCompanyByNip'])
         ->middleware('role:admin')
         ->name('settings.company-lookup-by-nip');
+
+    Route::patch('/settings/energy-indicators', [SettingsController::class, 'updateEnergyIndicators'])
+        ->middleware('role:admin,super_admin')
+        ->name('settings.energy-indicators');
 });

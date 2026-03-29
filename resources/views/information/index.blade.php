@@ -382,7 +382,7 @@
                 <div class="ec-const-card ec-card-elec">
                     <h4>⚡ Energia elektryczna</h4>
                     <div class="ec-const-row"><span class="name">1 kWh = MJ</span><span class="val">3.600<span class="unit">MJ</span></span></div>
-                    <div class="ec-const-row"><span class="name">Wskaźnik emisji PL (2023)</span><span class="val">730<span class="unit">g CO₂/kWh</span></span></div>
+                    <div class="ec-const-row"><span class="name">Wskaźnik emisji PL ({{ $co2ElYear }})</span><span class="val">{{ $co2ElGridDisplay }}<span class="unit">g CO₂/kWh</span></span></div>
                     <div class="ec-const-row"><span class="name">Wskaźnik nakładu PL</span><span class="val">2.50<span class="unit">kWh energ. pierwot./kWh</span></span></div>
                     <div class="ec-const-row"><span class="name">Sprawność przesyłu PL</span><span class="val">93.2<span class="unit">%</span></span></div>
                     <div class="ec-const-row"><span class="name">Udział OZE w KSE (2023)</span><span class="val">~25<span class="unit">%</span></span></div>
@@ -515,10 +515,10 @@
                 {{-- Wskaźnik KOBIZE --}}
                 <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-start; margin-bottom:18px;">
                     <div>
-                        <div style="font-size:12px; font-weight:700; color:#1a5c2e; margin-bottom:6px;">Wskaźnik emisyjności CO<sub>2</sub> — rok 2024</div>
+                        <div style="font-size:12px; font-weight:700; color:#1a5c2e; margin-bottom:6px;">Wskaźnik emisyjności CO<sub>2</sub> — rok {{ $co2ElYear }}</div>
                         <div class="ec-co2el-badge">
                             <span>🔌 Źródła spalania paliw:</span>
-                            <strong id="co2el-factor-comb">0,710</strong>
+                            <strong id="co2el-factor-comb">{{ number_format($co2ElCombFactor, 3, ',', '') }}</strong>
                             <span>kg CO<sub>2</sub>/kWh</span>
                         </div>
                     </div>
@@ -526,15 +526,15 @@
                         <div style="font-size:12px; font-weight:700; color:#1a5c2e; margin-bottom:6px;">Wskaźnik krajowy (z OZE + straty sieciowe)</div>
                         <div class="ec-co2el-badge">
                             <span>🌍 Odbiorca końcowy:</span>
-                            <strong id="co2el-factor-nat">0,640</strong>
+                            <strong id="co2el-factor-nat">{{ number_format($co2ElNatFactor, 3, ',', '') }}</strong>
                             <span>kg CO<sub>2</sub>/kWh</span>
                         </div>
                     </div>
                     <div style="align-self:flex-end; font-size:11px; color:#4c6373; background:#edf3f8; border-radius:8px; padding:8px 12px; line-height:1.7;">
                         Źródło: <a href="https://www.kobize.pl/uploads/materialy/materialy_do_pobrania/aktualnosci/2025/142_Wskazniki_emisyjnosci_2025.pdf"
                             target="_blank" rel="noopener noreferrer" style="color:#0e89d8;">KOBiZE, grudzień 2025</a><br>
-                        Dane za rok 2024 · Krajowa baza o emisjach<br>
-                        <em>Stosować do raportowania za rok 2025</em>
+                        Dane za rok {{ $co2ElYear }} · Krajowa baza o emisjach<br>
+                        <em>Stosować do raportowania za rok {{ $co2ElYear + 1 }}</em>
                     </div>
                 </div>
 
@@ -722,8 +722,8 @@
 
         // ── CO2 from electricity calculator ─────────────────────────
         const EC_CO2EL_FACTORS = {
-            comb: { value: 0.710, label: 'Źródła spalania (KOBiZE 2024)', labelShort: 'źródła spalania' },
-            nat:  { value: 0.640, label: 'Krajowy z OZE i stratami (KOBiZE 2024)', labelShort: 'krajowy z OZE' },
+            comb: { value: {{ $co2ElCombFactor }}, label: 'Źródła spalania (KOBiZE {{ $co2ElYear }})', labelShort: 'źródła spalania' },
+            nat:  { value: {{ $co2ElNatFactor }},  label: 'Krajowy z OZE i stratami (KOBiZE {{ $co2ElYear }})', labelShort: 'krajowy z OZE' },
         };
 
         function ecCo2ElCalc() {

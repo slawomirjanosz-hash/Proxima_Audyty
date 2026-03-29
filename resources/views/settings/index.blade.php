@@ -684,5 +684,80 @@
         });
     </script>
 
+@if($canManage)
+    {{-- ── WSKAŹNIKI EMISJI CO₂ ── --}}
+    <section class="panel" style="margin-top:14px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+            <div style="width:4px; height:36px; border-radius:4px; background:linear-gradient(180deg,#1a5c2e,#2d9e57);"></div>
+            <div>
+                <h2 style="margin:0;">🌿 Wskaźniki emisji CO₂ — energia elektryczna (KSE)</h2>
+                <p class="muted" style="margin:4px 0 0;">Wartości aktualizowane raz w roku po publikacji KOBiZE. Widoczne w kalkulatorze i stałych energetycznych.</p>
+            </div>
+        </div>
+
+        @if(session('co2_settings_status'))
+            <div style="background:#f0fff4; border:1px solid #86efac; border-radius:8px; padding:10px 14px; margin-bottom:14px; font-size:13px; color:#166534;">
+                ✅ {{ session('co2_settings_status') }}
+            </div>
+        @endif
+
+        <form method="POST" action="{{ route('settings.energy-indicators') }}" style="display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end;">
+            @csrf
+            @method('PATCH')
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:#1a5c2e; margin-bottom:5px;">
+                    Rok sprawozdawczy KOBiZE
+                </label>
+                <input type="number" name="co2_el_year" value="{{ $co2ElYear }}"
+                    min="2015" max="2100" step="1" required
+                    style="width:120px; padding:8px 10px; border-radius:9px; border:1px solid #c9d7e3; font-size:14px; font-weight:600;">
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:#1a5c2e; margin-bottom:5px;">
+                    Wskaźnik — źródła spalania [kg CO₂/kWh]
+                    <span style="font-weight:400; color:#4c6373;">(EU ETS, białe certyfikaty)</span>
+                </label>
+                <input type="number" name="co2_el_comb_factor" value="{{ $co2ElCombFactor }}"
+                    min="0.01" max="2.00" step="0.001" required
+                    style="width:160px; padding:8px 10px; border-radius:9px; border:1px solid #c9d7e3; font-size:14px; font-weight:600;">
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:#1a5c2e; margin-bottom:5px;">
+                    Wskaźnik krajowy z OZE [kg CO₂/kWh]
+                    <span style="font-weight:400; color:#4c6373;">(CSR, ślad węglowy)</span>
+                </label>
+                <input type="number" name="co2_el_nat_factor" value="{{ $co2ElNatFactor }}"
+                    min="0.01" max="2.00" step="0.001" required
+                    style="width:160px; padding:8px 10px; border-radius:9px; border:1px solid #c9d7e3; font-size:14px; font-weight:600;">
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:#1a5c2e; margin-bottom:5px;">
+                    Wartość wyświetlana w stałych [g CO₂/kWh]
+                    <span style="font-weight:400; color:#4c6373;">(informacyjnie)</span>
+                </label>
+                <input type="number" name="co2_el_grid_display" value="{{ $co2ElGridDisplay }}"
+                    min="1" max="2000" step="1" required
+                    style="width:140px; padding:8px 10px; border-radius:9px; border:1px solid #c9d7e3; font-size:14px; font-weight:600;">
+            </div>
+
+            <div>
+                <button type="submit" class="btn-primary" style="padding:9px 18px; background:#1a5c2e; color:#fff; border:none; border-radius:9px; font-size:14px; font-weight:700; cursor:pointer;">
+                    💾 Zapisz wskaźniki
+                </button>
+            </div>
+        </form>
+
+        <div style="margin-top:12px; font-size:12px; color:#4c6373; background:#edf3f8; border-radius:8px; padding:10px 14px; border-left:3px solid #0e89d8; line-height:1.7;">
+            📥 Źródło: <a href="https://www.kobize.pl/pl/fileCategory/id/28/wskazniki-emisyjnosci" target="_blank" rel="noopener noreferrer" style="color:#0e89d8;">KOBiZE — Wskaźniki emisyjności</a>
+            · Publikacja zwykle w grudniu każdego roku · Plik:
+            <a href="https://www.kobize.pl/uploads/materialy/materialy_do_pobrania/aktualnosci/2025/142_Wskazniki_emisyjnosci_2025.pdf" target="_blank" rel="noopener noreferrer" style="color:#0e89d8;">142_Wskazniki_emisyjnosci_2025.pdf</a>
+        </div>
+    </section>
+@endif
+
 </x-layouts.app>
 

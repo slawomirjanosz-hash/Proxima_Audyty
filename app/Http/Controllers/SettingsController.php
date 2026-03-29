@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
 use App\Models\Company;
+use App\Models\SystemSetting;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -92,14 +93,41 @@ class SettingsController extends Controller
         $clients = User::where('role', UserRole::Client)->orderBy('name')->get();
 
         return view('settings.index', [
-            'users' => $users,
-            'companies' => $companies,
-            'auditors' => $auditors,
-            'clients' => $clients,
-            'tabLabels' => User::tabLabels(),
-            'canManage' => $user->canManageEverything(),
-            'isSuperAdmin' => $user->isSuperAdmin(),
+            'users'            => $users,
+            'companies'        => $companies,
+            'auditors'         => $auditors,
+            'clients'          => $clients,
+            'tabLabels'        => User::tabLabels(),
+            'canManage'        => $user->canManageEverything(),
+            'isSuperAdmin'     => $user->isSuperAdmin(),
+            'co2ElCombFactor'  => (float) SystemSetting::get('co2_el_comb_factor', '0.710'),
+            'co2ElNatFactor'   => (float) SystemSetting::get('co2_el_nat_factor',  '0.640'),
+            'co2ElGridDisplay' => (int)   SystemSetting::get('co2_el_grid_display', '553'),
+            'co2ElYear'        => (string)SystemSetting::get('co2_el_year', '2024'),
         ]);
+    }
+
+    public function updateEnergyIndicators(Request $request): RedirectResponse
+    {
+        if (! $request->user()->canManageEverything()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'co2_el_year'         => ['required', 'integer', 'min:2015', 'max:2100'],
+            'co2_el_comb_factor'  => ['required', 'numeric', 'min:0.01', 'max:2.00'],
+            'co2_el_nat_factor'   => ['required', 'numeric', 'min:0.01', 'max:2.00'],
+            'co2_el_grid_display' => ['required', 'integer', 'min:1', 'max:2000'],
+        ]);
+
+        $userId = $request->user()->id;
+
+        SystemSetting::set('co2_el_year',         (string) $validated['co2_el_year'],         $userId);
+        SystemSetting::set('co2_el_comb_factor',  (string) $validated['co2_el_comb_factor'],  $userId);
+        SystemSetting::set('co2_el_nat_factor',   (string) $validated['co2_el_nat_factor'],   $userId);
+        SystemSetting::set('co2_el_grid_display', (string) $validated['co2_el_grid_display'], $userId);
+
+        return back()->with('co2_settings_status', 'Wskaźniki emisji CO₂ zostały zapisane.');
     }
 
     public function updateUserAccess(Request $request, User $user): RedirectResponse
