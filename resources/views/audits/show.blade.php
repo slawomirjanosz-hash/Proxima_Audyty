@@ -128,7 +128,10 @@
                                 <tbody>
                                 <?php foreach ($fieldRows as $rowIndex => $field): ?>
                                     @php
-                                        $rowPayload = is_array($payloadRows[$rowIndex] ?? null) ? $payloadRows[$rowIndex] : [];
+                                        $rowPayload = collect($payloadRows)->first(fn($r) => is_array($r) && ($r['key'] ?? '') === $field['key'] && $field['key'] !== '');
+                                        if (!is_array($rowPayload)) {
+                                            $rowPayload = is_array($payloadRows[$rowIndex] ?? null) ? $payloadRows[$rowIndex] : [];
+                                        }
                                         $legacyValue = is_array($payloadRows) ? ($payloadRows[$field['name']] ?? '') : '';
                                         $value = (string) ($rowPayload['value'] ?? $legacyValue ?? '');
                                         $notes = (string) ($rowPayload['notes'] ?? '');
@@ -143,6 +146,7 @@
                                                 data-field-token="{{ $field['key'] }}"
                                                 data-field-kind="{{ $field['kind'] }}"
                                                 data-field-value="{{ $value }}"
+                                                data-field-options="{{ implode('|', $field['options'] ?? []) }}"
                                             >{{ $value !== '' ? $value : '—' }}</span>
                                         </td>
                                         <td>{{ $notes !== '' ? $notes : '—' }}</td>
@@ -529,6 +533,50 @@
             renderAuditDependencyTree(section, parentByToken, childrenByToken);
         }
 
+        // Evaluates a formula expression against a values map.
+        // Returns: number (result), null (inputs missing/error), undefined (token not yet evaluated — defer).
+        function evaluateFormulaExpression(expression, values) {
+            const usedTokens = Array.from(new Set(
+                Array.from(expression.matchAll(/\{([a-zA-Z0-9_]+)\}/g)).map((m) => m[1])
+            ));
+            if (usedTokens.some((t) => !(t in values))) { return undefined; }
+            if (usedTokens.some((t) => values[t] === null)) { return null; }
+
+            let expr = expression.replace(/\{([a-zA-Z0-9_]+)\}/g, (_, t) => String(values[t] ?? 0));
+            expr = expr
+                .replace(/JEŻELI\s*\(/gi, 'IF(')
+                .replace(/JEZELI\s*\(/gi, 'IF(')
+                .replace(/JEŚLI\s*\(/gi, 'IF(')
+                .replace(/;/g, ',')
+                .replace(/(\d),(\d)/g, '$1.$2')
+                .replace(/<>/g, '!=')
+                .replace(/([^!<>=])=(?!=)/g, '$1==')
+                .replace(/\^/g, '**');
+
+            if (/[`"'\\]/.test(expr)) { return null; }
+
+            const IF    = (c, t, f) => (c ? t : f);
+            const AND   = (...a) => (a.every(Boolean) ? 1 : 0);
+            const OR    = (...a) => (a.some(Boolean) ? 1 : 0);
+            const NOT   = (x) => (x ? 0 : 1);
+            const MAX   = Math.max;
+            const MIN   = Math.min;
+            const ABS   = Math.abs;
+            const SQRT  = Math.sqrt;
+            const ROUND = (n, dp = 0) => parseFloat(n.toFixed(Math.max(0, dp | 0)));
+
+            try {
+                // eslint-disable-next-line no-new-func
+                const result = Function('IF','AND','OR','NOT','MAX','MIN','ABS','SQRT','ROUND',
+                    '"use strict"; return (' + expr + ')'
+                )(IF, AND, OR, NOT, MAX, MIN, ABS, SQRT, ROUND);
+                if (typeof result === 'boolean') { return result ? 1 : 0; }
+                return Number.isFinite(result) ? result : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
         function recalculateFormulasForSection(sectionId) {
             const section = document.querySelector(`.audit-section[data-audit-section="${sectionId}"]`);
             if (!section) {
@@ -567,6 +615,14 @@
                     return;
                 }
 
+                const kind = String(input.getAttribute('data-field-kind') ?? '');
+                if (kind === 'select') {
+                    const opts = String(input.getAttribute('data-field-options') ?? '').split('|').filter((o) => o !== '');
+                    const idx = opts.indexOf(raw);
+                    values[token] = idx >= 0 ? idx + 1 : null;
+                    return;
+                }
+
                 raw = raw.replace(',', '.');
 
                 const number = Number(raw);
@@ -590,63 +646,20 @@
                     const expression = String(output.getAttribute('data-formula-expression') ?? '').trim();
                     const unit = String(output.getAttribute('data-formula-unit') ?? '').trim();
                     const formulaKey = String(output.getAttribute('data-formula-key') ?? '').trim();
-                    const usedTokens = Array.from(new Set(Array.from(expression.matchAll(/\{([a-zA-Z0-9_]+)\}/g)).map((match) => match[1])));
-
-                    // If any token is not yet in values (formula result not yet evaluated), defer to next pass
-                    if (usedTokens.some((token) => !(token in values))) {
+                    const evalResult = evaluateFormulaExpression(expression, values);
+                    if (evalResult === undefined) {
                         continue;
                     }
 
-                    // All tokens are resolved — evaluate now
-                    if (usedTokens.some((token) => values[token] === null)) {
-                        output.textContent = '—';
-                        if (formulaKey !== '') {
-                            values[formulaKey] = null;
-                        }
-                        evaluated.add(output);
-                        progress = true;
-                        continue;
+                    const numResult = typeof evalResult === 'number' ? evalResult : null;
+                    output.textContent = numResult !== null
+                        ? (unit !== '' ? `${parseFloat(numResult.toFixed(2))} ${unit}` : String(parseFloat(numResult.toFixed(2))))
+                        : '—';
+                    if (formulaKey !== '') {
+                        values[formulaKey] = numResult;
                     }
-
-                    const replaced = expression.replace(/\{([a-zA-Z0-9_]+)\}/g, (_, token) => String(values[token] ?? 0));
-                    const normalized = replaced.replace(/,/g, '.');
-
-                    if (!/^[0-9+\-*/().\s]+$/.test(normalized)) {
-                        output.textContent = '—';
-                        if (formulaKey !== '') {
-                            values[formulaKey] = null;
-                        }
-                        evaluated.add(output);
-                        progress = true;
-                        continue;
-                    }
-
-                    try {
-                        const result = Function('return (' + normalized + ')')();
-                        if (Number.isFinite(result)) {
-                            const display = parseFloat(result.toFixed(2));
-                            output.textContent = unit !== '' ? `${display} ${unit}` : String(display);
-                            if (formulaKey !== '') {
-                                values[formulaKey] = result; // store full precision for downstream formulas
-                            }
-                            evaluated.add(output);
-                            progress = true;
-                        } else {
-                            output.textContent = '—';
-                            if (formulaKey !== '') {
-                                values[formulaKey] = null;
-                            }
-                            evaluated.add(output);
-                            progress = true;
-                        }
-                    } catch (error) {
-                        output.textContent = '—';
-                        if (formulaKey !== '') {
-                            values[formulaKey] = null;
-                        }
-                        evaluated.add(output);
-                        progress = true;
-                    }
+                    evaluated.add(output);
+                    progress = true;
                 }
 
                 if (!progress) {

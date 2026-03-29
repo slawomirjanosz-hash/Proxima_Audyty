@@ -433,7 +433,10 @@
         <main class="content">
             <header class="topbar">
                 <strong>{{ __('ui.company') }}</strong>
-                <div style="display:flex; align-items:center; gap:8px;">
+                <div style="display:flex; align-items:center; gap:18px;">
+                    @auth
+                        <x-online-users-info />
+                    @endauth
                     <form method="GET" action="{{ route('locale.switch', [], false) }}">
                         <select name="locale" onchange="this.form.submit()" style="height:36px; border-radius:9px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.12); color:#fff; padding:0 10px; font-weight:600;">
                             @foreach(config('localization.supported_locales', ['pl' => 'Polski', 'en' => 'English']) as $localeCode => $localeLabel)
@@ -441,14 +444,9 @@
                             @endforeach
                         </select>
                     </form>
-                    @auth
-                        <form method="POST" action="{{ route('logout', [], false) }}">
-                            @csrf
-                            <button class="login-btn" type="submit">{{ __('ui.actions.logout') }}</button>
-                        </form>
-                    @else
+                    @guest
                         <a class="login-btn" href="{{ route('home', ['login' => 1]) }}">{{ __('ui.actions.login') }}</a>
-                    @endauth
+                    @endguest
                 </div>
             </header>
 

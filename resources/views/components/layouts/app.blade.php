@@ -125,10 +125,7 @@
                     </select>
                 </form>
                 @auth
-                    <form method="POST" action="{{ route('logout', [], false) }}">
-                        @csrf
-                        <button class="login-btn" type="submit">{{ __('ui.actions.logout') }}</button>
-                    </form>
+                    {{-- logout moved to user avatar dropdown --}}
                 @else
                     <a class="login-btn" href="{{ route('home', ['login' => 1]) }}">{{ __('ui.actions.login') }}</a>
                 @endauth

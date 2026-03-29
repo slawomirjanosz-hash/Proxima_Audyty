@@ -158,4 +158,485 @@
             })();
         </script>
     </section>
+
+    {{-- ═══════════════════════════════════════════════
+         KALKULATOR ENERGETYCZNY
+    ═══════════════════════════════════════════════ --}}
+    <section class="panel" id="energy-calc">
+        <style>
+            /* ── Kalkulator – ogólne ── */
+            .ec-section-title { display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+            .ec-section-title .ec-bar { width:4px; height:30px; background:linear-gradient(180deg,#1ba84a,#0e89d8); border-radius:4px; flex-shrink:0; }
+            .ec-section-title h2 { margin:0; font-size:21px; font-weight:800; color:#10344c; }
+            .ec-section-title p { margin:3px 0 0; font-size:13px; color:#4c6373; }
+
+            /* Przelicznik jednostek – dark panel */
+            .ec-converter { background:linear-gradient(135deg,#0f1e30 0%,#163854 100%); border-radius:16px; padding:22px; box-shadow:0 8px 28px rgba(10,40,70,.22); }
+            .ec-converter h3 { margin:0 0 16px; color:#fff; font-size:16px; font-weight:700; letter-spacing:.2px; }
+            .ec-units-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+            .ec-unit-card { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.15); border-radius:12px; padding:14px 14px 12px; }
+            .ec-unit-label { font-size:10px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:rgba(255,255,255,.5); margin-bottom:4px; }
+            .ec-unit-sym { font-size:24px; font-weight:900; margin-bottom:10px; }
+            .ec-unit-input { width:100%; box-sizing:border-box; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.18); border-radius:8px; color:#fff; padding:9px 11px; font-size:15px; font-weight:600; outline:none; transition:border-color .15s; }
+            .ec-unit-input:focus { border-color:rgba(255,255,255,.45); background:rgba(255,255,255,.15); }
+            .ec-unit-hint { font-size:10px; color:rgba(255,255,255,.35); margin-top:5px; }
+            .ec-pln-box { margin-top:14px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:12px; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+            .ec-pln-label { font-size:12px; color:rgba(255,255,255,.5); margin-bottom:3px; }
+            .ec-pln-value { font-size:26px; font-weight:800; color:#fbbf24; }
+            .ec-price-meta { font-size:11px; color:rgba(255,255,255,.4); line-height:1.7; text-align:right; }
+            .ec-price-meta span { color:rgba(255,255,255,.65); }
+
+            /* Stałe energetyczne */
+            .ec-constants { margin-top:18px; }
+            .ec-const-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+            .ec-const-card { border-radius:13px; padding:16px 16px 14px; border:1px solid; }
+            .ec-const-card h4 { margin:0 0 10px; font-size:13px; font-weight:800; letter-spacing:.4px; text-transform:uppercase; display:flex; align-items:center; gap:6px; }
+            .ec-const-row { display:flex; justify-content:space-between; align-items:baseline; gap:8px; padding:5px 0; border-bottom:1px solid rgba(0,0,0,.05); font-size:13px; }
+            .ec-const-row:last-child { border-bottom:none; padding-bottom:0; }
+            .ec-const-row .name { color:#355468; font-weight:500; flex:1; }
+            .ec-const-row .val { font-weight:800; font-size:13px; white-space:nowrap; }
+            .ec-const-row .unit { font-size:11px; color:#6b8294; margin-left:3px; white-space:nowrap; }
+            /* fuel colors */
+            .ec-card-gas { background:#fffde7; border-color:#fdd835; }
+            .ec-card-gas h4 { color:#b7780a; }
+            .ec-card-gas .val { color:#c47c00; }
+            .ec-card-coal { background:#f5f5f5; border-color:#9e9e9e; }
+            .ec-card-coal h4 { color:#424242; }
+            .ec-card-coal .val { color:#212121; }
+            .ec-card-oil { background:#fce4ec; border-color:#f06292; }
+            .ec-card-oil h4 { color:#880e4f; }
+            .ec-card-oil .val { color:#ad1457; }
+            .ec-card-bio { background:#e8f5e9; border-color:#66bb6a; }
+            .ec-card-bio h4 { color:#1b5e20; }
+            .ec-card-bio .val { color:#2e7d32; }
+            .ec-card-elec { background:#e3f2fd; border-color:#42a5f5; }
+            .ec-card-elec h4 { color:#0d47a1; }
+            .ec-card-elec .val { color:#1565c0; }
+            .ec-card-conv { background:#f3e5f5; border-color:#ab47bc; }
+            .ec-card-conv h4 { color:#4a148c; }
+            .ec-card-conv .val { color:#7b1fa2; }
+
+            /* Kalkulator spalin */
+            .ec-flue { margin-top:18px; background:#f8fbff; border:1px solid #d2e3f1; border-radius:16px; overflow:hidden; }
+            .ec-flue-header { background:linear-gradient(90deg,#1d4f73 0%,#1b8bc4 100%); padding:14px 18px; display:flex; align-items:center; gap:10px; }
+            .ec-flue-header h3 { margin:0; color:#fff; font-size:16px; font-weight:700; }
+            .ec-flue-body { padding:18px; }
+            .ec-flue-controls { display:grid; grid-template-columns:220px 220px 1fr; gap:14px; align-items:end; flex-wrap:wrap; }
+            .ec-flue-label { font-size:12px; font-weight:700; color:#1d4f73; margin-bottom:5px; }
+            .ec-flue-select { width:100%; padding:9px 12px; border-radius:9px; border:1px solid #c9d7e3; font-size:14px; font-weight:600; color:#0f2330; background:#fff; }
+            .ec-flue-input { width:100%; box-sizing:border-box; padding:9px 12px; border-radius:9px; border:1px solid #c9d7e3; font-size:14px; font-weight:600; color:#0f2330; }
+            .ec-flue-results { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:16px; }
+            .ec-flue-result-card { background:#fff; border:1px solid #d2e3f1; border-radius:10px; padding:12px 14px; text-align:center; }
+            .ec-flue-result-label { font-size:10px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; color:#6b8294; margin-bottom:6px; }
+            .ec-flue-result-val { font-size:22px; font-weight:800; color:#10344c; }
+            .ec-flue-result-unit { font-size:11px; color:#6b8294; margin-top:2px; }
+            .ec-flue-note { font-size:12px; color:#4c6373; margin-top:12px; padding:10px 14px; background:#edf3f8; border-radius:8px; border-left:3px solid #0e89d8; }
+            /* O2 scale bar */
+            .ec-o2-bar { margin-top:12px; height:8px; border-radius:4px; background:linear-gradient(90deg,#22c55e 0%,#eab308 45%,#f97316 75%,#ef4444 100%); position:relative; }
+            .ec-o2-thumb { position:absolute; top:-4px; width:16px; height:16px; border-radius:50%; background:#fff; border:2px solid #0e89d8; transform:translateX(-50%); transition:left .2s; }
+
+            @media(max-width:960px) {
+                .ec-units-grid { grid-template-columns:1fr 1fr; }
+                .ec-const-grid { grid-template-columns:1fr 1fr; }
+                .ec-flue-controls { grid-template-columns:1fr 1fr; }
+                .ec-flue-results { grid-template-columns:1fr 1fr; }
+            }
+            @media(max-width:600px) {
+                .ec-units-grid { grid-template-columns:1fr; }
+                .ec-const-grid { grid-template-columns:1fr; }
+                .ec-flue-controls { grid-template-columns:1fr; }
+                .ec-flue-results { grid-template-columns:1fr 1fr; }
+            }
+        </style>
+
+        <div class="ec-section-title">
+            <div class="ec-bar"></div>
+            <div>
+                <h2>⚡ Kalkulator energetyczny</h2>
+                <p>Przeliczniki jednostek, stałe energetyczne i kalkulator spalin dla instalacji gazowych i węglowych</p>
+            </div>
+        </div>
+
+        {{-- ── 1. PRZELICZNIK JEDNOSTEK ── --}}
+        <div class="ec-converter">
+            <h3>🔄 Przelicznik jednostek energii</h3>
+            <div class="ec-units-grid">
+                <div class="ec-unit-card">
+                    <div class="ec-unit-label">Gigadżule</div>
+                    <div class="ec-unit-sym" style="color:#22d3ee;">GJ</div>
+                    <input type="number" id="ec-gj" class="ec-unit-input" placeholder="wpisz wartość" step="any" min="0" oninput="ecConvert('gj',this.value)">
+                    <div class="ec-unit-hint">1 GJ = 277.778 kWh = 0.2778 MWh</div>
+                </div>
+                <div class="ec-unit-card">
+                    <div class="ec-unit-label">Kilowatogodziny</div>
+                    <div class="ec-unit-sym" style="color:#4ade80;">kWh</div>
+                    <input type="number" id="ec-kwh" class="ec-unit-input" placeholder="wpisz wartość" step="any" min="0" oninput="ecConvert('kwh',this.value)">
+                    <div class="ec-unit-hint">1 kWh = 0.0036 GJ = 0.001 MWh</div>
+                </div>
+                <div class="ec-unit-card">
+                    <div class="ec-unit-label">Megawatogodziny</div>
+                    <div class="ec-unit-sym" style="color:#f59e0b;">MWh</div>
+                    <input type="number" id="ec-mwh" class="ec-unit-input" placeholder="wpisz wartość" step="any" min="0" oninput="ecConvert('mwh',this.value)">
+                    <div class="ec-unit-hint">1 MWh = 3.6 GJ = 1 000 kWh</div>
+                </div>
+                <div class="ec-unit-card">
+                    <div class="ec-unit-label">Tony ol. ekwiwalen.</div>
+                    <div class="ec-unit-sym" style="color:#f87171;">TOE</div>
+                    <input type="number" id="ec-toe" class="ec-unit-input" placeholder="wpisz wartość" step="any" min="0" oninput="ecConvert('toe',this.value)">
+                    <div class="ec-unit-hint">1 TOE = 41.868 GJ ≈ 11 630 kWh</div>
+                </div>
+            </div>
+
+            <div class="ec-pln-box">
+                <div>
+                    <div class="ec-pln-label">Szacunkowa wartość energii (wg cen ropy Brent)</div>
+                    <div class="ec-pln-value" id="ec-pln-value">— PLN</div>
+                </div>
+                <div class="ec-price-meta">
+                    @if($toePricePln['ok'])
+                        Ropa Brent: <span>{{ number_format($toePricePln['pricePerBarrelUsd'], 2) }} USD/bbl</span> ·
+                        USD/PLN: <span>{{ number_format($toePricePln['usdPln'], 4) }}</span><br>
+                        Cena 1 TOE: <span>{{ number_format($toePricePln['pricePerToePln'], 0, ',', ' ') }} PLN</span> ·
+                        Źródło: {{ $toePricePln['source'] }}<br>
+                        Aktualizacja: <span>{{ $toePricePln['fetchedAt'] }}</span>
+                    @else
+                        <span style="color:#f87171;">{{ $toePricePln['message'] ?? 'Nie udało się pobrać danych rynkowych.' }}</span><br>
+                        Przeliczenie PLN niedostępne.
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        {{-- ── 2. STAŁE ENERGETYCZNE ── --}}
+        <div class="ec-constants">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; margin-top:4px;">
+                <span style="font-size:18px;">📊</span>
+                <h3 style="margin:0; font-size:17px; font-weight:800; color:#10344c;">Ważne stałe energetyczne</h3>
+                <span style="font-size:12px; color:#6b8294; margin-left:4px;">wg norm PN i danych GUS</span>
+            </div>
+            <div class="ec-const-grid">
+
+                {{-- Gaz ziemny --}}
+                <div class="ec-const-card ec-card-gas">
+                    <h4>🔥 Gaz ziemny GZ-50</h4>
+                    <div class="ec-const-row"><span class="name">Wartość opałowa</span><span class="val">34.39<span class="unit">MJ/m³</span></span></div>
+                    <div class="ec-const-row"><span class="name">jako kWh/m³</span><span class="val">9.553<span class="unit">kWh/m³</span></span></div>
+                    <div class="ec-const-row"><span class="name">Ciepło spalania</span><span class="val">38.26<span class="unit">MJ/m³</span></span></div>
+                    <div class="ec-const-row"><span class="name">Gęstość (0°C, 1 atm)</span><span class="val">0.720<span class="unit">kg/m³</span></span></div>
+                    <div class="ec-const-row"><span class="name">Masa 1 m³ gazu</span><span class="val">0.720<span class="unit">kg/m³</span></span></div>
+                    <div class="ec-const-row"><span class="name">Stoich. powietrze (V₀)</span><span class="val">9.52<span class="unit">m³/m³</span></span></div>
+                    <div class="ec-const-row"><span class="name">Stoich. spaliny (V₀ sp)</span><span class="val">10.50<span class="unit">m³/m³</span></span></div>
+                    <div class="ec-const-row"><span class="name">CO₂ max (spaliny)</span><span class="val">11.7<span class="unit">%</span></span></div>
+                    <div class="ec-const-row"><span class="name">Współcz. emisji CO₂</span><span class="val">201.6<span class="unit">g/kWh</span></span></div>
+                </div>
+
+                {{-- Węgiel --}}
+                <div class="ec-const-card ec-card-coal">
+                    <h4>⚫ Węgiel kamienny</h4>
+                    <div class="ec-const-row"><span class="name">Wart. opałowa (ener.)</span><span class="val">24.0<span class="unit">GJ/t</span></span></div>
+                    <div class="ec-const-row"><span class="name">jako kWh/t</span><span class="val">6 667<span class="unit">kWh/t</span></span></div>
+                    <div class="ec-const-row"><span class="name">Wart. opałowa (koks.)</span><span class="val">26.4<span class="unit">GJ/t</span></span></div>
+                    <div class="ec-const-row"><span class="name">Węgiel brunatny</span><span class="val">8.5<span class="unit">GJ/t</span></span></div>
+                    <div class="ec-const-row"><span class="name">Koks kamienny</span><span class="val">28.2<span class="unit">GJ/t</span></span></div>
+                    <div class="ec-const-row"><span class="name">Stoich. powietrze (V₀)</span><span class="val">6.80<span class="unit">m³/kg</span></span></div>
+                    <div class="ec-const-row"><span class="name">Stoich. spaliny (V₀ sp)</span><span class="val">7.30<span class="unit">m³/kg</span></span></div>
+                    <div class="ec-const-row"><span class="name">CO₂ max (spaliny)</span><span class="val">19.5<span class="unit">%</span></span></div>
+                    <div class="ec-const-row"><span class="name">Współcz. emisji CO₂</span><span class="val">341.0<span class="unit">g/kWh</span></span></div>
+                </div>
+
+                {{-- Olej/biomasa --}}
+                <div class="ec-const-card ec-card-oil">
+                    <h4>🛢 Olej opałowy</h4>
+                    <div class="ec-const-row"><span class="name">Olej lekki (Eo-L)</span><span class="val">42.7<span class="unit">GJ/t</span></span></div>
+                    <div class="ec-const-row"><span class="name">Olej ciężki (Eo-C)</span><span class="val">40.3<span class="unit">GJ/t</span></span></div>
+                    <div class="ec-const-row"><span class="name">LPG (propan-butan)</span><span class="val">46.0<span class="unit">GJ/t</span></span></div>
+                    <div class="ec-const-row"><span class="name">Gęstość oleju lekkiego</span><span class="val">0.840<span class="unit">kg/l</span></span></div>
+                    <div class="ec-const-row"><span class="name">Stoich. powietrze (V₀)</span><span class="val">10.50<span class="unit">m³/kg</span></span></div>
+                    <div class="ec-const-row"><span class="name">Stoich. spaliny (V₀ sp)</span><span class="val">11.30<span class="unit">m³/kg</span></span></div>
+                    <div class="ec-const-row"><span class="name">CO₂ max (spaliny)</span><span class="val">15.4<span class="unit">%</span></span></div>
+                    <div class="ec-const-row"><span class="name">Współcz. emisji CO₂</span><span class="val">266.0<span class="unit">g/kWh</span></span></div>
+                </div>
+
+                {{-- Biomasa --}}
+                <div class="ec-const-card ec-card-bio">
+                    <h4>🌿 Biomasa / Drewno</h4>
+                    <div class="ec-const-row"><span class="name">Drewno suche (wilg. 15%)</span><span class="val">15.5<span class="unit">GJ/t</span></span></div>
+                    <div class="ec-const-row"><span class="name">Drewno (wilgotność 30%)</span><span class="val">12.0<span class="unit">GJ/t</span></span></div>
+                    <div class="ec-const-row"><span class="name">Pellet drzewny</span><span class="val">17.0<span class="unit">GJ/t</span></span></div>
+                    <div class="ec-const-row"><span class="name">Słoma</span><span class="val">14.4<span class="unit">GJ/t</span></span></div>
+                    <div class="ec-const-row"><span class="name">Zrębki (wilg. 35%)</span><span class="val">10.0<span class="unit">GJ/t</span></span></div>
+                    <div class="ec-const-row"><span class="name">Biogaz (rolniczy)</span><span class="val">21.5<span class="unit">MJ/m³</span></span></div>
+                    <div class="ec-const-row"><span class="name">Emisja CO₂ pellet</span><span class="val">0<span class="unit">g/kWh (neutralna)</span></span></div>
+                </div>
+
+                {{-- Energia elektryczna --}}
+                <div class="ec-const-card ec-card-elec">
+                    <h4>⚡ Energia elektryczna</h4>
+                    <div class="ec-const-row"><span class="name">1 kWh = MJ</span><span class="val">3.600<span class="unit">MJ</span></span></div>
+                    <div class="ec-const-row"><span class="name">Wskaźnik emisji PL (2023)</span><span class="val">730<span class="unit">g CO₂/kWh</span></span></div>
+                    <div class="ec-const-row"><span class="name">Wskaźnik nakładu PL</span><span class="val">2.50<span class="unit">kWh energ. pierwot./kWh</span></span></div>
+                    <div class="ec-const-row"><span class="name">Sprawność przesyłu PL</span><span class="val">93.2<span class="unit">%</span></span></div>
+                    <div class="ec-const-row"><span class="name">Udział OZE w KSE (2023)</span><span class="val">~25<span class="unit">%</span></span></div>
+                    <div class="ec-const-row"><span class="name">Ciepło w pompie ciepła (COP=3)</span><span class="val">3.0<span class="unit">kWh ciepła/kWh el.</span></span></div>
+                </div>
+
+                {{-- Przeliczniki ogólne --}}
+                <div class="ec-const-card ec-card-conv">
+                    <h4>🔢 Przeliczniki jednostek</h4>
+                    <div class="ec-const-row"><span class="name">1 TOE</span><span class="val">41.868<span class="unit">GJ</span></span></div>
+                    <div class="ec-const-row"><span class="name">1 TOE</span><span class="val">11 630<span class="unit">kWh</span></span></div>
+                    <div class="ec-const-row"><span class="name">1 boe (baryłka ropy)</span><span class="val">5.712<span class="unit">GJ</span></span></div>
+                    <div class="ec-const-row"><span class="name">1 Gcal (Giga-kaloria)</span><span class="val">4.187<span class="unit">GJ</span></span></div>
+                    <div class="ec-const-row"><span class="name">1 kcal</span><span class="val">4.187<span class="unit">kJ</span></span></div>
+                    <div class="ec-const-row"><span class="name">1 therm (UK)</span><span class="val">0.10551<span class="unit">GJ</span></span></div>
+                    <div class="ec-const-row"><span class="name">1 BTU</span><span class="val">1.0551<span class="unit">kJ</span></span></div>
+                    <div class="ec-const-row"><span class="name">1 MMBTU</span><span class="val">1.0551<span class="unit">GJ</span></span></div>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── 3. KALKULATOR SPALIN ── --}}
+        <div class="ec-flue">
+            <div class="ec-flue-header">
+                <span style="font-size:20px;">🌡️</span>
+                <h3>Kalkulator masy spalin — kocioł gazowy i węglowy</h3>
+            </div>
+            <div class="ec-flue-body">
+                <div class="ec-flue-controls">
+                    <div>
+                        <div class="ec-flue-label">Rodzaj kotła / paliwa</div>
+                        <select id="ec-fuel" class="ec-flue-select" onchange="ecFlueCalc()">
+                            <option value="gas">Gaz ziemny GZ-50</option>
+                            <option value="coal">Węgiel kamienny (typ 31)</option>
+                            <option value="oil">Olej opałowy lekki</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="ec-flue-label">Zawartość O₂ w spalinach [%]</div>
+                        <input type="number" id="ec-o2" class="ec-flue-input" value="3" min="0" max="18" step="0.1" oninput="ecFlueCalc()">
+                        <div class="ec-o2-bar" style="margin-top:8px;">
+                            <div class="ec-o2-thumb" id="ec-o2-thumb" style="left:16.7%"></div>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:10px; color:#6b8294; margin-top:3px;"><span>0%</span><span>6%</span><span>12%</span><span>18%</span></div>
+                    </div>
+                    <div style="background:#edf3f8; border-radius:10px; padding:10px 12px; font-size:12px; color:#355468; line-height:1.7;">
+                        <strong style="color:#1d4f73;">Wybrane paliwo:</strong><br>
+                        <span id="ec-fuel-info">GZ-50: V₀<sub>pow</sub>=9.52 m³/m³, V₀<sub>sp</sub>=10.50 m³/m³</span>
+                    </div>
+                </div>
+
+                <div class="ec-flue-results">
+                    <div class="ec-flue-result-card">
+                        <div class="ec-flue-result-label">Nadmiar powietrza λ</div>
+                        <div class="ec-flue-result-val" id="ec-lambda">—</div>
+                        <div class="ec-flue-result-unit">[-]</div>
+                    </div>
+                    <div class="ec-flue-result-card">
+                        <div class="ec-flue-result-label">Objętość spalin</div>
+                        <div class="ec-flue-result-val" id="ec-vol-flue">—</div>
+                        <div class="ec-flue-result-unit" id="ec-vol-flue-unit">m³/m³ gazu</div>
+                    </div>
+                    <div class="ec-flue-result-card">
+                        <div class="ec-flue-result-label">Masa spalin</div>
+                        <div class="ec-flue-result-val" id="ec-mass-flue">—</div>
+                        <div class="ec-flue-result-unit" id="ec-mass-flue-unit">kg/m³ gazu</div>
+                    </div>
+                    <div class="ec-flue-result-card">
+                        <div class="ec-flue-result-label">Temp. punktu rosy</div>
+                        <div class="ec-flue-result-val" id="ec-dew">~55</div>
+                        <div class="ec-flue-result-unit">°C</div>
+                    </div>
+                </div>
+
+                <div class="ec-flue-note" id="ec-flue-note">
+                    Wprowadź wartość O₂ z analizatora spalin. Wzór: λ = 21 / (21 − O₂[%]).
+                    Objętość spalin mokrych = V₀<sub>sp</sub> + (λ−1) × V₀<sub>pow</sub>.
+                    Masa spalin = Vsp × ρ<sub>spalin</sub> [≈ 1.25 kg/m³ dla gazu, 1.30 kg/m³ dla węgla].
+                </div>
+
+                {{-- ── Przelicznik mocy kotła ── --}}
+                <div style="margin-top:18px; padding-top:16px; border-top:2px dashed #c9d7e3;">
+                    <div style="font-size:13px; font-weight:700; color:#1d4f73; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+                        🔥 Przelicznik ilości spalin dla mocy kotła
+                    </div>
+                    <div class="ec-flue-controls" style="grid-template-columns:200px 160px 1fr;">
+                        <div>
+                            <div class="ec-flue-label">Moc kotła [kW]</div>
+                            <input type="number" id="ec-power" class="ec-flue-input" min="1" max="100000" step="1" placeholder="np. 100" oninput="ecFlueCalc()">
+                        </div>
+                        <div>
+                            <div class="ec-flue-label">Sprawność kotła [%]</div>
+                            <input type="number" id="ec-eff" class="ec-flue-input" value="90" min="50" max="110" step="0.5" oninput="ecFlueCalc()">
+                        </div>
+                        <div style="background:#edf3f8; border-radius:10px; padding:10px 12px; font-size:12px; color:#355468; line-height:1.8;">
+                            <strong style="color:#1d4f73;">Wzór:</strong><br>
+                            Q̇<sub>pal</sub> = P&nbsp;/&nbsp;(η·H<sub>u</sub>) → V̇<sub>sp</sub> = Q̇<sub>pal</sub>·V<sub>sp</sub>
+                        </div>
+                    </div>
+                    <div class="ec-flue-results" style="grid-template-columns:repeat(3,1fr); margin-top:12px;">
+                        <div class="ec-flue-result-card">
+                            <div class="ec-flue-result-label">Zużycie paliwa</div>
+                            <div class="ec-flue-result-val" id="ec-fuel-flow">—</div>
+                            <div class="ec-flue-result-unit" id="ec-fuel-flow-unit">m³/h</div>
+                        </div>
+                        <div class="ec-flue-result-card">
+                            <div class="ec-flue-result-label">Przepływ spalin</div>
+                            <div class="ec-flue-result-val" id="ec-flue-flow">—</div>
+                            <div class="ec-flue-result-unit">m³/h</div>
+                        </div>
+                        <div class="ec-flue-result-card">
+                            <div class="ec-flue-result-label">Masa spalin</div>
+                            <div class="ec-flue-result-val" id="ec-flue-mass-flow">—</div>
+                            <div class="ec-flue-result-unit">kg/h</div>
+                        </div>
+                    </div>
+                    <div class="ec-flue-note" id="ec-power-note" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── JavaScript ── --}}
+        <script>
+        // ── Unit converter ──────────────────────────────────────────
+        const EC_TOE_PLN = {{ $toePricePln['ok'] ? (float) $toePricePln['pricePerToePln'] : 'null' }};
+
+        const ecFactors = {
+            gj:  1,
+            kwh: 1 / 0.0036,
+            mwh: 1 / 3.6,
+            toe: 1 / 41.868,
+        };
+        const ecDecimals = { gj:5, kwh:2, mwh:5, toe:7 };
+
+        function ecConvert(from, rawVal) {
+            const val = parseFloat(rawVal);
+            const plnEl = document.getElementById('ec-pln-value');
+            if (isNaN(val) || rawVal === '') {
+                ['gj','kwh','mwh','toe'].forEach(id => {
+                    const el = document.getElementById('ec-' + id);
+                    if (el && id !== from) el.value = '';
+                });
+                plnEl.textContent = '— PLN';
+                return;
+            }
+            // convert to GJ first
+            let gj;
+            switch(from) {
+                case 'gj':  gj = val; break;
+                case 'kwh': gj = val * 0.0036; break;
+                case 'mwh': gj = val * 3.6; break;
+                case 'toe': gj = val * 41.868; break;
+                default: return;
+            }
+            for (const [id, factor] of Object.entries(ecFactors)) {
+                if (id === from) continue;
+                const el = document.getElementById('ec-' + id);
+                if (!el) continue;
+                const result = gj * factor;
+                const d = ecDecimals[id] || 4;
+                // trim trailing zeros but keep at least 2 decimal digits for kwh
+                el.value = parseFloat(result.toFixed(d));
+            }
+            const toeVal = gj / 41.868;
+            if (EC_TOE_PLN && toeVal > 0) {
+                const pln = toeVal * EC_TOE_PLN;
+                plnEl.textContent = pln.toLocaleString('pl-PL', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' PLN';
+            } else {
+                plnEl.textContent = '— PLN (brak danych rynkowych)';
+            }
+        }
+
+        // ── Flue gas calculator ──────────────────────────────────────
+        const EC_FUEL = {
+            gas:  { v0air: 9.52,  v0flue: 10.50, rho: 1.25, hu: 9.444,  fuelUnit: 'm³/h',  unit: 'm³ gazu',  unitLabel: 'gaz GZ-50',  info: 'GZ-50: V₀<sub>pow</sub>=9.52 m³/m³<sub>gaz</sub>, V₀<sub>sp</sub>=10.50 m³/m³<sub>gaz</sub>, ρ<sub>sp</sub>=1.25 kg/m³' },
+            coal: { v0air: 6.80,  v0flue: 7.30,  rho: 1.30, hu: 7.222,  fuelUnit: 'kg/h',  unit: 'kg węgla', unitLabel: 'węgiel',     info: 'Węgiel typ-31: V₀<sub>pow</sub>=6.80 m³/kg, V₀<sub>sp</sub>=7.30 m³/kg, ρ<sub>sp</sub>=1.30 kg/m³' },
+            oil:  { v0air: 10.50, v0flue: 11.30, rho: 1.28, hu: 11.806, fuelUnit: 'kg/h',  unit: 'kg oleju', unitLabel: 'olej lekki', info: 'Olej Eo-L: V₀<sub>pow</sub>=10.50 m³/kg, V₀<sub>sp</sub>=11.30 m³/kg, ρ<sub>sp</sub>=1.28 kg/m³' },
+        };
+
+        function ecFlueCalc() {
+            const fuelKey = document.getElementById('ec-fuel').value;
+            const o2raw   = parseFloat(document.getElementById('ec-o2').value);
+            const fuel    = EC_FUEL[fuelKey];
+
+            // update O2 thumb
+            const o2Clamped = Math.max(0, Math.min(18, isNaN(o2raw) ? 0 : o2raw));
+            const thumbPct  = (o2Clamped / 18) * 100;
+            const thumb = document.getElementById('ec-o2-thumb');
+            if (thumb) thumb.style.left = thumbPct + '%';
+
+            // update fuel info
+            const infoEl = document.getElementById('ec-fuel-info');
+            if (infoEl) infoEl.innerHTML = fuel.info;
+
+            // update unit labels
+            document.getElementById('ec-vol-flue-unit').textContent = 'm³/' + fuel.unit;
+            document.getElementById('ec-mass-flue-unit').textContent = 'kg/' + fuel.unit;
+
+            if (isNaN(o2raw) || o2raw < 0 || o2raw >= 21) {
+                ['ec-lambda','ec-vol-flue','ec-mass-flue','ec-fuel-flow','ec-flue-flow','ec-flue-mass-flow'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = '—';
+                });
+                const pn = document.getElementById('ec-power-note');
+                if (pn) pn.style.display = 'none';
+                return;
+            }
+
+            const lambda   = 21 / (21 - o2raw);
+            const vFlue    = fuel.v0flue + (lambda - 1) * fuel.v0air;
+            const mFlue    = vFlue * fuel.rho;
+
+            // dew point estimate: ~55°C for gas, ~50°C for coal/oil (simplified)
+            const dew = fuelKey === 'gas' ? 55 : (fuelKey === 'oil' ? 52 : 48);
+
+            document.getElementById('ec-lambda').textContent    = lambda.toFixed(3);
+            document.getElementById('ec-vol-flue').textContent  = vFlue.toFixed(2);
+            document.getElementById('ec-mass-flue').textContent = mFlue.toFixed(2);
+            document.getElementById('ec-dew').textContent       = '~' + dew;
+
+            // update note
+            const noteEl = document.getElementById('ec-flue-note');
+            if (noteEl) {
+                const qualLabel = lambda < 1.05 ? '⚠️ Niedobór powietrza!' : (lambda < 1.3 ? '✅ Prawidłowy zakres' : (lambda < 1.6 ? '⚠️ Duży nadmiar powietrza' : '❌ Zbyt duży nadmiar − straty kominowe!'));
+                noteEl.innerHTML = `λ = ${lambda.toFixed(3)} — ${qualLabel}<br>Obj. spalin = ${fuel.v0flue.toFixed(2)} + (${lambda.toFixed(3)}−1)×${fuel.v0air.toFixed(2)} = <strong>${vFlue.toFixed(2)} m³/${fuel.unit}</strong> · masa spalin = ${mFlue.toFixed(2)} kg/${fuel.unit}`;
+            }
+
+            // ── Przelicznik mocy kotła ──
+            const fuelFlowUnitEl = document.getElementById('ec-fuel-flow-unit');
+            if (fuelFlowUnitEl) fuelFlowUnitEl.textContent = fuel.fuelUnit;
+
+            const powerRaw = parseFloat((document.getElementById('ec-power') || {}).value);
+            const effRaw   = parseFloat((document.getElementById('ec-eff')   || {}).value || '90');
+            const powerNote = document.getElementById('ec-power-note');
+
+            if (!isNaN(powerRaw) && powerRaw > 0 && !isNaN(effRaw) && effRaw > 0) {
+                const eta          = effRaw / 100;
+                const fuelFlowRate = powerRaw / (eta * fuel.hu);   // m³/h lub kg/h
+                const flueVolFlow  = fuelFlowRate * vFlue;          // m³/h
+                const flueMassFlow = flueVolFlow  * fuel.rho;       // kg/h
+
+                const ffEl = document.getElementById('ec-fuel-flow');
+                const fvEl = document.getElementById('ec-flue-flow');
+                const fmEl = document.getElementById('ec-flue-mass-flow');
+                if (ffEl) ffEl.textContent = fuelFlowRate.toFixed(2);
+                if (fvEl) fvEl.textContent = flueVolFlow.toFixed(1);
+                if (fmEl) fmEl.textContent = flueMassFlow.toFixed(1);
+
+                if (powerNote) {
+                    powerNote.style.display = '';
+                    powerNote.innerHTML = `Moc kotła <strong>${powerRaw} kW</strong>, sprawność <strong>${effRaw}%</strong> → zużycie paliwa: <strong>${fuelFlowRate.toFixed(2)} ${fuel.fuelUnit}</strong> → przepływ spalin: <strong>${flueVolFlow.toFixed(1)} m³/h</strong>, masa spalin: <strong>${flueMassFlow.toFixed(1)} kg/h</strong>.`;
+                }
+            } else {
+                ['ec-fuel-flow','ec-flue-flow','ec-flue-mass-flow'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = '—';
+                });
+                if (powerNote) powerNote.style.display = 'none';
+            }
+        }
+
+        // init on load
+        document.addEventListener('DOMContentLoaded', ecFlueCalc);
+        </script>
+    </section>
 </x-layouts.app>

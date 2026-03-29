@@ -322,7 +322,7 @@
                                                     <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin:0;">Wzory sekcji</label>
                                                     <button type="button" class="btn-secondary" onclick="addSectionFormulaRow('edit-section-formulas-{{ $type->id }}-{{ $sectionIndex }}', {{ $sectionIndex }}, 'edit-section-data-table-{{ $type->id }}-{{ $sectionIndex }}')">+ Dodaj wzór</button>
                                                 </div>
-                                                <div style="font-size:12px; color:#4c6373; margin:0 0 6px;">Tokeny pól: <strong>{token}</strong>, np. <strong>({moc_nominalna} * 1.2) / 1000</strong>. Możesz też używać tokenu wyniku innego wzoru. We wzorze wpisuj tylko liczby, operatory i tokeny (bez jednostek).</div>
+                                                <div style="font-size:12px; color:#4c6373; margin:0 0 6px;">Tokeny pól: <strong>{token}</strong>, np. <strong>({moc_nominalna} * 1.2) / 1000</strong>. Obsługiwane funkcje: <strong>IF(warunek; jeśli_tak; jeśli_nie)</strong>, <strong>AND(a; b)</strong>, <strong>OR(a; b)</strong>, <strong>NOT(a)</strong>, <strong>MAX(a; b)</strong>, <strong>MIN(a; b)</strong>, <strong>ABS(x)</strong>, <strong>SQRT(x)</strong>, <strong>ROUND(x; miejsca)</strong>. Porównania: <strong>=</strong>, <strong>&lt;&gt;</strong>, <strong>&lt;</strong>, <strong>&gt;</strong>, <strong>&lt;=</strong>, <strong>&gt;=</strong>. Argumenty funkcji rozdzielaj średnikiem <strong>;</strong>. Listy Select: wartość nr 1, 2, 3... Tak/Nie: 1/0.</div>
                                                 <div class="token-helper">
                                                     <div class="token-helper-title">Kliknij token, aby wstawić go do wzoru</div>
                                                     <div class="token-list section-token-list"></div>
@@ -1998,6 +1998,24 @@
             window.__activeFormulaTextarea = textarea;
         }
 
+        function insertTextToActiveFormula(section, text) {
+            const active = window.__activeFormulaTextarea;
+            const target = (active && section && section.contains(active))
+                ? active
+                : (section ? section.querySelector('textarea[name$="[expression]"]') : null);
+            if (!target) {
+                return;
+            }
+            const start = target.selectionStart ?? target.value.length;
+            const end = target.selectionEnd ?? target.value.length;
+            target.value = target.value.slice(0, start) + text + target.value.slice(end);
+            target.focus();
+            const cursor = start + text.length;
+            if (typeof target.setSelectionRange === 'function') {
+                target.setSelectionRange(cursor - (text.endsWith(')') ? 1 : 0), cursor - (text.endsWith(')') ? 1 : 0));
+            }
+        }
+
         function insertTokenToFormula(scopeRoot, section, token) {
             if (!section || !token) {
                 return;
@@ -2134,6 +2152,30 @@
                     return;
                 }
 
+                const operators = [
+                    { label: '( )', insert: '()', title: 'Nawiasy' },
+                    { label: 'xⁿ', insert: '^', title: 'Potęgowanie — np. {token}^2' },
+                ];
+                operators.forEach(({ label, insert, title }) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'token-chip';
+                    btn.title = title;
+                    btn.textContent = label;
+                    btn.style.fontWeight = '700';
+                    btn.addEventListener('click', function () {
+                        insertTextToActiveFormula(list.closest('.audit-type-section'), insert);
+                    });
+                    list.appendChild(btn);
+                });
+
+                if (dataTokens.length > 0 || formulaTokens.length > 0) {
+                    const sepOp = document.createElement('span');
+                    sepOp.className = 'token-chip-separator';
+                    sepOp.textContent = '|';
+                    list.appendChild(sepOp);
+                }
+
                 dataTokens.forEach((token) => {
                     const button = document.createElement('button');
                     button.type = 'button';
@@ -2235,6 +2277,48 @@
             refreshDependencySelectorsInScope(getTokenScopeRoot(container));
         }
 
+        function evaluateFormulaExpression(expression, values) {
+            const usedTokens = Array.from(new Set(
+                Array.from(expression.matchAll(/\{([a-zA-Z0-9_]+)\}/g)).map((m) => m[1])
+            ));
+            if (usedTokens.some((t) => !(t in values))) { return undefined; }
+            if (usedTokens.some((t) => values[t] === null)) { return null; }
+
+            let expr = expression.replace(/\{([a-zA-Z0-9_]+)\}/g, (_, t) => String(values[t] ?? 0));
+            expr = expr
+                .replace(/JEŻELI\s*\(/gi, 'IF(')
+                .replace(/JEZELI\s*\(/gi, 'IF(')
+                .replace(/JEŚLI\s*\(/gi, 'IF(')
+                .replace(/;/g, ',')
+                .replace(/(\d),(\d)/g, '$1.$2')
+                .replace(/<>/g, '!=')
+                .replace(/([^!<>=])=(?!=)/g, '$1==')
+                .replace(/\^/g, '**');
+
+            if (/[`"'\\]/.test(expr)) { return null; }
+
+            const IF    = (c, t, f) => (c ? t : f);
+            const AND   = (...a) => (a.every(Boolean) ? 1 : 0);
+            const OR    = (...a) => (a.some(Boolean) ? 1 : 0);
+            const NOT   = (x) => (x ? 0 : 1);
+            const MAX   = Math.max;
+            const MIN   = Math.min;
+            const ABS   = Math.abs;
+            const SQRT  = Math.sqrt;
+            const ROUND = (n, dp = 0) => parseFloat(n.toFixed(Math.max(0, dp | 0)));
+
+            try {
+                // eslint-disable-next-line no-new-func
+                const result = Function('IF','AND','OR','NOT','MAX','MIN','ABS','SQRT','ROUND',
+                    '"use strict"; return (' + expr + ')'
+                )(IF, AND, OR, NOT, MAX, MIN, ABS, SQRT, ROUND);
+                if (typeof result === 'boolean') { return result ? 1 : 0; }
+                return Number.isFinite(result) ? result : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
         function validateSectionFormula(button, tableId) {
             const formulaRow = button?.closest('.section-formula-row');
             if (!formulaRow) {
@@ -2266,27 +2350,18 @@
                 return;
             }
 
-            const replaced = expression.replace(/\{([a-zA-Z0-9_]+)\}/g, '1').replace(/,/g, '.');
-            if (!/^[0-9+\-*/().\s]+$/.test(replaced)) {
+            const dummyValues = {};
+            availableTokens.forEach((t) => { dummyValues[t] = 1; });
+
+            const evalResult = evaluateFormulaExpression(expression, dummyValues);
+            if (evalResult === null) {
                 message.style.color = '#b42318';
-                message.textContent = 'Błąd: użyj tylko liczb, działań i tokenów {token}.';
+                message.textContent = 'Błąd: sprawdź składnię wzoru — błędna operacja lub nawiasy.';
                 return;
             }
 
-            try {
-                const result = Function('return (' + replaced + ')')();
-                if (!Number.isFinite(result)) {
-                    message.style.color = '#b42318';
-                    message.textContent = 'Błąd: wzór nie zwraca liczby.';
-                    return;
-                }
-
-                message.style.color = '#067647';
-                message.textContent = 'OK: wzór jest poprawny dla tej sekcji.';
-            } catch (error) {
-                message.style.color = '#b42318';
-                message.textContent = 'Błąd: sprawdź nawiasy i kolejność działań.';
-            }
+            message.style.color = '#067647';
+            message.textContent = 'OK: wzór jest poprawny dla tej sekcji.';
         }
 
         function handleRowUnitKind(select) {

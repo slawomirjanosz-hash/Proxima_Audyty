@@ -3,19 +3,20 @@
 namespace App\View\Components;
 
 use Illuminate\View\Component;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Auth;
 
 class OnlineUsersInfo extends Component
 {
     public function render()
     {
-        // Count unique user_id in sessions table where user_id is not null and last_activity is recent (last 10 minutes)
-        $onlineCount = DB::table('sessions')
-            ->whereNotNull('user_id')
-            ->where('last_activity', '>=', now()->subMinutes(10)->timestamp)
-            ->distinct('user_id')
-            ->count('user_id');
+        $threshold = now()->subMinutes(10)->timestamp;
+        $onlineUsers = Cache::get('online_users_set', []);
+        $onlineCount = count(array_filter($onlineUsers, static fn (int $ts): bool => $ts >= $threshold));
+        // always at least 1 when the current viewer is logged in
+        if (Auth::check() && $onlineCount === 0) {
+            $onlineCount = 1;
+        }
 
         $user = Auth::user();
 

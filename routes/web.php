@@ -9,6 +9,7 @@ use App\Http\Controllers\CrmStageController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InformationController;
 use App\Http\Controllers\Iso50001AuditController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
@@ -45,6 +46,11 @@ Route::get('/informacje/pse-kse', [InformationController::class, 'snapshot'])
 
 Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+
+    Route::get('/profil', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profil', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profil/haslo', [ProfileController::class, 'password'])->name('profile.password');
+    Route::post('/profil/haslo', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->middleware('role:admin,auditor')

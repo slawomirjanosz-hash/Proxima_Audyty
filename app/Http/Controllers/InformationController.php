@@ -59,6 +59,7 @@ class InformationController extends Controller
     {
         return view('information.index', [
             'generationData' => $this->getGenerationStructureSnapshot(),
+            'toePricePln'    => $this->getToePricePln(),
         ]);
     }
 
@@ -183,5 +184,58 @@ class InformationController extends Controller
         $normalized = str_replace([' ', ','], ['', '.'], trim($raw));
 
         return is_numeric($normalized) ? (float) $normalized : 0.0;
+    }
+
+    private function getToePricePln(): array
+    {
+        return Cache::remember('toe_price_pln_v3', now()->addHours(4), function (): array {
+            try {
+                // USD/PLN from NBP open API
+                $nbp = Http::timeout(8)->get('https://api.nbp.pl/api/exchangerates/rates/a/usd/?format=json');
+                $usdPln = $nbp->successful()
+                    ? (float) ($nbp->json('rates.0.mid') ?? 4.10)
+                    : 4.10;
+
+                // Brent crude (USD/barrel) from Yahoo Finance public endpoint
+                $oil = Http::timeout(10)
+                    ->withHeaders(['User-Agent' => 'Mozilla/5.0 (compatible; energy-calc/1.0)'])
+                    ->get('https://query1.finance.yahoo.com/v8/finance/chart/BZ=F', [
+                        'interval' => '1d',
+                        'range'    => '5d',
+                    ]);
+
+                $barrel = null;
+                if ($oil->successful()) {
+                    $barrel = $oil->json('chart.result.0.meta.regularMarketPrice');
+                }
+
+                if (! is_numeric($barrel)) {
+                    return [
+                        'ok'        => false,
+                        'usdPln'    => round($usdPln, 4),
+                        'fetchedAt' => now('Europe/Warsaw')->toDateTimeString(),
+                        'message'   => 'Brak danych o cenie ropy Brent.',
+                    ];
+                }
+
+                // 1 TOE = approx. 7.33 barrels of crude oil (IEA standard)
+                $priceToePln = round((float) $barrel * 7.33 * $usdPln, 2);
+
+                return [
+                    'ok'                => true,
+                    'pricePerBarrelUsd' => round((float) $barrel, 2),
+                    'usdPln'            => round($usdPln, 4),
+                    'pricePerToePln'    => $priceToePln,
+                    'source'            => 'Yahoo Finance / NBP',
+                    'fetchedAt'         => now('Europe/Warsaw')->toDateTimeString(),
+                ];
+            } catch (Throwable $e) {
+                return [
+                    'ok'        => false,
+                    'fetchedAt' => now('Europe/Warsaw')->toDateTimeString(),
+                    'message'   => 'Błąd pobierania danych: ' . $e->getMessage(),
+                ];
+            }
+        });
     }
 }
