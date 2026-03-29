@@ -22,10 +22,21 @@
         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
             <div>
                 <h1 style="margin:0;">Informacje</h1>
-                <p class="muted" style="margin:4px 0 0;">Aktualna struktura generacji mocy (Energetyczny Kompas). Widok odświeża się automatycznie.</p>
+                <p class="muted" style="margin:4px 0 0;">Aktualna struktura generacji mocy i kalkulator energetyczny.</p>
             </div>
             <a href="{{ route('information.index') }}" class="btn-secondary" style="text-decoration:none; padding:8px 10px; border-radius:9px; background:#dbe9f5; color:#1d4f73;">Odśwież teraz</a>
         </div>
+
+        <div class="ec-acc" id="acc-generation" style="border:1px solid #d7e5f0; border-radius:12px; overflow:hidden; margin-top:4px;">
+            <button class="ec-acc-trigger" onclick="ecAccToggle('acc-generation')" style="background:#f4f8fd;">
+                <div class="ec-acc-icon">⚡</div>
+                <div class="ec-acc-text">
+                    <strong>Aktualna struktura generacji mocy (KSE)</strong>
+                    <span>Energetyczny Kompas · dane odświeżane automatycznie co 60 s</span>
+                </div>
+                <div class="ec-acc-chevron">▾</div>
+            </button>
+            <div class="ec-acc-body" style="padding:14px 16px 16px;">
 
         <div id="generation-status" class="muted" style="font-size:13px; margin-bottom:8px;">
             @if(!($generationData['ok'] ?? false))
@@ -35,7 +46,7 @@
             @endif
         </div>
 
-        <div class="info-structure-box" id="generation-structure-box">
+        <div class="info-structure-box" id="generation-structure-box" style="margin-top:0;">
             <h2 style="margin:0 0 10px; color:#10344c;">{{ $generationData['title'] ?? 'Aktualna struktura generacji mocy' }}</h2>
 
             <div class="info-share-header">
@@ -71,6 +82,9 @@
                 Źródło: <a id="source-link" href="{{ $generationData['sourceUrl'] ?? 'https://www.energetycznykompas.pl' }}" target="_blank" rel="noopener">energetycznykompas.pl</a>
             </div>
         </div>
+
+            </div>{{-- /ec-acc-body (generation) --}}
+        </div>{{-- /ec-acc#acc-generation --}}
 
         <script>
             (function () {
@@ -265,7 +279,7 @@
         {{-- ══════════════════════════════════════════════════════
              SEKCJA 1 – PRZELICZNIK JEDNOSTEK ENERGII
         ══════════════════════════════════════════════════════ --}}
-        <div class="ec-acc open" id="acc-units">
+        <div class="ec-acc" id="acc-units">
             <button class="ec-acc-trigger" onclick="ecAccToggle('acc-units')">
                 <div class="ec-acc-icon">🔄</div>
                 <div class="ec-acc-text">
@@ -423,7 +437,7 @@
         {{-- ══════════════════════════════════════════════════════
              SEKCJA 3 – KALKULATOR MASY SPALIN
         ══════════════════════════════════════════════════════ --}}
-        <div class="ec-acc open" id="acc-flue">
+        <div class="ec-acc" id="acc-flue">
             <button class="ec-acc-trigger" onclick="ecAccToggle('acc-flue')">
                 <div class="ec-acc-icon">🌡️</div>
                 <div class="ec-acc-text">
@@ -533,7 +547,7 @@
         {{-- ══════════════════════════════════════════════════════
              SEKCJA 4 – KALKULATOR EMISJI CO₂ Z ENERGII ELEKTRYCZNEJ
         ══════════════════════════════════════════════════════ --}}
-        <div class="ec-acc open" id="acc-co2el">
+        <div class="ec-acc" id="acc-co2el">
             <button class="ec-acc-trigger" onclick="ecAccToggle('acc-co2el')">
                 <div class="ec-acc-icon">🌿</div>
                 <div class="ec-acc-text">
