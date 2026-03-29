@@ -61,10 +61,9 @@ class InformationController extends Controller
         return view('information.index', [
             'generationData'  => $this->getGenerationStructureSnapshot(),
             'toePricePln'     => $this->getToePricePln(),
-            'co2ElCombFactor' => (float) SystemSetting::get('co2_el_comb_factor', '0.710'),
-            'co2ElNatFactor'  => (float) SystemSetting::get('co2_el_nat_factor',  '0.640'),
-            'co2ElGridDisplay'=> (int)   SystemSetting::get('co2_el_grid_display', '553'),
-            'co2ElYear'       => (string)SystemSetting::get('co2_el_year', '2024'),
+            'co2ElCombFactor' => (int) SystemSetting::get('co2_el_comb_factor', '717'),
+            'co2ElNatFactor'  => (int) SystemSetting::get('co2_el_nat_factor',  '552'),
+            'co2ElYear'       => (string) SystemSetting::get('co2_el_year', '2024'),
         ]);
     }
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
+use App\Models\Co2IndicatorHistory;
 use App\Models\Company;
 use App\Models\SystemSetting;
 use App\Models\User;
@@ -93,17 +94,17 @@ class SettingsController extends Controller
         $clients = User::where('role', UserRole::Client)->orderBy('name')->get();
 
         return view('settings.index', [
-            'users'            => $users,
-            'companies'        => $companies,
-            'auditors'         => $auditors,
-            'clients'          => $clients,
-            'tabLabels'        => User::tabLabels(),
-            'canManage'        => $user->canManageEverything(),
-            'isSuperAdmin'     => $user->isSuperAdmin(),
-            'co2ElCombFactor'  => (float) SystemSetting::get('co2_el_comb_factor', '0.710'),
-            'co2ElNatFactor'   => (float) SystemSetting::get('co2_el_nat_factor',  '0.640'),
-            'co2ElGridDisplay' => (int)   SystemSetting::get('co2_el_grid_display', '553'),
-            'co2ElYear'        => (string)SystemSetting::get('co2_el_year', '2024'),
+            'users'           => $users,
+            'companies'       => $companies,
+            'auditors'        => $auditors,
+            'clients'         => $clients,
+            'tabLabels'       => User::tabLabels(),
+            'canManage'       => $user->canManageEverything(),
+            'isSuperAdmin'    => $user->isSuperAdmin(),
+            'co2ElCombFactor' => (int) SystemSetting::get('co2_el_comb_factor', '717'),
+            'co2ElNatFactor'  => (int) SystemSetting::get('co2_el_nat_factor',  '552'),
+            'co2ElYear'       => (string) SystemSetting::get('co2_el_year', '2024'),
+            'co2History'      => Co2IndicatorHistory::orderByDesc('year')->get(),
         ]);
     }
 
@@ -114,20 +115,46 @@ class SettingsController extends Controller
         }
 
         $validated = $request->validate([
-            'co2_el_year'         => ['required', 'integer', 'min:2015', 'max:2100'],
-            'co2_el_comb_factor'  => ['required', 'numeric', 'min:0.01', 'max:2.00'],
-            'co2_el_nat_factor'   => ['required', 'numeric', 'min:0.01', 'max:2.00'],
-            'co2_el_grid_display' => ['required', 'integer', 'min:1', 'max:2000'],
+            'co2_el_year'        => ['required', 'integer', 'min:2015', 'max:2100'],
+            'co2_el_comb_factor' => ['required', 'integer', 'min:1', 'max:2000'],
+            'co2_el_nat_factor'  => ['required', 'integer', 'min:1', 'max:2000'],
         ]);
 
         $userId = $request->user()->id;
-
-        SystemSetting::set('co2_el_year',         (string) $validated['co2_el_year'],         $userId);
-        SystemSetting::set('co2_el_comb_factor',  (string) $validated['co2_el_comb_factor'],  $userId);
-        SystemSetting::set('co2_el_nat_factor',   (string) $validated['co2_el_nat_factor'],   $userId);
-        SystemSetting::set('co2_el_grid_display', (string) $validated['co2_el_grid_display'], $userId);
+        SystemSetting::set('co2_el_year',         (string) $validated['co2_el_year'],        $userId);
+        SystemSetting::set('co2_el_comb_factor',  (string) $validated['co2_el_comb_factor'], $userId);
+        SystemSetting::set('co2_el_nat_factor',   (string) $validated['co2_el_nat_factor'],  $userId);
 
         return back()->with('co2_settings_status', 'Wskaźniki emisji CO₂ zostały zapisane.');
+    }
+
+    public function storeCo2History(Request $request): RedirectResponse
+    {
+        if (! $request->user()->canManageEverything()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'year'        => ['required', 'integer', 'min:2010', 'max:2100', 'unique:co2_indicators_history,year'],
+            'comb_factor' => ['required', 'integer', 'min:1', 'max:2000'],
+            'nat_factor'  => ['required', 'integer', 'min:1', 'max:2000'],
+            'source_url'  => ['nullable', 'url', 'max:500'],
+        ]);
+
+        Co2IndicatorHistory::create(array_merge($validated, ['created_by' => $request->user()->id]));
+
+        return back()->with('co2_settings_status', 'Rekord historii został dodany.');
+    }
+
+    public function destroyCo2History(Request $request, Co2IndicatorHistory $history): RedirectResponse
+    {
+        if (! $request->user()->canManageEverything()) {
+            abort(403);
+        }
+
+        $history->delete();
+
+        return back()->with('co2_settings_status', 'Rekord historii został usunięty.');
     }
 
     public function updateUserAccess(Request $request, User $user): RedirectResponse

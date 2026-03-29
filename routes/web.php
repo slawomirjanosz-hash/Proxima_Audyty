@@ -284,4 +284,12 @@ Route::middleware('auth')->group(function (): void {
     Route::patch('/settings/energy-indicators', [SettingsController::class, 'updateEnergyIndicators'])
         ->middleware('role:admin,super_admin')
         ->name('settings.energy-indicators');
+
+    Route::post('/settings/co2-history', [SettingsController::class, 'storeCo2History'])
+        ->middleware('role:admin,super_admin')
+        ->name('settings.co2-history-store');
+
+    Route::delete('/settings/co2-history/{history}', [SettingsController::class, 'destroyCo2History'])
+        ->middleware('role:admin,super_admin')
+        ->name('settings.co2-history-destroy');
 });

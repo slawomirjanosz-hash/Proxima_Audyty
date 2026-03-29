@@ -716,30 +716,20 @@
 
             <div>
                 <label style="display:block; font-size:12px; font-weight:700; color:#1a5c2e; margin-bottom:5px;">
-                    Wskaźnik — źródła spalania [kg CO₂/kWh]
+                    Wskaźnik — źródła spalania [g CO₂/kWh]
                     <span style="font-weight:400; color:#4c6373;">(EU ETS, białe certyfikaty)</span>
                 </label>
                 <input type="number" name="co2_el_comb_factor" value="{{ $co2ElCombFactor }}"
-                    min="0.01" max="2.00" step="0.001" required
-                    style="width:160px; padding:8px 10px; border-radius:9px; border:1px solid #c9d7e3; font-size:14px; font-weight:600;">
+                    min="1" max="2000" step="1" required
+                    style="width:140px; padding:8px 10px; border-radius:9px; border:1px solid #c9d7e3; font-size:14px; font-weight:600;">
             </div>
 
             <div>
                 <label style="display:block; font-size:12px; font-weight:700; color:#1a5c2e; margin-bottom:5px;">
-                    Wskaźnik krajowy z OZE [kg CO₂/kWh]
+                    Wskaźnik krajowy z OZE [g CO₂/kWh]
                     <span style="font-weight:400; color:#4c6373;">(CSR, ślad węglowy)</span>
                 </label>
                 <input type="number" name="co2_el_nat_factor" value="{{ $co2ElNatFactor }}"
-                    min="0.01" max="2.00" step="0.001" required
-                    style="width:160px; padding:8px 10px; border-radius:9px; border:1px solid #c9d7e3; font-size:14px; font-weight:600;">
-            </div>
-
-            <div>
-                <label style="display:block; font-size:12px; font-weight:700; color:#1a5c2e; margin-bottom:5px;">
-                    Wartość wyświetlana w stałych [g CO₂/kWh]
-                    <span style="font-weight:400; color:#4c6373;">(informacyjnie)</span>
-                </label>
-                <input type="number" name="co2_el_grid_display" value="{{ $co2ElGridDisplay }}"
                     min="1" max="2000" step="1" required
                     style="width:140px; padding:8px 10px; border-radius:9px; border:1px solid #c9d7e3; font-size:14px; font-weight:600;">
             </div>
@@ -756,6 +746,85 @@
             · Publikacja zwykle w grudniu każdego roku · Plik:
             <a href="https://www.kobize.pl/uploads/materialy/materialy_do_pobrania/aktualnosci/2025/142_Wskazniki_emisyjnosci_2025.pdf" target="_blank" rel="noopener noreferrer" style="color:#0e89d8;">142_Wskazniki_emisyjnosci_2025.pdf</a>
         </div>
+
+        {{-- ── Historia wskaźników ── --}}
+        <h4 style="margin:24px 0 10px; font-size:14px; font-weight:800; color:#1a5c2e;">📋 Historia wskaźników emisyjności KOBiZE</h4>
+
+        @if(isset($co2History) && $co2History->count())
+        <div style="overflow-x:auto; margin-bottom:16px;">
+            <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                <thead>
+                    <tr style="background:#e8f5e9; text-align:left;">
+                        <th style="padding:8px 12px; border-bottom:2px solid #a8d5b5;">Rok</th>
+                        <th style="padding:8px 12px; border-bottom:2px solid #a8d5b5;">Źródła spalania<br><small style="font-weight:400; color:#6b8294;">g CO₂/kWh</small></th>
+                        <th style="padding:8px 12px; border-bottom:2px solid #a8d5b5;">Krajowy z OZE<br><small style="font-weight:400; color:#6b8294;">g CO₂/kWh</small></th>
+                        <th style="padding:8px 12px; border-bottom:2px solid #a8d5b5;">Źródło / PDF</th>
+                        <th style="padding:8px 12px; border-bottom:2px solid #a8d5b5;">Dodano</th>
+                        <th style="padding:8px 12px; border-bottom:2px solid #a8d5b5;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($co2History as $h)
+                    <tr style="border-bottom:1px solid #d2e3f1; {{ $loop->even ? 'background:#f9fdfb;' : '' }}">
+                        <td style="padding:7px 12px; font-weight:700;">{{ $h->year }}</td>
+                        <td style="padding:7px 12px; font-weight:600; color:#1a5c2e;">{{ $h->comb_factor }}</td>
+                        <td style="padding:7px 12px; font-weight:600; color:#1a5c2e;">{{ $h->nat_factor }}</td>
+                        <td style="padding:7px 12px;">
+                            @if($h->source_url)
+                                <a href="{{ $h->source_url }}" target="_blank" rel="noopener noreferrer" style="color:#0e89d8; font-size:12px;">pobierz PDF</a>
+                            @else
+                                <span style="color:#9e9e9e; font-size:12px;">—</span>
+                            @endif
+                        </td>
+                        <td style="padding:7px 12px; font-size:11px; color:#6b8294;">{{ $h->created_at ? $h->created_at->format('Y-m-d') : '—' }}</td>
+                        <td style="padding:7px 12px;">
+                            <form method="POST" action="{{ route('settings.co2-history-destroy', $h) }}" onsubmit="return confirm('Usuń rok {{ $h->year }}?');" style="display:inline;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" style="background:#fee2e2; color:#c0392b; border:1px solid #f5c6c6; border-radius:6px; padding:3px 10px; font-size:12px; cursor:pointer;">Usuń</button>
+                            </form>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @else
+            <p style="font-size:13px; color:#6b8294; margin-bottom:16px;">Brak zapisanych wpisów historycznych.</p>
+        @endif
+
+        {{-- ── Dodaj nowy rok ── --}}
+        <details style="margin-top:10px; border:1px solid #c8e6c9; border-radius:10px; padding:12px 16px; background:#f1faf3;">
+            <summary style="cursor:pointer; font-size:13px; font-weight:700; color:#1a5c2e; user-select:none;">➕ Dodaj nowy rok do historii</summary>
+            <form method="POST" action="{{ route('settings.co2-history-store') }}" style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; margin-top:12px;">
+                @csrf
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:#355468; margin-bottom:4px;">Rok sprawozdawczy</label>
+                    <input type="number" name="year" min="2000" max="2100" step="1" placeholder="np. 2023" required
+                        style="width:110px; padding:7px 10px; border-radius:8px; border:1px solid #c9d7e3; font-size:13px; font-weight:600;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:#355468; margin-bottom:4px;">Źródła spalania [g CO₂/kWh]</label>
+                    <input type="number" name="comb_factor" min="1" max="2000" step="1" placeholder="np. 717" required
+                        style="width:130px; padding:7px 10px; border-radius:8px; border:1px solid #c9d7e3; font-size:13px; font-weight:600;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:#355468; margin-bottom:4px;">Krajowy z OZE [g CO₂/kWh]</label>
+                    <input type="number" name="nat_factor" min="1" max="2000" step="1" placeholder="np. 552" required
+                        style="width:130px; padding:7px 10px; border-radius:8px; border:1px solid #c9d7e3; font-size:13px; font-weight:600;">
+                </div>
+                <div style="flex:1; min-width:200px;">
+                    <label style="display:block; font-size:12px; font-weight:700; color:#355468; margin-bottom:4px;">URL źródłowego PDF (opcjonalnie)</label>
+                    <input type="url" name="source_url" placeholder="https://www.kobize.pl/..." maxlength="500"
+                        style="width:100%; box-sizing:border-box; padding:7px 10px; border-radius:8px; border:1px solid #c9d7e3; font-size:13px;">
+                </div>
+                <div>
+                    <button type="submit" style="padding:8px 16px; background:#1a5c2e; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">
+                        Dodaj rekord
+                    </button>
+                </div>
+            </form>
+        </details>
     </section>
 @endif
 
