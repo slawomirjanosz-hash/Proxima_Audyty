@@ -235,6 +235,15 @@
             .ec-o2-bar { margin-top:12px; height:8px; border-radius:4px; background:linear-gradient(90deg,#22c55e 0%,#eab308 45%,#f97316 75%,#ef4444 100%); position:relative; }
             .ec-o2-thumb { position:absolute; top:-4px; width:16px; height:16px; border-radius:50%; background:#fff; border:2px solid #0e89d8; transform:translateX(-50%); transition:left .2s; }
 
+            /* Kalkulator CO2 z energii elektrycznej */
+            .ec-co2el { margin-top:18px; background:#f8fff8; border:1px solid #bbdfc8; border-radius:16px; overflow:hidden; }
+            .ec-co2el-header { background:linear-gradient(90deg,#1a5c2e 0%,#2d9e57 100%); padding:14px 18px; display:flex; align-items:center; gap:10px; }
+            .ec-co2el-header h3 { margin:0; color:#fff; font-size:16px; font-weight:700; }
+            .ec-co2el-body { padding:18px; }
+            .ec-co2el-badge { display:inline-flex; align-items:center; gap:6px; background:#e6f4ea; border:1px solid #a8d5b5; border-radius:8px; padding:8px 14px; font-size:12px; color:#1a5c2e; }
+            .ec-co2el-badge strong { font-size:18px; color:#1a5c2e; }
+            .ec-co2el-source { font-size:11px; color:#4c6373; margin-top:6px; }
+
             @media(max-width:960px) {
                 .ec-units-grid { grid-template-columns:1fr 1fr; }
                 .ec-const-grid { grid-template-columns:1fr 1fr; }
@@ -495,6 +504,82 @@
             </div>
         </div>
 
+        {{-- ── 4. KALKULATOR EMISJI CO₂ Z ENERGII ELEKTRYCZNEJ ── --}}
+        <div class="ec-co2el">
+            <div class="ec-co2el-header">
+                <span style="font-size:20px;">🌿</span>
+                <h3>Kalkulator emisji CO<sub>2</sub> z energii elektrycznej (KSE)</h3>
+            </div>
+            <div class="ec-co2el-body">
+
+                {{-- Wskaźnik KOBIZE --}}
+                <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-start; margin-bottom:18px;">
+                    <div>
+                        <div style="font-size:12px; font-weight:700; color:#1a5c2e; margin-bottom:6px;">Wskaźnik emisyjności CO<sub>2</sub> — rok 2024</div>
+                        <div class="ec-co2el-badge">
+                            <span>🔌 Źródła spalania paliw:</span>
+                            <strong id="co2el-factor-comb">0,710</strong>
+                            <span>kg CO<sub>2</sub>/kWh</span>
+                        </div>
+                    </div>
+                    <div style="margin-top:0;">
+                        <div style="font-size:12px; font-weight:700; color:#1a5c2e; margin-bottom:6px;">Wskaźnik krajowy (z OZE + straty sieciowe)</div>
+                        <div class="ec-co2el-badge">
+                            <span>🌍 Odbiorca końcowy:</span>
+                            <strong id="co2el-factor-nat">0,640</strong>
+                            <span>kg CO<sub>2</sub>/kWh</span>
+                        </div>
+                    </div>
+                    <div style="align-self:flex-end; font-size:11px; color:#4c6373; background:#edf3f8; border-radius:8px; padding:8px 12px; line-height:1.7;">
+                        Źródło: <a href="https://www.kobize.pl/uploads/materialy/materialy_do_pobrania/aktualnosci/2025/142_Wskazniki_emisyjnosci_2025.pdf"
+                            target="_blank" rel="noopener noreferrer" style="color:#0e89d8;">KOBiZE, grudzień 2025</a><br>
+                        Dane za rok 2024 · Krajowa baza o emisjach<br>
+                        <em>Stosować do raportowania za rok 2025</em>
+                    </div>
+                </div>
+
+                {{-- Kalkulator --}}
+                <div class="ec-flue-controls" style="grid-template-columns:180px 180px 1fr;">
+                    <div>
+                        <div class="ec-flue-label">Zużycie energii [kWh]</div>
+                        <input type="number" id="co2el-kwh" class="ec-flue-input" min="0" step="any" placeholder="np. 10 000" oninput="ecCo2ElCalc()">
+                    </div>
+                    <div>
+                        <div class="ec-flue-label">Typ wskaźnika</div>
+                        <select id="co2el-type" class="ec-flue-select" onchange="ecCo2ElCalc()">
+                            <option value="comb">Źródła spalania (0,710 kg/kWh)</option>
+                            <option value="nat">Krajowy z OZE (0,640 kg/kWh)</option>
+                        </select>
+                    </div>
+                    <div style="background:#edf3f8; border-radius:10px; padding:10px 12px; font-size:12px; color:#355468; line-height:1.8;">
+                        <strong style="color:#1a5c2e;">Zastosowanie:</strong><br>
+                        Wskaźnik <em>Źródła spalania</em> — do audytów EU ETS, świadectw efektywności energetycznej.<br>
+                        Wskaźnik <em>krajowy z OZE</em> — do raportów CSR, śladu węglowego budynków.
+                    </div>
+                </div>
+
+                <div class="ec-flue-results" style="grid-template-columns:repeat(3,1fr); margin-top:16px;">
+                    <div class="ec-flue-result-card">
+                        <div class="ec-flue-result-label">Emisja CO<sub>2</sub></div>
+                        <div class="ec-flue-result-val" id="co2el-kg">—</div>
+                        <div class="ec-flue-result-unit">kg CO<sub>2</sub></div>
+                    </div>
+                    <div class="ec-flue-result-card">
+                        <div class="ec-flue-result-label">Emisja CO<sub>2</sub></div>
+                        <div class="ec-flue-result-val" id="co2el-t">—</div>
+                        <div class="ec-flue-result-unit">t CO<sub>2</sub></div>
+                    </div>
+                    <div class="ec-flue-result-card">
+                        <div class="ec-flue-result-label">Równoważnik MWh</div>
+                        <div class="ec-flue-result-val" id="co2el-mwh">—</div>
+                        <div class="ec-flue-result-unit">MWh</div>
+                    </div>
+                </div>
+
+                <div class="ec-flue-note" id="co2el-note" style="display:none;"></div>
+            </div>
+        </div>
+
         {{-- ── JavaScript ── --}}
         <script>
         // ── Unit converter ──────────────────────────────────────────
@@ -635,8 +720,52 @@
             }
         }
 
+        // ── CO2 from electricity calculator ─────────────────────────
+        const EC_CO2EL_FACTORS = {
+            comb: { value: 0.710, label: 'Źródła spalania (KOBiZE 2024)', labelShort: 'źródła spalania' },
+            nat:  { value: 0.640, label: 'Krajowy z OZE i stratami (KOBiZE 2024)', labelShort: 'krajowy z OZE' },
+        };
+
+        function ecCo2ElCalc() {
+            const kwh     = parseFloat(document.getElementById('co2el-kwh').value);
+            const typeKey = document.getElementById('co2el-type').value;
+            const factor  = EC_CO2EL_FACTORS[typeKey];
+
+            // update select labels dynamically
+            const combOpt = document.querySelector('#co2el-type option[value="comb"]');
+            const natOpt  = document.querySelector('#co2el-type option[value="nat"]');
+            if (combOpt) combOpt.textContent = `Źródła spalania (${EC_CO2EL_FACTORS.comb.value.toFixed(3).replace('.',',')} kg/kWh)`;
+            if (natOpt)  natOpt.textContent  = `Krajowy z OZE (${EC_CO2EL_FACTORS.nat.value.toFixed(3).replace('.',',')} kg/kWh)`;
+
+            const noteEl = document.getElementById('co2el-note');
+
+            if (isNaN(kwh) || kwh <= 0) {
+                ['co2el-kg','co2el-t','co2el-mwh'].forEach(id => {
+                    const el = document.getElementById(id); if (el) el.textContent = '—';
+                });
+                if (noteEl) noteEl.style.display = 'none';
+                return;
+            }
+
+            const kgCo2  = kwh * factor.value;
+            const tCo2   = kgCo2 / 1000;
+            const mwh    = kwh / 1000;
+
+            const kgEl = document.getElementById('co2el-kg');
+            const tEl  = document.getElementById('co2el-t');
+            const mEl  = document.getElementById('co2el-mwh');
+            if (kgEl) kgEl.textContent = kgCo2.toLocaleString('pl-PL', {maximumFractionDigits:1});
+            if (tEl)  tEl.textContent  = tCo2.toLocaleString('pl-PL',  {maximumFractionDigits:3});
+            if (mEl)  mEl.textContent  = mwh.toLocaleString('pl-PL',   {maximumFractionDigits:3});
+
+            if (noteEl) {
+                noteEl.style.display = '';
+                noteEl.innerHTML = `${kwh.toLocaleString('pl-PL')} kWh × ${factor.value.toFixed(3).replace('.',',')} kg CO₂/kWh (${factor.labelShort}) = <strong>${kgCo2.toLocaleString('pl-PL', {maximumFractionDigits:1})} kg CO₂</strong> = <strong>${tCo2.toLocaleString('pl-PL', {maximumFractionDigits:3})} t CO₂</strong>.<br><span style="font-size:11px;">Wskaźnik: KOBiZE, rok 2024, publikacja grudzień 2025 · <a href="https://www.kobize.pl/uploads/materialy/materialy_do_pobrania/aktualnosci/2025/142_Wskazniki_emisyjnosci_2025.pdf" target="_blank" rel="noopener noreferrer" style="color:#0e89d8;">pobierz PDF</a></span>`;
+            }
+        }
+
         // init on load
-        document.addEventListener('DOMContentLoaded', ecFlueCalc);
+        document.addEventListener('DOMContentLoaded', () => { ecFlueCalc(); ecCo2ElCalc(); });
         </script>
     </section>
 </x-layouts.app>
