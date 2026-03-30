@@ -20,6 +20,15 @@
             @media (max-width: 860px) {
                 .crm-form-grid { grid-template-columns:1fr; }
             }
+            .crm-collapse-btn { border:1px solid #c5d9e8; background:#ddeef7; color:#1e5f84; border-radius:8px; padding:2px 8px; cursor:pointer; font-size:13px; font-weight:700; user-select:none; line-height:1.5; transition:background .15s; }
+            .crm-collapse-btn:hover { background:#b8d8ed; }
+            .crm-actions-wrap { display:flex; gap:2px; align-items:center; flex-wrap:nowrap; }
+            .crm-action-btn { padding:1px 5px !important; font-size:13px !important; line-height:1.3 !important; min-width:0 !important; }
+            .task-row-urgent td { background:#fff0f0 !important; }
+            .task-row-high td { background:#fffbee !important; }
+            .task-row-normal td { background:#f0f8ff !important; }
+            .task-row-low td { background:#f7f8f9 !important; }
+            .task-overdue-actions { background:#fee2e2 !important; }
         </style>
 
         <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
@@ -40,10 +49,13 @@
         <div id="tab-dashboard" class="tab-content active">
             <h2 style="margin:0 0 10px;">📊 Przegląd</h2>
             <div id="dashboard-sections" class="dashboard-sections">
-                <div class="dashboard-section" data-section-id="stats" draggable="true">
+                <div class="dashboard-section" data-section-id="stats" draggable="true" style="background:#f0f9ff;">
                     <div class="dashboard-section-header">
                         <h3 class="dashboard-section-title">📈 Kluczowe wskaźniki</h3>
-                        <span class="dashboard-drag-handle" title="Przeciągnij sekcję">↕ Przesuń</span>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <button type="button" class="crm-collapse-btn" onclick="toggleSection('stats')" title="Zwiń/Rozwiń">▼</button>
+                            <span class="dashboard-drag-handle" title="Przeciągnij sekcję">↕ Przesuń</span>
+                        </div>
                     </div>
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px;">
                         <div style="padding:10px; border-radius:10px; background:#0e89d8; color:#fff;"><div>Firmy CRM</div><div style="font-size:26px; font-weight:800;">{{ $stats['total_companies'] }}</div></div>
@@ -53,10 +65,13 @@
                     </div>
                 </div>
 
-                <div class="dashboard-section" data-section-id="funnel" draggable="true">
+                <div class="dashboard-section" data-section-id="funnel" draggable="true" style="background:#faf5ff;">
                     <div class="dashboard-section-header">
                         <h3 class="dashboard-section-title">💼 Lejek Sprzedażowy</h3>
-                        <span class="dashboard-drag-handle" title="Przeciągnij sekcję">↕ Przesuń</span>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <button type="button" class="crm-collapse-btn" onclick="toggleSection('funnel')" title="Zwiń/Rozwiń">▼</button>
+                            <span class="dashboard-drag-handle" title="Przeciągnij sekcję">↕ Przesuń</span>
+                        </div>
                     </div>
                     @if($stats['deals_by_stage']->isEmpty())
                         <div style="padding:14px; border:1px solid #e4edf3; border-radius:10px; background:#f8fbff; text-align:center;" class="muted">
@@ -92,10 +107,13 @@
                     @endif
                 </div>
 
-                <div class="dashboard-section" data-section-id="won-lost" draggable="true">
+                <div class="dashboard-section" data-section-id="won-lost" draggable="true" style="background:#f0fdf4;">
                     <div class="dashboard-section-header">
                         <h3 class="dashboard-section-title">🎯 Ostatnio Wygrane/Przegrane</h3>
-                        <span class="dashboard-drag-handle" title="Przeciągnij sekcję">↕ Przesuń</span>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <button type="button" class="crm-collapse-btn" onclick="toggleSection('won-lost')" title="Zwiń/Rozwiń">▼</button>
+                            <span class="dashboard-drag-handle" title="Przeciągnij sekcję">↕ Przesuń</span>
+                        </div>
                     </div>
                     @if($stats['recent_won_deals']->isEmpty())
                         <div style="padding:10px; border:1px solid #e4edf3; border-radius:10px; background:#f8fbff; text-align:center;" class="muted">Brak zakończonych szans</div>
@@ -116,10 +134,11 @@
                     @endif
                 </div>
 
-                <div class="dashboard-section" data-section-id="tasks" draggable="true">
+                <div class="dashboard-section" data-section-id="tasks" draggable="true" style="background:#fffdf0;">
                     <div class="dashboard-section-header">
                         <h3 class="dashboard-section-title">✅ Zadania i Przypomnienia</h3>
-                        <div style="display:flex; gap:8px; align-items:center;">
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <button type="button" class="crm-collapse-btn" onclick="toggleSection('tasks')" title="Zwiń/Rozwiń">▼</button>
                             <span class="dashboard-drag-handle" title="Przeciągnij sekcję">↕ Przesuń</span>
                             <button type="button" onclick="showTaskModal()">➕ Dodaj Zadanie</button>
                         </div>
@@ -138,19 +157,40 @@
                         </thead>
                         <tbody>
                             @forelse($tasks as $task)
-                                <tr>
-                                    <td>{{ $task->title }}</td>
+                                @php
+                                    $taskRowClass = match((string) $task->priority) {
+                                        'pilna'    => 'task-row-urgent',
+                                        'wysoka'   => 'task-row-high',
+                                        'normalna' => 'task-row-normal',
+                                        default    => 'task-row-low',
+                                    };
+                                    $priorityColor = match((string) $task->priority) {
+                                        'pilna'    => '#dc2626',
+                                        'wysoka'   => '#d97706',
+                                        'normalna' => '#2563eb',
+                                        default    => '#6b7280',
+                                    };
+                                    $isOverdue = $task->due_date
+                                        && $task->due_date->isPast()
+                                        && !in_array((string) $task->status, ['zakonczone', 'anulowane']);
+                                @endphp
+                                <tr class="{{ $taskRowClass }}">
+                                    <td>
+                                        @if($isOverdue)<span title="Termin przekroczony" style="color:#dc2626; font-weight:700;">⚠️ </span>@endif{{ $task->title }}
+                                    </td>
                                     <td>{{ ucfirst((string) $task->type) }}</td>
-                                    <td>{{ ucfirst((string) $task->priority) }}</td>
+                                    <td><span style="color:{{ $priorityColor }}; font-weight:700;">{{ ucfirst((string) $task->priority) }}</span></td>
                                     <td>{{ ucfirst(str_replace('_', ' ', (string) $task->status)) }}</td>
                                     <td>{{ $task->due_date ? $task->due_date->format('d.m.Y H:i') : '—' }}</td>
                                     <td>{{ $task->assignedTo?->short_name ?: $task->assignedTo?->name ?: 'Nie przypisane' }}</td>
-                                    <td>
-                                        <button class="btn-secondary" type="button" onclick="editTask({{ $task->id }})">✏️</button>
-                                        <form action="{{ route('crm.task.delete', $task->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Usunąć zadanie?')">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="btn-secondary">🗑️</button>
-                                        </form>
+                                    <td class="{{ $isOverdue ? 'task-overdue-actions' : '' }}">
+                                        <div class="crm-actions-wrap">
+                                            <button class="btn-secondary crm-action-btn" type="button" onclick="editTask({{ $task->id }})">✏️</button>
+                                            <form action="{{ route('crm.task.delete', $task->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Usunąć zadanie?')">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="btn-secondary crm-action-btn">🗑️</button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
@@ -160,10 +200,11 @@
                     </table>
                 </div>
 
-                <div class="dashboard-section" data-section-id="deals-list" draggable="true">
+                <div class="dashboard-section" data-section-id="deals-list" draggable="true" style="background:#fff8f0;">
                     <div class="dashboard-section-header">
                         <h3 class="dashboard-section-title">💼 Lejek Sprzedażowy - Szanse</h3>
-                        <div style="display:flex; gap:8px; align-items:center;">
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <button type="button" class="crm-collapse-btn" onclick="toggleSection('deals-list')" title="Zwiń/Rozwiń">▼</button>
                             <span class="dashboard-drag-handle" title="Przeciągnij sekcję">↕ Przesuń</span>
                             <button type="button" onclick="showDealModal()">➕ Dodaj Szansę</button>
                         </div>
@@ -186,11 +227,13 @@
                                     <td>{{ $deal->stage }}</td>
                                     <td>{{ number_format((float) $deal->value, 2, ',', ' ') }} {{ $deal->currency }}</td>
                                     <td>
-                                        <button class="btn-secondary" type="button" onclick="editDeal({{ $deal->id }})">✏️</button>
-                                        <form action="{{ route('crm.deal.delete', $deal->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Usunąć szansę?')">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="btn-secondary">🗑️</button>
-                                        </form>
+                                        <div class="crm-actions-wrap">
+                                            <button class="btn-secondary crm-action-btn" type="button" onclick="editDeal({{ $deal->id }})">✏️</button>
+                                            <form action="{{ route('crm.deal.delete', $deal->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Usunąć szansę?')">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="btn-secondary crm-action-btn">🗑️</button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
@@ -241,11 +284,13 @@
                                 @endif
                             </td>
                             <td>
-                                <button class="btn-secondary" type="button" onclick="editDeal({{ $deal->id }})">✏️</button>
-                                <form action="{{ route('crm.deal.delete', $deal->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Usunąć szansę?')">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="btn-secondary">🗑️</button>
-                                </form>
+                                <div class="crm-actions-wrap">
+                                    <button class="btn-secondary crm-action-btn" type="button" onclick="editDeal({{ $deal->id }})">✏️</button>
+                                    <form action="{{ route('crm.deal.delete', $deal->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Usunąć szansę?')">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="btn-secondary crm-action-btn">🗑️</button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -283,19 +328,21 @@
                             <td>{{ $company->status ?: '—' }}</td>
                             <td>{{ $company->owner?->name ?: '—' }}</td>
                             <td>
-                                @if($company->system_company_id)
-                                    <span class="muted" style="display:inline-block; margin-right:8px; font-size:12px; font-weight:700;">✓ W systemie</span>
-                                @else
-                                    <form action="{{ route('crm.company.addToSystem', $company->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Dodać firmę do ustawień systemu?')">
-                                        @csrf
-                                        <button type="submit" class="btn-secondary">➕ Do systemu</button>
+                                <div class="crm-actions-wrap">
+                                    @if($company->system_company_id)
+                                        <span class="muted" style="font-size:12px; font-weight:700;">✓ W systemie</span>
+                                    @else
+                                        <form action="{{ route('crm.company.addToSystem', $company->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Dodać firmę do ustawień systemu?')">
+                                            @csrf
+                                            <button type="submit" class="btn-secondary crm-action-btn">➕</button>
+                                        </form>
+                                    @endif
+                                    <button class="btn-secondary crm-action-btn" type="button" onclick="editCompany({{ $company->id }})">✏️</button>
+                                    <form action="{{ route('crm.company.delete', $company->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Usunąć firmę?')">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="btn-secondary crm-action-btn">🗑️</button>
                                     </form>
-                                @endif
-                                <button class="btn-secondary" type="button" onclick="editCompany({{ $company->id }})">✏️</button>
-                                <form action="{{ route('crm.company.delete', $company->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Usunąć firmę?')">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="btn-secondary">🗑️</button>
-                                </form>
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -330,11 +377,13 @@
                             <td>{{ $activity->company?->name ?: '—' }}</td>
                             <td>{{ $activity->deal?->name ?: '—' }}</td>
                             <td>
-                                <button class="btn-secondary" type="button" onclick="editActivity({{ $activity->id }})">✏️</button>
-                                <form action="{{ route('crm.activity.delete', $activity->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Usunąć aktywność?')">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="btn-secondary">🗑️</button>
-                                </form>
+                                <div class="crm-actions-wrap">
+                                    <button class="btn-secondary crm-action-btn" type="button" onclick="editActivity({{ $activity->id }})">✏️</button>
+                                    <form action="{{ route('crm.activity.delete', $activity->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Usunąć aktywność?')">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="btn-secondary crm-action-btn">🗑️</button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -896,8 +945,40 @@
             });
         }
 
+        function toggleSection(sectionId) {
+            const section = document.querySelector(`[data-section-id="${sectionId}"]`);
+            if (!section) return;
+            const header = section.querySelector('.dashboard-section-header');
+            const btn = section.querySelector('.crm-collapse-btn');
+            const children = Array.from(section.children);
+            const bodyChildren = children.slice(children.indexOf(header) + 1);
+            if (!bodyChildren.length) return;
+            const isCollapsed = bodyChildren[0].style.display === 'none';
+            bodyChildren.forEach((child) => { child.style.display = isCollapsed ? '' : 'none'; });
+            if (btn) btn.textContent = isCollapsed ? '▼' : '▶';
+            const stored = JSON.parse(localStorage.getItem('crm-section-collapsed') || '{}');
+            stored[sectionId] = !isCollapsed;
+            localStorage.setItem('crm-section-collapsed', JSON.stringify(stored));
+        }
+
+        function applySectionCollapseState() {
+            let stored = {};
+            try { stored = JSON.parse(localStorage.getItem('crm-section-collapsed') || '{}'); } catch (e) { return; }
+            Object.entries(stored).forEach(([sectionId, collapsed]) => {
+                if (!collapsed) return;
+                const section = document.querySelector(`[data-section-id="${sectionId}"]`);
+                if (!section) return;
+                const header = section.querySelector('.dashboard-section-header');
+                const btn = section.querySelector('.crm-collapse-btn');
+                const children = Array.from(section.children);
+                children.slice(children.indexOf(header) + 1).forEach((child) => { child.style.display = 'none'; });
+                if (btn) btn.textContent = '▶';
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             initDashboardSectionDragAndDrop();
+            applySectionCollapseState();
         });
     </script>
 </x-layouts.app>
