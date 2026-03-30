@@ -157,7 +157,7 @@
                         </thead>
                         <tbody>
                             @forelse($tasks as $task)
-                                @php
+                                <?php
                                     $taskRowClass = match((string) $task->priority) {
                                         'pilna'    => 'task-row-urgent',
                                         'wysoka'   => 'task-row-high',
@@ -173,7 +173,7 @@
                                     $isOverdue = $task->due_date
                                         && $task->due_date->isPast()
                                         && !in_array((string) $task->status, ['zakonczone', 'anulowane']);
-                                @endphp
+                                ?>
                                 <tr class="{{ $taskRowClass }}">
                                     <td>
                                         @if($isOverdue)<span title="Termin przekroczony" style="color:#dc2626; font-weight:700;">⚠️ </span>@endif{{ $task->title }}
