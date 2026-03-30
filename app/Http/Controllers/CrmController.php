@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CrmActivity;
+use App\Support\CompanyNameNormalizer;
 use App\Models\CrmCompany;
 use App\Models\CrmCustomerType;
 use App\Models\CrmDeal;
@@ -227,7 +228,7 @@ class CrmController extends Controller
             'success' => true,
             'source' => 'vat',
             'data' => [
-                'name' => (string) $subject['name'],
+                'name' => CompanyNameNormalizer::abbreviate((string) $subject['name']),
                 'nip' => $nip,
                 'email' => '',
                 'phone' => '',

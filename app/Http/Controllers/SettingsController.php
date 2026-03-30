@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
+use App\Support\CompanyNameNormalizer;
 use App\Models\Co2IndicatorHistory;
 use App\Models\Company;
 use App\Models\SystemSetting;
@@ -416,7 +417,7 @@ class SettingsController extends Controller
             ], 404);
         }
 
-        $name = trim((string) ($subject['name'] ?? ''));
+        $name = CompanyNameNormalizer::abbreviate(trim((string) ($subject['name'] ?? '')));
         $address = trim((string) ($subject['workingAddress'] ?? $subject['residenceAddress'] ?? ''));
         $street = '';
         $postalCode = '';
