@@ -158,28 +158,98 @@ class DiagnosticsController extends Controller
         $crmProbeError = null;
         if ($dbOk) {
             $steps = [
-                'Company::count()'      => static fn () => Company::count() . ' firm systemowych',
-                'CrmStage::get()'       => static fn () => CrmStage::orderBy('order')->get()->count() . ' etapów',
-                'CrmCompany query'      => static fn () => CrmCompany::with(['owner'])->limit(1)->get()->count() . ' (próbka)',
-                'CrmTask query'         => static fn () => CrmTask::with(['assignedTo', 'deal'])
-                                            ->where('status', '!=', 'zakonczone')
-                                            ->orderBy('due_date')->limit(5)->get()->count() . ' zadań (próbka)',
-                'CrmTask due_date cast' => static function () {
-                    $t = CrmTask::whereNotNull('due_date')->latest()->first();
-                    if (! $t) { return 'brak zadań z terminem'; }
-                    return 'isPast()=' . ($t->due_date->isPast() ? 'true' : 'false');
+                'Company::count()' => static fn () => Company::count() . ' firm systemowych',
+
+                'CrmStage::get()' => static fn () => CrmStage::orderBy('order')->get()->count() . ' etapów',
+
+                'CrmCompany query' => static fn () => CrmCompany::with(['owner'])->limit(1)->get()->count() . ' (próbka)',
+
+                'CrmTask query (full)' => static fn () => CrmTask::with(['assignedTo', 'deal', 'company'])
+                    ->where('status', '!=', 'zakonczone')
+                    ->orderBy('due_date')->get()->count() . ' zadań łącznie',
+
+                'CrmTask – iteracja priority + due_date' => static function () {
+                    $tasks = CrmTask::with(['assignedTo', 'deal'])
+                        ->where('status', '!=', 'zakonczone')
+                        ->orderBy('due_date')->get();
+                    $problems = [];
+                    foreach ($tasks as $task) {
+                        $class = match((string) $task->priority) {
+                            'pilna'    => 'urgent',
+                            'wysoka'   => 'high',
+                            'normalna' => 'normal',
+                            default    => 'low',
+                        };
+                        if ($task->due_date !== null) {
+                            try {
+                                $past = $task->due_date->isPast();
+                            } catch (Throwable $ex) {
+                                $problems[] = "task#{$task->id} due_date='" . $task->getRawOriginal('due_date') . "': " . $ex->getMessage();
+                            }
+                        }
+                    }
+                    return $problems
+                        ? '❌ ' . implode('; ', $problems)
+                        : "OK, przeszło {$tasks->count()} zadań (priority+due_date)";
                 },
-                'CrmDeal query'         => static fn () => CrmDeal::with(['company', 'owner'])->limit(1)->get()->count() . ' (próbka)',
-                'CrmActivity query'     => static fn () => CrmActivity::with(['company', 'deal'])->latest()->limit(1)->get()->count() . ' (próbka)',
-                'Overdue tasks count'   => static fn () => CrmTask::where('status', '!=', 'zakonczone')
-                                            ->whereNotNull('due_date')->where('due_date', '<', now())->count() . ' po terminie',
-                'CRM view file'         => static fn () => file_exists(resource_path('views/crm/index.blade.php')) ? 'istnieje' : 'BRAK',
-                'syncSystemCompanies (dry)' => static function () {
-                    $c = Company::query()->orderBy('name')->first();
-                    if (! $c) { return 'brak firm systemowych'; }
-                    $nip = ! empty($c->nip) ? preg_replace('/\D+/', '', (string) $c->nip) : null;
-                    return 'OK, pierwsza firma: ' . mb_substr((string) $c->name, 0, 40)
-                        . ', nip=' . ($nip ?: 'brak');
+
+                'User::whereIn role' => static fn () => User::whereIn('role', ['admin', 'auditor'])
+                    ->orderBy('name')->get()->count() . ' użytkowników (admin+auditor)',
+
+                'User role enum values' => static function () {
+                    $roles = DB::table('users')->distinct()->pluck('role')->toArray();
+                    return 'role values: ' . implode(', ', $roles);
+                },
+
+                'CrmDeal query (full)' => static fn () => CrmDeal::with(['company', 'assignedUsers', 'owner', 'user'])
+                    ->orderBy('created_at', 'desc')->get()->count() . ' szans',
+
+                'CrmDeal user-filtered (admin)' => static function () {
+                    $admin = User::where('role', 'admin')->first();
+                    if (! $admin) { return 'Brak użytkownika admin'; }
+                    $uid = $admin->id;
+                    $count = CrmDeal::where(function ($q) use ($uid): void {
+                        $q->where('user_id', $uid)
+                            ->orWhereHas('assignedUsers', fn ($q2) => $q2->where('user_id', $uid));
+                    })->count();
+                    return "OK, {$count} szans dla admin #{$uid}";
+                },
+
+                'CrmActivity query' => static fn () => CrmActivity::with(['company', 'deal', 'user'])->latest()->limit(1)->get()->count() . ' (próbka)',
+
+                'Overdue tasks count' => static fn () => CrmTask::where('status', '!=', 'zakonczone')
+                    ->whereNotNull('due_date')->where('due_date', '<', now())->count() . ' po terminie',
+
+                'syncSystemCompanies (full read)' => static function () {
+                    $companies = Company::query()->orderBy('name')->get();
+                    $errors = [];
+                    foreach ($companies as $c) {
+                        $nip = ! empty($c->nip) ? preg_replace('/\D+/', '', (string) $c->nip) : null;
+                        try {
+                            CrmCompany::query()
+                                ->where(function ($q) use ($c, $nip): void {
+                                    $q->where('system_company_id', $c->id);
+                                    if ($nip) { $q->orWhere('nip', $nip); }
+                                    $q->orWhere('name', (string) $c->name);
+                                })->first();
+                        } catch (Throwable $ex) {
+                            $errors[] = "firma#{$c->id}: " . $ex->getMessage();
+                        }
+                    }
+                    return $errors
+                        ? '❌ ' . implode('; ', $errors)
+                        : "OK, {$companies->count()} firm przetworzono";
+                },
+
+                'CRM compiled view' => static fn () => file_exists(resource_path('views/crm/index.blade.php'))
+                    ? 'plik OK (' . round(filesize(resource_path('views/crm/index.blade.php')) / 1024, 1) . ' KB)'
+                    : 'BRAK pliku widoku',
+
+                'CRM cached view exists' => static function () {
+                    $path = storage_path('framework/views');
+                    if (! is_dir($path)) { return 'brak katalogu cache widoków'; }
+                    $files = glob($path . '/*.php');
+                    return ($files !== false ? count($files) : 0) . ' widoków w cache';
                 },
             ];
             foreach ($steps as $label => $fn) {
