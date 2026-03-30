@@ -7,6 +7,14 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
+use App\Models\Company;
+use App\Models\CrmActivity;
+use App\Models\CrmCompany;
+use App\Models\CrmDeal;
+use App\Models\CrmStage;
+use App\Models\CrmTask;
+use App\Models\CrmTaskChange;
+use App\Models\User;
 use Throwable;
 
 class DiagnosticsController extends Controller
@@ -122,10 +130,82 @@ class DiagnosticsController extends Controller
             'Queue Driver' => config('queue.default', 'unknown'),
         ];
 
+        // ─── Critical column checks ───────────────────────────────────────
+        $columnChecks = [];
+        if ($dbOk) {
+            $criticalColumns = [
+                'crm_tasks'     => ['id', 'title', 'type', 'priority', 'status', 'due_date', 'assigned_to', 'company_id', 'deal_id'],
+                'crm_deals'     => ['id', 'name', 'company_id', 'value', 'stage', 'user_id', 'owner_id'],
+                'crm_companies' => ['id', 'name', 'nip', 'system_company_id', 'owner_id'],
+                'companies'     => ['id', 'name', 'email', 'phone', 'street', 'city', 'postal_code'],
+            ];
+            foreach ($criticalColumns as $table => $cols) {
+                foreach ($cols as $col) {
+                    try {
+                        $exists = Schema::hasColumn($table, $col);
+                        if (! $exists) {
+                            $columnChecks[] = ['table' => $table, 'column' => $col, 'ok' => false, 'error' => 'kolumna nie istnieje'];
+                        }
+                    } catch (Throwable $e) {
+                        $columnChecks[] = ['table' => $table, 'column' => $col, 'ok' => false, 'error' => $e->getMessage()];
+                    }
+                }
+            }
+        }
+
+        // ─── CRM Probe ────────────────────────────────────────────────────
+        $crmProbe      = [];
+        $crmProbeError = null;
+        if ($dbOk) {
+            $steps = [
+                'Company::count()'      => static fn () => Company::count() . ' firm systemowych',
+                'CrmStage::get()'       => static fn () => CrmStage::orderBy('order')->get()->count() . ' etapów',
+                'CrmCompany query'      => static fn () => CrmCompany::with(['owner'])->limit(1)->get()->count() . ' (próbka)',
+                'CrmTask query'         => static fn () => CrmTask::with(['assignedTo', 'deal'])
+                                            ->where('status', '!=', 'zakonczone')
+                                            ->orderBy('due_date')->limit(5)->get()->count() . ' zadań (próbka)',
+                'CrmTask due_date cast' => static function () {
+                    $t = CrmTask::whereNotNull('due_date')->latest()->first();
+                    if (! $t) { return 'brak zadań z terminem'; }
+                    return 'isPast()=' . ($t->due_date->isPast() ? 'true' : 'false');
+                },
+                'CrmDeal query'         => static fn () => CrmDeal::with(['company', 'owner'])->limit(1)->get()->count() . ' (próbka)',
+                'CrmActivity query'     => static fn () => CrmActivity::with(['company', 'deal'])->latest()->limit(1)->get()->count() . ' (próbka)',
+                'Overdue tasks count'   => static fn () => CrmTask::where('status', '!=', 'zakonczone')
+                                            ->whereNotNull('due_date')->where('due_date', '<', now())->count() . ' po terminie',
+                'CRM view file'         => static fn () => file_exists(resource_path('views/crm/index.blade.php')) ? 'istnieje' : 'BRAK',
+                'syncSystemCompanies (dry)' => static function () {
+                    $c = Company::query()->orderBy('name')->first();
+                    if (! $c) { return 'brak firm systemowych'; }
+                    $nip = ! empty($c->nip) ? preg_replace('/\D+/', '', (string) $c->nip) : null;
+                    return 'OK, pierwsza firma: ' . mb_substr((string) $c->name, 0, 40)
+                        . ', nip=' . ($nip ?: 'brak');
+                },
+            ];
+            foreach ($steps as $label => $fn) {
+                try {
+                    $detail = $fn();
+                    $crmProbe[] = ['label' => $label, 'ok' => true, 'detail' => $detail];
+                } catch (Throwable $e) {
+                    $crmProbe[] = ['label' => $label, 'ok' => false, 'detail' => $e->getMessage()];
+                    if ($crmProbeError === null) {
+                        $crmProbeError = [
+                            'step'    => $label,
+                            'message' => $e->getMessage(),
+                            'class'   => get_class($e),
+                            'file'    => str_replace(base_path() . DIRECTORY_SEPARATOR, '', $e->getFile()),
+                            'line'    => $e->getLine(),
+                            'trace'   => implode("\n", array_slice(explode("\n", $e->getTraceAsString()), 0, 12)),
+                        ];
+                    }
+                }
+            }
+        }
+
         return view('diagnostics.index', compact(
             'dbOk', 'dbError', 'dbDriver',
             'tableStatus', 'migrationOutput', 'migrationError', 'pendingCount',
-            'recentErrors', 'sysInfo'
+            'recentErrors', 'sysInfo', 'columnChecks', 'crmProbe', 'crmProbeError'
         ));
     }
 

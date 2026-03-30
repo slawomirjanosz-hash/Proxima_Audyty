@@ -185,6 +185,61 @@
     @endif
 </div>
 
+{{-- ═══ CRM PROBE ═══ --}}
+<div class="card" style="{{ $crmProbeError ? 'border-color:#f5c6cb;' : '' }}">
+    <h2 style="margin-top:0;">🔬 Test CRM – wykonanie zapytań</h2>
+    @if(!$dbOk)
+        <div class="status-msg fail">Pominięto – brak połączenia z bazą danych.</div>
+    @else
+        @if($crmProbeError)
+            <div style="background:#f8d7da; border:1px solid #f5c6cb; border-radius:8px; padding:12px 14px; margin-bottom:12px; color:#721c24;">
+                <strong>❌ Błąd CRM na kroku: {{ $crmProbeError['step'] }}</strong><br>
+                <span style="font-size:13px; font-weight:700;">{{ $crmProbeError['class'] }}</span><br>
+                <span style="font-size:13px;">{{ $crmProbeError['message'] }}</span><br>
+                <span style="font-size:12px; color:#a94442;">{{ $crmProbeError['file'] }}:{{ $crmProbeError['line'] }}</span>
+                <pre style="margin-top:8px; font-size:11px; max-height:200px; background:#2d1a1a; color:#f8a;">{{ $crmProbeError['trace'] }}</pre>
+            </div>
+        @else
+            <div class="status-msg ok" style="margin-bottom:10px;">✓ Wszystkie kroki CRM przeszły pomyślnie.</div>
+        @endif
+        <table>
+            <thead><tr><th>Test</th><th>Status</th><th>Wynik</th></tr></thead>
+            <tbody>
+                @foreach($crmProbe as $probe)
+                <tr>
+                    <td style="font-family:monospace; font-size:12px;">{{ $probe['label'] }}</td>
+                    <td><span class="badge {{ $probe['ok'] ? 'ok' : 'fail' }}">{{ $probe['ok'] ? '✓ OK' : '✗ BŁĄD' }}</span></td>
+                    <td style="font-size:12px; {{ !$probe['ok'] ? 'color:#721c24; font-weight:700;' : '' }}">{{ $probe['detail'] }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
+</div>
+
+{{-- ═══ CRITICAL COLUMNS ═══ --}}
+@if(!empty($columnChecks))
+<div class="card" style="border-color:#f5c6cb;">
+    <h2 style="margin-top:0;">🗂️ Brakujące kolumny w tabelach</h2>
+    <div style="background:#f8d7da; border-radius:8px; padding:10px 14px; margin-bottom:10px; font-size:13px; color:#721c24;">
+        <strong>❌ Wykryto {{ count($columnChecks) }} brakujących kolumn!</strong>
+        Prawdopodobna przyczyna błędu 500.
+    </div>
+    <table>
+        <thead><tr><th>Tabela</th><th>Kolumna</th><th>Błąd</th></tr></thead>
+        <tbody>
+            @foreach($columnChecks as $cc)
+            <tr>
+                <td><code>{{ $cc['table'] }}</code></td>
+                <td><code>{{ $cc['column'] }}</code></td>
+                <td style="color:#721c24; font-size:12px;">{{ $cc['error'] }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
+@endif
+
 {{-- ═══ QUICK LINKS ═══ --}}
 <div class="card">
     <h2 style="margin-top:0;">🔗 Szybkie linki testowe</h2>
