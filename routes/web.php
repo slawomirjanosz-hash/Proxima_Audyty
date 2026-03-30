@@ -296,6 +296,10 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('role:admin,super_admin')
         ->name('settings.energy-indicators');
 
+    Route::patch('/settings/public-access', [SettingsController::class, 'updatePublicAccess'])
+        ->middleware('role:admin,super_admin')
+        ->name('settings.public-access');
+
     Route::post('/settings/co2-history', [SettingsController::class, 'storeCo2History'])
         ->middleware('role:admin,super_admin')
         ->name('settings.co2-history-store');

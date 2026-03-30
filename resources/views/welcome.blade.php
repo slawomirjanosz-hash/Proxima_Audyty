@@ -399,13 +399,15 @@
             <ul class="menu">
                 @if(!$menuUser)
                     <li><a href="{{ route('home') }}" class="menu-active">{{ __('ui.menu.home') }}</a></li>
-                    <li><a href="{{ route('information.index') }}">{{ __('ui.menu.info') }}</a></li>
+                    @if(\App\Models\SystemSetting::get('informacje_public', '1'))
+                        <li><a href="{{ route('information.index') }}">{{ __('ui.menu.info') }}</a></li>
+                    @endif
                 @else
                     @if($menuUser->isClient() || $menuUser->canAccessTab(\App\Models\User::TAB_HOME))
                         <li><a href="{{ route('home') }}" class="menu-active">{{ __('ui.menu.home') }}</a></li>
                     @endif
 
-                    @if(!$menuUser->isClient() && $menuUser->canAccessTab(\App\Models\User::TAB_INFO))
+                    @if($menuUser->canAccessTab(\App\Models\User::TAB_INFO))
                         <li><a href="{{ route('information.index') }}">{{ __('ui.menu.info') }}</a></li>
                     @endif
 

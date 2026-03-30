@@ -685,6 +685,50 @@
     </script>
 
 @if($canManage)
+    {{-- ── DOSTĘP PUBLICZNY ── --}}
+    <section class="panel" style="margin-top:14px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+            <div style="width:4px; height:36px; border-radius:4px; background:linear-gradient(180deg,#0e55b3,#2d8ee3);"></div>
+            <div>
+                <h2 style="margin:0;">🌐 Dostęp publiczny do zakładki Informacje</h2>
+                <p class="muted" style="margin:4px 0 0;">Kontroluje czy niezalogowani użytkownicy mogą wyświetlać stronę /informacje.</p>
+            </div>
+        </div>
+
+        @if(session('public_access_status'))
+            <div style="background:#f0fff4; border:1px solid #86efac; border-radius:8px; padding:10px 14px; margin-bottom:14px; font-size:13px; color:#166534;">
+                ✅ {{ session('public_access_status') }}
+            </div>
+        @endif
+
+        <form method="POST" action="{{ route('settings.public-access') }}" style="display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
+            @csrf
+            @method('PATCH')
+
+            <label style="display:flex; align-items:center; gap:12px; cursor:pointer; padding:14px 18px; border:2px solid {{ $informajePublic ? '#86efac' : '#fca5a5' }}; border-radius:12px; background:{{ $informajePublic ? '#f0fff4' : '#fff5f5' }}; min-width:280px;">
+                <input type="checkbox" name="informacje_public" value="1" {{ $informajePublic ? 'checked' : '' }}
+                    onchange="this.form.submit()"
+                    style="width:20px; height:20px; cursor:pointer; accent-color:#1a5c2e;">
+                <div>
+                    <div style="font-size:14px; font-weight:700; color:#0f2330;">
+                        {{ $informajePublic ? '✅ Dostęp publiczny WŁĄCZONY' : '🔒 Dostęp publiczny WYŁĄCZONY' }}
+                    </div>
+                    <div style="font-size:12px; color:#4c6373; margin-top:2px;">
+                        {{ $informajePublic ? 'Strona /informacje widoczna dla wszystkich bez logowania' : 'Strona /informacje tylko dla zalogowanych użytkowników z uprawnieniem' }}
+                    </div>
+                </div>
+            </label>
+
+            <noscript>
+                <button type="submit" style="padding:9px 18px; background:#0e55b3; color:#fff; border:none; border-radius:9px; font-size:14px; font-weight:700; cursor:pointer;">Zapisz</button>
+            </noscript>
+        </form>
+
+        <div style="margin-top:10px; font-size:12px; color:#4c6373; background:#edf3f8; border-radius:8px; padding:10px 14px; border-left:3px solid #0e89d8;">
+            💡 Niezależnie od tego ustawienia, zalogowani użytkownicy z uprawnieniem <strong>Informacje</strong> zawsze widzą zakładkę w menu.
+        </div>
+    </section>
+
     {{-- ── WSKAŹNIKI EMISJI CO₂ ── --}}
     <section class="panel" style="margin-top:14px;">
         <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">

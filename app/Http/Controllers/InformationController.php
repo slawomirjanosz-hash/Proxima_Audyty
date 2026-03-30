@@ -58,6 +58,10 @@ class InformationController extends Controller
 
     public function index(): View
     {
+        if (! auth()->check() && ! SystemSetting::get('informacje_public', '1')) {
+            abort(403, 'Dostęp do tej strony wymaga zalogowania.');
+        }
+
         return view('information.index', [
             'generationData'  => $this->getGenerationStructureSnapshot(),
             'toePricePln'     => $this->getToePricePln(),

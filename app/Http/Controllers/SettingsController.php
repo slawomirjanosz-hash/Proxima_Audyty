@@ -102,10 +102,11 @@ class SettingsController extends Controller
             'tabLabels'       => User::tabLabels(),
             'canManage'       => $user->canManageEverything(),
             'isSuperAdmin'    => $user->isSuperAdmin(),
-            'co2ElCombFactor' => (int) SystemSetting::get('co2_el_comb_factor', '717'),
-            'co2ElNatFactor'  => (int) SystemSetting::get('co2_el_nat_factor',  '552'),
-            'co2ElYear'       => (string) SystemSetting::get('co2_el_year', '2024'),
-            'co2History'      => $this->getCo2History(),
+            'co2ElCombFactor'  => (int) SystemSetting::get('co2_el_comb_factor', '717'),
+            'co2ElNatFactor'   => (int) SystemSetting::get('co2_el_nat_factor',  '552'),
+            'co2ElYear'        => (string) SystemSetting::get('co2_el_year', '2024'),
+            'co2History'       => $this->getCo2History(),
+            'informajePublic'  => (bool) SystemSetting::get('informacje_public', '1'),
         ]);
     }
 
@@ -116,6 +117,22 @@ class SettingsController extends Controller
         } catch (Throwable) {
             return collect();
         }
+    }
+
+    public function updatePublicAccess(Request $request): RedirectResponse
+    {
+        if (! $request->user()->canManageEverything()) {
+            abort(403);
+        }
+
+        $value = $request->boolean('informacje_public') ? '1' : '0';
+        SystemSetting::set('informacje_public', $value, $request->user()->id);
+
+        $msg = $value === '1'
+            ? 'Dostęp publiczny do zakładki Informacje został włączony.'
+            : 'Dostęp publiczny do zakładki Informacje został wyłączony.';
+
+        return back()->with('public_access_status', $msg);
     }
 
     public function updateEnergyIndicators(Request $request): RedirectResponse
