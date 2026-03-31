@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
+use App\Models\AuditType;
 use App\Models\Company;
 use App\Models\CrmActivity;
 use App\Models\CrmCompany;
@@ -14,6 +15,7 @@ use App\Models\CrmDeal;
 use App\Models\CrmStage;
 use App\Models\CrmTask;
 use App\Models\CrmTaskChange;
+use App\Models\EnergyAudit;
 use App\Models\User;
 use Throwable;
 
@@ -134,6 +136,9 @@ class DiagnosticsController extends Controller
         $columnChecks = [];
         if ($dbOk) {
             $criticalColumns = [
+                'energy_audits'       => ['id', 'title', 'audit_type', 'audit_type_id', 'status', 'completed_at', 'data_payload', 'company_id', 'auditor_id'],
+                'audit_types'         => ['id', 'name', 'formulas', 'variables'],
+                'audit_type_sections' => ['id', 'audit_type_id', 'name', 'position', 'tasks', 'data_fields', 'formulas'],
                 'crm_tasks'     => ['id', 'title', 'type', 'priority', 'status', 'due_date', 'assigned_to', 'company_id', 'deal_id'],
                 'crm_deals'     => ['id', 'name', 'company_id', 'value', 'stage', 'user_id', 'owner_id'],
                 'crm_companies' => ['id', 'name', 'nip', 'system_company_id', 'owner_id'],
@@ -272,10 +277,93 @@ class DiagnosticsController extends Controller
             }
         }
 
+        // ─── Audits Probe ─────────────────────────────────────────────────
+        $auditsProbe      = [];
+        $auditsProbeError = null;
+        if ($dbOk) {
+            $auditSteps = [
+                'AuditType::count()' => static fn () => AuditType::count() . ' rodzajów audytów',
+
+                'EnergyAudit::count()' => static fn () => EnergyAudit::count() . ' audytów w tabeli',
+
+                'energy_audits company_id nullable?' => static function () {
+                    $col = DB::selectOne(
+                        "SELECT IS_NULLABLE, COLUMN_TYPE FROM information_schema.COLUMNS
+                         WHERE TABLE_SCHEMA = DATABASE()
+                           AND TABLE_NAME = 'energy_audits'
+                           AND COLUMN_NAME = 'company_id'"
+                    );
+                    if (! $col) {
+                        throw new \RuntimeException('Kolumna company_id nie istnieje w energy_audits');
+                    }
+                    $nullable = ($col->IS_NULLABLE === 'YES');
+                    if (! $nullable) {
+                        throw new \RuntimeException(
+                            'company_id IS NOT NULL – formularz "Nowy audyt" z opcją "Brak" firmy spowoduje błąd 500! '
+                            . 'Uruchom migrację 2026_03_31_120000_make_company_id_nullable_in_energy_audits_table.php'
+                        );
+                    }
+                    return 'OK – company_id jest nullable (' . $col->COLUMN_TYPE . ')';
+                },
+
+                'EnergyAudit create dry-run (bez firmy)' => static function () {
+                    $type = AuditType::first();
+                    if (! $type) {
+                        return 'Pominięto – brak rodzajów audytów w bazie';
+                    }
+                    DB::beginTransaction();
+                    try {
+                        EnergyAudit::create([
+                            'title'         => '__diag_test__',
+                            'audit_type_id' => $type->id,
+                            'audit_type'    => $type->name,
+                            'status'        => 'in_progress',
+                            'company_id'    => null,
+                            'auditor_id'    => null,
+                            'completed_at'  => null,
+                            'data_payload'  => [],
+                        ]);
+                        DB::rollBack();
+                        return 'OK – INSERT bez firmy powiódł się (rollback)';
+                    } catch (Throwable $e) {
+                        DB::rollBack();
+                        throw $e;
+                    }
+                },
+
+                'EnergyAudit::with relations (próbka)' => static fn () =>
+                    EnergyAudit::with(['company', 'auditor', 'auditType'])->limit(3)->get()->count() . ' (próbka)',
+
+                'AuditType sections (próbka)' => static fn () =>
+                    AuditType::with('sections')->limit(3)->get()
+                        ->map(fn ($t) => $t->name . ' (' . $t->sections->count() . ' sekcji)')
+                        ->implode(', ') ?: 'brak typów',
+            ];
+            foreach ($auditSteps as $label => $fn) {
+                try {
+                    $detail = $fn();
+                    $auditsProbe[] = ['label' => $label, 'ok' => true, 'detail' => $detail];
+                } catch (Throwable $e) {
+                    $auditsProbe[] = ['label' => $label, 'ok' => false, 'detail' => $e->getMessage()];
+                    if ($auditsProbeError === null) {
+                        $auditsProbeError = [
+                            'step'    => $label,
+                            'message' => $e->getMessage(),
+                            'class'   => get_class($e),
+                            'file'    => str_replace(base_path() . DIRECTORY_SEPARATOR, '', $e->getFile()),
+                            'line'    => $e->getLine(),
+                            'trace'   => implode("\n", array_slice(explode("\n", $e->getTraceAsString()), 0, 12)),
+                        ];
+                    }
+                }
+            }
+        }
+
         return view('diagnostics.index', compact(
             'dbOk', 'dbError', 'dbDriver',
             'tableStatus', 'migrationOutput', 'migrationError', 'pendingCount',
-            'recentErrors', 'sysInfo', 'columnChecks', 'crmProbe', 'crmProbeError'
+            'recentErrors', 'sysInfo', 'columnChecks', 'crmProbe', 'crmProbeError',
+            'auditsProbe', 'auditsProbeError'
         ));
     }
 

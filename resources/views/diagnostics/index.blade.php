@@ -185,6 +185,40 @@
     @endif
 </div>
 
+{{-- ═══ AUDITS PROBE ═══ --}}
+<div class="card" style="{{ ($auditsProbeError) ? 'border-color:#f5c6cb;' : '' }}">
+    <h2 style="margin-top:0;">📋 Test Audytów – wykonanie zapytań</h2>
+    @if(!$dbOk)
+        <div class="status-msg fail">Pominięto – brak połączenia z bazą danych.</div>
+    @elseif(empty($auditsProbe))
+        <div class="status-msg warn">Brak danych testu audytów.</div>
+    @else
+        @if($auditsProbeError)
+            <div style="background:#f8d7da; border:1px solid #f5c6cb; border-radius:8px; padding:12px 14px; margin-bottom:12px; color:#721c24;">
+                <strong>❌ Błąd Audyty na kroku: {{ $auditsProbeError['step'] }}</strong><br>
+                <span style="font-size:13px; font-weight:700;">{{ $auditsProbeError['class'] }}</span><br>
+                <span style="font-size:13px;">{{ $auditsProbeError['message'] }}</span><br>
+                <span style="font-size:12px; color:#a94442;">{{ $auditsProbeError['file'] }}:{{ $auditsProbeError['line'] }}</span>
+                <pre style="margin-top:8px; font-size:11px; max-height:200px; background:#2d1a1a; color:#f8a;">{{ $auditsProbeError['trace'] }}</pre>
+            </div>
+        @else
+            <div class="status-msg ok" style="margin-bottom:10px;">✓ Wszystkie kroki Audytów przeszły pomyślnie.</div>
+        @endif
+        <table>
+            <thead><tr><th>Test</th><th>Status</th><th>Wynik</th></tr></thead>
+            <tbody>
+                @foreach($auditsProbe as $probe)
+                <tr>
+                    <td style="font-family:monospace; font-size:12px;">{{ $probe['label'] }}</td>
+                    <td><span class="badge {{ $probe['ok'] ? 'ok' : 'fail' }}">{{ $probe['ok'] ? '✓ OK' : '✗ BŁĄD' }}</span></td>
+                    <td style="font-size:12px; {{ !$probe['ok'] ? 'color:#721c24; font-weight:700;' : '' }}">{{ $probe['detail'] }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
+</div>
+
 {{-- ═══ CRM PROBE ═══ --}}
 <div class="card" style="{{ $crmProbeError ? 'border-color:#f5c6cb;' : '' }}">
     <h2 style="margin-top:0;">🔬 Test CRM – wykonanie zapytań</h2>
