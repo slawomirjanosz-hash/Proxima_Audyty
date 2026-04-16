@@ -75,22 +75,22 @@
         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px;">
             <div>
                 <h1 style="margin:0;">
-                    @if($activeTab === 'energetyczne') Audyty energetyczne przedsiębiorstw
+                    @if($activeTab === 'energetyczne') {{ __('Energy audits of enterprises') }}
                     @elseif($activeTab === 'iso50001') Audyty ISO 50001
-                    @elseif($activeTab === 'biale-certyfikaty') Audyty na białe certyfikaty
-                    @elseif($activeTab === 'ai-audyty') Audyty z AI
-                    @else Ustawienia
+                    @elseif($activeTab === 'biale-certyfikaty') {{ __('White certificates') }}
+                    @elseif($activeTab === 'ai-audyty') {{ __('Audits with AI') }}
+                    @else {{ __('Settings') }}
                     @endif
                 </h1>
             </div>
         </div>
 
         <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;">
-            <a href="{{ route('audits.types', ['tab' => 'energetyczne']) }}" class="settings-tab-btn {{ $activeTab === 'energetyczne' ? 'active' : '' }}">Audyty energetyczne</a>
+            <a href="{{ route('audits.types', ['tab' => 'energetyczne']) }}" class="settings-tab-btn {{ $activeTab === 'energetyczne' ? 'active' : '' }}">{{ __('Energy audits') }}</a>
             <a href="{{ route('audits.types', ['tab' => 'iso50001']) }}" class="settings-tab-btn {{ $activeTab === 'iso50001' ? 'active' : '' }}">ISO 50001</a>
-            <a href="{{ route('audits.types', ['tab' => 'biale-certyfikaty']) }}" class="settings-tab-btn {{ $activeTab === 'biale-certyfikaty' ? 'active' : '' }}">Białe certyfikaty</a>
-            <a href="{{ route('audits.types', ['tab' => 'ai-audyty']) }}" class="settings-tab-btn {{ $activeTab === 'ai-audyty' ? 'active' : '' }}">🤖 Audyty z AI</a>
-            <a href="{{ route('audits.types', ['tab' => 'ustawienia']) }}" class="settings-tab-btn {{ $activeTab === 'ustawienia' ? 'active' : '' }}">Ustawienia</a>
+            <a href="{{ route('audits.types', ['tab' => 'biale-certyfikaty']) }}" class="settings-tab-btn {{ $activeTab === 'biale-certyfikaty' ? 'active' : '' }}">{{ __('White certificates') }}</a>
+            <a href="{{ route('audits.types', ['tab' => 'ai-audyty']) }}" class="settings-tab-btn {{ $activeTab === 'ai-audyty' ? 'active' : '' }}">{{ __('Audits with AI') }}</a>
+            <a href="{{ route('audits.types', ['tab' => 'ustawienia']) }}" class="settings-tab-btn {{ $activeTab === 'ustawienia' ? 'active' : '' }}">{{ __('Settings') }}</a>
         </div>
 
         @if($activeTab === 'energetyczne')

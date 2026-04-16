@@ -26,7 +26,7 @@
         @endif
 
         <div class="protocol-topbar">
-            <a href="{{ route('ai.show', $conversation) }}" class="btn-back">← Wróć do rozmowy</a>
+            <a href="{{ route('ai.show', $conversation) }}" class="btn-back">← {{ __('Back to conversations') }}</a>
 
             <div style="display:flex;gap:8px;align-items:center;">
                 <form method="POST" action="{{ route('ai.protocol.generate', $conversation) }}" style="margin:0">

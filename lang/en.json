@@ -225,5 +225,22 @@
     "Web Server is Down": "Web Server is Down",
     "Whoops!": "Whoops!",
     "Yes": "Yes",
-    "You are receiving this email because we received a password reset request for your account.": "You are receiving this email because we received a password reset request for your account."
+    "You are receiving this email because we received a password reset request for your account.": "You are receiving this email because we received a password reset request for your account.",
+    "Energy audits": "Energy audits",
+    "Energy audits of enterprises": "Energy audits of enterprises",
+    "White certificates": "White certificates",
+    "Audits with AI": "Audits with AI",
+    "Settings": "Settings",
+    "AI Assistant": "AI Assistant",
+    "New conversation": "New conversation",
+    "Energy audit": "Energy audit",
+    "Offer": "Offer",
+    "General": "General",
+    "Conversations": "Conversations",
+    "Start new conversation": "Start new conversation",
+    "No conversations yet": "No conversations yet",
+    "Generate protocol": "Generate protocol",
+    "Show protocol": "Show protocol",
+    "Delete conversation": "Delete conversation",
+    "Back to conversations": "Back to conversations"
 }

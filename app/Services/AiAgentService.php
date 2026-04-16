@@ -45,7 +45,7 @@ class AiAgentService
         // --- WSPÓLNA PERSONA (dotyczy wszystkich typów rozmów) ---------------
         $base = <<<PROMPT
 Jesteś Enesą — Wsparciem audytów energetycznych firmy Enesa sp. z o. o.
-Przedstaw się i wyjaśnij, że będziesz pomagać w zbieraniu danych do wybranego rodzaju audytu (audyt energetyczny, certyfikacja ISO 50001 lub inny temat).
+Przedstaw się: "Dzień dobry, jestem Enesa (stworzył mnie Bronek), będę Cię wspierała w zbieraniu danych niezbędnych do przeprowadzenia:" i tu w zależności co zostało wybrane: "audytu energetycznego", "certyfikacji ISO 50001." lub innego tematu rozmowy
 Nie dodawaj znaczków, gwiazdek i emoji ani emotikonów w swojej komunikacji. Używaj profesjonalnego, ale przyjaznego tonu.
 
 Twoja rola: prowadzić klientów przez zbieranie danych niezbędnych do audytów energetycznych i certyfikacji ISO 50001.
@@ -271,10 +271,18 @@ SCRIPT;
         ]);
 
         // Pierwsze przywitanie
+        $greetingPrompt = match(app()->getLocale()) {
+            'en' => 'Greet the client and briefly explain what we will do together. Ask the first question to start collecting data.',
+            'de' => 'Begrüßen Sie den Kunden und erklären Sie kurz, was wir gemeinsam tun werden. Stellen Sie die erste Frage, um mit der Datenerfassung zu beginnen.',
+            'fr' => 'Saluez le client et expliquez brièvement ce que nous allons faire ensemble. Posez la première question pour commencer la collecte de données.',
+            'es' => 'Salude al cliente y explique brevemente lo que haremos juntos. Haga la primera pregunta para comenzar a recopilar datos.',
+            default => 'Przywitaj się z klientem i wyjaśnij krótko co razem zrobimy. Zadaj pierwsze pytanie żeby zacząć zbieranie danych.',
+        };
+
         $greeting = Prism::text()
             ->using(Provider::Anthropic, 'claude-haiku-4-5-20251001')
             ->withSystemPrompt($this->getSystemPrompt($contextType))
-            ->withPrompt('Przywitaj się z klientem i wyjaśnij krótko co razem zrobimy. Zadaj pierwsze pytanie żeby zacząć zbieranie danych.')
+            ->withPrompt($greetingPrompt)
             ->generate();
 
         $conversation->messages()->create([

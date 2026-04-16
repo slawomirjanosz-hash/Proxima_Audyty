@@ -225,5 +225,22 @@
     "Web Server is Down": "Serwer sieciowy nie działa",
     "Whoops!": "Ups!",
     "Yes": "Tak",
-    "You are receiving this email because we received a password reset request for your account.": "Otrzymujesz ten e-mail, ponieważ otrzymaliśmy prośbę o zresetowanie hasła dla Twojego konta."
+    "You are receiving this email because we received a password reset request for your account.": "Otrzymujesz ten e-mail, ponieważ otrzymaliśmy prośbę o zresetowanie hasła dla Twojego konta.",
+    "Energy audits": "Audyty energetyczne",
+    "Energy audits of enterprises": "Audyty energetyczne przedsiębiorstw",
+    "White certificates": "Białe certyfikaty",
+    "Audits with AI": "Audyty z AI",
+    "Settings": "Ustawienia",
+    "AI Assistant": "Asystent AI",
+    "New conversation": "Nowa rozmowa",
+    "Energy audit": "Audyt energetyczny",
+    "Offer": "Oferta",
+    "General": "Ogólny",
+    "Conversations": "Rozmowy AI",
+    "Start new conversation": "Rozpocznij nową rozmowę",
+    "No conversations yet": "Brak rozmów",
+    "Generate protocol": "Generuj protokół",
+    "Show protocol": "Pokaż protokół",
+    "Delete conversation": "Usuń rozmowę",
+    "Back to conversations": "Wróć do rozmów"
 }

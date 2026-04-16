@@ -32,7 +32,7 @@
     </style>
 
     <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0 10px">
-        <a href="{{ route('ai.index') }}" class="btn-back">← Rozmowy AI</a>
+        <a href="{{ route('ai.index') }}" class="btn-back">← {{ __('Conversations') }}</a>
         @php
             $contextLabel = match($conversation->context_type) {
                 'energy_audit' => '⚡ Audyt energetyczny',
@@ -47,31 +47,31 @@
     <div class="chat-layout">
         <div class="chat-header">
             <div>
-                <h2>🤖 {{ $conversation->title }}</h2>
-                <div class="meta">Asystent AI Enesa &middot; Claude AI</div>
+                <h2>� {{ $conversation->title }}</h2>
+                <div class="meta">{{ __('AI Assistant') }} Enesa &middot; Claude AI</div>
             </div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                 @if($conversation->protocol_data)
                     <a href="{{ route('ai.protocol', $conversation) }}"
                        style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;background:#e8f4fe;color:#0e6db8;text-decoration:none;border:1px solid #b6d7f5;">
-                        📋 Pokaż protokół
+                        📋 {{ __('Show protocol') }}
                     </a>
                 @endif
                 <form method="POST" action="{{ route('ai.protocol.generate', $conversation) }}" style="margin:0">
                     @csrf
                     <button type="submit"
-                            onclick="return confirm('Wygenerować protokół na podstawie tej rozmowy? Poprzedni zostanie nadpisany.')"
+                            onclick="return confirm('{{ __('Generate protocol') }}?')"
                             style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;background:linear-gradient(130deg,#1ba84a,#0e89d8);color:#fff;border:none;cursor:pointer;">
-                        ⚡ Generuj protokół
+                        ⚡ {{ __('Generate protocol') }}
                     </button>
                 </form>
                 <form method="POST" action="{{ route('ai.force-delete', $conversation) }}" style="margin:0">
                     @csrf
                     @method('DELETE')
                     <button type="submit"
-                            onclick="return confirm('Czy na pewno chcesz trwale usunąć tę rozmowę? Tej operacji nie można cofnąć.')"
+                            onclick="return confirm('{{ __('Delete conversation') }}?')"
                             style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;background:#fff0f0;color:#c0392b;border:1px solid #f5c6c6;cursor:pointer;">
-                        🗑️ Usuń rozmowę
+                        🗑️ {{ __('Delete conversation') }}
                     </button>
                 </form>
             </div>
@@ -81,12 +81,12 @@
             @foreach($messages as $msg)
                 <div class="message {{ $msg->role === 'user' ? 'user' : 'assistant' }}">
                     <div class="avatar {{ $msg->role === 'user' ? 'user-av' : 'ai' }}">
-                        {{ $msg->role === 'user' ? '👤' : '🤖' }}
+                        {{ $msg->role === 'user' ? '👤' : '�' }}
                     </div>
                     <div class="bubble">{{ $msg->content }}</div>
                 </div>
             @endforeach
-            <div class="typing" id="typingIndicator">Asystent pisze...</div>
+            <div class="typing" id="typingIndicator">{{ __('AI Assistant') }} ...</div>
         </div>
 
         <div class="suggestions" id="suggestionsBar">
@@ -122,7 +122,7 @@
             const wrap = document.createElement('div');
             wrap.className = `message ${role === 'user' ? 'user' : 'assistant'}`;
             wrap.innerHTML = `
-                <div class="avatar ${role === 'user' ? 'user-av' : 'ai'}">${role === 'user' ? '👤' : '🤖'}</div>
+                <div class="avatar ${role === 'user' ? 'user-av' : 'ai'}">${role === 'user' ? '👤' : '�'}</div>
                 <div class="bubble">${content.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div>
             `;
             chatBody.insertBefore(wrap, typingIndicator);
