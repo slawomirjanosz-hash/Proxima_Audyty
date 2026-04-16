@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\View\View;
@@ -93,21 +94,24 @@ class SettingsController extends Controller
             ->get();
         $companies = Company::with(['auditor', 'assignedUsers'])->orderBy('name')->get();
         $auditors = User::whereIn('role', [UserRole::Auditor->value, UserRole::Admin->value])->orderBy('name')->get();
+        $admins = User::where('role', UserRole::Admin->value)->orderBy('name')->get();
         $clients = User::where('role', UserRole::Client)->orderBy('name')->get();
 
         return view('settings.index', [
-            'users'           => $users,
-            'companies'       => $companies,
-            'auditors'        => $auditors,
-            'clients'         => $clients,
-            'tabLabels'       => User::tabLabels(),
-            'canManage'       => $user->canManageEverything(),
-            'isSuperAdmin'    => $user->isSuperAdmin(),
-            'co2ElCombFactor'  => (int) SystemSetting::get('co2_el_comb_factor', '717'),
-            'co2ElNatFactor'   => (int) SystemSetting::get('co2_el_nat_factor',  '552'),
-            'co2ElYear'        => (string) SystemSetting::get('co2_el_year', '2024'),
-            'co2History'       => $this->getCo2History(),
-            'informajePublic'  => (bool) SystemSetting::get('informacje_public', '1'),
+            'users'               => $users,
+            'companies'           => $companies,
+            'auditors'            => $auditors,
+            'admins'              => $admins,
+            'clients'             => $clients,
+            'tabLabels'           => User::tabLabels(),
+            'canManage'           => $user->canManageEverything(),
+            'isSuperAdmin'        => $user->isSuperAdmin(),
+            'co2ElCombFactor'     => (int) SystemSetting::get('co2_el_comb_factor', '717'),
+            'co2ElNatFactor'      => (int) SystemSetting::get('co2_el_nat_factor',  '552'),
+            'co2ElYear'           => (string) SystemSetting::get('co2_el_year', '2024'),
+            'co2History'          => $this->getCo2History(),
+            'informajePublic'     => (bool) SystemSetting::get('informacje_public', '1'),
+            'companyContactEmail' => (string) SystemSetting::get('company_contact_email', ''),
         ]);
     }
 
@@ -342,6 +346,7 @@ class SettingsController extends Controller
         $validated = $request->validate([
             'nip' => ['nullable', 'string', 'max:20'],
             'name' => ['required', 'string', 'max:255'],
+            'short_name' => ['nullable', 'string', 'max:32'],
             'city' => ['nullable', 'string', 'max:255'],
             'street' => ['nullable', 'string', 'max:255'],
             'postal_code' => ['nullable', 'string', 'max:20'],
@@ -349,10 +354,14 @@ class SettingsController extends Controller
             'auditor_id' => ['nullable', 'exists:users,id'],
             'phone' => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:255'],
+            'logo' => ['nullable', 'image', 'max:2048'],
         ]);
 
         $normalizedName = Company::normalizeLegalForm(trim((string) $validated['name']));
-        $shortName = mb_substr($normalizedName, 0, 3);
+        $shortName = trim((string) ($validated['short_name'] ?? ''));
+        if ($shortName === '') {
+            $shortName = mb_substr($normalizedName, 0, 3);
+        }
 
         $payload = [
             'name' => $normalizedName,
@@ -365,6 +374,10 @@ class SettingsController extends Controller
             'phone' => $validated['phone'] ?? null,
             'email' => $validated['email'] ?? null,
         ];
+
+        if ($request->hasFile('logo')) {
+            $payload['logo'] = $request->file('logo')->store('logos', 'public');
+        }
 
         if (Schema::hasColumn('companies', 'nip')) {
             $payload['nip'] = ! empty($validated['nip']) ? preg_replace('/\D+/', '', (string) $validated['nip']) : null;
@@ -458,6 +471,7 @@ class SettingsController extends Controller
             'first_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['nullable', 'string', 'max:255'],
             'short_name' => ['nullable', 'string', 'max:32'],
+            'position' => ['nullable', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
             'password' => ['nullable', 'string', 'min:8'],
@@ -520,6 +534,7 @@ class SettingsController extends Controller
             'first_name' => $firstName !== '' ? $firstName : null,
             'last_name' => $lastName !== '' ? $lastName : null,
             'short_name' => $shortName,
+            'position' => $validated['position'] ?? null,
             'email' => $validated['email'],
             'phone' => $validated['phone'] ?? null,
             'password' => $validated['password'],
@@ -552,6 +567,7 @@ class SettingsController extends Controller
             'first_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['nullable', 'string', 'max:255'],
             'short_name' => ['nullable', 'string', 'max:32'],
+            'position' => ['nullable', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'phone' => ['nullable', 'string', 'max:50'],
             'password' => ['nullable', 'string', 'min:8'],
@@ -579,6 +595,7 @@ class SettingsController extends Controller
             'first_name' => $firstName !== '' ? $firstName : null,
             'last_name' => $lastName !== '' ? $lastName : null,
             'short_name' => $shortName !== '' ? $shortName : null,
+            'position' => $validated['position'] ?? null,
             'email' => $validated['email'],
             'phone' => $validated['phone'] ?? null,
             'role' => UserRole::Client->value,
@@ -611,6 +628,7 @@ class SettingsController extends Controller
             'auditor_id' => ['nullable', 'exists:users,id'],
             'phone' => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:255'],
+            'logo' => ['nullable', 'image', 'max:2048'],
         ]);
 
         $normalizedName = Company::normalizeLegalForm(trim((string) $validated['name']));
@@ -631,6 +649,13 @@ class SettingsController extends Controller
             'email' => $validated['email'] ?? null,
         ];
 
+        if ($request->hasFile('logo')) {
+            if ($company->logo) {
+                Storage::disk('public')->delete($company->logo);
+            }
+            $payload['logo'] = $request->file('logo')->store('logos', 'public');
+        }
+
         if (Schema::hasColumn('companies', 'nip')) {
             $payload['nip'] = ! empty($validated['nip']) ? preg_replace('/\D+/', '', (string) $validated['nip']) : null;
         }
@@ -649,6 +674,25 @@ class SettingsController extends Controller
         $company->delete();
 
         return back()->with('status', __('ui.messages.company_deleted'));
+    }
+
+    public function updateMyCompany(Request $request): RedirectResponse
+    {
+        if (! $request->user()->canManageEverything()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'company_contact_email' => ['nullable', 'email', 'max:255'],
+        ]);
+
+        SystemSetting::set(
+            'company_contact_email',
+            (string) ($validated['company_contact_email'] ?? ''),
+            $request->user()->id
+        );
+
+        return back()->with('my_company_status', 'Dane firmy zostały zapisane.');
     }
 
 }

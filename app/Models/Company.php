@@ -43,6 +43,7 @@ class Company extends Model
         'description',
         'phone',
         'email',
+        'logo',
         'client_id',
         'auditor_id',
     ];

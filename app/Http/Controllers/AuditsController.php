@@ -26,38 +26,9 @@ use Throwable;
 
 class AuditsController extends Controller
 {
-    public function index(Request $request): View
+    public function index(): View
     {
-        $activeTab = (string) $request->query('tab', 'in-progress');
-
-        $inProgressAudits = EnergyAudit::with(['company', 'auditor', 'auditType'])
-            ->whereNotIn('status', ['completed', 'done', 'closed', 'cancelled', 'archived'])
-            ->latest()
-            ->get();
-
-        $completedAudits = EnergyAudit::with(['company', 'auditor', 'auditType'])
-            ->whereIn('status', ['completed', 'done', 'closed', 'cancelled', 'archived'])
-            ->orderByDesc('completed_at')
-            ->orderByDesc('updated_at')
-            ->get();
-
-        $companies = Company::query()->orderBy('name')->get();
-
-        $auditors = User::query()
-            ->whereIn('role', ['admin', 'auditor'])
-            ->orderBy('name')
-            ->get();
-
-        $auditTypes = AuditType::with('sections')->orderBy('name')->get();
-
-        return view('audits.index', [
-            'inProgressAudits' => $inProgressAudits,
-            'completedAudits' => $completedAudits,
-            'companies' => $companies,
-            'auditors' => $auditors,
-            'auditTypes' => $auditTypes,
-            'activeTab' => in_array($activeTab, ['new', 'in-progress', 'completed'], true) ? $activeTab : 'in-progress',
-        ]);
+        return $this->settings();
     }
 
     public function store(Request $request): RedirectResponse
@@ -148,8 +119,13 @@ class AuditsController extends Controller
             ->with('status', 'Audyt wrócił do zakładki „Audyty w toku”.');
     }
 
-    public function settings(): View
+    public function settings(string $activeTabOverride = ''): View
     {
+        $validTabs = ['energetyczne', 'iso50001', 'biale-certyfikaty', 'ai-audyty', 'ustawienia'];
+        $activeTab = $activeTabOverride !== '' && in_array($activeTabOverride, $validTabs)
+            ? $activeTabOverride
+            : (in_array(request('tab'), $validTabs) ? request('tab') : 'energetyczne');
+
         $auditTypes = AuditType::with('sections')->orderBy('name')->get();
         $units = AuditUnit::query()->orderBy('name')->get();
         $template = Iso50001Template::query()->first();
@@ -183,6 +159,7 @@ class AuditsController extends Controller
             'isoClients' => $clients,
             'isoCompanies' => $companies,
             'isoAudits' => $isoAudits,
+            'activeTab' => $activeTab,
         ]);
     }
 
@@ -196,7 +173,7 @@ class AuditsController extends Controller
         $decoded = json_decode((string) $validated['template_json'], true);
 
         if (! is_array($decoded)) {
-            return redirect()->route('audits.settings')
+            return redirect()->route('audits.types', ['tab' => 'iso50001'])
                 ->with('status', 'Blad: nieprawidlowy JSON szablonu ISO 50001.');
         }
 
@@ -213,7 +190,7 @@ class AuditsController extends Controller
         ]);
         $template->save();
 
-        return redirect()->route('audits.settings')->with('status', 'Konfiguracja audytu ISO 50001 zostala zapisana.');
+        return redirect()->route('audits.types', ['tab' => 'iso50001'])->with('status', 'Konfiguracja audytu ISO 50001 zostala zapisana.');
     }
 
     public function storeIso50001Audit(Request $request): RedirectResponse
@@ -228,7 +205,7 @@ class AuditsController extends Controller
         $client = User::query()->findOrFail((int) $validated['client_user_id']);
         $clientCompanyIds = $this->clientCompanyIds($client)->all();
         if (! in_array((int) $validated['company_id'], $clientCompanyIds, true)) {
-            return redirect()->route('audits.settings')->with('status', 'Blad: wybrana firma nie jest przypisana do wybranego klienta.');
+            return redirect()->route('audits.types', ['tab' => 'iso50001'])->with('status', 'Blad: wybrana firma nie jest przypisana do wybranego klienta.');
         }
 
         Iso50001Audit::create([
@@ -242,7 +219,7 @@ class AuditsController extends Controller
             'answers' => [],
         ]);
 
-        return redirect()->route('audits.settings')->with('status', 'Audyt ISO 50001 zostal utworzony i przypisany klientowi.');
+        return redirect()->route('audits.types', ['tab' => 'iso50001'])->with('status', 'Audyt ISO 50001 zostal utworzony i przypisany klientowi.');
     }
 
     public function updateIso50001Audit(Request $request, Iso50001Audit $isoAudit): RedirectResponse
@@ -258,7 +235,7 @@ class AuditsController extends Controller
         $client = User::query()->findOrFail((int) $validated['client_user_id']);
         $clientCompanyIds = $this->clientCompanyIds($client)->all();
         if (! in_array((int) $validated['company_id'], $clientCompanyIds, true)) {
-            return redirect()->route('audits.settings')->with('status', 'Blad: wybrana firma nie jest przypisana do wybranego klienta.');
+            return redirect()->route('audits.types', ['tab' => 'iso50001'])->with('status', 'Blad: wybrana firma nie jest przypisana do wybranego klienta.');
         }
 
         $isoAudit->update([
@@ -269,7 +246,7 @@ class AuditsController extends Controller
             'status' => $validated['status'],
         ]);
 
-        return redirect()->route('audits.settings')->with('status', 'Audyt ISO 50001 zostal zaktualizowany.');
+        return redirect()->route('audits.types', ['tab' => 'iso50001'])->with('status', 'Audyt ISO 50001 zostal zaktualizowany.');
     }
 
     public function diagnostics(): View
@@ -522,7 +499,7 @@ class AuditsController extends Controller
 
         $this->syncAuditTypeSections($auditType, $validated['sections'] ?? []);
 
-        return redirect()->route('audits.settings')->with('status', 'Rodzaj audytu został dodany.');
+        return redirect()->route('audits.types', ['tab' => 'energetyczne'])->with('status', 'Rodzaj audytu został dodany.');
     }
 
     public function updateAuditType(Request $request, AuditType $auditType): RedirectResponse
@@ -559,14 +536,14 @@ class AuditsController extends Controller
 
         $this->syncAuditTypeSections($auditType, $validated['sections'] ?? []);
 
-        return redirect()->route('audits.settings')->with('status', 'Rodzaj audytu został zaktualizowany.');
+        return redirect()->route('audits.types', ['tab' => 'energetyczne'])->with('status', 'Rodzaj audytu został zaktualizowany.');
     }
 
     public function destroyAuditType(AuditType $auditType): RedirectResponse
     {
         $auditType->delete();
 
-        return redirect()->route('audits.settings')->with('status', 'Rodzaj audytu został usunięty.');
+        return redirect()->route('audits.types', ['tab' => 'energetyczne'])->with('status', 'Rodzaj audytu został usunięty.');
     }
 
     public function copyAuditType(AuditType $auditType): RedirectResponse
@@ -587,7 +564,7 @@ class AuditsController extends Controller
             ]);
         }
 
-        return redirect()->route('audits.settings')->with('status', 'Rodzaj audytu został skopiowany.');
+        return redirect()->route('audits.types', ['tab' => 'energetyczne'])->with('status', 'Rodzaj audytu został skopiowany.');
     }
 
     public function storeUnit(Request $request): RedirectResponse
@@ -602,7 +579,7 @@ class AuditsController extends Controller
             'kind' => $validated['kind'],
         ]);
 
-        return redirect()->route('audits.settings')->with('status', 'Jednostka została dodana.');
+        return redirect()->route('audits.types', ['tab' => 'ustawienia'])->with('status', 'Jednostka została dodana.');
     }
 
     public function updateUnit(Request $request, AuditUnit $unit): RedirectResponse
@@ -617,14 +594,14 @@ class AuditsController extends Controller
             'kind' => $validated['kind'],
         ]);
 
-        return redirect()->route('audits.settings')->with('status', 'Jednostka została zaktualizowana.');
+        return redirect()->route('audits.types', ['tab' => 'ustawienia'])->with('status', 'Jednostka została zaktualizowana.');
     }
 
     public function destroyUnit(AuditUnit $unit): RedirectResponse
     {
         $unit->delete();
 
-        return redirect()->route('audits.settings')->with('status', 'Jednostka została usunięta.');
+        return redirect()->route('audits.types', ['tab' => 'ustawienia'])->with('status', 'Jednostka została usunięta.');
     }
 
     private function syncAuditTypeSections(AuditType $auditType, array $sections): void

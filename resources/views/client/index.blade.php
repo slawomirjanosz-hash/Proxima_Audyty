@@ -42,7 +42,7 @@
         }
         .client-hero h1 {
             margin: 0;
-            font-size: clamp(24px, 3vw, 38px);
+            font-size: clamp(22px, 3vw, 36px);
             font-weight: 800;
             line-height: 1.15;
         }
@@ -53,258 +53,226 @@
             color: rgba(255,255,255,.65);
             max-width: 560px;
         }
-        .client-meta {
-            display: flex;
-            gap: 24px;
-            margin-top: 8px;
-            flex-wrap: wrap;
-        }
-        .client-meta-item {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        .client-meta-item .label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: rgba(255,255,255,.45);
-            font-weight: 700;
-        }
-        .client-meta-item .value {
-            font-size: 14px;
-            font-weight: 600;
-            color: rgba(255,255,255,.9);
-        }
-        .stat-grid {
+        .client-meta { display: flex; gap: 24px; margin-top: 8px; flex-wrap: wrap; }
+        .client-meta-item { display: flex; flex-direction: column; gap: 2px; }
+        .client-meta-item .label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,.45); font-weight: 700; }
+        .client-meta-item .value { font-size: 14px; font-weight: 600; color: rgba(255,255,255,.9); }
+
+        .action-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 14px;
             margin-top: 14px;
         }
-        .stat-card {
+        .action-card {
             background: #fff;
             border: 1px solid #d5e0ea;
-            border-radius: 14px;
-            padding: 20px;
+            border-radius: 16px;
+            padding: 24px;
             box-shadow: 0 4px 16px rgba(14,55,85,.05);
         }
-        .stat-card .stat-label {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .8px;
-            color: #4c6373;
-            margin-bottom: 8px;
+        .action-card-icon {
+            width: 44px; height: 44px; border-radius: 12px;
+            display: grid; place-items: center;
+            font-size: 22px; margin-bottom: 12px;
         }
-        .stat-card .stat-value {
-            font-size: 32px;
-            font-weight: 800;
-            color: #0e89d8;
-            line-height: 1;
+        .action-card-icon-blue  { background: rgba(14,137,216,.1); }
+        .action-card-icon-green { background: rgba(27,168,74,.1); }
+        .action-card h3 { margin: 0 0 6px; font-size: 16px; font-weight: 800; color: #0f2330; }
+        .action-card p  { margin: 0 0 14px; font-size: 13px; color: #4c6373; }
+        .action-card select, .action-card textarea { width: 100%; margin-bottom: 10px; }
+        .action-card textarea { min-height: 80px; resize: vertical; }
+        .btn-action {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 18px; border-radius: 10px;
+            font-size: 14px; font-weight: 700; cursor: pointer;
+            border: none; text-decoration: none;
         }
-        .stat-card .stat-sub {
-            font-size: 12px;
-            color: #4c6373;
-            margin-top: 4px;
+        .btn-action-blue  { background: #0e89d8; color: #fff; }
+        .btn-action-blue:hover { background: #0d7cc4; }
+        .btn-action-green { background: #1ba84a; color: #fff; }
+        .btn-action-green:hover { background: #188c3e; }
+
+        .inquiry-list { display: grid; gap: 10px; margin-top: 12px; }
+        .inquiry-item {
+            border: 1px solid #d5e0ea; border-radius: 12px;
+            padding: 14px 16px; background: #fbfdff;
+            display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap;
+            justify-content: space-between;
         }
-        .section-title {
-            font-size: 13px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: .9px;
-            color: #4c6373;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #e8f0f7;
-            margin-bottom: 0;
+        .inquiry-body { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 200px; }
+        .inquiry-type { font-weight: 800; font-size: 15px; color: #10344c; }
+        .inquiry-msg  { font-size: 13px; color: #4c6373; white-space: pre-line; }
+        .inquiry-date { font-size: 12px; color: #8aa3b5; margin-top: 4px; }
+        .inquiry-badge {
+            padding: 4px 10px; border-radius: 999px;
+            font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px;
+            white-space: nowrap;
         }
-        .company-list { display:grid; gap:10px; margin-top:14px; }
-        .company-item { border:1px solid #d7e5f0; border-radius:12px; overflow:hidden; background:#fbfdff; }
-        .company-header { width:100%; border:none; background:#f6fbff; padding:12px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; text-align:left; }
-        .company-header:hover { background:#eef6ff; }
-        .company-main { display:flex; flex-direction:column; gap:3px; }
-        .company-title { font-weight:800; color:#10344c; }
-        .company-meta { font-size:12px; color:#4c6373; }
-        .company-chevron { color:#6b8aa3; font-size:16px; transition:transform .2s; }
-        .company-item.open .company-chevron { transform:rotate(180deg); }
-        .company-body { display:none; padding:12px; border-top:1px solid #e0ecf5; }
-        .company-item.open .company-body { display:block; }
-        .company-audits-list { margin:0; padding-left:18px; display:grid; gap:6px; }
-        .company-audits-list li { color:#2f4e65; font-size:13px; }
-        .iso-audit-table td, .iso-audit-table th { font-size:13px; }
-        .iso-progress-pill {
-            display:inline-flex;
-            align-items:center;
-            justify-content:center;
-            min-width:86px;
-            padding:4px 8px;
-            border-radius:999px;
-            background:#eef8ff;
-            border:1px solid #cae3f6;
-            color:#1c4e73;
-            font-weight:700;
-            font-size:12px;
-        }
-        .iso-status-pill {
-            display:inline-flex;
-            align-items:center;
-            padding:4px 8px;
-            border-radius:999px;
-            border:1px solid #d4e4f0;
-            background:#f7fbff;
-            color:#31566f;
-            font-size:11px;
-            font-weight:700;
-            text-transform:uppercase;
-        }
-        .iso-status-pill.status-approved { background:#e6f8ed; border-color:#bde9ca; color:#1f6a3c; }
-        .iso-status-pill.status-changes_required { background:#fff4df; border-color:#f8d8a3; color:#875605; }
-        .iso-status-pill.status-in_review { background:#f0ebff; border-color:#d7cbff; color:#563a98; }
-        .iso-status-pill.status-submitted { background:#e9f4ff; border-color:#c5e1ff; color:#1d5f94; }
+        .preview-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .preview-table th, .preview-table td { padding: 9px 10px; font-size: 13px; border-bottom: 1px solid #edf2f7; text-align: left; }
+        .preview-table th { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: #4c6373; background: #f7fafc; }
+        .preview-table tr:last-child td { border-bottom: none; }
+
         @media (max-width: 800px) {
-            .stat-grid { grid-template-columns: 1fr 1fr; }
-            .client-hero { padding: 24px 22px; }
+            .client-hero { padding: 24px 20px; }
+            .action-grid { grid-template-columns: 1fr; }
         }
     </style>
 
     {{-- Welcome hero --}}
     <div class="client-hero">
-        <span class="client-tag">{{ __('ui.client.tag') }}</span>
-        <h1>{{ __('ui.client.welcome') }}, <span>{{ auth()->user()->name }}</span></h1>
-        <p>
-            {{ __('ui.client.description') }}
-        </p>
+        <span class="client-tag">Strefa klienta</span>
+        <h1>Witaj, <span>{{ auth()->user()->name }}</span></h1>
+        <p>Twoja dedykowana przestrzeń ENESA — tutaj możesz wysłać zapytanie dotyczące audytu energetycznego lub skontaktować się z nami bezpośrednio.</p>
         <div class="client-meta">
             <div class="client-meta-item">
-                <span class="label">{{ __('ui.client.meta.account') }}</span>
+                <span class="label">Konto</span>
                 <span class="value">{{ auth()->user()->email }}</span>
             </div>
             <div class="client-meta-item">
-                <span class="label">{{ __('ui.client.meta.access_level') }}</span>
+                <span class="label">Poziom dostępu</span>
                 <span class="value">{{ auth()->user()->role->label() }}</span>
             </div>
             <div class="client-meta-item">
-                <span class="label">{{ __('ui.client.meta.session_date') }}</span>
+                <span class="label">Data sesji</span>
                 <span class="value">{{ now()->format('d M Y') }}</span>
             </div>
         </div>
     </div>
 
-    @if($previewMode)
+    @if ($previewMode)
         <section class="panel" style="margin-top:14px; background:#f2f8ff; border-color:#cfe0ff; color:#154f93;">
-            <strong>{{ __('ui.client.preview_title') }}</strong> {{ __('ui.client.preview_text') }}
+            <strong>Tryb podglądu:</strong> Przeglądasz Strefę klienta jako konto uprzywilejowane.
         </section>
     @endif
 
-    {{-- Stats --}}
-    <div class="stat-grid">
-        <div class="stat-card">
-            <div class="stat-label">{{ __('ui.client.stats.companies') }}</div>
-            <div class="stat-value">{{ $companies->count() }}</div>
-            <div class="stat-sub">{{ __('ui.client.stats.companies_sub') }}</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">{{ __('ui.client.stats.audits') }}</div>
-            <div class="stat-value">{{ $audits->count() }}</div>
-            <div class="stat-sub">{{ __('ui.client.stats.audits_sub') }}</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">Firmy z audytami</div>
-            <div class="stat-value">{{ ($auditsByCompany ?? collect())->count() }}</div>
-            <div class="stat-sub">kliknij firmę, aby zobaczyć przypisane audyty</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">Audyty ISO50001</div>
-            <div class="stat-value">{{ ($isoAudits ?? collect())->count() }}</div>
-            <div class="stat-sub">Twoje audyty krok po kroku z terminem i postepem</div>
-        </div>
-    </div>
+    @if (session('inquiry_status'))
+        <div class="status" style="margin-top:12px;">{{ session('inquiry_status') }}</div>
+    @endif
 
-    <section class="panel">
-        <p class="section-title">Twoje audyty ISO50001</p>
+    @if (!$previewMode)
+        {{-- Client actions --}}
+        <div class="action-grid">
 
-        <table class="iso-audit-table" style="margin-top:12px;">
-            <thead>
-            <tr>
-                <th>Audyt</th>
-                <th>Firma</th>
-                <th>Status</th>
-                <th>Data zakonczenia</th>
-                <th>Postep</th>
-                <th>Akcja</th>
-            </tr>
-            </thead>
-            <tbody>
-            @forelse(($isoAudits ?? collect()) as $isoAudit)
-                @php($statusClass = 'status-'.str_replace(' ', '_', $isoAudit->status))
-                <tr>
-                    <td>{{ $isoAudit->title }}</td>
-                    <td>{{ $isoAudit->company?->name ?? '—' }}</td>
-                    <td><span class="iso-status-pill {{ $statusClass }}">{{ \App\Models\Iso50001Audit::statusLabels()[$isoAudit->status] ?? $isoAudit->status }}</span></td>
-                    <td>{{ $isoAudit->due_date?->format('d.m.Y') ?? '—' }}</td>
-                    <td><span class="iso-progress-pill">{{ (int) ($isoAudit->progress_filled ?? 0) }}/{{ (int) ($isoAudit->progress_max ?? ($maxIsoTasks ?? 0)) }}</span></td>
-                    <td style="display:flex; gap:6px; white-space:nowrap;">
-                        <a href="{{ route('iso50001.step', ['isoAudit' => $isoAudit, 'step' => max(1, (int) $isoAudit->current_step)]) }}" style="display:inline-block; background:#0e89d8; color:#fff; padding:6px 10px; border-radius:8px; text-decoration:none;">Edytuj</a>
-                        <a href="{{ route('iso50001.review', $isoAudit) }}" style="display:inline-block; background:#eff6fb; color:#174666; padding:6px 10px; border-radius:8px; text-decoration:none; border:1px solid #d3e4f1;">Podglad</a>
-                    </td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="6" class="muted" style="text-align:center;">Brak przypisanych audytow ISO50001.</td>
-                </tr>
-            @endforelse
-            </tbody>
-        </table>
-    </section>
-
-    {{-- Companies table --}}
-    <section class="panel">
-        <p class="section-title">{{ __('ui.client.tables.companies.title') }}</p>
-        <div class="company-list">
-            @forelse($companies as $company)
-                @php($companyAudits = ($auditsByCompany[(string) $company->id] ?? collect()))
-                <div class="company-item" id="company-item-{{ $company->id }}">
-                    <button type="button" class="company-header" onclick="toggleCompanyItem('{{ $company->id }}')">
-                        <div class="company-main">
-                            <span class="company-title">{{ $loop->iteration }}. {{ $company->name }}</span>
-                            <span class="company-meta">{{ __('ui.client.tables.companies.columns.city') }}: {{ $company->city ?? '—' }} • {{ __('ui.client.tables.companies.columns.assigned_auditor') }}: {{ $company->auditor?->name ?? '—' }}</span>
-                        </div>
-                        <span class="company-chevron">&#9660;</span>
-                    </button>
-                    <div class="company-body">
-                        <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:#4c6373; margin-bottom:8px;">Przypisane audyty</div>
-                        @if($companyAudits->isNotEmpty())
-                            <ul class="company-audits-list">
-                                @foreach($companyAudits as $audit)
-                                    <li>
-                                        <strong>{{ $audit->title }}</strong>
-                                        — status: {{ $audit->status }}
-                                        @if($audit->auditor)
-                                            — audytor: {{ $audit->auditor->name }}
-                                        @endif
-                                    </li>
-                                @endforeach
-                            </ul>
-                        @else
-                            <div style="color:#9ab4c5; font-size:13px;">Brak przypisanych audytów.</div>
-                        @endif
+            {{-- Card 1: Send inquiry --}}
+            <div class="action-card">
+                <div class="action-card-icon action-card-icon-blue">📋</div>
+                <h3>Wyślij zapytanie o audyt</h3>
+                <p>Wybierz rodzaj audytu, który Cię interesuje, i wyślij zapytanie. Odpiszemy tak szybko jak to możliwe.</p>
+                <form method="POST" action="{{ route('client.inquiry.store') }}">
+                    @csrf
+                    <div>
+                        <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin-bottom:4px;">Rodzaj audytu *</label>
+                        <select name="audit_type_id" required>
+                            <option value="">— Wybierz rodzaj audytu —</option>
+                            @foreach ($auditTypes as $type)
+                                <option value="{{ $type->id }}" @selected(old('audit_type_id') == $type->id)>{{ $type->name }}</option>
+                            @endforeach
+                        </select>
                     </div>
+                    <div style="margin-top:8px;">
+                        <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin-bottom:4px;">Wiadomość (opcjonalnie)</label>
+                        <textarea name="message" placeholder="Opisz swoje potrzeby lub zadaj pytanie...">{{ old('message') }}</textarea>
+                    </div>
+                    @error('audit_type_id')
+                        <div style="color:#b91c1c; font-size:12px; margin-bottom:6px;">{{ $message }}</div>
+                    @enderror
+                    <button type="submit" class="btn-action btn-action-blue">
+                        <span>📤</span> Wyślij zapytanie
+                    </button>
+                </form>
+            </div>
+
+            {{-- Card 2: Contact via email --}}
+            @if (!empty($contactEmail))
+                <div class="action-card">
+                    <div class="action-card-icon action-card-icon-green">✉️</div>
+                    <h3>Napisz do nas</h3>
+                    <p>Masz pytanie poza standardowym zapytaniem? Napisz do nas bezpośrednio na adres e-mail.</p>
+                    <a href="mailto:{{ $contactEmail }}" class="btn-action btn-action-green">
+                        <span>📧</span> {{ $contactEmail }}
+                    </a>
                 </div>
-            @empty
-                <div style="color:#9ab4c5; text-align:center; padding:24px;">{{ __('ui.client.tables.companies.empty') }}</div>
-            @endforelse
+            @else
+                <div class="action-card" style="border-color:#e8f3ff; background:#f7fbff;">
+                    <div class="action-card-icon action-card-icon-green">✉️</div>
+                    <h3>Napisz do nas</h3>
+                    <p>Skontaktuj się z nami bezpośrednio. Dane kontaktowe zostaną wkrótce udostępnione przez administratora.</p>
+                </div>
+            @endif
+
         </div>
-    </section>
 
-    <script>
-        function toggleCompanyItem(companyId) {
-            const item = document.getElementById('company-item-' + companyId);
-            if (!item) {
-                return;
-            }
+        {{-- Client's inquiries --}}
+        <section class="panel" style="margin-top:14px;">
+            <h2 style="margin:0 0 6px; font-size:17px; font-weight:800; color:#0f2330;">Moje zapytania</h2>
+            <p class="muted" style="margin:0 0 10px; font-size:13px;">Lista Twoich wysłanych zapytań o audyt wraz z aktualnym statusem.</p>
 
-            item.classList.toggle('open');
-        }
-    </script>
+            @if ($inquiries->isEmpty())
+                <div style="padding:20px; text-align:center; color:#9ab4c5; border:1px dashed #d5e0ea; border-radius:12px; font-size:14px;">
+                    Nie wysłałeś jeszcze żadnego zapytania. Użyj formularza powyżej.
+                </div>
+            @else
+                <div class="inquiry-list">
+                    @foreach ($inquiries as $inquiry)
+                        <div class="inquiry-item">
+                            <div class="inquiry-body">
+                                <span class="inquiry-type">{{ $inquiry->audit_type_name ?? $inquiry->auditType?->name ?? '—' }}</span>
+                                @if ($inquiry->message)
+                                    <span class="inquiry-msg">{{ $inquiry->message }}</span>
+                                @endif
+                                <span class="inquiry-date">Wysłano: {{ $inquiry->created_at->format('d.m.Y H:i') }}</span>
+                            </div>
+                            <span class="inquiry-badge" style="background:{{ $inquiry->statusBg() }}; color:{{ $inquiry->statusColor() }}; border:1px solid {{ $inquiry->statusBg() }};">
+                                {{ $inquiry->statusLabel() }}
+                            </span>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </section>
+
+    @else
+        {{-- Admin/auditor preview: show all inquiries --}}
+        <section class="panel" style="margin-top:14px;">
+            <h2 style="margin:0 0 6px; font-size:17px; font-weight:800; color:#0f2330;">Wszystkie zapytania klientów</h2>
+            <p class="muted" style="margin:0 0 10px; font-size:13px;">Lista wszystkich zapytań nadesłanych przez klientów z Strefy klienta.</p>
+
+            @if ($inquiries->isEmpty())
+                <div style="padding:20px; text-align:center; color:#9ab4c5; font-size:14px;">Brak zapytań.</div>
+            @else
+                <table class="preview-table">
+                    <thead>
+                        <tr>
+                            <th>Klient</th>
+                            <th>Firma</th>
+                            <th>Rodzaj audytu</th>
+                            <th>Wiadomość</th>
+                            <th>Data</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($inquiries as $inquiry)
+                            <tr>
+                                <td>{{ $inquiry->user?->name ?? '—' }}</td>
+                                <td>{{ $inquiry->company?->name ?? '—' }}</td>
+                                <td>{{ $inquiry->audit_type_name ?? '—' }}</td>
+                                <td>{{ $inquiry->message ? \Illuminate\Support\Str::limit($inquiry->message, 60) : '—' }}</td>
+                                <td style="white-space:nowrap;">{{ $inquiry->created_at->format('d.m.Y H:i') }}</td>
+                                <td>
+                                    <span class="inquiry-badge" style="background:{{ $inquiry->statusBg() }}; color:{{ $inquiry->statusColor() }};">
+                                        {{ $inquiry->statusLabel() }}
+                                    </span>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+        </section>
+    @endif
 
 </x-layouts.app>
+

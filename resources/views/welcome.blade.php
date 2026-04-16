@@ -111,6 +111,13 @@
             background: rgba(255,255,255,.28);
             border-color: rgba(255,255,255,.4);
         }
+        .menu-tree { list-style:none; margin:4px 0 0; padding:0 0 0 14px; display:grid; gap:3px; }
+        .menu-tree a { display:block; text-decoration:none; color:rgba(255,255,255,.82); font-weight:600; font-size:13px; padding:6px 10px; border-radius:8px; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1); }
+        .menu-tree a:hover, .menu-tree a.menu-active { background:rgba(255,255,255,.24); border-color:rgba(255,255,255,.35); color:#fff; }
+        .menu-tree-toggle { width:100%; display:flex; justify-content:space-between; align-items:center; gap:6px; color:#fff; font-weight:600; padding:11px 12px; border-radius:10px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15); cursor:pointer; font-size:inherit; font-family:inherit; text-align:left; }
+        .menu-tree-toggle:hover { background:rgba(255,255,255,.28); border-color:rgba(255,255,255,.4); }
+        .menu-tree-arrow { font-size:11px; opacity:.8; transition:transform .2s; }
+        .menu-tree-toggle.open .menu-tree-arrow { transform:rotate(180deg); }
 
         .content {
             padding: 16px 22px 22px;
@@ -370,11 +377,11 @@
         }
 
         .login-card .brand-login { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
-        .login-card .logo-login { width:42px; height:42px; border-radius:12px; background:linear-gradient(130deg, #1ba84a, #0e89d8); display:grid; place-items:center; color:#fff; font-weight:800; }
+        .login-card .logo-login { width:42px; height:42px; border-radius:12px; overflow:hidden; display:grid; place-items:center; }
         .login-card h3 { margin:0 0 12px; font-size:24px; }
         .login-card label { display:block; margin:12px 0 6px; font-weight:600; font-size:14px; }
         .login-card input { width:100%; box-sizing:border-box; padding:10px; border-radius:9px; border:1px solid #c9d7e3; }
-        .login-card .row { display:flex; justify-content:space-between; align-items:center; margin-top:10px; font-size:14px; }
+        .login-card .row { display:flex; justify-content:flex-start; align-items:center; margin-top:10px; font-size:14px; }
         .login-card .submit-btn { margin-top:14px; width:100%; border:0; border-radius:10px; padding:11px; color:#fff; font-weight:700; background:linear-gradient(130deg, #1ba84a, #0e89d8); cursor:pointer; }
         .login-card .err { margin-top:10px; padding:9px; background:#ffe6e6; color:#9f1f1f; border:1px solid #ffc9c9; border-radius:8px; }
         .login-card .hint { margin-top:10px; font-size:12px; color:#4f6675; }
@@ -413,7 +420,21 @@
 
                     @if(!$menuUser->isClient() && $menuUser->canAccessTab(\App\Models\User::TAB_AUDITS))
                         <li><a href="{{ route('dashboard') }}">{{ __('ui.menu.dashboard') }}</a></li>
-                        <li><a href="{{ route('audits.index') }}">{{ __('ui.menu.audits') }}</a></li>
+                        @php($inAuditsTypes = request()->routeIs('audits.types'))
+                        @php($currentTab = request()->route('tab'))
+                        <li>
+                            <button type="button" class="menu-tree-toggle {{ $inAuditsTypes ? 'open' : '' }}"
+                                onclick="this.classList.toggle('open'); this.nextElementSibling.style.display = this.classList.contains('open') ? '' : 'none';">
+                                <span>Rodzaje audytów</span>
+                                <span class="menu-tree-arrow">&#9660;</span>
+                            </button>
+                            <ul class="menu-tree" style="{{ $inAuditsTypes ? '' : 'display:none' }}">
+                                <li><a href="{{ route('audits.types', ['tab' => 'energetyczne']) }}" @class(['menu-active' => $inAuditsTypes && ($currentTab === 'energetyczne' || $currentTab === null)])>Audyty energetyczne</a></li>
+                                <li><a href="{{ route('audits.types', ['tab' => 'iso50001']) }}" @class(['menu-active' => $inAuditsTypes && $currentTab === 'iso50001'])>ISO 50001</a></li>
+                                <li><a href="{{ route('audits.types', ['tab' => 'biale-certyfikaty']) }}" @class(['menu-active' => $inAuditsTypes && $currentTab === 'biale-certyfikaty'])>Białe certyfikaty</a></li>
+                                <li><a href="{{ route('audits.types', ['tab' => 'ustawienia']) }}" @class(['menu-active' => $inAuditsTypes && $currentTab === 'ustawienia'])>Ustawienia</a></li>
+                            </ul>
+                        </li>
                         <li><a href="{{ route('crm.index') }}">{{ __('ui.menu.crm') }}</a></li>
                     @endif
 
@@ -488,7 +509,7 @@
                     @csrf
 
                     <div class="brand-login">
-                        <div class="logo-login">E</div>
+                        <div class="logo-login"><img src="/logo.png" alt="ENESA" style="width:42px;height:42px;object-fit:cover;"></div>
                         <div>
                             <strong>ENESA</strong>
                             <div style="font-size:12px;color:#4f6675;">{{ __('ui.auth.access_panel') }}</div>
@@ -508,12 +529,12 @@
                     <input id="password" name="password" type="password" required>
 
                     <div class="row">
-                        <label style="margin:0;"><input type="checkbox" name="remember"> {{ __('ui.actions.remember_me') }}</label>
+                        <label style="margin:0; display:flex; align-items:center; gap:6px; white-space:nowrap;"><input type="checkbox" name="remember"> {{ __('ui.actions.remember_me') }}</label>
                     </div>
 
                     <button class="submit-btn" type="submit">{{ __('ui.actions.sign_in') }}</button>
 
-                    <div class="hint">{{ __('ui.auth.test_accounts') }}</div>
+
                     <a class="login-close" href="{{ route('home') }}">{{ __('ui.actions.close') }}</a>
                 </form>
             </div>

@@ -55,6 +55,13 @@
             .main { padding: 12px; }
         }
         /* ── Built-by badge ── */
+        .menu-tree { list-style:none; margin:4px 0 0; padding:0 0 0 14px; display:grid; gap:3px; }
+        .menu-tree a { display:block; text-decoration:none; color:rgba(255,255,255,.82); font-weight:600; font-size:13px; padding:6px 10px; border-radius:8px; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1); }
+        .menu-tree a:hover, .menu-tree a.menu-active { background:rgba(255,255,255,.24); border-color:rgba(255,255,255,.35); color:#fff; }
+        .menu-tree-toggle { width:100%; display:flex; justify-content:space-between; align-items:center; gap:6px; color:#fff; font-weight:600; padding:11px 12px; border-radius:10px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15); cursor:pointer; font-size:inherit; font-family:inherit; text-align:left; }
+        .menu-tree-toggle:hover, .menu-tree-toggle.menu-active { background:rgba(255,255,255,.28); border-color:rgba(255,255,255,.4); }
+        .menu-tree-arrow { font-size:11px; opacity:.8; transition:transform .2s; }
+        .menu-tree-toggle.open .menu-tree-arrow { transform:rotate(180deg); }
         .built-by { position: fixed; bottom: 20px; left: 20px; display: flex; align-items: center; gap: 10px; z-index: 200; text-decoration: none; cursor: default; user-select: none; }
         .built-by__logo { height: 30px; width: auto; display: block; flex-shrink: 0; }
         .built-by__text { display: flex; flex-direction: column; gap: 1px; }
@@ -93,7 +100,21 @@
 
                 @if(!$menuUser->isClient() && $menuUser->canAccessTab(\App\Models\User::TAB_AUDITS))
                     <li><a href="{{ route('dashboard') }}" @class(['menu-active' => request()->routeIs('dashboard')])>{{ __('ui.menu.dashboard') }}</a></li>
-                    <li><a href="{{ route('audits.index') }}" @class(['menu-active' => request()->routeIs('audits.*')])>{{ __('ui.menu.audits') }}</a></li>
+                    @php($inAuditsTypes = request()->routeIs('audits.types'))
+                    @php($currentTab = request()->route('tab'))
+                    <li>
+                        <button type="button" class="menu-tree-toggle {{ $inAuditsTypes ? 'open' : '' }}"
+                            onclick="this.classList.toggle('open'); this.nextElementSibling.style.display = this.classList.contains('open') ? '' : 'none';">
+                            <span>Rodzaje audytów</span>
+                            <span class="menu-tree-arrow">&#9660;</span>
+                        </button>
+                        <ul class="menu-tree" style="{{ $inAuditsTypes ? '' : 'display:none' }}">
+                            <li><a href="{{ route('audits.types', ['tab' => 'energetyczne']) }}" @class(['menu-active' => $inAuditsTypes && ($currentTab === 'energetyczne' || $currentTab === null)])>Audyty energetyczne</a></li>
+                            <li><a href="{{ route('audits.types', ['tab' => 'iso50001']) }}" @class(['menu-active' => $inAuditsTypes && $currentTab === 'iso50001'])>ISO 50001</a></li>
+                            <li><a href="{{ route('audits.types', ['tab' => 'biale-certyfikaty']) }}" @class(['menu-active' => $inAuditsTypes && $currentTab === 'biale-certyfikaty'])>Białe certyfikaty</a></li>
+                            <li><a href="{{ route('audits.types', ['tab' => 'ustawienia']) }}" @class(['menu-active' => $inAuditsTypes && $currentTab === 'ustawienia'])>Ustawienia</a></li>
+                        </ul>
+                    </li>
                     <li><a href="{{ route('crm.index') }}" @class(['menu-active' => request()->routeIs('crm.*')])>{{ __('ui.menu.crm') }}</a></li>
                 @endif
 

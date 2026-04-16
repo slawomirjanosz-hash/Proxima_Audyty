@@ -68,26 +68,34 @@
             .token-helper-hint { font-size:11px; color:#5f7688; margin-top:6px; }
             .btn-trash-icon { width:28px; height:28px; min-height:28px; padding:0; border-radius:8px; background:#e9f1f8; color:#35556f; border:1px solid #c9dceb; font-size:14px; line-height:1; display:inline-flex; align-items:center; justify-content:center; }
             .btn-trash-icon:hover { background:#dceaf6; }
+            .settings-tab-btn { padding:8px 14px; border-radius:10px; border:1px solid #d7e5f0; background:#eef5fb; font-weight:700; color:#28485f; display:inline-block; text-decoration:none; font-size:14px; }
+            .settings-tab-btn.active { background:#fff; border-color:#0e89d8; color:#0e89d8; }
         </style>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px;">
             <div>
-                <h1 style="margin:0;">Ustawienia audytów</h1>
-                <p class="muted" style="margin:4px 0 0;">Rodzaje audytów i jednostki — sekcje rozwijane.</p>
+                <h1 style="margin:0;">
+                    @if($activeTab === 'energetyczne') Audyty energetyczne przedsiębiorstw
+                    @elseif($activeTab === 'iso50001') Audyty ISO 50001
+                    @elseif($activeTab === 'biale-certyfikaty') Audyty na białe certyfikaty
+                    @elseif($activeTab === 'ai-audyty') Audyty z AI
+                    @else Ustawienia
+                    @endif
+                </h1>
             </div>
-            <a href="{{ route('audits.index') }}" class="btn-secondary" style="text-decoration:none; padding:8px 10px; border-radius:9px;">← Wróć do audytów</a>
         </div>
 
-        <div class="settings-section open" id="settings-audit-types">
-            <button type="button" class="settings-toggle" onclick="toggleSettingsSection('settings-audit-types')">
-                <div class="settings-toggle-content">
-                    <h2>Rodzaje audytów</h2>
-                    <p class="muted">Tworzenie rodzaju audytu jako osobna sekcja.</p>
-                </div>
-                <span class="settings-chevron">&#9660;</span>
-            </button>
+        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;">
+            <a href="{{ route('audits.types', ['tab' => 'energetyczne']) }}" class="settings-tab-btn {{ $activeTab === 'energetyczne' ? 'active' : '' }}">Audyty energetyczne</a>
+            <a href="{{ route('audits.types', ['tab' => 'iso50001']) }}" class="settings-tab-btn {{ $activeTab === 'iso50001' ? 'active' : '' }}">ISO 50001</a>
+            <a href="{{ route('audits.types', ['tab' => 'biale-certyfikaty']) }}" class="settings-tab-btn {{ $activeTab === 'biale-certyfikaty' ? 'active' : '' }}">Białe certyfikaty</a>
+            <a href="{{ route('audits.types', ['tab' => 'ai-audyty']) }}" class="settings-tab-btn {{ $activeTab === 'ai-audyty' ? 'active' : '' }}">🤖 Audyty z AI</a>
+            <a href="{{ route('audits.types', ['tab' => 'ustawienia']) }}" class="settings-tab-btn {{ $activeTab === 'ustawienia' ? 'active' : '' }}">Ustawienia</a>
+        </div>
 
-            <div class="settings-body">
+        @if($activeTab === 'energetyczne')
+        <div class="settings-section open" id="settings-audit-types">
+            <div class="settings-body" style="display:block;">
                 <div style="display:flex; justify-content:flex-end; margin-top:10px;">
                     <button type="button" class="edit-user-btn" onclick="toggleAuditTypeForm()">Dodaj rodzaj audytu</button>
                 </div>
@@ -464,17 +472,11 @@
                 </div>
             </div>
         </div>
+        @endif
 
-        <div class="settings-section" id="settings-iso50001">
-            <button type="button" class="settings-toggle" onclick="toggleSettingsSection('settings-iso50001')">
-                <div class="settings-toggle-content">
-                    <h2>Audyty ISO50001</h2>
-                    <p class="muted">Konfiguracja formularza i zarzadzanie audytami ISO 50001 przypisanymi klientom.</p>
-                </div>
-                <span class="settings-chevron">&#9660;</span>
-            </button>
-
-            <div class="settings-body">
+        @if($activeTab === 'iso50001')
+        <div class="settings-section open" id="settings-iso50001">
+            <div class="settings-body" style="display:block;">
                 <div style="display:grid; grid-template-columns: 1fr; gap:14px; margin-top:10px;">
                     <section class="audit-type-card">
                         <h3 style="margin:0 0 10px;">Przykladowy audyt do edycji (szablon krokow)</h3>
@@ -583,17 +585,11 @@
                 </div>
             </div>
         </div>
+        @endif
 
-        <div class="settings-section" id="settings-units">
-            <button type="button" class="settings-toggle" onclick="toggleSettingsSection('settings-units')">
-                <div class="settings-toggle-content">
-                    <h2>Jednostki</h2>
-                    <p class="muted">Kolejna sekcja ustawień audytów, z możliwością dodawania kolejnych jednostek.</p>
-                </div>
-                <span class="settings-chevron">&#9660;</span>
-            </button>
-
-            <div class="settings-body">
+        @if($activeTab === 'ustawienia')
+        <div class="settings-section open" id="settings-units">
+            <div class="settings-body" style="display:block;">
 
             <form method="POST" action="{{ route('audits.settings.unit-store') }}" style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap; margin-top:10px;">
                 @csrf
@@ -679,6 +675,111 @@
             </table>
             </div>
         </div>
+        @endif
+
+        @if($activeTab === 'biale-certyfikaty')
+        <div class="settings-section open" id="settings-white-certificates">
+            <div class="settings-body" style="display:block; padding:12px;">
+                <div class="muted">Sekcja w przygotowaniu.</div>
+            </div>
+        </div>
+        @endif
+
+        @if($activeTab === 'ai-audyty')
+        <div class="settings-section open" id="settings-ai-audits">
+            <div class="settings-body" style="display:block; padding:16px;">
+
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
+                    <div>
+                        <h2 style="margin:0; font-size:18px;">🤖 Asystent AI do audytów</h2>
+                        <p style="margin:6px 0 0; font-size:13px; color:#5a7390;">Prowadź klientów przez zbieranie danych do audytów energetycznych i ISO 50001 za pomocą asystenta Claude AI.</p>
+                    </div>
+                    <a href="{{ route('ai.create', ['type' => 'energy_audit']) }}" style="display:inline-flex; align-items:center; gap:8px; padding:10px 18px; background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; border-radius:10px; font-weight:700; font-size:14px; text-decoration:none;">
+                        + Nowa rozmowa AI
+                    </a>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; margin-bottom:24px;">
+                    <a href="{{ route('ai.create', ['type' => 'energy_audit']) }}" style="display:block; text-decoration:none; border:1px solid #d4ebf8; border-radius:14px; padding:18px; background:#f0f9ff; transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(14,137,216,.15)'" onmouseout="this.style.boxShadow='none'">
+                        <div style="font-size:32px; margin-bottom:8px;">⚡</div>
+                        <div style="font-weight:700; color:#0e4f7a; font-size:15px;">Audyt energetyczny</div>
+                        <div style="font-size:12px; color:#5a7a90; margin-top:4px;">AI prowadzi klienta przez zbieranie danych do audytu energetycznego budynku / instalacji</div>
+                    </a>
+                    <a href="{{ route('ai.create', ['type' => 'iso50001']) }}" style="display:block; text-decoration:none; border:1px solid #d4eaf8; border-radius:14px; padding:18px; background:#f0f6ff; transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(14,89,216,.15)'" onmouseout="this.style.boxShadow='none'">
+                        <div style="font-size:32px; margin-bottom:8px;">🏭</div>
+                        <div style="font-weight:700; color:#1a3f7a; font-size:15px;">ISO 50001</div>
+                        <div style="font-size:12px; color:#5a7a90; margin-top:4px;">AI pomoże wypełnić wymagania systemu zarządzania energią zgodnie z ISO 50001</div>
+                    </a>
+                    <a href="{{ route('ai.create', ['type' => 'offer']) }}" style="display:block; text-decoration:none; border:1px solid #fde9c0; border-radius:14px; padding:18px; background:#fffbf0; transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(200,130,14,.15)'" onmouseout="this.style.boxShadow='none'">
+                        <div style="font-size:32px; margin-bottom:8px;">📄</div>
+                        <div style="font-weight:700; color:#7a4e0a; font-size:15px;">Oferta</div>
+                        <div style="font-size:12px; color:#8a7050; margin-top:4px;">AI zbiera dane potrzebne do przygotowania wyceny i oferty na audyt</div>
+                    </a>
+                    <a href="{{ route('ai.create') }}" style="display:block; text-decoration:none; border:1px solid #e0e8f0; border-radius:14px; padding:18px; background:#f8fafb; transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(40,80,110,.1)'" onmouseout="this.style.boxShadow='none'">
+                        <div style="font-size:32px; margin-bottom:8px;">💬</div>
+                        <div style="font-weight:700; color:#28485f; font-size:15px;">Ogólny</div>
+                        <div style="font-size:12px; color:#5a7090; margin-top:4px;">Dowolna rozmowa z asystentem — pytania, analizy, konsultacje energetyczne</div>
+                    </a>
+                </div>
+
+                @php
+                    $aiConvs = \App\Models\AiConversation::where('user_id', auth()->id())
+                        ->where('status', 'active')
+                        ->latest()
+                        ->take(10)
+                        ->get();
+                @endphp
+
+                @if($aiConvs->isNotEmpty())
+                <div style="margin-top:8px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <strong style="font-size:14px; color:#163f5b;">Ostatnie rozmowy AI</strong>
+                        <a href="{{ route('ai.index') }}" style="font-size:13px; color:#0e89d8; font-weight:600; text-decoration:none;">Wszystkie →</a>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Temat</th>
+                                <th>Typ</th>
+                                <th>Data</th>
+                                <th style="width:100px;">Akcja</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($aiConvs as $conv)
+                            @php
+                                $label = match($conv->context_type) {
+                                    'energy_audit' => '⚡ Audyt energetyczny',
+                                    'iso50001'     => '🏭 ISO 50001',
+                                    'offer'        => '📄 Oferta',
+                                    default        => '💬 Ogólny',
+                                };
+                            @endphp
+                            <tr>
+                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ $conv->title }}</td>
+                                <td style="font-size:13px;">{{ $label }}</td>
+                                <td style="font-size:13px; color:#5a7390;">{{ $conv->created_at->format('d.m.Y H:i') }}</td>
+                                <td>
+                                    <a href="{{ route('ai.show', $conv) }}" class="btn-secondary" style="display:inline-flex;padding:5px 10px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;background:#dbe9f5;color:#1d4f73;border:1px solid #c0d8ee;">Otwórz</a>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @else
+                <div style="text-align:center; padding:30px; color:#8a9bac; border:1px dashed #c8d8e6; border-radius:12px;">
+                    <div style="font-size:36px; margin-bottom:8px;">🤖</div>
+                    <div style="font-weight:600; margin-bottom:4px;">Brak aktywnych rozmów</div>
+                    <div style="font-size:13px;">Wybierz typ audytu powyżej, by rozpocząć pierwszą rozmowę z asystentem.</div>
+                </div>
+                @endif
+
+            </div>
+        </div>
+        @endif
     </section>
 
     <script>

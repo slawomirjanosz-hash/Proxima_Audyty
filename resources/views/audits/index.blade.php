@@ -34,7 +34,7 @@
         </style>
 
         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px;">
-            <h1 style="margin:0;">Audyty</h1>
+            <h1 style="margin:0;">Rodzaje audytów</h1>
             <a href="{{ route('audits.settings') }}" class="btn-secondary" style="text-decoration:none; padding:8px 10px; border-radius:9px;">⚙️ Ustawienia</a>
         </div>
         <p class="muted" style="margin:0 0 14px;">Zarządzanie audytami: tworzenie, prowadzenie i zamykanie.</p>

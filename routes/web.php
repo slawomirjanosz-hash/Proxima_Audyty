@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AiAgentController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AuditsController;
 use App\Http\Controllers\ClientController;
@@ -69,38 +70,22 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/audyty', [AuditsController::class, 'index'])
         ->middleware('role:admin,auditor')
         ->name('audits.index');
-    Route::post('/audyty', [AuditsController::class, 'store'])
+    Route::get('/audyty/rodzaje/{tab}', function (string $tab) {
+        return app(\App\Http\Controllers\AuditsController::class)->settings($tab);
+    })
+        ->where('tab', 'energetyczne|iso50001|biale-certyfikaty|ai-audyty|ustawienia')
         ->middleware('role:admin,auditor')
-        ->name('audits.store');
-    Route::get('/audyty/{audit}/info', [AuditsController::class, 'show'])
-        ->middleware('role:admin,auditor')
-        ->name('audits.show');
-    Route::get('/audyty/{audit}/edytuj', [AuditsController::class, 'edit'])
-        ->middleware('role:admin,auditor')
-        ->name('audits.edit');
-    Route::patch('/audyty/{audit}', [AuditsController::class, 'update'])
-        ->middleware('role:admin,auditor')
-        ->name('audits.update');
-    Route::patch('/audyty/{audit}/zakoncz', [AuditsController::class, 'complete'])
-        ->middleware('role:admin,auditor')
-        ->name('audits.complete');
-    Route::patch('/audyty/{audit}/wznow', [AuditsController::class, 'reopen'])
-        ->middleware('role:admin,auditor')
-        ->name('audits.reopen');
-    Route::get('/audyty/ustawienia', [AuditsController::class, 'settings'])
+        ->name('audits.types');
+    Route::get('/audyty/ustawienia', function () {
+        return redirect()->route('audits.types', ['tab' => 'energetyczne']);
+    })
         ->middleware('role:admin,auditor')
         ->name('audits.settings');
-    Route::get('/audyty/diagnostyka', [AuditsController::class, 'diagnostics'])
-        ->middleware('role:admin,auditor')
-        ->name('audits.diagnostics');
-    Route::post('/audyty/diagnostyka/napraw', [AuditsController::class, 'runDiagnosticsRepair'])
-        ->middleware('role:admin,auditor')
-        ->name('audits.diagnostics.repair');
     Route::post('/audyty/ustawienia/rodzaje', [AuditsController::class, 'storeAuditType'])
         ->middleware('role:admin,auditor')
         ->name('audits.settings.audit-type-store');
-    Route::get('/audyty/ustawienia/rodzaje', function () {
-        return redirect()->route('audits.settings');
+    Route::get('/audyty/rodzaje', function () {
+        return redirect()->route('audits.types', ['tab' => 'energetyczne']);
     })
         ->middleware('role:admin,auditor');
     Route::patch('/audyty/ustawienia/rodzaje/{auditType}', [AuditsController::class, 'updateAuditType'])
@@ -110,7 +95,7 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('role:admin,auditor')
         ->name('audits.settings.unit-store');
     Route::get('/audyty/ustawienia/jednostki', function () {
-        return redirect()->route('audits.settings');
+        return redirect()->route('audits.types', ['tab' => 'ustawienia']);
     })
         ->middleware('role:admin,auditor');
     Route::patch('/audyty/ustawienia/jednostki/{unit}', [AuditsController::class, 'updateUnit'])
@@ -226,6 +211,9 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('role:admin,auditor')
         ->name('crm.stage.delete');
     Route::get('/strefa-klienta', [ClientController::class, 'index'])->name('strefa-klienta');
+    Route::post('/strefa-klienta/zapytanie', [ClientController::class, 'storeInquiry'])
+        ->middleware('role:client')
+        ->name('client.inquiry.store');
     Route::get('/iso50001', [Iso50001AuditController::class, 'index'])
         ->name('iso50001.index');
     Route::post('/iso50001', [Iso50001AuditController::class, 'store'])
@@ -300,6 +288,10 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('role:admin,super_admin')
         ->name('settings.public-access');
 
+    Route::patch('/settings/my-company', [SettingsController::class, 'updateMyCompany'])
+        ->middleware('role:admin')
+        ->name('settings.my-company');
+
     Route::post('/settings/co2-history', [SettingsController::class, 'storeCo2History'])
         ->middleware('role:admin,super_admin')
         ->name('settings.co2-history-store');
@@ -307,4 +299,20 @@ Route::middleware('auth')->group(function (): void {
     Route::delete('/settings/co2-history/{history}', [SettingsController::class, 'destroyCo2History'])
         ->middleware('role:admin,super_admin')
         ->name('settings.co2-history-destroy');
+
+    // AI Agent
+    Route::prefix('ai')->name('ai.')->group(function () {
+        Route::get('/', [AiAgentController::class, 'index'])->name('index');
+        Route::get('/nowa', [AiAgentController::class, 'create'])->name('create');
+        Route::post('/', [AiAgentController::class, 'store'])->name('store');
+        Route::get('/{aiConversation}', [AiAgentController::class, 'show'])->name('show');
+        Route::post('/{aiConversation}/wiadomosc', [AiAgentController::class, 'sendMessage'])->name('message');
+        Route::delete('/{aiConversation}', [AiAgentController::class, 'destroy'])->name('destroy');
+        Route::delete('/{aiConversation}/usun', [AiAgentController::class, 'forceDelete'])->name('force-delete');
+        Route::post('/analiza', [AiAgentController::class, 'analyzeAudit'])->name('analyze');
+        Route::post('/{aiConversation}/protokol', [AiAgentController::class, 'generateProtocol'])->name('protocol.generate');
+        Route::get('/{aiConversation}/protokol', [AiAgentController::class, 'protocol'])->name('protocol');
+        Route::get('/{aiConversation}/protokol/pdf', [AiAgentController::class, 'downloadPdf'])->name('protocol.pdf');
+        Route::get('/{aiConversation}/protokol/podglad', [AiAgentController::class, 'previewPdf'])->name('protocol.preview');
+    });
 });
