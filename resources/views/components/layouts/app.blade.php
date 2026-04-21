@@ -119,7 +119,7 @@
                 @endif
 
                 @if(!$menuUser->isClient() && $menuUser->canAccessTab(\App\Models\User::TAB_OFFER))
-                    <li><a href="{{ route('oferta') }}" @class(['menu-active' => request()->routeIs('oferta')])>{{ __('ui.menu.offer') }}</a></li>
+                    <li><a href="{{ route('offers.index') }}" @class(['menu-active' => request()->routeIs('offers.*')])>{{ __('ui.menu.offer') }}</a></li>
                 @endif
 
                 @if($menuUser->isClient() || $menuUser->canAccessTab(\App\Models\User::TAB_CLIENT_ZONE))
@@ -137,6 +137,7 @@
         <header class="topbar">
             <strong>{{ __('ui.company') }}</strong>
             <div style="display:flex; align-items:center; gap:18px;">
+                <span id="topbar-clock" style="font-size:13px; font-weight:600; color:rgba(255,255,255,.85); letter-spacing:.3px; min-width:140px;"></span>
                 @auth
                     <x-online-users-info />
                 @endauth
@@ -170,4 +171,24 @@
     </div>
 </div>
 </body>
+<script>
+(function() {
+    const el = document.getElementById('topbar-clock');
+    if (!el) return;
+    const days = ['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
+    function pad(n) { return String(n).padStart(2, '0'); }
+    function tick() {
+        const now = new Date();
+        const d   = pad(now.getDate());
+        const m   = pad(now.getMonth() + 1);
+        const y   = now.getFullYear();
+        const H   = pad(now.getHours());
+        const M   = pad(now.getMinutes());
+        const S   = pad(now.getSeconds());
+        el.textContent = d + '.' + m + '.' + y + '  ' + H + ':' + M + ':' + S;
+    }
+    tick();
+    setInterval(tick, 1000);
+})();
+</script>
 </html>

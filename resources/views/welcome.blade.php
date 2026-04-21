@@ -409,6 +409,7 @@
                     @if(\App\Models\SystemSetting::get('informacje_public', '1'))
                         <li><a href="{{ route('information.index') }}">{{ __('ui.menu.info') }}</a></li>
                     @endif
+                    <li><a href="{{ route('register.form') }}">📝 Zarejestruj firmę</a></li>
                 @else
                     @if($menuUser->isClient() || $menuUser->canAccessTab(\App\Models\User::TAB_HOME))
                         <li><a href="{{ route('home') }}" class="menu-active">{{ __('ui.menu.home') }}</a></li>

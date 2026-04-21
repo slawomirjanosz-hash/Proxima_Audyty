@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AiConversation;
+use App\Models\SystemSetting;
 use App\Services\AiAgentService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -43,7 +44,7 @@ class AiAgentController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'context_type' => ['nullable', 'string', 'in:general,energy_audit,iso50001,offer'],
+            'context_type' => ['nullable', 'string', 'in:general,energy_audit,iso50001,offer,compressor_room,boiler_room,drying_room,buildings,technological_processes,bc_general,bc_compressor_room,bc_boiler_room,bc_drying_room,bc_buildings,bc_technological_processes'],
             'context_id'   => ['nullable', 'integer'],
         ]);
 
@@ -159,9 +160,18 @@ class AiAgentController extends Controller
     /**
      * Generuje protokół z rozmowy (AI wyciąga ustrukturyzowane dane).
      */
+    private function canAccessConversation(AiConversation $aiConversation): bool
+    {
+        $user = auth()->user();
+        return $aiConversation->user_id === $user->id
+            || $user->isAdmin()
+            || $user->isSuperAdmin()
+            || $user->isAuditor();
+    }
+
     public function generateProtocol(AiConversation $aiConversation)
     {
-        abort_unless($aiConversation->user_id === auth()->id(), 403);
+        abort_unless($this->canAccessConversation($aiConversation), 403);
 
         try {
             $this->agent->generateProtocol($aiConversation);
@@ -175,12 +185,27 @@ class AiAgentController extends Controller
             ->with('success', 'Protokół wygenerowany pomyślnie.');
     }
 
+    public function generateRecommendations(AiConversation $aiConversation)
+    {
+        abort_unless($this->canAccessConversation($aiConversation), 403);
+        abort_unless(!empty($aiConversation->protocol_data), 422);
+
+        try {
+            $this->agent->appendRecommendations($aiConversation);
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->with('error', 'Błąd generowania rekomendacji: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'Rekomendacje zostały wygenerowane.');
+    }
+
     /**
      * Widok protokołu z danymi w tabeli.
      */
     public function protocol(AiConversation $aiConversation): View
     {
-        abort_unless($aiConversation->user_id === auth()->id(), 403);
+        abort_unless($this->canAccessConversation($aiConversation), 403);
 
         return view('ai.protocol', [
             'conversation' => $aiConversation,
@@ -193,16 +218,23 @@ class AiAgentController extends Controller
      */
     public function downloadPdf(AiConversation $aiConversation)
     {
-        abort_unless($aiConversation->user_id === auth()->id(), 403);
+        abort_unless($this->canAccessConversation($aiConversation), 403);
 
         if (empty($aiConversation->protocol_data)) {
             return redirect()->route('ai.show', $aiConversation)
                 ->with('error', 'Najpierw wygeneruj protokół.');
         }
 
+        $context = $aiConversation->contextModel();
+        $company = null;
+        if ($context && method_exists($context, 'company')) {
+            $company = $context->company;
+        }
+
         $pdf = Pdf::loadView('ai.protocol-pdf', [
             'conversation' => $aiConversation,
             'protocol'     => $aiConversation->protocol_data,
+            'company'      => $company,
         ])->setPaper('a4');
 
         $filename = 'protokol-' . str($aiConversation->title)->slug() . '-' . $aiConversation->id . '.pdf';
@@ -211,24 +243,74 @@ class AiAgentController extends Controller
     }
 
     /**
-     * Podgląd protokołu jako PDF w przeglądarce (inline stream).
+     * Podgląd protokołu — strona z PDF.js renderującym dokument.
      */
     public function previewPdf(AiConversation $aiConversation)
     {
-        abort_unless($aiConversation->user_id === auth()->id(), 403);
+        abort_unless($this->canAccessConversation($aiConversation), 403);
 
         if (empty($aiConversation->protocol_data)) {
-            return redirect()->route('ai.show', $aiConversation)
+            return redirect()->route('ai.protocol', $aiConversation)
                 ->with('error', 'Najpierw wygeneruj protokół.');
         }
 
-        $pdf = Pdf::loadView('ai.protocol-pdf', [
+        return view('ai.protocol-viewer', [
             'conversation' => $aiConversation,
-            'protocol'     => $aiConversation->protocol_data,
-        ])->setPaper('a4');
+            'pdfUrl'       => route('ai.protocol.pdf', $aiConversation),
+        ]);
+    }
 
-        $filename = 'protokol-' . str($aiConversation->title)->slug() . '-' . $aiConversation->id . '.pdf';
+    /**
+     * Zapisuje niestandardowy prompt (trening) agenta AI w ustawieniach systemowych.
+     */
+    public function saveAgentTraining(Request $request, string $agentType)
+    {
+        $allowed = ['general', 'compressor_room', 'boiler_room', 'drying_room', 'buildings', 'technological_processes', 'iso50001', 'bc_general', 'bc_compressor_room', 'bc_boiler_room', 'bc_drying_room', 'bc_buildings', 'bc_technological_processes'];
+        abort_unless(in_array($agentType, $allowed, true), 404);
 
-        return $pdf->stream($filename);
+        $request->validate([
+            'prompt' => ['required', 'string', 'max:32000'],
+        ]);
+
+        SystemSetting::set(
+            "ai_agent_prompt_{$agentType}",
+            trim($request->input('prompt')),
+            auth()->id()
+        );
+
+        $tab = match(true) {
+            $agentType === 'iso50001'                => 'iso50001',
+            str_starts_with($agentType, 'bc_')      => 'biale-certyfikaty',
+            default                                  => 'energetyczne',
+        };
+
+        return redirect()
+            ->route('audits.types', ['tab' => $tab])
+            ->with('status', 'Trening agenta „' . $agentType . '" został zapisany.');
+    }
+
+    /**
+     * Przywraca domyślny prompt agenta AI (usuwa niestandardowy trening).
+     */
+    public function resetAgentTraining(string $agentType)
+    {
+        $allowed = ['general', 'compressor_room', 'boiler_room', 'drying_room', 'buildings', 'technological_processes', 'iso50001', 'bc_general', 'bc_compressor_room', 'bc_boiler_room', 'bc_drying_room', 'bc_buildings', 'bc_technological_processes'];
+        abort_unless(in_array($agentType, $allowed, true), 404);
+
+        $setting = SystemSetting::find("ai_agent_prompt_{$agentType}");
+        if ($setting) {
+            $setting->delete();
+            \Illuminate\Support\Facades\Cache::forget("system_setting_ai_agent_prompt_{$agentType}");
+        }
+
+        $tab = match(true) {
+            $agentType === 'iso50001'           => 'iso50001',
+            str_starts_with($agentType, 'bc_') => 'biale-certyfikaty',
+            default                             => 'energetyczne',
+        };
+
+        return redirect()
+            ->route('audits.types', ['tab' => $tab])
+            ->with('status', 'Trening agenta „' . $agentType . '" został przywrócony do domyślnego.');
     }
 }

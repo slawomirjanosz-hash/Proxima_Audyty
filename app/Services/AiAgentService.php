@@ -29,7 +29,26 @@ class AiAgentService
      * - Możesz zakazać pewnych zachowań: "Nie pytaj o dane osobowe klienta"
      * =========================================================================
      */
+    /**
+     * Returns the active system prompt for the given context type.
+     * Checks SystemSetting for a custom training override first.
+     */
     public function getSystemPrompt(string $contextType = 'general'): string
+    {
+        // Check for custom training prompt saved by admin
+        $customPrompt = \App\Models\SystemSetting::get("ai_agent_prompt_{$contextType}");
+        if (!empty(trim((string) ($customPrompt ?? '')))) {
+            return (string) $customPrompt;
+        }
+
+        return $this->getDefaultSystemPrompt($contextType);
+    }
+
+    /**
+     * Returns the built-in default system prompt (ignores SystemSetting overrides).
+     * Used to show defaults in the training UI.
+     */
+    public function getDefaultSystemPrompt(string $contextType = 'general'): string
     {
         $locale = app()->getLocale();
         $languageMap = [
@@ -169,11 +188,480 @@ Po zebraniu danych powiedz:
 i skontaktuje się z Panem/Panią w ciągu 1-2 dni roboczych. Czy mogę jeszcze coś wyjaśnić?"
 SCRIPT;
 
+        // --- SKRYPT: SPRĘŻARKOWNIA -------------------------------------------
+        $compressorRoomScript = <<<SCRIPT
+
+SKRYPT AUDYTU SPRĘŻARKOWNI:
+Przeprowadź klienta przez zbieranie danych niezbędnych do audytu energetycznego sprężarkowni.
+
+ETAP 1 — IDENTYFIKACJA INSTALACJI:
+- Pytaj o: liczbę i rodzaje sprężarek (śrubowe, tłokowe, odśrodkowe, spiralne)
+- Pytaj o: moc zainstalowaną [kW] każdej sprężarki
+- Pytaj o: wiek sprężarek i stan techniczny
+- Pytaj o: system sterowania (on/off, zmiennoobrotowe — VSD/VFD)
+
+ETAP 2 — PARAMETRY PRACY:
+- Pytaj o: ciśnienie robocze instalacji [bar]
+- Pytaj o: wymagane ciśnienie u odbiorców [bar]
+- Pytaj o: liczbę godzin pracy na dobę i dni w roku
+- Pytaj o: obciążenie chwilowe sprężarek (% nominalnej wydajności)
+- Pytaj o: rzeczywistą wydajność powietrza [m³/min lub Nm³/h]
+
+ETAP 3 — ZUŻYCIE ENERGII:
+- Pytaj o: roczne zużycie energii elektrycznej przez sprężarki [kWh]
+- Pytaj o: koszt energii elektrycznej [zł/kWh]
+- Pytaj o: jednostkowy pobór mocy [kW/(m³/min)]
+- Pytaj o: pomiary lub szacunek zapotrzebowania na sprężone powietrze
+
+ETAP 4 — STRATY I NIESZCZELNOŚCI:
+- Pytaj o: czy były przeprowadzane testy nieszczelności (leak test)
+- Pytaj o: szacowany poziom strat z nieszczelności (% produkcji)
+- Pytaj o: stan przewodów i złączy (wiek sieci dystrybucji)
+- Pytaj o: czy jest monitoring ciśnienia w sieci
+
+ETAP 5 — ODZYSK CIEPŁA I OSUSZANIE:
+- Pytaj o: czy jest system odzysku ciepła z sprężarek
+- Pytaj o: rodzaj osuszacza (chłodniczy, adsorpcyjny, brak)
+- Pytaj o: punkt rosy powietrza na wyjściu z osuszacza
+- Pytaj o: zużycie energii przez osuszacze [kWh/rok]
+
+ETAP 6 — ZARZĄDZANIE I AUTOMATYKA:
+- Pytaj o: czy jest system sekwencyjnego sterowania sprężarkami
+- Pytaj o: czy jest zbiornik buforowy powietrza (pojemność [m³])
+- Pytaj o: czy prowadzony jest monitoring parametrów sprężarek (BMS, SCADA)
+
+Po zebraniu danych z wszystkich etapów powiedz:
+"Dziękuję! Mam teraz wystarczające dane do przeprowadzenia wstępnej analizy sprężarkowni.
+Czy mogę przygotować podsumowanie zebranych informacji?"
+SCRIPT;
+
+        // --- SKRYPT: KOTŁOWNIA -----------------------------------------------
+        $boilerRoomScript = <<<SCRIPT
+
+SKRYPT AUDYTU KOTŁOWNI:
+Przeprowadź klienta przez zbieranie danych niezbędnych do audytu energetycznego kotłowni.
+
+ETAP 1 — IDENTYFIKACJA KOTŁÓW:
+- Pytaj o: liczbę i typ kotłów (gazowe, olejowe, na biomasę, węglowe, elektryczne)
+- Pytaj o: moc nominalną każdego kotła [kW lub MW]
+- Pytaj o: rok produkcji i wiek kotłów
+- Pytaj o: rodzaj palnika (modulowany, dwustopniowy, on/off)
+
+ETAP 2 — PARAMETRY PRACY:
+- Pytaj o: temperatury zasilania i powrotu instalacji grzewczej [°C]
+- Pytaj o: ciśnienie robocze w instalacji [bar]
+- Pytaj o: liczba godzin pracy na rok (sezon grzewczy)
+- Pytaj o: czy kotłownia pracuje cały rok (ciepło technologiczne, c.w.u.)
+
+ETAP 3 — ZUŻYCIE PALIWA I ENERGII:
+- Pytaj o: roczne zużycie paliwa (m³ gazu / litrów oleju / ton biomasy)
+- Pytaj o: koszt jednostkowy paliwa [zł/m³, zł/litr, zł/tonę]
+- Pytaj o: roczne zużycie energii elektrycznej przez kotłownię [kWh]
+- Pytaj o: sprawność kotłów (zmierzona lub z dokumentacji) [%]
+
+ETAP 4 — SPALINY I ODZYSK CIEPŁA:
+- Pytaj o: temperaturę spalin na wylocie [°C]
+- Pytaj o: stężenie O₂ lub CO₂ w spalinach (wyniki pomiarów)
+- Pytaj o: czy jest ekonomizer odzysku ciepła spalin
+- Pytaj o: czy jest skraplacz (kocioł kondensacyjny)
+
+ETAP 5 — INSTALACJA GRZEWCZA:
+- Pytaj o: rodzaj instalacji (jedno- czy dwururowa, podłogowa, grzejnikowa)
+- Pytaj o: czy jest regulacja pogodowa lub strefowa
+- Pytaj o: stan izolacji rur w kotłowni i piwnicy
+- Pytaj o: wiek i stan wymienników ciepła
+
+ETAP 6 — CIEPŁA WODA UŻYTKOWA (C.W.U.):
+- Pytaj o: sposób przygotowania c.w.u. (zasobnik, przepływowo, wymiennik)
+- Pytaj o: pojemność zasobnika c.w.u. [l] i temperaturę ustawienia [°C]
+- Pytaj o: dobowe zużycie c.w.u.
+- Pytaj o: czy jest cyrkulacja c.w.u. i jak długo działa
+
+Po zebraniu danych z wszystkich etapów powiedz:
+"Dziękuję! Mam teraz wystarczające dane do przeprowadzenia wstępnej analizy kotłowni.
+Czy mogę przygotować podsumowanie zebranych informacji?"
+SCRIPT;
+
+        // --- SKRYPT: SUSZARNIA -----------------------------------------------
+        $dryingRoomScript = <<<SCRIPT
+
+SKRYPT AUDYTU SUSZARNI:
+Przeprowadź klienta przez zbieranie danych niezbędnych do audytu energetycznego suszarni.
+
+ETAP 1 — IDENTYFIKACJA INSTALACJI:
+- Pytaj o: typ suszarni (komorowa, tunelowa, taśmowa, bębnowa, fluidalna, natryskowa)
+- Pytaj o: liczbę suszarni i ich moc zainstalowaną [kW]
+- Pytaj o: wiek urządzeń i stan techniczny
+- Pytaj o: co jest suszone (materiał, produkt) i w jakich ilościach [t/h lub kg/partię]
+
+ETAP 2 — PARAMETRY PROCESU SUSZENIA:
+- Pytaj o: temperaturę powietrza suszącego na wejściu [°C]
+- Pytaj o: temperaturę powietrza suszącego na wyjściu [°C]
+- Pytaj o: wilgotność materiału przed suszeniem [%] i po suszeniu [%]
+- Pytaj o: czas jednego cyklu suszenia [h] lub przepustowość [t/h]
+- Pytaj o: rodzaj nośnika energii (para, gorące powietrze, gaz, energia elektryczna)
+
+ETAP 3 — ZUŻYCIE ENERGII:
+- Pytaj o: roczne zużycie energii cieplnej [GJ lub MWh]
+- Pytaj o: roczne zużycie energii elektrycznej [kWh]
+- Pytaj o: jednostkowe zużycie energii na odparowanie wody [kWh/kg wody]
+- Pytaj o: koszt energii i paliwa
+
+ETAP 4 — ODZYSK CIEPŁA I WENTYLACJA:
+- Pytaj o: czy jest system odzysku ciepła z powietrza wylotowego
+- Pytaj o: sposób wentylacji suszarni (recyrkulacja, świeże powietrze)
+- Pytaj o: czy jest pompa ciepła do odzysku wilgoci
+- Pytaj o: stan izolacji termicznej komory suszarni
+
+ETAP 5 — STEROWANIE I AUTOMATYKA:
+- Pytaj o: sposób regulacji temperatury (ręczny, automatyczny, PLC)
+- Pytaj o: czy jest monitoring wilgotności materiału on-line
+- Pytaj o: harmonogram pracy (praca ciągła, zmianowa, sezonowa)
+- Pytaj o: czy są przestoje i jak długo trwają
+
+Po zebraniu danych z wszystkich etapów powiedz:
+"Dziękuję! Mam teraz wystarczające dane do przeprowadzenia wstępnej analizy suszarni.
+Czy mogę przygotować podsumowanie zebranych informacji?"
+SCRIPT;
+
+        // --- SKRYPT: BUDYNKI -------------------------------------------------
+        $buildingsScript = <<<SCRIPT
+
+SKRYPT AUDYTU ENERGETYCZNEGO BUDYNKÓW:
+Przeprowadź klienta przez zbieranie danych niezbędnych do audytu energetycznego budynków.
+
+ETAP 1 — IDENTYFIKACJA BUDYNKU:
+- Pytaj o: lokalizację (województwo/miasto) i rok budowy
+- Pytaj o: funkcję budynku (biurowy, produkcyjny, handlowy, edukacyjny, mieszkalny, inny)
+- Pytaj o: powierzchnię użytkową [m²] i liczbę kondygnacji
+- Pytaj o: czy były przeprowadzane modernizacje i kiedy
+
+ETAP 2 — PRZEGRODY BUDOWLANE:
+- Pytaj o: materiał i grubość ścian zewnętrznych oraz stan izolacji
+- Pytaj o: typ dachu i stan izolacji stropodachu
+- Pytaj o: typ okien (PVC, aluminium, drewniane) i rok wymiany
+- Pytaj o: czy są mosty termiczne (balkony, nadproża, narożniki)
+- Pytaj o: czy jest posiadane świadectwo charakterystyki energetycznej
+
+ETAP 3 — OGRZEWANIE I CHŁODZENIE:
+- Pytaj o: typ systemu ogrzewania (kotłownia, pompa ciepła, ciepło sieciowe, elektryczne)
+- Pytaj o: wiek kotła / pompy ciepła i sprawność
+- Pytaj o: temperatury zasilania i powrotu grzejników / podłogówki [°C]
+- Pytaj o: czy jest klimatyzacja / chłodzenie — typ i moc [kW]
+- Pytaj o: nastawioną temperaturę w pomieszczeniach w sezonie grzewczym
+
+ETAP 4 — WENTYLACJA I KLIMATYZACJA:
+- Pytaj o: typ wentylacji (grawitacyjna, mechaniczna, z rekuperacją)
+- Pytaj o: wydajność central wentylacyjnych [m³/h]
+- Pytaj o: czy jest rekuperacja ciepła — sprawność odzysku [%]
+- Pytaj o: zużycie energii przez wentylację i klimatyzację [kWh/rok]
+
+ETAP 5 — OŚWIETLENIE I URZĄDZENIA:
+- Pytaj o: dominujący rodzaj oświetlenia (LED, świetlówki, halogenowe)
+- Pytaj o: zainstalowaną moc oświetlenia [W/m²]
+- Pytaj o: czy jest automatyczne sterowanie oświetleniem (BMS, czujniki ruchu)
+- Pytaj o: główne energochłonne urządzenia biurowe/produkcyjne
+
+ETAP 6 — ZUŻYCIE ENERGII I KOSZTY:
+- Pytaj o: roczne zużycie energii elektrycznej [kWh] i koszt
+- Pytaj o: roczne zużycie ciepła z sieci lub paliwa (gaz, olej) i koszt
+- Pytaj o: jednostkowe zużycie energii [kWh/m²/rok]
+- Pytaj o: czy są panele fotowoltaiczne lub inne OZE
+
+Po zebraniu danych z wszystkich etapów powiedz:
+"Dziękuję! Mam teraz wystarczające dane do przeprowadzenia wstępnej analizy budynku.
+Czy mogę przygotować podsumowanie zebranych informacji?"
+SCRIPT;
+
+        // --- SKRYPT: PROCESY TECHNOLOGICZNE ---------------------------------
+        $technologicalProcessesScript = <<<SCRIPT
+
+SKRYPT AUDYTU PROCESÓW TECHNOLOGICZNYCH:
+Przeprowadź klienta przez zbieranie danych niezbędnych do audytu energetycznego procesów technologicznych.
+
+ETAP 1 — IDENTYFIKACJA PROCESU:
+- Pytaj o: rodzaj produkcji i branżę
+- Pytaj o: główne procesy technologiczne (topienie, obróbka cieplna, prasowanie, formowanie, itp.)
+- Pytaj o: wydajność produkcji [szt/h, t/h, m²/h] i czas pracy [h/rok]
+- Pytaj o: rok zainstalowania głównych maszyn i urządzeń
+
+ETAP 2 — NOŚNIKI ENERGII W PROCESIE:
+- Pytaj o: jakie nośniki energii są zużywane (elektryczność, para, gaz, olej, sprężone powietrze)
+- Pytaj o: roczne zużycie każdego nośnika energii
+- Pytaj o: koszt każdego nośnika energii
+- Pytaj o: czy jest własna kotłownia / stacja sprężarek / podstacja elektryczna
+
+ETAP 3 — GŁÓWNE ODBIORNIKI ENERGII:
+- Pytaj o: wykaz największych odbiorników (napędy, piece, chłodziarki, pompy, wentylatory)
+- Pytaj o: zainstalowaną moc i czas pracy każdego z nich
+- Pytaj o: czy są napędy zmiennoobrotowe (VSD) na głównych maszynach
+- Pytaj o: jednostkowe zużycie energii na jednostkę produktu [kWh/szt, kWh/t]
+
+ETAP 4 — CIEPŁO TECHNOLOGICZNE:
+- Pytaj o: temperatury procesów wymagających ogrzewania / chłodzenia [°C]
+- Pytaj o: ilość ciepła odpadowego powstającego w procesie [kW lub GJ/rok]
+- Pytaj o: czy ciepło odpadowe jest odzyskiwane — w jaki sposób
+- Pytaj o: zużycie pary technologicznej [t/h] i parametry pary [bar, °C]
+
+ETAP 5 — CHŁODZENIE PROCESOWE:
+- Pytaj o: systemy chłodzenia (wieże chłodnicze, agregaty wody lodowej, wolne chłodzenie)
+- Pytaj o: temperatury czynnika chłodniczego zasilania/powrotu [°C]
+- Pytaj o: moc zainstalowanych agregatów chłodniczych [kW]
+- Pytaj o: COP agregatów i zużycie energii przez chłodzenie [kWh/rok]
+
+ETAP 6 — ZARZĄDZANIE ENERGIĄ W PROCESIE:
+- Pytaj o: czy jest system monitoringu zużycia energii (podliczniki, BMS, MES)
+- Pytaj o: czy są harmonogramy pracy urządzeń (przerwy nocne, weekendowe)
+- Pytaj o: dotychczasowe działania optymalizacyjne i ich efekty
+- Pytaj o: plany modernizacji linii produkcyjnej
+
+Po zebraniu danych z wszystkich etapów powiedz:
+"Dziękuję! Mam teraz wystarczające dane do przeprowadzenia wstępnej analizy procesów technologicznych.
+Czy mogę przygotować podsumowanie zebranych informacji?"
+SCRIPT;
+
+        // --- SKRYPT: OGÓLNY --------------------------------------------------
+        $generalScript = "\n\nOdpowiadaj na pytania klienta dotyczące audytów energetycznych i ISO 50001. Jeśli klient chce przeprowadzić audyt, zaproponuj mu przejście do odpowiedniej sekcji (sprężarkownia, kotłownia, suszarnia, budynki lub procesy technologiczne).";
+
+        // =====================================================================
+        // BIAŁE CERTYFIKATY (świadectwa efektywności energetycznej)
+        // =====================================================================
+
+        // --- SKRYPT: BIAŁE CERTYFIKATY — OGÓLNIE ----------------------------
+        $bcGeneralScript = <<<SCRIPT
+
+SKRYPT: BIAŁE CERTYFIKATY — OGÓLNE DORADZTWO:
+Twoim zadaniem jest zebranie wstępnych informacji o planowanym przedsięwzięciu i doradztwo w procesie uzyskania białych certyfikatów (świadectw efektywności energetycznej).
+
+ETAP 1 — CZYM SĄ BIAŁE CERTYFIKATY:
+Jeśli klient nie zna tematu, krótko wyjaśnij:
+- Białe certyfikaty to świadectwa efektywności energetycznej wydawane przez URE
+- Przyznawane są za udokumentowane oszczędności energii po zrealizowaniu przedsięwzięcia
+- Można je sprzedać na giełdzie lub umorzyć u regulowanych podmiotów
+- Wymagany jest audyt efektywności energetycznej potwierdzający oszczędności
+
+ETAP 2 — IDENTYFIKACJA PRZEDSIĘWZIĘCIA:
+- Pytaj o: jaki rodzaj modernizacji lub inwestycji firma planuje (sprężarkownia, kotłownia, suszarnia, budynki, linia produkcyjna)
+- Pytaj o: szacowany budżet inwestycji
+- Pytaj o: przewidywany termin realizacji
+- Pytaj o: czy firma ma już wstępne obliczenia oszczędności energii
+
+ETAP 3 — DANE ORGANIZACYJNE:
+- Pytaj o: branżę i typ działalności firmy
+- Pytaj o: lokalizację głównego obiektu (województwo)
+- Pytaj o: czy firma jest podmiotem zobowiązanym (sprzedawca energii, ciepła, gazu) czy beneficjentem
+- Pytaj o: czy firma miała wcześniejsze doświadczenie z białymi certyfikatami
+
+ETAP 4 — WYMAGANIA FORMALNE:
+Poinformuj klienta o wymaganiach:
+- Audyt efektywności energetycznej musi poprzedzać lub towarzyszyć inwestycji
+- Oszczędności wyrażane są w tonach oleju ekwiwalentnego (toe) lub MWh
+- Minimalna wartość oszczędności uprawniająca do certyfikatu to 10 toe/rok
+- Wniosek składany jest do URE w procedurze przetargowej
+
+Po zebraniu wstępnych danych powiedz:
+"Dziękuję za informacje. Wygląda na to, że Pana/Pani firma może ubiegać się o białe certyfikaty.
+Sugeruję przeprowadzenie audytu efektywności energetycznej dla konkretnego obszaru — czy chciałby Pan/Pani
+omówić szczegóły dla (wskaż odpowiedni obszar z podanych danych)?"
+SCRIPT;
+
+        // --- SKRYPT: BIAŁE CERTYFIKATY — SPRĘŻARKOWNIA ----------------------
+        $bcCompressorRoomScript = <<<SCRIPT
+
+SKRYPT: BIAŁE CERTYFIKATY — SPRĘŻARKOWNIA:
+Zbierz dane niezbędne do audytu efektywności energetycznej sprężarkowni w celu uzyskania białych certyfikatów.
+
+ETAP 1 — STAN OBECNY (BASELINE):
+- Pytaj o: liczbę, typ i moc sprężarek [kW]
+- Pytaj o: ciśnienie robocze instalacji [bar]
+- Pytaj o: roczne zużycie energii elektrycznej przez sprężarki [kWh/rok]
+- Pytaj o: liczbę godzin pracy na rok
+- Pytaj o: czy sprężarki mają napęd ze zmienną częstotliwością (VSD) — jeśli nie, to tu jest potencjał
+
+ETAP 2 — PLANOWANE PRZEDSIĘWZIĘCIE:
+- Pytaj o: co jest planowane do modernizacji (instalacja VSD, wymiana na bardziej efektywną sprężarkę, system sekwencyjny, naprawa nieszczelności, odzysk ciepła)
+- Pytaj o: szacowaną moc po modernizacji [kW] lub spodziewany % redukcji zużycia energii
+- Pytaj o: planowany termin realizacji
+- Pytaj o: budżet inwestycji [PLN]
+
+ETAP 3 — OBLICZENIE OSZCZĘDNOŚCI:
+- Pytaj o: aktualne jednostkowe zużycie energii [kWh/(m³/min)]
+- Pytaj o: spodziewane jednostkowe zużycie po modernizacji
+- Pytaj o: roczną produkcję sprężonego powietrza [Nm³/rok lub m³/min × h/rok]
+- Pomóż obliczyć: oszczędności [kWh/rok] = (zużycie_przed - zużycie_po) × produkcja
+
+ETAP 4 — DOKUMENTACJA:
+- Pytaj o: czy firma posiada dokumentację techniczną sprężarek (DTR, protokoły serwisowe)
+- Pytaj o: czy są historyczne dane pomiarowe zużycia energii (12 miesięcy wstecz)
+- Pytaj o: czy przeprowadzono pomiary nieszczelności (leak test) — wyniki [%]
+- Poinformuj: do wniosku o białe certyfikaty wymagany jest audyt efektywności energetycznej
+
+Po zebraniu danych powiedz:
+"Dziękuję! Na podstawie zebranych danych wstępnie szacuję potencjał oszczędności.
+Przygotujemy szczegółowy audyt efektywności energetycznej, który będzie podstawą wniosku o białe certyfikaty."
+SCRIPT;
+
+        // --- SKRYPT: BIAŁE CERTYFIKATY — KOTŁOWNIA --------------------------
+        $bcBoilerRoomScript = <<<SCRIPT
+
+SKRYPT: BIAŁE CERTYFIKATY — KOTŁOWNIA:
+Zbierz dane niezbędne do audytu efektywności energetycznej kotłowni w celu uzyskania białych certyfikatów.
+
+ETAP 1 — STAN OBECNY (BASELINE):
+- Pytaj o: typ i moc kotłów [kW/MW], rodzaj paliwa, wiek urządzeń
+- Pytaj o: roczne zużycie paliwa [m³ gazu, litry oleju, tony biomasy]
+- Pytaj o: sprawność kotłów [%] — z dokumentacji lub pomiarów
+- Pytaj o: temperaturę spalin na wylocie [°C]
+- Pytaj o: łączny roczny koszt paliwa [PLN]
+
+ETAP 2 — PLANOWANE PRZEDSIĘWZIĘCIE:
+- Pytaj o: co jest planowane (wymiana na kocioł kondensacyjny, modernizacja palnika, montaż ekonomizera, izolacja rurociągów, regulacja pogodowa, odzysk ciepła spalin)
+- Pytaj o: sprawność planowanego urządzenia [%]
+- Pytaj o: planowany termin realizacji i budżet [PLN]
+
+ETAP 3 — OBLICZENIE OSZCZĘDNOŚCI:
+- Pytaj o: spodziewaną sprawność po modernizacji [%]
+- Pomóż obliczyć: oszczędności ciepła = zużycie_paliwa × wartość_opałowa × (1/η_przed - 1/η_po)
+- Pytaj o: czy jest pomiar ciepła dostarczonego do instalacji (ciepłomierz) — dane roczne [GJ lub MWh]
+- Przelicz oszczędności na toe: 1 toe = 41,868 GJ
+
+ETAP 4 — DOKUMENTACJA:
+- Pytaj o: protokoły z pomiarów emisji spalin (jeśli są)
+- Pytaj o: faktury za paliwo z ostatnich 12 miesięcy
+- Pytaj o: projekt techniczny modernizacji (jeśli jest już przygotowany)
+- Poinformuj: minimalne oszczędności to 10 toe/rok, żeby ubiegać się o certyfikat
+
+Po zebraniu danych powiedz:
+"Dziękuję! Mam dane potrzebne do wstępnej oceny potencjału oszczędności w kotłowni.
+Nasz specjalista przygotuje audyt efektywności energetycznej stanowiący podstawę wniosku o białe certyfikaty."
+SCRIPT;
+
+        // --- SKRYPT: BIAŁE CERTYFIKATY — SUSZARNIA --------------------------
+        $bcDryingRoomScript = <<<SCRIPT
+
+SKRYPT: BIAŁE CERTYFIKATY — SUSZARNIA:
+Zbierz dane niezbędne do audytu efektywności energetycznej suszarni w celu uzyskania białych certyfikatów.
+
+ETAP 1 — STAN OBECNY (BASELINE):
+- Pytaj o: typ suszarni i suszone medium (drewno, zboże, lakier, papier, inne)
+- Pytaj o: roczne zużycie energii cieplnej [GJ lub MWh] i elektrycznej [kWh]
+- Pytaj o: jednostkowe zużycie energii na odparowanie wody [kWh/kg] — jeśli znane
+- Pytaj o: temperaturę powietrza suszącego i wilgotności wejścia/wyjścia
+- Pytaj o: czy jest system recyrkulacji powietrza lub odzysku ciepła
+
+ETAP 2 — PLANOWANE PRZEDSIĘWZIĘCIE:
+- Pytaj o: co jest planowane (montaż rekuperatora, pompa ciepła do suszenia, VSD na wentylatorach, lepsza izolacja komory, system sterowania wilgotnością on-line)
+- Pytaj o: spodziewane % zmniejszenie zużycia energii
+- Pytaj o: planowany termin i budżet [PLN]
+
+ETAP 3 — OBLICZENIE OSZCZĘDNOŚCI:
+- Pytaj o: roczną ilość odparowanej wody [tony/rok] lub przerobionych surowców [tony/rok]
+- Pytaj o: obecne i spodziewane jednostkowe zużycie energii [kWh/kg wody]
+- Pomóż obliczyć: oszczędności = ilość_odparowanej_wody × (jednostk_przed - jednostk_po)
+- Przelicz na toe
+
+ETAP 4 — DOKUMENTACJA:
+- Pytaj o: czy są rejestry zużycia energii za ostatnie 12 miesięcy
+- Pytaj o: projekt lub ofertę od dostawcy urządzenia z deklarowaną sprawnością
+- Poinformuj o wymaganiach audytu efektywności energetycznej
+
+Po zebraniu danych powiedz:
+"Dziękuję! Na podstawie zebranych informacji nasz audytor przygotuje dokumentację do białych certyfikatów."
+SCRIPT;
+
+        // --- SKRYPT: BIAŁE CERTYFIKATY — BUDYNKI ----------------------------
+        $bcBuildingsScript = <<<SCRIPT
+
+SKRYPT: BIAŁE CERTYFIKATY — BUDYNKI:
+Zbierz dane niezbędne do audytu efektywności energetycznej budynków w celu uzyskania białych certyfikatów.
+
+ETAP 1 — IDENTYFIKACJA I STAN OBECNY:
+- Pytaj o: typ budynku, rok budowy, powierzchnię użytkową [m²]
+- Pytaj o: lokalizację (województwo — potrzebne do stref klimatycznych)
+- Pytaj o: roczne zużycie energii cieplnej [GJ lub kWh] — z faktur lub ciepłomierza
+- Pytaj o: roczne zużycie energii elektrycznej [kWh]
+- Pytaj o: jednostkowe zużycie ciepła [kWh/m²/rok] — jeśli znane
+- Pytaj o: czy budynek ma świadectwo charakterystyki energetycznej (klasa energetyczna)
+
+ETAP 2 — PLANOWANE PRZEDSIĘWZIĘCIE:
+- Pytaj o: co jest planowane (docieplenie ścian, dachu, wymiana okien, wymiana systemu grzewczego, modernizacja oświetlenia LED, montaż rekuperacji, pompa ciepła, fotowoltaika)
+- Pytaj o: zakres i parametry techniczne planowanej inwestycji
+- Pytaj o: planowany termin i budżet [PLN]
+
+ETAP 3 — OBLICZENIE OSZCZĘDNOŚCI:
+- Pytaj o: czy jest audyt energetyczny budynku lub obliczenia cieplne z projektu
+- Pytaj o: spodziewane zużycie ciepła po modernizacji [kWh/m²/rok]
+- Pomóż oszacować: oszczędności = pow_użytk × (E_przed - E_po) [kWh/rok]
+- Przelicz na toe: 1 MWh_ciepło = 0,086 toe (dla ciepła z sieci); dla gazu i oleju inne przeliczniki
+
+ETAP 4 — DOKUMENTACJA:
+- Pytaj o: faktury za ciepło/gaz z ostatnich 12 miesięcy
+- Pytaj o: projekt budowlany lub projekt termomodernizacji
+- Pytaj o: operat szacunkowy lub audyt energetyczny budynku
+- Poinformuj: dla budynków można łączyć kilka przedsięwzięć w jednym wniosku
+
+Po zebraniu danych powiedz:
+"Dziękuję! Zebrane dane posłużą do przygotowania audytu efektywności energetycznej budynku,
+będącego podstawą wniosku o białe certyfikaty."
+SCRIPT;
+
+        // --- SKRYPT: BIAŁE CERTYFIKATY — PROCESY TECHNOLOGICZNE -------------
+        $bcTechnologicalProcessesScript = <<<SCRIPT
+
+SKRYPT: BIAŁE CERTYFIKATY — PROCESY TECHNOLOGICZNE:
+Zbierz dane do audytu efektywności energetycznej procesów technologicznych w celu uzyskania białych certyfikatów.
+
+ETAP 1 — IDENTYFIKACJA PROCESU I STANU OBECNEGO:
+- Pytaj o: branżę, typ produkcji i główny energochłonny proces
+- Pytaj o: roczne zużycie energii elektrycznej w procesie [kWh/rok]
+- Pytaj o: roczne zużycie energii cieplnej (para, gaz) w procesie [GJ/rok]
+- Pytaj o: jednostkowe zużycie energii [kWh/t, kWh/szt] — jeśli śledzone
+- Pytaj o: roczną wielkość produkcji [t/rok lub szt/rok]
+
+ETAP 2 — PLANOWANE PRZEDSIĘWZIĘCIE:
+- Pytaj o: co jest planowane (instalacja napędów VSD, modernizacja układu napędowego, odzysk ciepła odpadowego, wymiana pieców/nagrzewnic na efektywniejsze, optymalizacja harmonogramu produkcji, izolacja termiczna)
+- Pytaj o: parametry techniczne nowego urządzenia / systemu (sprawność, moc, prędkość)
+- Pytaj o: planowany termin realizacji i budżet [PLN]
+
+ETAP 3 — OBLICZENIE OSZCZĘDNOŚCI:
+- Pytaj o: obecną sprawność / wskaźnik energetyczny procesu
+- Pytaj o: deklarowaną sprawność / wskaźnik po modernizacji (z dokumentacji dostawcy)
+- Pytaj o: roczne godziny pracy urządzenia po modernizacji
+- Pomóż obliczyć: oszczędności = (P_przed - P_po) [kW] × h_pracy [h/rok]
+- Przelicz na toe: 1 MWh_el = 0,086 toe
+
+ETAP 4 — CIEPŁO ODPADOWE:
+- Pytaj o: czy w procesie powstaje ciepło odpadowe (temperatury, ilości [kW])
+- Pytaj o: czy planowany jest odzysk ciepła odpadowego — w jakiej formie
+- Pytaj o: odbiorca ciepła odpadowego (ogrzewanie pomieszczeń, podgrzewanie wody, suszarnia)
+
+ETAP 5 — DOKUMENTACJA:
+- Pytaj o: historyczne dane zużycia energii za min. 12 miesięcy (podliczniki, faktury)
+- Pytaj o: dokumentację techniczną obecnych i planowanych urządzeń
+- Pytaj o: czy firma ma wdrożony system zarządzania energią (ISO 50001)
+- Poinformuj: firmy z ISO 50001 mają uproszczoną ścieżkę w procedurze przetargowej URE
+
+Po zebraniu danych powiedz:
+"Dziękuję! Mam wystarczające dane wstępne do oceny potencjału oszczędności w procesie technologicznym.
+Nasz audytor przygotuje formalny audyt efektywności energetycznej."
+SCRIPT;
+
         return match ($contextType) {
-            'energy_audit' => $base . $energyAuditScript,
-            'iso50001'     => $base . $iso50001Script,
-            'offer'        => $base . $offerScript,
-            default        => $base . "\n\nOdpowiadaj na pytania klienta dotyczące audytów energetycznych i ISO 50001. Jeśli klient chce przeprowadzić audyt, zaproponuj mu przejście do odpowiedniej sekcji.",
+            'energy_audit'                => $base . $energyAuditScript,
+            'iso50001'                    => $base . $iso50001Script,
+            'offer'                       => $base . $offerScript,
+            'compressor_room'             => $base . $compressorRoomScript,
+            'boiler_room'                 => $base . $boilerRoomScript,
+            'drying_room'                 => $base . $dryingRoomScript,
+            'buildings'                   => $base . $buildingsScript,
+            'technological_processes'     => $base . $technologicalProcessesScript,
+            'bc_general'                  => $base . $bcGeneralScript,
+            'bc_compressor_room'          => $base . $bcCompressorRoomScript,
+            'bc_boiler_room'              => $base . $bcBoilerRoomScript,
+            'bc_drying_room'              => $base . $bcDryingRoomScript,
+            'bc_buildings'                => $base . $bcBuildingsScript,
+            'bc_technological_processes'  => $base . $bcTechnologicalProcessesScript,
+            default                       => $base . $generalScript,
         };
     }
 
@@ -204,6 +692,83 @@ SCRIPT;
                 'Mamy kilka lokalizacji w Polsce',
                 'Zależy mi na szybkiej realizacji — do miesiąca',
                 'Chcę audyt i wdrożenie ISO 50001 razem',
+            ],
+            'compressor_room' => [
+                'Mamy 3 sprężarki śrubowe o mocy 75 kW każda',
+                'Sprężarki pracują na 7 barach',
+                'Słyszałem że straty przez nieszczelności mogą być duże',
+                'Chcę wiedzieć jak odzyskać ciepło ze sprężarek',
+                'Ile prądu zużywają sprężarki rocznie?',
+            ],
+            'boiler_room' => [
+                'Mamy kocioł gazowy 500 kW z 2005 roku',
+                'Chcę wiedzieć czy warto wymienić kocioł na kondensacyjny',
+                'Temperatura zasilania grzejników to 80°C',
+                'Zużywamy ok. 50 000 m³ gazu rocznie',
+                'Interesuje mnie modernizacja palnika',
+            ],
+            'drying_room' => [
+                'Mamy suszarnię komorową do suszenia drewna',
+                'Suszymy ok. 500 m³ drewna miesięcznie',
+                'Temperatura w suszarni to 65°C',
+                'Chcę wiedzieć jak zmniejszyć zużycie energii na suszenie',
+                'Czy warto zainstalować rekuperator?',
+            ],
+            'buildings' => [
+                'Mamy budynek biurowy z 1985 roku, 2000 m²',
+                'Chcę wiedzieć czy ocieplenie się opłaci',
+                'Mamy stare okna i wysokie rachunki za ogrzewanie',
+                'Interesuje mnie pompa ciepła zamiast kotła gazowego',
+                'Chcę uzyskać świadectwo charakterystyki energetycznej',
+            ],
+            'technological_processes' => [
+                'Mamy linię do obróbki cieplnej stali',
+                'Zużywamy dużo energii w procesach tłoczenia',
+                'Interesuje mnie odzysk ciepła odpadowego z pieców',
+                'Chcę przeanalizować zużycie energii na jednostkę produkcji',
+                'Czy napędy VSD pomogą ograniczyć koszty?',
+            ],
+            'bc_general' => [
+                'Chcę się dowiedzieć czym są białe certyfikaty',
+                'Planujemy modernizację — czy możemy dostać białe certyfikaty?',
+                'Ile warte są białe certyfikaty i jak je sprzedać?',
+                'Jakie są minimalne oszczędności żeby ubiegać się o certyfikat?',
+                'Mamy ISO 50001 — czy to ułatwia uzyskanie certyfikatów?',
+            ],
+            'bc_compressor_room' => [
+                'Chcemy zainstalować napędy VSD w sprężarkowni',
+                'Mamy duże nieszczelności w instalacji sprężonego powietrza',
+                'Planujemy wymianę starej sprężarki na efektywniejszą',
+                'Chcę obliczyć ile toe zaoszczędzimy po modernizacji',
+                'Ile kWh/rok zużywają nasze sprężarki?',
+            ],
+            'bc_boiler_room' => [
+                'Planujemy wymianę kotła gazowego na kondensacyjny',
+                'Chcemy zamontować ekonomizer na spalinach',
+                'Ile gazu możemy zaoszczędzić po modernizacji kotłowni?',
+                'Czy modernizacja palnika kwalifikuje do białych certyfikatów?',
+                'Mamy kocioł z 1998 roku — jakie są oszczędności z wymiany?',
+            ],
+            'bc_drying_room' => [
+                'Planujemy montaż rekuperatora w suszarni',
+                'Chcemy zainstalować pompę ciepła do suszenia',
+                'Ile energii zużywa nasza suszarnia komorowa rocznie?',
+                'Jaki % energii można odzyskać z powietrza wylotowego?',
+                'Planujemy VSD na wentylatorach suszarni',
+            ],
+            'bc_buildings' => [
+                'Planujemy docieplenie budynku produkcyjnego',
+                'Chcemy wymienić oświetlenie na LED w całym zakładzie',
+                'Planujemy montaż pompy ciepła zamiast kotła gazowego',
+                'Ile toe zaoszczędzimy docieplając ściany i dach?',
+                'Mamy budynek z 1980 roku — co warto zmodernizować?',
+            ],
+            'bc_technological_processes' => [
+                'Planujemy instalację VSD na silnikach linii produkcyjnej',
+                'Chcemy odzyskać ciepło odpadowe z pieców grzewczych',
+                'Planujemy wymianę napędów na energooszczędne IE4',
+                'Ile toe zaoszczędzi VSD na pompach procesowych?',
+                'Mamy ciepło odpadowe 200 kW — czy możemy je odzyskać?',
             ],
             default => [
                 'Czym jest audyt energetyczny?',
@@ -497,6 +1062,77 @@ PROMPT,
         return $protocol;
     }
 
+    /**
+     * Analizuje zebrane dane protokołu i generuje rekomendacje oszczędności energii.
+     * Wynik zapisuje w protocol_data['rekomendacje'] i protocol_data['priorytety'].
+     */
+    public function appendRecommendations(AiConversation $conversation): void
+    {
+        $protocol = $conversation->protocol_data;
+        if (empty($protocol)) {
+            return;
+        }
+
+        // Zbuduj opis danych do analizy
+        $dataText = '';
+        foreach ($protocol['sekcje'] ?? [] as $sekcja) {
+            $dataText .= "\n### " . ($sekcja['nazwa'] ?? '') . "\n";
+            foreach ($sekcja['pola'] ?? [] as $pole) {
+                $dataText .= '- ' . ($pole['klucz'] ?? '') . ': ' . ($pole['wartosc'] ?? '') . "\n";
+            }
+        }
+        if (!empty($protocol['uwagi'])) {
+            $dataText .= "\n### Uwagi\n" . $protocol['uwagi'] . "\n";
+        }
+
+        $contextType = $conversation->context_type ?? 'energy_audit';
+
+        $response = Prism::text()
+            ->using(Provider::Anthropic, 'claude-haiku-4-5-20251001')
+            ->withSystemPrompt(
+                'Jesteś ekspertem od audytów energetycznych i efektywności energetycznej. ' .
+                'Twoje rekomendacje muszą być konkretne, oparte na podanych danych, z szacowanymi oszczędnościami.'
+            )
+            ->withPrompt(
+                "Na podstawie poniższych danych zebranych podczas audytu energetycznego przygotuj szczegółową analizę.\n\n" .
+                "DANE AUDYTU:\n{$dataText}\n\n" .
+                "Zwróć odpowiedź WYŁĄCZNIE jako JSON (bez markdown, bez opisu) w formacie:\n" .
+                "{\n" .
+                "  \"podsumowanie\": \"Krótkie podsumowanie obecnego stanu energetycznego obiektu (2-4 zdania)\",\n" .
+                "  \"rekomendacje\": [\n" .
+                "    {\n" .
+                "      \"nr\": 1,\n" .
+                "      \"obszar\": \"Nazwa obszaru np. Ogrzewanie\",\n" .
+                "      \"dzialanie\": \"Konkretne działanie do podjęcia\",\n" .
+                "      \"uzasadnienie\": \"Dlaczego warto to zrobić\",\n" .
+                "      \"szacowane_oszczednosci\": \"np. 15-25% kosztów ogrzewania\",\n" .
+                "      \"priorytet\": \"wysoki|sredni|niski\"\n" .
+                "    }\n" .
+                "  ],\n" .
+                "  \"kolejnosc_dzialan\": \"Opis optymalnej kolejności wdrożenia rekomendacji\"\n" .
+                "}"
+            )
+            ->generate();
+
+        $raw = trim($response->text);
+        $raw = preg_replace('/^```(?:json)?\s*/i', '', $raw);
+        $raw = preg_replace('/\s*```$/', '', $raw);
+
+        $recommendations = json_decode($raw, true);
+
+        if (is_array($recommendations)) {
+            $protocol['analiza'] = $recommendations;
+        } else {
+            $protocol['analiza'] = [
+                'podsumowanie' => 'Analiza wygenerowana automatycznie.',
+                'rekomendacje' => [['nr' => 1, 'obszar' => 'Analiza', 'dzialanie' => $raw, 'uzasadnienie' => '', 'szacowane_oszczednosci' => '', 'priorytet' => 'sredni']],
+                'kolejnosc_dzialan' => '',
+            ];
+        }
+
+        $conversation->update(['protocol_data' => $protocol]);
+    }
+
     private function buildMessageHistory(AiConversation $conversation): array
     {
         $messages = [];
@@ -515,10 +1151,21 @@ PROMPT,
     private function defaultTitle(string $contextType): string
     {
         return match ($contextType) {
-            'energy_audit' => 'Audyt energetyczny — ' . now()->format('d.m.Y'),
-            'iso50001'     => 'ISO 50001 — ' . now()->format('d.m.Y'),
-            'offer'        => 'Oferta — ' . now()->format('d.m.Y'),
-            default        => 'Rozmowa — ' . now()->format('d.m.Y H:i'),
+            'energy_audit'            => 'Audyt energetyczny — ' . now()->format('d.m.Y'),
+            'iso50001'                => 'ISO 50001 — ' . now()->format('d.m.Y'),
+            'offer'                   => 'Oferta — ' . now()->format('d.m.Y'),
+            'compressor_room'         => 'Sprężarkownia — ' . now()->format('d.m.Y'),
+            'boiler_room'             => 'Kotłownia — ' . now()->format('d.m.Y'),
+            'drying_room'             => 'Suszarnia — ' . now()->format('d.m.Y'),
+            'buildings'               => 'Budynki — ' . now()->format('d.m.Y'),
+            'technological_processes' => 'Procesy technologiczne — ' . now()->format('d.m.Y'),
+            'bc_general'                  => 'Białe certyfikaty — ' . now()->format('d.m.Y'),
+            'bc_compressor_room'          => 'BC Sprężarkownia — ' . now()->format('d.m.Y'),
+            'bc_boiler_room'              => 'BC Kotłownia — ' . now()->format('d.m.Y'),
+            'bc_drying_room'              => 'BC Suszarnia — ' . now()->format('d.m.Y'),
+            'bc_buildings'                => 'BC Budynki — ' . now()->format('d.m.Y'),
+            'bc_technological_processes'  => 'BC Procesy technologiczne — ' . now()->format('d.m.Y'),
+            default                   => 'Rozmowa — ' . now()->format('d.m.Y H:i'),
         };
     }
 }

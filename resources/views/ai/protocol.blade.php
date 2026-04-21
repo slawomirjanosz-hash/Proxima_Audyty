@@ -37,10 +37,10 @@
                     </button>
                 </form>
                 @if(!empty($protocol))
-                    <a href="{{ route('ai.protocol.preview', $conversation) }}" target="_blank"
-                       style="padding:7px 14px;border-radius:9px;font-size:13px;font-weight:600;background:#f0f4f8;color:#1d4f73;text-decoration:none;border:1px solid #c5d8ea;">
+                    <button type="button" onclick="openPdfModal('{{ route('ai.protocol.preview', $conversation) }}')"
+                       style="padding:7px 14px;border-radius:9px;font-size:13px;font-weight:600;background:#f0f4f8;color:#1d4f73;border:1px solid #c5d8ea;cursor:pointer;">
                         👁 Podgląd PDF
-                    </a>
+                    </button>
                     <a href="{{ route('ai.protocol.pdf', $conversation) }}" class="btn-pdf">
                         📥 Pobierz PDF
                     </a>
@@ -90,4 +90,34 @@
             @endif
         @endif
     </div>
+
+    {{-- PDF viewer modal --}}
+    <div id="pdf-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);">
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;">
+            <div style="flex-shrink:0;background:#1a252f;height:48px;display:flex;align-items:center;padding:0 16px;gap:12px;">
+                <span style="color:#c8d8e4;font-size:13px;font-weight:600;flex:1;">👁 Podgląd protokołu</span>
+                <button onclick="closePdfModal()" style="background:#4a6375;color:#fff;border:none;border-radius:7px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">✕ Zamknij</button>
+            </div>
+            <iframe id="pdf-iframe" src="" style="flex:1;border:none;width:100%;background:#2c3e50;"></iframe>
+        </div>
+    </div>
+
+    <script>
+        function openPdfModal(url) {
+            document.getElementById('pdf-iframe').src = url;
+            document.getElementById('pdf-modal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        function closePdfModal() {
+            document.getElementById('pdf-modal').style.display = 'none';
+            document.getElementById('pdf-iframe').src = '';
+            document.body.style.overflow = '';
+        }
+        document.getElementById('pdf-modal').addEventListener('click', function(e) {
+            if (e.target === this) closePdfModal();
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closePdfModal();
+        });
+    </script>
 </x-layouts.app>

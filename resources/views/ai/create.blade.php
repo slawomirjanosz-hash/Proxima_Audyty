@@ -31,6 +31,42 @@
                     <label>Wybierz typ rozmowy</label>
                     <div class="type-grid">
                         <label class="type-btn">
+                            <input type="radio" name="context_type" value="general"
+                                {{ (empty($contextType) || $contextType === 'general' ? 'checked' : '') }}>
+                            <div class="icon">💬</div>
+                            <div class="label">Ogólnie</div>
+                        </label>
+                        <label class="type-btn">
+                            <input type="radio" name="context_type" value="compressor_room"
+                                {{ ($contextType === 'compressor_room' ? 'checked' : '') }}>
+                            <div class="icon">🔧</div>
+                            <div class="label">Sprężarkownia</div>
+                        </label>
+                        <label class="type-btn">
+                            <input type="radio" name="context_type" value="boiler_room"
+                                {{ ($contextType === 'boiler_room' ? 'checked' : '') }}>
+                            <div class="icon">🔥</div>
+                            <div class="label">Kotłownia</div>
+                        </label>
+                        <label class="type-btn">
+                            <input type="radio" name="context_type" value="drying_room"
+                                {{ ($contextType === 'drying_room' ? 'checked' : '') }}>
+                            <div class="icon">🌡️</div>
+                            <div class="label">Suszarnia</div>
+                        </label>
+                        <label class="type-btn">
+                            <input type="radio" name="context_type" value="buildings"
+                                {{ ($contextType === 'buildings' ? 'checked' : '') }}>
+                            <div class="icon">🏢</div>
+                            <div class="label">Budynki</div>
+                        </label>
+                        <label class="type-btn">
+                            <input type="radio" name="context_type" value="technological_processes"
+                                {{ ($contextType === 'technological_processes' ? 'checked' : '') }}>
+                            <div class="icon">⚙️</div>
+                            <div class="label">Procesy technologiczne</div>
+                        </label>
+                        <label class="type-btn">
                             <input type="radio" name="context_type" value="energy_audit"
                                 {{ ($contextType === 'energy_audit' ? 'checked' : '') }}>
                             <div class="icon">⚡</div>
@@ -49,10 +85,40 @@
                             <div class="label">Oferta</div>
                         </label>
                         <label class="type-btn">
-                            <input type="radio" name="context_type" value="general"
-                                {{ (empty($contextType) || $contextType === 'general' ? 'checked' : '') }}>
-                            <div class="icon">💬</div>
-                            <div class="label">Ogólny</div>
+                            <input type="radio" name="context_type" value="bc_general"
+                                {{ ($contextType === 'bc_general' ? 'checked' : '') }}>
+                            <div class="icon">📋</div>
+                            <div class="label">BC Ogólnie</div>
+                        </label>
+                        <label class="type-btn">
+                            <input type="radio" name="context_type" value="bc_compressor_room"
+                                {{ ($contextType === 'bc_compressor_room' ? 'checked' : '') }}>
+                            <div class="icon">🔧</div>
+                            <div class="label">BC Sprężarkownia</div>
+                        </label>
+                        <label class="type-btn">
+                            <input type="radio" name="context_type" value="bc_boiler_room"
+                                {{ ($contextType === 'bc_boiler_room' ? 'checked' : '') }}>
+                            <div class="icon">🔥</div>
+                            <div class="label">BC Kotłownia</div>
+                        </label>
+                        <label class="type-btn">
+                            <input type="radio" name="context_type" value="bc_drying_room"
+                                {{ ($contextType === 'bc_drying_room' ? 'checked' : '') }}>
+                            <div class="icon">🌡️</div>
+                            <div class="label">BC Suszarnia</div>
+                        </label>
+                        <label class="type-btn">
+                            <input type="radio" name="context_type" value="bc_buildings"
+                                {{ ($contextType === 'bc_buildings' ? 'checked' : '') }}>
+                            <div class="icon">🏢</div>
+                            <div class="label">BC Budynki</div>
+                        </label>
+                        <label class="type-btn">
+                            <input type="radio" name="context_type" value="bc_technological_processes"
+                                {{ ($contextType === 'bc_technological_processes' ? 'checked' : '') }}>
+                            <div class="icon">⚙️</div>
+                            <div class="label">BC Procesy technologiczne</div>
                         </label>
                     </div>
                 </div>

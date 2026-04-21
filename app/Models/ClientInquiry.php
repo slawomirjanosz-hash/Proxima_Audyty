@@ -14,6 +14,7 @@ class ClientInquiry extends Model
         'audit_type_name',
         'message',
         'status',
+        'offer_id',
     ];
 
     public function user(): BelongsTo
@@ -31,36 +32,44 @@ class ClientInquiry extends Model
         return $this->belongsTo(AuditType::class);
     }
 
+    public function offer(): BelongsTo
+    {
+        return $this->belongsTo(Offer::class);
+    }
+
     public function statusLabel(): string
     {
         return match ($this->status) {
-            'new'       => 'Nowe',
-            'in_review' => 'W rozpatrzeniu',
-            'accepted'  => 'Przyjęte',
-            'rejected'  => 'Odrzucone',
-            default     => ucfirst($this->status),
+            'new'            => 'Nowe',
+            'in_review'      => 'Oferta do oceny',
+            'offer_accepted' => 'Oferta zaakceptowana',
+            'accepted'       => 'Przyjęte',
+            'rejected'       => 'Odrzucone',
+            default          => ucfirst($this->status),
         };
     }
 
     public function statusColor(): string
     {
         return match ($this->status) {
-            'new'       => '#1d4f73',
-            'in_review' => '#875605',
-            'accepted'  => '#1f6a3c',
-            'rejected'  => '#9f1f1f',
-            default     => '#4c6373',
+            'new'            => '#1d4f73',
+            'in_review'      => '#875605',
+            'offer_accepted' => '#065f46',
+            'accepted'       => '#1f6a3c',
+            'rejected'       => '#9f1f1f',
+            default          => '#4c6373',
         };
     }
 
     public function statusBg(): string
     {
         return match ($this->status) {
-            'new'       => '#e9f4ff',
-            'in_review' => '#fff4df',
-            'accepted'  => '#e6f8ed',
-            'rejected'  => '#fff0f0',
-            default     => '#f7fafc',
+            'new'            => '#e9f4ff',
+            'in_review'      => '#fff4df',
+            'offer_accepted' => '#d1fae5',
+            'accepted'       => '#e6f8ed',
+            'rejected'       => '#fff0f0',
+            default          => '#f7fafc',
         };
     }
 }

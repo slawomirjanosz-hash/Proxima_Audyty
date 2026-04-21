@@ -35,10 +35,21 @@
         <a href="{{ route('ai.index') }}" class="btn-back">← {{ __('Conversations') }}</a>
         @php
             $contextLabel = match($conversation->context_type) {
-                'energy_audit' => '⚡ Audyt energetyczny',
-                'iso50001'     => '🏭 ISO 50001',
-                'offer'        => '📄 Oferta',
-                default        => '💬 Ogólny',
+                'energy_audit'            => '⚡ Audyt energetyczny',
+                'iso50001'                => '🏭 ISO 50001',
+                'offer'                   => '📄 Oferta',
+                'compressor_room'         => '🔧 Sprężarkownia',
+                'boiler_room'             => '🔥 Kotłownia',
+                'drying_room'             => '🌡️ Suszarnia',
+                'buildings'               => '🏢 Budynki',
+                'technological_processes' => '⚙️ Procesy technologiczne',
+                'bc_general'                 => '📋 BC Ogólnie',
+                'bc_compressor_room'         => '🔧 BC Sprężarkownia',
+                'bc_boiler_room'             => '🔥 BC Kotłownia',
+                'bc_drying_room'             => '🌡️ BC Suszarnia',
+                'bc_buildings'               => '🏢 BC Budynki',
+                'bc_technological_processes' => '⚙️ BC Procesy technologiczne',
+                default                   => '💬 Ogólny',
             };
         @endphp
         <span class="context-chip">{{ $contextLabel }}</span>

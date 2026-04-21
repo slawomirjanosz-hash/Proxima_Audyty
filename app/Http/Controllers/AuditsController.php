@@ -121,7 +121,7 @@ class AuditsController extends Controller
 
     public function settings(string $activeTabOverride = ''): View
     {
-        $validTabs = ['energetyczne', 'iso50001', 'biale-certyfikaty', 'ai-audyty', 'ustawienia'];
+        $validTabs = ['energetyczne', 'iso50001', 'biale-certyfikaty'];
         $activeTab = $activeTabOverride !== '' && in_array($activeTabOverride, $validTabs)
             ? $activeTabOverride
             : (in_array(request('tab'), $validTabs) ? request('tab') : 'energetyczne');
@@ -150,6 +150,56 @@ class AuditsController extends Controller
         $companies = Company::query()->orderBy('name')->get();
         $isoAudits = Iso50001Audit::with(['company', 'creator', 'reviewer'])->latest()->get();
 
+        // AI agents for the "energetyczne" tab
+        $agentService = app(\App\Services\AiAgentService::class);
+        $agentDefs = [
+            ['type' => 'general',                 'icon' => '💬', 'name' => 'Ogólnie',                   'description' => 'Ogólna rozmowa o audytach energetycznych i efektywności'],
+            ['type' => 'compressor_room',          'icon' => '🔧', 'name' => 'Sprężarkownia',              'description' => 'Zbieranie danych do audytu sprężarkowni i instalacji sprężonego powietrza'],
+            ['type' => 'boiler_room',             'icon' => '🔥', 'name' => 'Kotłownia',                  'description' => 'Zbieranie danych do audytu kotłowni — kotły, paliwo, sprawność, c.w.u.'],
+            ['type' => 'drying_room',             'icon' => '🌡️', 'name' => 'Suszarnia',                  'description' => 'Zbieranie danych do audytu suszarni i procesów suszenia'],
+            ['type' => 'buildings',               'icon' => '🏢', 'name' => 'Budynki',                    'description' => 'Zbieranie danych do audytu energetycznego budynków i infrastruktury'],
+            ['type' => 'technological_processes', 'icon' => '⚙️', 'name' => 'Procesy technologiczne',     'description' => 'Zbieranie danych do audytu procesów technologicznych i produkcyjnych'],
+        ];
+        $aiAgents = array_map(function (array $def) use ($agentService): array {
+            $customPrompt = \App\Models\SystemSetting::get("ai_agent_prompt_{$def['type']}");
+            $def['has_custom_prompt'] = !empty(trim((string) ($customPrompt ?? '')));
+            $def['current_prompt'] = $def['has_custom_prompt']
+                ? (string) $customPrompt
+                : $agentService->getDefaultSystemPrompt($def['type']);
+            return $def;
+        }, $agentDefs);
+
+        // AI agent for the "iso50001" tab
+        $isoAgentDefs = [
+            ['type' => 'iso50001', 'icon' => '🏭', 'name' => 'ISO 50001', 'description' => 'Rozmowy i analiza dotycząca normy ISO 50001 — systemy zarządzania energią'],
+        ];
+        $isoAgents = array_map(function (array $def) use ($agentService): array {
+            $customPrompt = \App\Models\SystemSetting::get("ai_agent_prompt_{$def['type']}");
+            $def['has_custom_prompt'] = !empty(trim((string) ($customPrompt ?? '')));
+            $def['current_prompt'] = $def['has_custom_prompt']
+                ? (string) $customPrompt
+                : $agentService->getDefaultSystemPrompt($def['type']);
+            return $def;
+        }, $isoAgentDefs);
+
+        // AI agents for the "biale-certyfikaty" tab
+        $bcAgentDefs = [
+            ['type' => 'bc_general',                 'icon' => '📋', 'name' => 'Ogólnie',                   'description' => 'Wstępne doradztwo i informacje o białych certyfikatach (świadectwach efektywności energetycznej)'],
+            ['type' => 'bc_compressor_room',          'icon' => '🔧', 'name' => 'Sprężarkownia',              'description' => 'Zbieranie danych do białych certyfikatów — modernizacja sprężarkowni i instalacji sprężonego powietrza'],
+            ['type' => 'bc_boiler_room',              'icon' => '🔥', 'name' => 'Kotłownia',                  'description' => 'Zbieranie danych do białych certyfikatów — modernizacja kotłowni i systemów cieplnych'],
+            ['type' => 'bc_drying_room',              'icon' => '🌡️', 'name' => 'Suszarnia',                  'description' => 'Zbieranie danych do białych certyfikatów — modernizacja suszarni i procesów suszenia'],
+            ['type' => 'bc_buildings',                'icon' => '🏢', 'name' => 'Budynki',                    'description' => 'Zbieranie danych do białych certyfikatów — termomodernizacja i modernizacja budynków'],
+            ['type' => 'bc_technological_processes',  'icon' => '⚙️', 'name' => 'Procesy technologiczne',     'description' => 'Zbieranie danych do białych certyfikatów — modernizacja procesów technologicznych i produkcyjnych'],
+        ];
+        $bcAgents = array_map(function (array $def) use ($agentService): array {
+            $customPrompt = \App\Models\SystemSetting::get("ai_agent_prompt_{$def['type']}");
+            $def['has_custom_prompt'] = !empty(trim((string) ($customPrompt ?? '')));
+            $def['current_prompt'] = $def['has_custom_prompt']
+                ? (string) $customPrompt
+                : $agentService->getDefaultSystemPrompt($def['type']);
+            return $def;
+        }, $bcAgentDefs);
+
         return view('audits.settings', [
             'auditTypes' => $auditTypes,
             'units' => $units,
@@ -160,6 +210,9 @@ class AuditsController extends Controller
             'isoCompanies' => $companies,
             'isoAudits' => $isoAudits,
             'activeTab' => $activeTab,
+            'aiAgents' => $aiAgents,
+            'isoAgents' => $isoAgents,
+            'bcAgents' => $bcAgents,
         ]);
     }
 

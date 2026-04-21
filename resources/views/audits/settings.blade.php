@@ -78,8 +78,6 @@
                     @if($activeTab === 'energetyczne') {{ __('Energy audits of enterprises') }}
                     @elseif($activeTab === 'iso50001') Audyty ISO 50001
                     @elseif($activeTab === 'biale-certyfikaty') {{ __('White certificates') }}
-                    @elseif($activeTab === 'ai-audyty') {{ __('Audits with AI') }}
-                    @else {{ __('Settings') }}
                     @endif
                 </h1>
             </div>
@@ -89,695 +87,245 @@
             <a href="{{ route('audits.types', ['tab' => 'energetyczne']) }}" class="settings-tab-btn {{ $activeTab === 'energetyczne' ? 'active' : '' }}">{{ __('Energy audits') }}</a>
             <a href="{{ route('audits.types', ['tab' => 'iso50001']) }}" class="settings-tab-btn {{ $activeTab === 'iso50001' ? 'active' : '' }}">ISO 50001</a>
             <a href="{{ route('audits.types', ['tab' => 'biale-certyfikaty']) }}" class="settings-tab-btn {{ $activeTab === 'biale-certyfikaty' ? 'active' : '' }}">{{ __('White certificates') }}</a>
-            <a href="{{ route('audits.types', ['tab' => 'ai-audyty']) }}" class="settings-tab-btn {{ $activeTab === 'ai-audyty' ? 'active' : '' }}">{{ __('Audits with AI') }}</a>
-            <a href="{{ route('audits.types', ['tab' => 'ustawienia']) }}" class="settings-tab-btn {{ $activeTab === 'ustawienia' ? 'active' : '' }}">{{ __('Settings') }}</a>
         </div>
 
         @if($activeTab === 'energetyczne')
-        <div class="settings-section open" id="settings-audit-types">
-            <div class="settings-body" style="display:block;">
-                <div style="display:flex; justify-content:flex-end; margin-top:10px;">
-                    <button type="button" class="edit-user-btn" onclick="toggleAuditTypeForm()">Dodaj rodzaj audytu</button>
+        <div>
+            @if(session('status'))
+                <div style="margin-bottom:12px; padding:10px 14px; border:1px solid #b7dcb5; border-radius:10px; background:#f0faf0; color:#155724; font-size:13px;">
+                    {{ session('status') }}
                 </div>
+            @endif
 
-                <form id="add-audit-type-form" method="POST" action="{{ route('audits.settings.audit-type-store') }}" class="audit-builder" data-audit-type-builder="new">
-                @csrf
-                <div style="display:grid; grid-template-columns:1fr; gap:10px;">
-                    <div>
-                        <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Nazwa rodzaju audytu</label>
-                        <input type="text" name="name" value="{{ old('name') }}" required>
+            <p style="margin:0 0 18px; color:#355c77; font-size:14px;">
+                Wybierz agenta AI, by rozpocząć nową rozmowę. Kliknij <strong>Trenuj agenta</strong>, by dostosować jego skrypt — zmieniony prompt zostanie użyty we wszystkich nowych rozmowach tego agenta.
+            </p>
+
+            @foreach($aiAgents as $agent)
+            <div class="settings-section" id="ai-agent-{{ $agent['type'] }}" style="margin-bottom:10px;">
+                <button type="button" class="settings-toggle" onclick="toggleSettingsSection('ai-agent-{{ $agent['type'] }}')">
+                    <div class="settings-toggle-content">
+                        <h2 style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:22px;">{{ $agent['icon'] }}</span>
+                            {{ $agent['name'] }}
+                            @if($agent['has_custom_prompt'])
+                                <span style="font-size:11px; font-weight:600; padding:2px 7px; border-radius:999px; background:#fef3c7; color:#92400e; border:1px solid #fde68a;">trenowany</span>
+                            @endif
+                        </h2>
+                        <span class="muted">{{ $agent['description'] }}</span>
                     </div>
-                </div>
-
-                <div style="margin-top:14px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;">
-                        <div>
-                            <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin:0;">Zmienne globalne rodzaju audytu</label>
-                            <div style="font-size:11px; color:#6b8294; margin-top:2px;">Stałe i parametry dostępne we wzorach wszystkich sekcji jako <strong>{token}</strong>.</div>
-                        </div>
-                        <button type="button" class="btn-secondary" onclick="addVariableRow('new-type-variables-table')">+ Dodaj zmienną</button>
+                    <span class="settings-chevron">&#9660;</span>
+                </button>
+                <div class="settings-body" style="padding-top:14px;">
+                    <div style="margin-bottom:16px;">
+                        <a href="{{ route('ai.create', ['type' => $agent['type']]) }}"
+                           style="display:inline-flex; align-items:center; gap:8px; padding:9px 18px; background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; border-radius:10px; font-weight:700; font-size:14px; text-decoration:none;">
+                            + Nowa rozmowa z agentem
+                        </a>
                     </div>
-                    <table class="data-table" id="new-type-variables-table">
-                        <thead>
-                            <tr>
-                                <th>Nazwa zmiennej</th>
-                                <th>Token</th>
-                                <th>Wartość domyślna</th>
-                                <th style="width:40px;">Akcja</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
 
-                <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
-                    <strong style="font-size:13px; color:#1d4f73;">Sekcje audytu</strong>
-                    <button type="button" class="btn-secondary" onclick="addAuditTypeSection()">+ Dodaj sekcję</button>
-                </div>
-
-                <div id="audit-type-sections" style="display:grid; gap:8px; margin-top:8px;"></div>
-
-                <div style="display:flex; justify-content:flex-end; margin-top:10px;">
-                    <button type="submit">Zapisz rodzaj audytu</button>
-                </div>
-                </form>
-
-                <div style="margin-top:12px;">
-                @forelse($auditTypes as $type)
-                    <div class="audit-type-card" id="audit-type-card-{{ $type->id }}">
-                        <div class="audit-type-header">
-                            <button type="button" class="audit-type-title-btn" onclick="toggleAuditTypeDetails({{ $type->id }})">
-                                <span class="audit-type-index">{{ $loop->iteration }}</span>
-                                <span>{{ $type->name }}</span>
-                                <span class="audit-type-chevron">&#9660;</span>
-                            </button>
-                            <div style="display:flex; gap:8px; align-items:center;">
-                                <button type="button" class="btn-secondary" onclick="toggleAuditTypeEditForm({{ $type->id }})">Edytuj</button>
-                                <form method="POST" action="{{ route('audits.settings.audit-type-copy', $type) }}" onsubmit="return confirm('Skopiować rodzaj audytu?')">
-                                    @csrf
-                                    <button type="submit" class="btn-secondary">Kopiuj</button>
-                                </form>
-                                <form method="POST" action="{{ route('audits.settings.audit-type-destroy', $type) }}" onsubmit="return confirm('Usunąć rodzaj audytu?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn-secondary">Usuń</button>
-                                </form>
-                            </div>
-                        </div>
-
-                        <div class="audit-type-details">
-
-                        <form id="edit-audit-type-form-{{ $type->id }}" method="POST" action="{{ route('audits.settings.audit-type-update', $type) }}" class="audit-builder" style="margin-top:10px;" data-audit-type-builder="{{ $type->id }}">
-                            @csrf
-                            @method('PATCH')
-                            <div>
-                                <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Nazwa rodzaju audytu</label>
-                                <input type="text" name="name" value="{{ $type->name }}" required>
-                            </div>
-
-                            <div style="margin-top:14px;">
-                                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;">
-                                    <div>
-                                        <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin:0;">Zmienne globalne rodzaju audytu</label>
-                                        <div style="font-size:11px; color:#6b8294; margin-top:2px;">Stałe i parametry dostępne we wzorach wszystkich sekcji jako <strong>{token}</strong>.</div>
-                                    </div>
-                                    <button type="button" class="btn-secondary" onclick="addVariableRow('edit-type-variables-table-{{ $type->id }}')">+ Dodaj zmienną</button>
-                                </div>
-                                <table class="data-table" id="edit-type-variables-table-{{ $type->id }}">
-                                    <thead>
-                                        <tr>
-                                            <th>Nazwa zmiennej</th>
-                                            <th>Token</th>
-                                            <th>Wartość domyślna</th>
-                                            <th style="width:40px;">Akcja</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($type->variables ?? [] as $varIndex => $var)
-                                            <tr data-variable-item="1">
-                                                <td><input type="text" name="variables[{{ $varIndex }}][name]" value="{{ $var['name'] ?? '' }}" placeholder="Np. Sprawność" oninput="updateVariableToken(this)"></td>
-                                                <td><input type="text" class="variable-token-preview" name="variables[{{ $varIndex }}][key]" value="{{ $var['key'] ?? '' }}"></td>
-                                                <td><input type="text" name="variables[{{ $varIndex }}][default_value]" value="{{ $var['default_value'] ?? '' }}" placeholder="Np. 0.85"></td>
-                                                <td><button type="button" class="btn-trash-icon" onclick="removeVariableRow(this)" title="Usuń zmienną" aria-label="Usuń zmienną">🗑</button></td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
-                                <strong style="font-size:13px; color:#1d4f73;">Sekcje audytu</strong>
-                                <button type="button" class="btn-secondary" onclick="addAuditTypeSection('edit-audit-type-sections-{{ $type->id }}')">+ Dodaj sekcję</button>
-                            </div>
-
-                            <div id="edit-audit-type-sections-{{ $type->id }}" style="display:grid; gap:8px; margin-top:8px;">
-                                @foreach($type->sections as $sectionIndex => $section)
-                                    @php
-                                        $sectionRows = collect($section->data_fields ?? [])->map(function ($row) {
-                                            if (is_array($row)) {
-                                                $options = collect($row['options'] ?? [])->map(fn ($item) => trim((string) $item))->filter()->values()->all();
-
-                                                return [
-                                                    'key' => (string) ($row['key'] ?? \Illuminate\Support\Str::slug((string) ($row['name'] ?? ''), '_')),
-                                                    'name' => (string) ($row['name'] ?? ''),
-                                                    'unit' => (string) ($row['unit'] ?? ''),
-                                                    'kind' => (string) ($row['kind'] ?? 'number'),
-                                                    'parent_token' => (string) ($row['parent_token'] ?? ''),
-                                                    'show_when' => (string) ($row['show_when'] ?? ''),
-                                                    'default_value' => (string) ($row['default_value'] ?? ''),
-                                                    'notes' => (string) ($row['notes'] ?? ''),
-                                                    'options_text' => implode("\n", $options),
-                                                ];
-                                            }
-
-                                            return [
-                                                'key' => \Illuminate\Support\Str::slug((string) $row, '_'),
-                                                'name' => (string) $row,
-                                                'unit' => '',
-                                                'kind' => 'number',
-                                                'parent_token' => '',
-                                                'show_when' => '',
-                                                'default_value' => '',
-                                                'notes' => '',
-                                                'options_text' => '',
-                                            ];
-                                        })->filter(fn ($row) => trim($row['name']) !== '')->values();
-                                    @endphp
-                                    <div class="audit-type-section" data-section-item="1" draggable="false">
-                                        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px;">
-                                            <div style="display:flex; align-items:center; gap:8px;">
-                                                <button type="button" class="section-collapse-arrow" onclick="toggleAuditTypeSectionCollapse(this)" title="Zwiń sekcję">▾</button>
-                                                <strong class="section-order-label" style="font-size:14px; color:#10344c;"><span class="section-drag-handle" title="Przeciągnij sekcję">•••</span><span class="section-order-title">{{ $section->name }}</span></strong>
-                                            </div>
-                                            <button type="button" class="btn-secondary" onclick="removeAuditTypeSection(this)">Usuń</button>
-                                        </div>
-
-                                        <div class="section-collapsible-content" style="display:grid; gap:8px;">
-                                            <div>
-                                                <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Nazwa sekcji</label>
-                                                <input type="text" class="section-name-input" name="sections[{{ $sectionIndex }}][name]" value="{{ $section->name }}" oninput="updateSectionHeaderTitle(this)" required>
-                                            </div>
-                                            <div>
-                                                <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Zadania (jedno zadanie w linii)</label>
-                                                <textarea name="sections[{{ $sectionIndex }}][tasks_text]" rows="3" style="width:100%; border:1px solid #c9d7e3; border-radius:9px; padding:8px 10px; font-size:14px;">{{ implode("\n", $section->tasks ?? []) }}</textarea>
-                                            </div>
-                                            <div>
-                                                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;">
-                                                    <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin:0;">Tabela danych sekcji</label>
-                                                    <button type="button" class="btn-secondary" onclick="addSectionDataRow('edit-section-data-table-{{ $type->id }}-{{ $sectionIndex }}', {{ $sectionIndex }})">+ Dodaj wiersz</button>
-                                                </div>
-                                                <table class="data-table data-table-fields" id="edit-section-data-table-{{ $type->id }}-{{ $sectionIndex }}">
-                                                    <thead>
-                                                        <tr>
-                                                            <th style="width:34px;"></th>
-                                                            <th style="width:28px; text-align:center;">+</th>
-                                                            <th>Dana</th>
-                                                            <th>Token</th>
-                                                            <th>Zależność od</th>
-                                                            <th>Pokaż gdy =</th>
-                                                            <th>Jednostka</th>
-                                                            <th>Wartość</th>
-                                                            <th>Uwagi</th>
-                                                            <th>Opcje listy rozwijanej</th>
-                                                            <th>Akcja</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @foreach($sectionRows as $rowIndex => $row)
-                                                            <tr data-draggable-row="1" draggable="false" class="{{ !empty($row['parent_token']) ? 'is-dependent-row' : '' }}">
-                                                                <td><span class="row-drag-handle" title="Przeciągnij wiersz">•••</span></td>
-                                                                <td style="text-align:center;"><input type="checkbox" class="row-insert-anchor" title="Dodawaj nowy wiersz pod tym wierszem" aria-label="Wstawianie pod tym wierszem"></td>
-                                                                <td><input type="text" name="sections[{{ $sectionIndex }}][rows][{{ $rowIndex }}][name]" value="{{ $row['name'] }}" oninput="updateRowToken(this)"></td>
-                                                                <td>
-                                                                    <input type="text" class="row-token-preview" name="sections[{{ $sectionIndex }}][rows][{{ $rowIndex }}][key]" value="{{ $row['key'] !== '' ? $row['key'] : \Illuminate\Support\Str::slug((string) $row['name'], '_') }}" onfocus="rememberTokenBeforeEdit(this)" oninput="handleTokenEdit(this)" onblur="handleTokenEdit(this)">
-                                                                </td>
-                                                                <td>
-                                                                    <select class="row-parent-token" name="sections[{{ $sectionIndex }}][rows][{{ $rowIndex }}][parent_token]" onchange="handleDependencyParentChange(this)">
-                                                                        <option value="">—</option>
-                                                                        @foreach($sectionRows as $dependencyRow)
-                                                                            @php
-                                                                                $dependencyToken = $dependencyRow['key'] !== ''
-                                                                                    ? $dependencyRow['key']
-                                                                                    : \Illuminate\Support\Str::slug((string) $dependencyRow['name'], '_');
-                                                                            @endphp
-                                                                            <option value="{{ $dependencyToken }}" @selected((string) ($row['parent_token'] ?? '') === (string) $dependencyToken)>{{ $dependencyToken }}</option>
-                                                                        @endforeach
-                                                                    </select>
-                                                                </td>
-                                                                <td><input type="text" class="row-show-when" name="sections[{{ $sectionIndex }}][rows][{{ $rowIndex }}][show_when]" value="{{ (string) ($row['show_when'] ?? '') }}" placeholder="np. tak / nie / opcja"></td>
-                                                                <td>
-                                                                    <select name="sections[{{ $sectionIndex }}][rows][{{ $rowIndex }}][unit]" onchange="handleRowUnitKind(this)">
-                                                                        <option value="">—</option>
-                                                                        @foreach($units as $unit)
-                                                                            <option value="{{ $unit->name }}" @selected($row['unit'] === $unit->name)>{{ $unit->name }}</option>
-                                                                        @endforeach
-                                                                    </select>
-                                                                </td>
-                                                                <td><input type="text" name="sections[{{ $sectionIndex }}][rows][{{ $rowIndex }}][default_value]" value="{{ $row['default_value'] }}"></td>
-                                                                <td><input type="text" name="sections[{{ $sectionIndex }}][rows][{{ $rowIndex }}][notes]" value="{{ $row['notes'] }}"></td>
-                                                                <td>
-                                                                    <textarea class="row-options-input" name="sections[{{ $sectionIndex }}][rows][{{ $rowIndex }}][options_text]" rows="2" placeholder="Jedna opcja w linii" style="display:{{ ($row['kind'] ?? 'number') === 'select' ? 'block' : 'none' }};">{{ $row['options_text'] ?? '' }}</textarea>
-                                                                </td>
-                                                                <td><button type="button" class="btn-trash-icon" onclick="removeDataRow(this)" title="Usuń wiersz" aria-label="Usuń wiersz">🗑</button></td>
-                                                            </tr>
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
-                                            </div>
-
-                                            <div>
-                                                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;">
-                                                    <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin:0;">Wzory sekcji</label>
-                                                    <button type="button" class="btn-secondary" onclick="addSectionFormulaRow('edit-section-formulas-{{ $type->id }}-{{ $sectionIndex }}', {{ $sectionIndex }}, 'edit-section-data-table-{{ $type->id }}-{{ $sectionIndex }}')">+ Dodaj wzór</button>
-                                                </div>
-                                                <div style="font-size:12px; color:#4c6373; margin:0 0 6px;">Tokeny pól: <strong>{token}</strong>, np. <strong>({moc_nominalna} * 1.2) / 1000</strong>. Obsługiwane funkcje: <strong>IF(warunek; jeśli_tak; jeśli_nie)</strong>, <strong>AND(a; b)</strong>, <strong>OR(a; b)</strong>, <strong>NOT(a)</strong>, <strong>MAX(a; b)</strong>, <strong>MIN(a; b)</strong>, <strong>ABS(x)</strong>, <strong>SQRT(x)</strong>, <strong>ROUND(x; miejsca)</strong>. Porównania: <strong>=</strong>, <strong>&lt;&gt;</strong>, <strong>&lt;</strong>, <strong>&gt;</strong>, <strong>&lt;=</strong>, <strong>&gt;=</strong>. Argumenty funkcji rozdzielaj średnikiem <strong>;</strong>. Listy Select: wartość nr 1, 2, 3... Tak/Nie: 1/0.</div>
-                                                <div class="token-helper">
-                                                    <div class="token-helper-title">Kliknij token, aby wstawić go do wzoru</div>
-                                                    <div class="token-list section-token-list"></div>
-                                                    <div class="token-helper-hint">Pola danych: nieb. | Wyniki wzorów: ziel. Przy zmianie tokenu jego wystąpienia we wzorach tej sekcji aktualizują się automatycznie.</div>
-                                                </div>
-                                                <div id="edit-section-formulas-{{ $type->id }}-{{ $sectionIndex }}" style="display:grid; gap:8px;">
-                                                    @foreach(($section->formulas ?? []) as $formulaIndex => $formula)
-                                                        <div class="audit-type-section section-formula-row" data-formula-item="1" draggable="true" style="padding:8px;">
-                                                            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px;">
-                                                                <div style="display:flex; align-items:center; gap:8px;">
-                                                                    <button type="button" class="section-collapse-arrow" onclick="toggleFormulaCollapse(this)" title="Zwiń wzór">▾</button>
-                                                                    <strong class="formula-order-label" style="font-size:12px; color:#1d4f73;"><span class="formula-drag-handle" title="Przeciągnij wzór">•••</span><span class="formula-order-title">{{ trim((string) ($formula['label'] ?? '')) !== '' ? (string) $formula['label'] : 'Nowy wzór' }}</span></strong>
-                                                                </div>
-                                                                <button type="button" class="btn-secondary" onclick="removeFormulaRow(this)">Usuń</button>
-                                                            </div>
-                                                            <div class="formula-collapsible-content" style="display:grid; grid-template-columns:1fr 160px 160px; gap:8px;">
-                                                                <div>
-                                                                    <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Co obliczyć</label>
-                                                                    <input type="text" class="formula-name-input" name="sections[{{ $sectionIndex }}][formulas][{{ $formulaIndex }}][label]" value="{{ (string) ($formula['label'] ?? '') }}" placeholder="Np. Zużycie roczne" oninput="updateFormulaHeaderTitle(this)">
-                                                                </div>
-                                                                <div>
-                                                                    <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Token wyniku</label>
-                                                                    <input type="text" class="formula-token-preview" name="sections[{{ $sectionIndex }}][formulas][{{ $formulaIndex }}][key]" value="{{ (string) ($formula['key'] ?? '') }}" placeholder="auto" onfocus="rememberTokenBeforeEdit(this)" oninput="handleFormulaTokenEdit(this)" onblur="handleFormulaTokenEdit(this)">
-                                                                </div>
-                                                                <div>
-                                                                    <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Jednostka wyniku</label>
-                                                                    <input type="text" name="sections[{{ $sectionIndex }}][formulas][{{ $formulaIndex }}][unit]" value="{{ (string) ($formula['unit'] ?? '') }}" placeholder="Np. kW">
-                                                                </div>
-                                                                <div style="grid-column:1 / -1;">
-                                                                    <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Wzór</label>
-                                                                    <textarea name="sections[{{ $sectionIndex }}][formulas][{{ $formulaIndex }}][expression]" rows="2" style="width:100%; border:1px solid #c9d7e3; border-radius:9px; padding:8px 10px; font-size:14px;" placeholder="Np. ({moc_nominalna} * {czas_pracy_h}) / 1000 (bez kW w polu wzoru)" onfocus="setActiveFormulaTextarea(this)">{{ (string) ($formula['expression'] ?? '') }}</textarea>
-                                                                </div>
-                                                            </div>
-                                                            <div class="formula-collapsible-content" style="margin-top:8px; display:flex; align-items:center; gap:8px;">
-                                                                <button type="button" class="btn-secondary" onclick="validateSectionFormula(this, 'edit-section-data-table-{{ $type->id }}-{{ $sectionIndex }}')">Sprawdź wzór</button>
-                                                                <span class="formula-validation-message" style="font-size:12px; color:#4c6373;"></span>
-                                                            </div>
-                                                        </div>
-                                                    @endforeach
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-
-                            <div style="display:flex; justify-content:flex-end; margin-top:10px;">
-                                <button type="submit">Zapisz zmiany rodzaju audytu</button>
-                            </div>
-                        </form>
-
-                        @if(!empty($type->variables))
-                            <div style="margin-bottom:10px;">
-                                <div style="font-size:12px; font-weight:700; color:#4c6373; margin-bottom:4px;">Zmienne globalne:</div>
-                                <table class="data-table" style="margin:0;">
-                                    <thead><tr><th>Nazwa</th><th>Token</th><th>Wartość domyślna</th></tr></thead>
-                                    <tbody>
-                                        @foreach($type->variables as $var)
-                                            <tr>
-                                                <td>{{ $var['name'] ?? '' }}</td>
-                                                <td><code>{{ $var['key'] ?? '' }}</code></td>
-                                                <td>{{ $var['default_value'] ?? '—' }}</td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        @endif
-
-                        @forelse($type->sections as $section)
-                            <div class="audit-type-section">
-                                <div style="font-weight:800; font-size:14px; color:#10344c; margin-bottom:6px;">{{ $section->name }}</div>
-                                <div style="font-size:12px; color:#4c6373;"><strong>Zadania:</strong> {{ !empty($section->tasks) ? implode(', ', $section->tasks) : 'Brak' }}</div>
-
-                                @php
-                                    $rows = collect($section->data_fields ?? [])->map(function ($row) {
-                                        if (is_array($row)) {
-                                            return [
-                                                'key' => (string) ($row['key'] ?? \Illuminate\Support\Str::slug((string) ($row['name'] ?? ''), '_')),
-                                                'name' => (string) ($row['name'] ?? ''),
-                                                'unit' => (string) ($row['unit'] ?? ''),
-                                            ];
-                                        }
-
-                                        return [
-                                            'key' => \Illuminate\Support\Str::slug((string) $row, '_'),
-                                            'name' => (string) $row,
-                                            'unit' => '',
-                                        ];
-                                    })->filter(fn ($row) => trim($row['name']) !== '')->values();
-                                @endphp
-
-                                @if($rows->isNotEmpty())
-                                    <table class="data-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Dana</th>
-                                                <th>Token</th>
-                                                <th>Jednostka</th>
-                                                <th>Wartość</th>
-                                                <th>Uwagi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($rows as $row)
-                                                <tr>
-                                                    <td>{{ $row['name'] }}</td>
-                                                    <td>{{ $row['key'] !== '' ? $row['key'] : \Illuminate\Support\Str::slug((string) $row['name'], '_') }}</td>
-                                                    <td>{{ $row['unit'] !== '' ? $row['unit'] : '—' }}</td>
-                                                    <td>—</td>
-                                                    <td>—</td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
+                    <div style="border:1px solid #dde8f3; border-radius:12px; overflow:hidden;">
+                        <button type="button"
+                                onclick="toggleAgentTraining('training-{{ $agent['type'] }}')"
+                                style="width:100%; text-align:left; background:#f5f9fd; border:none; padding:10px 14px; font-size:13px; font-weight:700; color:#163f5b; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+                            <span>🎓 Trenuj agenta — edytuj skrypt systemowy</span>
+                            <span id="training-arrow-{{ $agent['type'] }}" style="font-size:12px; color:#6b8aa3;">▼</span>
+                        </button>
+                        <div id="training-{{ $agent['type'] }}" style="display:none; padding:14px; border-top:1px solid #e5eef6;">
+                            <p style="margin:0 0 10px; font-size:13px; color:#5a7390;">
+                                Edytuj poniższy prompt, by zmienić zachowanie agenta. Możesz modyfikować osobowość, kolejność pytań i zakres zbieranych danych.
+                                @if($agent['has_custom_prompt'])
+                                    <strong style="color:#92400e;"> Aktualnie aktywny jest Twój własny trening.</strong>
                                 @else
-                                    <div style="font-size:12px; color:#4c6373; margin-top:4px;"><strong>Dane do wpisania:</strong> Brak</div>
+                                    <strong style="color:#155724;"> Aktywny jest domyślny skrypt.</strong>
                                 @endif
-
-                                @if(!empty($section->formulas))
-                                    <div style="font-size:12px; color:#4c6373; margin-top:8px;"><strong>Wzory sekcji:</strong></div>
-                                    <ul style="margin:6px 0 0 16px; padding:0; color:#4c6373; font-size:12px;">
-                                        @foreach($section->formulas as $formula)
-                                            @if(!empty($formula['label']) && !empty($formula['expression']))
-                                                <li><strong>{{ $formula['label'] }}:</strong> {{ $formula['expression'] }}</li>
-                                            @endif
-                                        @endforeach
-                                    </ul>
-                                @endif
-                            </div>
-                        @empty
-                            <div class="muted" style="margin-top:8px;">Brak sekcji</div>
-                        @endforelse
+                            </p>
+                            <form method="POST" action="{{ route('audits.ai-agent.train', ['agentType' => $agent['type']]) }}">
+                                @csrf
+                                <textarea name="prompt" rows="20"
+                                          style="width:100%; font-family:monospace; font-size:12px; border:1px solid #c9d7e3; border-radius:9px; padding:10px 12px; color:#1a3a4f; background:#fafcff; resize:vertical; box-sizing:border-box;"
+                                >{{ $agent['current_prompt'] }}</textarea>
+                                <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:10px; flex-wrap:wrap;">
+                                    @if($agent['has_custom_prompt'])
+                                    <form method="POST" action="{{ route('audits.ai-agent.reset', ['agentType' => $agent['type']]) }}" onsubmit="return confirm('Przywrócić domyślny skrypt agenta?')" style="margin:0;">
+                                        @csrf
+                                        <button type="submit"
+                                                style="padding:8px 16px; border-radius:9px; border:1px solid #e0c7a0; background:#fffbf0; color:#7a4e0a; font-weight:600; font-size:13px; cursor:pointer;">
+                                            Przywróć domyślny
+                                        </button>
+                                    </form>
+                                    @endif
+                                    <button type="submit"
+                                            style="padding:8px 18px; border-radius:9px; border:none; background:linear-gradient(130deg,#0e89d8,#1ba84a); color:#fff; font-weight:700; font-size:13px; cursor:pointer;">
+                                        Zapisz trening
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
-                @empty
-                    <div class="muted">Brak zdefiniowanych rodzajów audytu.</div>
-                @endforelse
                 </div>
             </div>
+            @endforeach
         </div>
         @endif
 
         @if($activeTab === 'iso50001')
-        <div class="settings-section open" id="settings-iso50001">
-            <div class="settings-body" style="display:block;">
-                <div style="display:grid; grid-template-columns: 1fr; gap:14px; margin-top:10px;">
-                    <section class="audit-type-card">
-                        <h3 style="margin:0 0 10px;">Przykladowy audyt do edycji (szablon krokow)</h3>
-                        <form method="POST" action="{{ route('audits.settings.iso50001.template-update') }}" style="display:grid; gap:10px;">
-                            @csrf
-                            @method('PATCH')
-                            <div>
-                                <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Nazwa szablonu</label>
-                                <input type="text" name="name" value="{{ old('name', $isoTemplate->name ?? 'Szablon ISO 50001') }}" required>
-                            </div>
-                            <div>
-                                <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Definicja krokow (JSON)</label>
-                                <textarea name="template_json" rows="16" style="width:100%; border:1px solid #c9d7e3; border-radius:9px; padding:8px 10px; font-size:13px; font-family: Consolas, monospace;">{{ old('template_json', $isoTemplateJson ?? '[]') }}</textarea>
-                            </div>
-                            <div style="display:flex; justify-content:flex-end;">
-                                <button type="submit">Zapisz konfiguracje ISO50001</button>
-                            </div>
-                        </form>
-                    </section>
-
-                    <section class="audit-type-card">
-                        <h3 style="margin:0 0 10px;">Utworz audyt ISO50001 dla klienta</h3>
-                        <form method="POST" action="{{ route('audits.settings.iso50001.audit-store') }}" style="display:grid; grid-template-columns: 1fr 1fr 220px auto; gap:10px; align-items:end;">
-                            @csrf
-                            <div>
-                                <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Klient</label>
-                                <select name="client_user_id" required>
-                                    <option value="">Wybierz klienta</option>
-                                    @foreach($isoClients as $client)
-                                        <option value="{{ $client->id }}">{{ $client->name }} ({{ $client->email }})</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Firma</label>
-                                <select name="company_id" required>
-                                    <option value="">Wybierz firme</option>
-                                    @foreach($isoCompanies as $company)
-                                        <option value="{{ $company->id }}">{{ $company->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Data zakonczenia audytu</label>
-                                <input type="date" name="due_date" value="{{ old('due_date') }}">
-                            </div>
-                            <div>
-                                <button type="submit">Utworz audyt</button>
-                            </div>
-                            <div style="grid-column:1 / -1;">
-                                <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Nazwa audytu</label>
-                                <input type="text" name="title" value="{{ old('title', 'Audyt ISO 50001 - '.now()->format('Y-m-d')) }}" required>
-                            </div>
-                        </form>
-                    </section>
-
-                    <section class="audit-type-card">
-                        <h3 style="margin:0 0 10px;">Istniejace audyty ISO50001 (edycja)</h3>
-                        <div style="display:grid; gap:8px;">
-                            @forelse($isoAudits as $isoAudit)
-                                <form method="POST" action="{{ route('audits.settings.iso50001.audit-update', $isoAudit) }}" style="border:1px solid #dfeaf3; border-radius:10px; padding:10px; background:#fbfdff; display:grid; grid-template-columns: 1fr 1fr 1fr 180px 170px auto; gap:8px; align-items:end;">
-                                    @csrf
-                                    @method('PATCH')
-                                    <div>
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#4c6373;">Nazwa audytu</label>
-                                        <input type="text" name="title" value="{{ $isoAudit->title }}" required>
-                                    </div>
-                                    <div>
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#4c6373;">Klient</label>
-                                        <select name="client_user_id" required>
-                                            @foreach($isoClients as $client)
-                                                <option value="{{ $client->id }}" @selected((int) $isoAudit->created_by_user_id === (int) $client->id)>{{ $client->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#4c6373;">Firma</label>
-                                        <select name="company_id" required>
-                                            @foreach($isoCompanies as $company)
-                                                <option value="{{ $company->id }}" @selected((int) $isoAudit->company_id === (int) $company->id)>{{ $company->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#4c6373;">Data zakonczenia</label>
-                                        <input type="date" name="due_date" value="{{ $isoAudit->due_date?->format('Y-m-d') }}">
-                                    </div>
-                                    <div>
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#4c6373;">Status</label>
-                                        <select name="status" required>
-                                            @foreach($isoStatusOptions as $statusKey => $statusLabel)
-                                                <option value="{{ $statusKey }}" @selected($isoAudit->status === $statusKey)>{{ $statusLabel }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div style="display:flex; gap:6px;">
-                                        <button type="submit">Zapisz</button>
-                                        <a href="{{ route('iso50001.review', $isoAudit) }}" class="btn-secondary" style="text-decoration:none; padding:8px 10px; border-radius:9px; display:inline-flex; align-items:center;">Podglad</a>
-                                    </div>
-                                </form>
-                            @empty
-                                <div class="muted">Brak audytow ISO50001.</div>
-                            @endforelse
-                        </div>
-                    </section>
+        <div>
+            @if(session('status'))
+                <div style="margin-bottom:12px; padding:10px 14px; border:1px solid #b7dcb5; border-radius:10px; background:#f0faf0; color:#155724; font-size:13px;">
+                    {{ session('status') }}
                 </div>
-            </div>
-        </div>
-        @endif
+            @endif
 
-        @if($activeTab === 'ustawienia')
-        <div class="settings-section open" id="settings-units">
-            <div class="settings-body" style="display:block;">
+            <p style="margin:0 0 18px; color:#355c77; font-size:14px;">
+                Agent ISO 50001 prowadzi rozmowy wyłącznie na temat normy ISO 50001 i systemów zarządzania energią. Kliknij <strong>Trenuj agenta</strong>, by dostosować jego skrypt systemowy.
+            </p>
 
-            <form method="POST" action="{{ route('audits.settings.unit-store') }}" style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap; margin-top:10px;">
-                @csrf
-                <div>
-                    <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Nowa jednostka</label>
-                    <input type="text" name="name" placeholder="Np. kWh" required>
-                </div>
-                <div>
-                    <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Typ jednostki</label>
-                    <select name="kind" required>
-                        <option value="number">Liczba</option>
-                        <option value="text">Opis</option>
-                        <option value="boolean">Tak / Nie</option>
-                        <option value="select">Lista rozwijana</option>
-                    </select>
-                </div>
-                <button type="submit">Dodaj jednostkę</button>
-            </form>
+            @foreach($isoAgents as $agent)
+            <div class="settings-section" id="ai-agent-{{ $agent['type'] }}" style="margin-bottom:10px;">
+                <button type="button" class="settings-toggle" onclick="toggleSettingsSection('ai-agent-{{ $agent['type'] }}')">
+                    <div class="settings-toggle-content">
+                        <h2 style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:22px;">{{ $agent['icon'] }}</span>
+                            {{ $agent['name'] }}
+                            @if($agent['has_custom_prompt'])
+                                <span style="font-size:11px; font-weight:600; padding:2px 7px; border-radius:999px; background:#fef3c7; color:#92400e; border:1px solid #fde68a;">trenowany</span>
+                            @endif
+                        </h2>
+                        <span class="muted">{{ $agent['description'] }}</span>
+                    </div>
+                    <span class="settings-chevron">&#9660;</span>
+                </button>
+                <div class="settings-body" style="padding-top:14px;">
+                    <div style="margin-bottom:16px;">
+                        <a href="{{ route('ai.create', ['type' => $agent['type']]) }}"
+                           style="display:inline-flex; align-items:center; gap:8px; padding:9px 18px; background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; border-radius:10px; font-weight:700; font-size:14px; text-decoration:none;">
+                            + Nowa rozmowa z agentem
+                        </a>
+                    </div>
 
-            <table class="data-table" style="margin-top:12px; max-width:860px;">
-                <thead>
-                    <tr>
-                        <th style="width:80px;">#</th>
-                        <th>Jednostka</th>
-                        <th>Typ</th>
-                        <th style="width:220px;">Akcje</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($units as $unit)
-                        <tr>
-                            <td>{{ $loop->iteration }}</td>
-                            <td>{{ $unit->name }}</td>
-                            <td>
-                                @if($unit->kind === 'text')
-                                    Opis
-                                @elseif($unit->kind === 'boolean')
-                                    Tak / Nie
-                                @elseif($unit->kind === 'select')
-                                    Lista rozwijana
+                    <div style="border:1px solid #dde8f3; border-radius:12px; overflow:hidden;">
+                        <button type="button"
+                                onclick="toggleAgentTraining('training-{{ $agent['type'] }}')"
+                                style="width:100%; text-align:left; background:#f5f9fd; border:none; padding:10px 14px; font-size:13px; font-weight:700; color:#163f5b; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+                            <span>🎓 Trenuj agenta — edytuj skrypt systemowy</span>
+                            <span id="training-arrow-{{ $agent['type'] }}" style="font-size:12px; color:#6b8aa3;">▼</span>
+                        </button>
+                        <div id="training-{{ $agent['type'] }}" style="display:none; padding:14px; border-top:1px solid #e5eef6;">
+                            <p style="margin:0 0 10px; font-size:13px; color:#5a7390;">
+                                Edytuj poniższy prompt, by zmienić zachowanie agenta. Możesz modyfikować osobowość, kolejność pytań i zakres zbieranych danych.
+                                @if($agent['has_custom_prompt'])
+                                    <strong style="color:#92400e;"> Aktualnie aktywny jest Twój własny trening.</strong>
                                 @else
-                                    Liczba
+                                    <strong style="color:#155724;"> Aktywny jest domyślny skrypt.</strong>
                                 @endif
-                            </td>
-                            <td>
-                                <button type="button" class="btn-secondary" onclick="toggleUnitEditForm({{ $unit->id }})">Edytuj</button>
-                                <form method="POST" action="{{ route('audits.settings.unit-destroy', $unit) }}" style="display:inline;" onsubmit="return confirm('Usunąć jednostkę?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn-secondary">Usuń</button>
-                                </form>
-                            </td>
-                        </tr>
-                        <tr id="unit-edit-row-{{ $unit->id }}" style="display:none;">
-                            <td colspan="4" style="background:#fbfdff;">
-                                <form method="POST" action="{{ route('audits.settings.unit-update', $unit) }}" style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;">
-                                    @csrf
-                                    @method('PATCH')
-                                    <div>
-                                        <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Nazwa</label>
-                                        <input type="text" name="name" value="{{ $unit->name }}" required>
-                                    </div>
-                                    <div>
-                                        <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Typ jednostki</label>
-                                        <select name="kind" required>
-                                            <option value="number" @selected(($unit->kind ?? 'number') === 'number')>Liczba</option>
-                                            <option value="text" @selected(($unit->kind ?? 'number') === 'text')>Opis</option>
-                                            <option value="boolean" @selected(($unit->kind ?? 'number') === 'boolean')>Tak / Nie</option>
-                                            <option value="select" @selected(($unit->kind ?? 'number') === 'select')>Lista rozwijana</option>
-                                        </select>
-                                    </div>
-                                    <button type="submit">Zapisz</button>
-                                    <button type="button" class="btn-secondary" onclick="toggleUnitEditForm({{ $unit->id }})">Anuluj</button>
-                                </form>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="4" class="muted">Brak zdefiniowanych jednostek.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                            </p>
+                            <form method="POST" action="{{ route('audits.ai-agent.train', ['agentType' => $agent['type']]) }}">
+                                @csrf
+                                <textarea name="prompt" rows="20"
+                                          style="width:100%; font-family:monospace; font-size:12px; border:1px solid #c9d7e3; border-radius:9px; padding:10px 12px; color:#1a3a4f; background:#fafcff; resize:vertical; box-sizing:border-box;"
+                                >{{ $agent['current_prompt'] }}</textarea>
+                                <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:10px; flex-wrap:wrap;">
+                                    @if($agent['has_custom_prompt'])
+                                    <form method="POST" action="{{ route('audits.ai-agent.reset', ['agentType' => $agent['type']]) }}" onsubmit="return confirm('Przywrócić domyślny skrypt agenta?')" style="margin:0;">
+                                        @csrf
+                                        <button type="submit"
+                                                style="padding:8px 16px; border-radius:9px; border:1px solid #e0c7a0; background:#fffbf0; color:#7a4e0a; font-weight:600; font-size:13px; cursor:pointer;">
+                                            Przywróć domyślny
+                                        </button>
+                                    </form>
+                                    @endif
+                                    <button type="submit"
+                                            style="padding:8px 18px; border-radius:9px; border:none; background:linear-gradient(130deg,#0e89d8,#1ba84a); color:#fff; font-weight:700; font-size:13px; cursor:pointer;">
+                                        Zapisz trening
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
+            @endforeach
         </div>
         @endif
 
         @if($activeTab === 'biale-certyfikaty')
-        <div class="settings-section open" id="settings-white-certificates">
-            <div class="settings-body" style="display:block; padding:12px;">
-                <div class="muted">Sekcja w przygotowaniu.</div>
-            </div>
-        </div>
-        @endif
+        <div>
+            @if(session('status'))
+                <div style="margin-bottom:12px; padding:10px 14px; border:1px solid #b7dcb5; border-radius:10px; background:#f0faf0; color:#155724; font-size:13px;">
+                    {{ session('status') }}
+                </div>
+            @endif
 
-        @if($activeTab === 'ai-audyty')
-        <div class="settings-section open" id="settings-ai-audits">
-            <div class="settings-body" style="display:block; padding:16px;">
+            <p style="margin:0 0 18px; color:#355c77; font-size:14px;">
+                Agenci białych certyfikatów zbierają dane do audytów efektywności energetycznej niezbędnych do uzyskania świadectw efektywności energetycznej (białych certyfikatów). Wybierz agenta odpowiadającego planowanemu przedsięwzięciu.
+            </p>
 
-                <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
-                    <div>
-                        <h2 style="margin:0; font-size:18px;">🤖 Asystent AI do audytów</h2>
-                        <p style="margin:6px 0 0; font-size:13px; color:#5a7390;">Prowadź klientów przez zbieranie danych do audytów energetycznych i ISO 50001 za pomocą asystenta Claude AI.</p>
+            @foreach($bcAgents as $agent)
+            <div class="settings-section" id="ai-agent-{{ $agent['type'] }}" style="margin-bottom:10px;">
+                <button type="button" class="settings-toggle" onclick="toggleSettingsSection('ai-agent-{{ $agent['type'] }}')">
+                    <div class="settings-toggle-content">
+                        <h2 style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:22px;">{{ $agent['icon'] }}</span>
+                            {{ $agent['name'] }}
+                            @if($agent['has_custom_prompt'])
+                                <span style="font-size:11px; font-weight:600; padding:2px 7px; border-radius:999px; background:#fef3c7; color:#92400e; border:1px solid #fde68a;">trenowany</span>
+                            @endif
+                        </h2>
+                        <span class="muted">{{ $agent['description'] }}</span>
                     </div>
-                    <a href="{{ route('ai.create', ['type' => 'energy_audit']) }}" style="display:inline-flex; align-items:center; gap:8px; padding:10px 18px; background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; border-radius:10px; font-weight:700; font-size:14px; text-decoration:none;">
-                        + Nowa rozmowa AI
-                    </a>
-                </div>
-
-                <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; margin-bottom:24px;">
-                    <a href="{{ route('ai.create', ['type' => 'energy_audit']) }}" style="display:block; text-decoration:none; border:1px solid #d4ebf8; border-radius:14px; padding:18px; background:#f0f9ff; transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(14,137,216,.15)'" onmouseout="this.style.boxShadow='none'">
-                        <div style="font-size:32px; margin-bottom:8px;">⚡</div>
-                        <div style="font-weight:700; color:#0e4f7a; font-size:15px;">Audyt energetyczny</div>
-                        <div style="font-size:12px; color:#5a7a90; margin-top:4px;">AI prowadzi klienta przez zbieranie danych do audytu energetycznego budynku / instalacji</div>
-                    </a>
-                    <a href="{{ route('ai.create', ['type' => 'iso50001']) }}" style="display:block; text-decoration:none; border:1px solid #d4eaf8; border-radius:14px; padding:18px; background:#f0f6ff; transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(14,89,216,.15)'" onmouseout="this.style.boxShadow='none'">
-                        <div style="font-size:32px; margin-bottom:8px;">🏭</div>
-                        <div style="font-weight:700; color:#1a3f7a; font-size:15px;">ISO 50001</div>
-                        <div style="font-size:12px; color:#5a7a90; margin-top:4px;">AI pomoże wypełnić wymagania systemu zarządzania energią zgodnie z ISO 50001</div>
-                    </a>
-                    <a href="{{ route('ai.create', ['type' => 'offer']) }}" style="display:block; text-decoration:none; border:1px solid #fde9c0; border-radius:14px; padding:18px; background:#fffbf0; transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(200,130,14,.15)'" onmouseout="this.style.boxShadow='none'">
-                        <div style="font-size:32px; margin-bottom:8px;">📄</div>
-                        <div style="font-weight:700; color:#7a4e0a; font-size:15px;">Oferta</div>
-                        <div style="font-size:12px; color:#8a7050; margin-top:4px;">AI zbiera dane potrzebne do przygotowania wyceny i oferty na audyt</div>
-                    </a>
-                    <a href="{{ route('ai.create') }}" style="display:block; text-decoration:none; border:1px solid #e0e8f0; border-radius:14px; padding:18px; background:#f8fafb; transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(40,80,110,.1)'" onmouseout="this.style.boxShadow='none'">
-                        <div style="font-size:32px; margin-bottom:8px;">💬</div>
-                        <div style="font-weight:700; color:#28485f; font-size:15px;">Ogólny</div>
-                        <div style="font-size:12px; color:#5a7090; margin-top:4px;">Dowolna rozmowa z asystentem — pytania, analizy, konsultacje energetyczne</div>
-                    </a>
-                </div>
-
-                @php
-                    $aiConvs = \App\Models\AiConversation::where('user_id', auth()->id())
-                        ->where('status', 'active')
-                        ->latest()
-                        ->take(10)
-                        ->get();
-                @endphp
-
-                @if($aiConvs->isNotEmpty())
-                <div style="margin-top:8px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        <strong style="font-size:14px; color:#163f5b;">Ostatnie rozmowy AI</strong>
-                        <a href="{{ route('ai.index') }}" style="font-size:13px; color:#0e89d8; font-weight:600; text-decoration:none;">Wszystkie →</a>
+                    <span class="settings-chevron">&#9660;</span>
+                </button>
+                <div class="settings-body" style="padding-top:14px;">
+                    <div style="margin-bottom:16px;">
+                        <a href="{{ route('ai.create', ['type' => $agent['type']]) }}"
+                           style="display:inline-flex; align-items:center; gap:8px; padding:9px 18px; background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; border-radius:10px; font-weight:700; font-size:14px; text-decoration:none;">
+                            + Nowa rozmowa z agentem
+                        </a>
                     </div>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Temat</th>
-                                <th>Typ</th>
-                                <th>Data</th>
-                                <th style="width:100px;">Akcja</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($aiConvs as $conv)
-                            @php
-                                $label = match($conv->context_type) {
-                                    'energy_audit' => '⚡ Audyt energetyczny',
-                                    'iso50001'     => '🏭 ISO 50001',
-                                    'offer'        => '📄 Oferta',
-                                    default        => '💬 Ogólny',
-                                };
-                            @endphp
-                            <tr>
-                                <td>{{ $loop->iteration }}</td>
-                                <td>{{ $conv->title }}</td>
-                                <td style="font-size:13px;">{{ $label }}</td>
-                                <td style="font-size:13px; color:#5a7390;">{{ $conv->created_at->format('d.m.Y H:i') }}</td>
-                                <td>
-                                    <a href="{{ route('ai.show', $conv) }}" class="btn-secondary" style="display:inline-flex;padding:5px 10px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;background:#dbe9f5;color:#1d4f73;border:1px solid #c0d8ee;">Otwórz</a>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-                @else
-                <div style="text-align:center; padding:30px; color:#8a9bac; border:1px dashed #c8d8e6; border-radius:12px;">
-                    <div style="font-size:36px; margin-bottom:8px;">🤖</div>
-                    <div style="font-weight:600; margin-bottom:4px;">Brak aktywnych rozmów</div>
-                    <div style="font-size:13px;">Wybierz typ audytu powyżej, by rozpocząć pierwszą rozmowę z asystentem.</div>
-                </div>
-                @endif
 
+                    <div style="border:1px solid #dde8f3; border-radius:12px; overflow:hidden;">
+                        <button type="button"
+                                onclick="toggleAgentTraining('training-{{ $agent['type'] }}')"
+                                style="width:100%; text-align:left; background:#f5f9fd; border:none; padding:10px 14px; font-size:13px; font-weight:700; color:#163f5b; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+                            <span>🎓 Trenuj agenta — edytuj skrypt systemowy</span>
+                            <span id="training-arrow-{{ $agent['type'] }}" style="font-size:12px; color:#6b8aa3;">▼</span>
+                        </button>
+                        <div id="training-{{ $agent['type'] }}" style="display:none; padding:14px; border-top:1px solid #e5eef6;">
+                            <p style="margin:0 0 10px; font-size:13px; color:#5a7390;">
+                                Edytuj poniższy prompt, by zmienić zachowanie agenta. Możesz modyfikować osobowość, kolejność pytań i zakres zbieranych danych.
+                                @if($agent['has_custom_prompt'])
+                                    <strong style="color:#92400e;"> Aktualnie aktywny jest Twój własny trening.</strong>
+                                @else
+                                    <strong style="color:#155724;"> Aktywny jest domyślny skrypt.</strong>
+                                @endif
+                            </p>
+                            <form method="POST" action="{{ route('audits.ai-agent.train', ['agentType' => $agent['type']]) }}">
+                                @csrf
+                                <textarea name="prompt" rows="20"
+                                          style="width:100%; font-family:monospace; font-size:12px; border:1px solid #c9d7e3; border-radius:9px; padding:10px 12px; color:#1a3a4f; background:#fafcff; resize:vertical; box-sizing:border-box;"
+                                >{{ $agent['current_prompt'] }}</textarea>
+                                <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:10px; flex-wrap:wrap;">
+                                    @if($agent['has_custom_prompt'])
+                                    <form method="POST" action="{{ route('audits.ai-agent.reset', ['agentType' => $agent['type']]) }}" onsubmit="return confirm('Przywrócić domyślny skrypt agenta?')" style="margin:0;">
+                                        @csrf
+                                        <button type="submit"
+                                                style="padding:8px 16px; border-radius:9px; border:1px solid #e0c7a0; background:#fffbf0; color:#7a4e0a; font-weight:600; font-size:13px; cursor:pointer;">
+                                            Przywróć domyślny
+                                        </button>
+                                    </form>
+                                    @endif
+                                    <button type="submit"
+                                            style="padding:8px 18px; border-radius:9px; border:none; background:linear-gradient(130deg,#0e89d8,#1ba84a); color:#fff; font-weight:700; font-size:13px; cursor:pointer;">
+                                        Zapisz trening
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
+            @endforeach
         </div>
         @endif
     </section>
@@ -793,6 +341,16 @@
             }
 
             section.classList.toggle('open');
+        }
+
+        function toggleAgentTraining(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const arrowId = containerId.replace('training-', 'training-arrow-');
+            const arrow = document.getElementById(arrowId);
+            const isOpen = container.style.display !== 'none';
+            container.style.display = isOpen ? 'none' : 'block';
+            if (arrow) arrow.textContent = isOpen ? '▼' : '▲';
         }
 
         function toggleUnitEditForm(unitId) {

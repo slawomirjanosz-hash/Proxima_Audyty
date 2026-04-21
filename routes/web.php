@@ -3,6 +3,9 @@
 use App\Http\Controllers\AiAgentController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AuditsController;
+use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\OffersController;
+use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\CrmController;
 use App\Http\Controllers\CrmCustomerTypeController;
@@ -19,9 +22,20 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+Route::get('/oferty', [OffersController::class, 'index'])->name('offers.index');
+
 Route::get('/oferta', function () {
-    return view('oferta');
+    return redirect()->route('offers.index');
 })->name('oferta');
+
+// Public company registration
+Route::get('/rejestracja', [RegistrationController::class, 'index'])->name('register.form');
+Route::get('/rejestracja/nip-szukaj', [RegistrationController::class, 'lookupNip'])
+    ->name('register.nip-lookup')
+    ->middleware('throttle:30,1');
+Route::post('/rejestracja', [RegistrationController::class, 'store'])
+    ->name('register.store')
+    ->middleware('throttle:5,10');
 
 Route::get('/lang', function () {
     $locale = (string) request('locale', '');
@@ -70,6 +84,12 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/audyty', [AuditsController::class, 'index'])
         ->middleware('role:admin,auditor')
         ->name('audits.index');
+    Route::get('/audyty/{audit}/edytuj', [AuditsController::class, 'edit'])
+        ->middleware('role:admin,auditor')
+        ->name('audits.edit');
+    Route::patch('/audyty/{audit}', [AuditsController::class, 'update'])
+        ->middleware('role:admin,auditor')
+        ->name('audits.update');
     Route::get('/audyty/rodzaje/{tab}', function (string $tab) {
         return app(\App\Http\Controllers\AuditsController::class)->settings($tab);
     })
@@ -119,6 +139,15 @@ Route::middleware('auth')->group(function (): void {
     Route::patch('/audyty/ustawienia/iso50001/audits/{isoAudit}', [AuditsController::class, 'updateIso50001Audit'])
         ->middleware('role:admin,auditor')
         ->name('audits.settings.iso50001.audit-update');
+
+    Route::post('/audyty/ai-agent/{agentType}/trening', [AiAgentController::class, 'saveAgentTraining'])
+        ->middleware('role:admin,auditor')
+        ->name('audits.ai-agent.train')
+        ->where('agentType', 'general|compressor_room|boiler_room|drying_room|buildings|technological_processes|iso50001|bc_general|bc_compressor_room|bc_boiler_room|bc_drying_room|bc_buildings|bc_technological_processes');
+    Route::post('/audyty/ai-agent/{agentType}/reset', [AiAgentController::class, 'resetAgentTraining'])
+        ->middleware('role:admin,auditor')
+        ->name('audits.ai-agent.reset')
+        ->where('agentType', 'general|compressor_room|boiler_room|drying_room|buildings|technological_processes|iso50001|bc_general|bc_compressor_room|bc_boiler_room|bc_drying_room|bc_buildings|bc_technological_processes');
 
     Route::get('/crm', [CrmController::class, 'index'])
         ->middleware('role:admin,auditor')
@@ -211,6 +240,61 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('role:admin,auditor')
         ->name('crm.stage.delete');
     Route::get('/strefa-klienta', [ClientController::class, 'index'])->name('strefa-klienta');
+
+    // ── Oferty ──────────────────────────────────────────────────────────────
+    Route::middleware('role:admin,auditor')->prefix('oferty')->name('offers.')->group(function () {
+        Route::get('/portfolio',         [OffersController::class, 'portfolio'])   ->name('portfolio');
+        Route::get('/nowa',              [OffersController::class, 'create'])      ->name('create');
+        Route::post('/',                 [OffersController::class, 'store'])       ->name('store');
+        Route::get('/w-toku',            [OffersController::class, 'inprogress'])  ->name('inprogress');
+        Route::get('/zarchiwizowane',    [OffersController::class, 'archived'])    ->name('archived');
+        Route::get('/ustawienia',        [OffersController::class, 'settings'])    ->name('settings');
+        Route::post('/ustawienia',       [OffersController::class, 'saveSettings'])->name('settings.save');
+        Route::post('/kopiuj-dla-firmy/{company}', [OffersController::class, 'copyForCompany'])->name('copyForCompany');
+        Route::post('/{offer}/archiwizuj', [OffersController::class, 'archive'])  ->name('archive');
+        Route::post('/{offer}/kopiuj',   [OffersController::class, 'copy'])       ->name('copy');
+        Route::post('/{offer}/wyslij-do-klienta', [OffersController::class, 'sendToClient'])->name('sendToClient');
+        Route::get('/{offer}/edytuj',    [OffersController::class, 'edit'])       ->name('edit');
+        Route::put('/{offer}',           [OffersController::class, 'update'])     ->name('update');
+        Route::delete('/{offer}',        [OffersController::class, 'destroy'])    ->name('destroy');
+        Route::get('/{offer}/pdf',       [OffersController::class, 'generatePdf'])->name('generatePdf');
+        Route::get('/{offer}/word',      [OffersController::class, 'generateWord'])->name('generateWord');
+    });
+
+    // ── Zapytania klientów ───────────────────────────────────────────────
+    Route::patch('/zapytania/{inquiry}/accept', [CompanyController::class, 'acceptInquiry'])
+        ->middleware('role:admin,auditor')->name('inquiry.accept');
+    Route::patch('/zapytania/{inquiry}/reject', [CompanyController::class, 'rejectInquiry'])
+        ->middleware('role:admin,auditor')->name('inquiry.reject');
+
+    // ── Chat admin → klient ──────────────────────────────────────────────
+    Route::post('/chat/{company}', [CompanyController::class, 'sendChatMessage'])
+        ->middleware('role:admin,auditor')->name('chat.admin.send');
+    Route::post('/chat/{company}/ajax', [CompanyController::class, 'sendChatMessageAjax'])
+        ->middleware('role:admin,auditor')->name('chat.admin.send.ajax');
+    Route::get('/chat/{company}/poll', [CompanyController::class, 'pollChat'])
+        ->middleware('role:admin,auditor')->name('chat.admin.poll');
+    Route::post('/strefa-klienta/chat', [ClientController::class, 'sendChat'])
+        ->middleware('role:client')->name('client.chat.send');
+    Route::post('/strefa-klienta/chat/ajax', [ClientController::class, 'sendChatAjax'])
+        ->middleware('role:client')->name('client.chat.send.ajax');
+    Route::get('/strefa-klienta/chat/poll', [ClientController::class, 'pollChat'])
+        ->middleware('role:client')->name('client.chat.poll');
+    Route::post('/strefa-klienta/zapytanie/{inquiry}/akceptuj-oferte', [ClientController::class, 'acceptOffer'])
+        ->middleware('role:client')->name('client.offer.accept');
+    Route::get('/strefa-klienta/oferta/{offer}/pdf', [ClientController::class, 'downloadOfferPdf'])
+        ->middleware('role:client')->name('client.offer.pdf');
+    Route::get('/moje-audyty/{audit}/ai', [ClientController::class, 'startAuditAi'])
+        ->middleware('role:client')->name('client.audit.ai');
+    Route::get('/moje-audyty/{audit}/praca/{conversation}', [ClientController::class, 'auditWork'])
+        ->middleware('role:client')->name('client.audit.work');
+    Route::post('/moje-audyty/{audit}/praca/{conversation}/zakoncz', [ClientController::class, 'finishAuditAi'])
+        ->middleware('role:client')->name('client.audit.finish');
+    Route::get('/moje-audyty/{audit}/edytuj', [ClientController::class, 'editAuditData'])
+        ->middleware('role:client')->name('client.audit.edit');
+    Route::post('/moje-audyty/{audit}/edytuj', [ClientController::class, 'updateAuditData'])
+        ->middleware('role:client')->name('client.audit.update');
+    // ────────────────────────────────────────────────────────────────────────
     Route::post('/strefa-klienta/zapytanie', [ClientController::class, 'storeInquiry'])
         ->middleware('role:client')
         ->name('client.inquiry.store');
@@ -300,6 +384,46 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('role:admin,super_admin')
         ->name('settings.co2-history-destroy');
 
+    // Registration management (admin)
+    Route::post('/rejestracja/{id}/akceptuj', [RegistrationController::class, 'accept'])
+        ->middleware('role:admin,super_admin')
+        ->name('register.accept');
+    Route::delete('/rejestracja/{id}', [RegistrationController::class, 'destroy'])
+        ->middleware('role:admin,super_admin')
+        ->name('register.destroy');
+
+    // Company management
+    Route::get('/firmy/{company}', [CompanyController::class, 'show'])
+        ->middleware('role:admin,auditor')
+        ->name('firma.show');
+    Route::post('/firmy/{company}/audyt', [CompanyController::class, 'storeAudit'])
+        ->middleware('role:admin,auditor')
+        ->name('firma.storeAudit');
+    Route::post('/firmy/{company}/klient', [CompanyController::class, 'storeClient'])
+        ->middleware('role:admin,auditor')
+        ->name('firma.storeClient');
+    Route::get('/firmy/{company}/audyt/{audit}', [CompanyController::class, 'showAudit'])
+        ->middleware('role:admin,auditor')
+        ->name('firma.audit');
+    Route::patch('/firmy/{company}/audyt/{audit}/status', [CompanyController::class, 'updateStatus'])
+        ->middleware('role:admin,auditor')
+        ->name('firma.updateStatus');
+    Route::delete('/firmy/{company}/audyt/{audit}', [CompanyController::class, 'destroyAudit'])
+        ->middleware('role:admin,auditor')
+        ->name('firma.destroyAudit');
+    Route::get('/firmy/{company}/audyt/{audit}/raport', [CompanyController::class, 'report'])
+        ->middleware('role:admin,auditor')
+        ->name('firma.report');
+    Route::post('/firmy/{company}/uzytkownik', [CompanyController::class, 'addUser'])
+        ->middleware('role:admin,auditor')
+        ->name('firma.addUser');
+    Route::delete('/firmy/{company}/uzytkownik/{user}', [CompanyController::class, 'removeUser'])
+        ->middleware('role:admin,auditor')
+        ->name('firma.removeUser');
+    Route::post('/firmy/{company}/uzytkownik/{user}/mail', [CompanyController::class, 'resendMail'])
+        ->middleware('role:admin,auditor')
+        ->name('firma.resendMail');
+
     // AI Agent
     Route::prefix('ai')->name('ai.')->group(function () {
         Route::get('/', [AiAgentController::class, 'index'])->name('index');
@@ -311,6 +435,7 @@ Route::middleware('auth')->group(function (): void {
         Route::delete('/{aiConversation}/usun', [AiAgentController::class, 'forceDelete'])->name('force-delete');
         Route::post('/analiza', [AiAgentController::class, 'analyzeAudit'])->name('analyze');
         Route::post('/{aiConversation}/protokol', [AiAgentController::class, 'generateProtocol'])->name('protocol.generate');
+        Route::post('/{aiConversation}/rekomendacje', [AiAgentController::class, 'generateRecommendations'])->name('recommendations.generate');
         Route::get('/{aiConversation}/protokol', [AiAgentController::class, 'protocol'])->name('protocol');
         Route::get('/{aiConversation}/protokol/pdf', [AiAgentController::class, 'downloadPdf'])->name('protocol.pdf');
         Route::get('/{aiConversation}/protokol/podglad', [AiAgentController::class, 'previewPdf'])->name('protocol.preview');
