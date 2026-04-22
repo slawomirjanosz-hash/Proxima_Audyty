@@ -844,15 +844,32 @@ SCRIPT;
             default => 'Przywitaj się z klientem i wyjaśnij krótko co razem zrobimy. Zadaj pierwsze pytanie żeby zacząć zbieranie danych.',
         };
 
-        $greeting = Prism::text()
-            ->using(Provider::Anthropic, 'claude-haiku-4-5-20251001')
-            ->withSystemPrompt($this->getSystemPrompt($contextType))
-            ->withPrompt($greetingPrompt)
-            ->generate();
+        try {
+            $greeting = Prism::text()
+                ->using(Provider::Anthropic, 'claude-haiku-4-5-20251001')
+                ->withSystemPrompt($this->getSystemPrompt($contextType))
+                ->withPrompt($greetingPrompt)
+                ->generate();
+
+            $greetingText = $greeting->text;
+        } catch (\Throwable $e) {
+            \Log::error('AiAgentService::startConversation failed', [
+                'error'        => $e->getMessage(),
+                'context_type' => $contextType,
+            ]);
+
+            $greetingText = match(app()->getLocale()) {
+                'en' => 'Hello! I am Enesa, your energy audit assistant. Please describe your facility briefly to begin data collection.',
+                'de' => 'Guten Tag! Ich bin Enesa, Ihr Energieaudit-Assistent. Bitte beschreiben Sie kurz Ihre Anlage, um mit der Datenerfassung zu beginnen.',
+                'fr' => 'Bonjour! Je suis Enesa, votre assistante d\'audit énergétique. Veuillez décrire brièvement votre installation pour commencer la collecte de données.',
+                'es' => '¡Hola! Soy Enesa, su asistente de auditoría energética. Por favor, describa brevemente su instalación para comenzar la recopilación de datos.',
+                default => 'Dzień dobry! Jestem Enesa — Wsparcie audytów energetycznych. Proszę opisać krótko swoją firmę lub budynek, abyśmy mogli rozpocząć zbieranie danych do audytu.',
+            };
+        }
 
         $conversation->messages()->create([
             'role'    => 'assistant',
-            'content' => $greeting->text,
+            'content' => $greetingText,
         ]);
 
         return $conversation;

@@ -48,11 +48,16 @@ class AiAgentController extends Controller
             'context_id'   => ['nullable', 'integer'],
         ]);
 
-        $conversation = $this->agent->startConversation(
-            userId: auth()->id(),
-            contextType: $request->input('context_type', 'general'),
-            contextId: $request->input('context_id'),
-        );
+        try {
+            $conversation = $this->agent->startConversation(
+                userId: auth()->id(),
+                contextType: $request->input('context_type', 'general'),
+                contextId: $request->input('context_id'),
+            );
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->with('error', 'Nie udało się uruchomić rozmowy. Spróbuj ponownie.');
+        }
 
         return redirect()->route('ai.show', $conversation);
     }

@@ -299,12 +299,17 @@ class ClientController extends Controller
         }
 
         // Create new conversation with initial AI greeting
-        $conversation = app(\App\Services\AiAgentService::class)->startConversation(
-            userId:      $user->id,
-            contextType: $agentType,
-            contextId:   $audit->id,
-            title:       $audit->title,
-        );
+        try {
+            $conversation = app(\App\Services\AiAgentService::class)->startConversation(
+                userId:      $user->id,
+                contextType: $agentType,
+                contextId:   $audit->id,
+                title:       $audit->title,
+            );
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->with('error', 'Nie udało się uruchomić rozmowy z asystentem. Sprawdź połączenie i spróbuj ponownie.');
+        }
 
         return redirect()->route('client.audit.work', ['audit' => $audit->id, 'conversation' => $conversation->id]);
     }
