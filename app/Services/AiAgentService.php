@@ -797,7 +797,7 @@ SCRIPT;
 
         // Wywołaj Claude przez Prism
         $response = Prism::text()
-            ->using(Provider::Anthropic, 'claude-3-5-haiku-20241022')
+            ->using(Provider::Anthropic, 'claude-3-haiku-20240307')
             ->withSystemPrompt($this->getSystemPrompt($conversation->context_type ?? 'general'))
             ->withMessages($history)
             ->generate();
@@ -809,7 +809,7 @@ SCRIPT;
             'role'     => 'assistant',
             'content'  => $assistantText,
             'metadata' => [
-                'model'              => $response->usage->model ?? 'claude-3-5-haiku-20241022',
+                'model'              => $response->usage->model ?? 'claude-3-haiku-20240307',
                 'input_tokens'       => $response->usage->promptTokens ?? null,
                 'output_tokens'      => $response->usage->completionTokens ?? null,
             ],
@@ -846,7 +846,7 @@ SCRIPT;
 
         try {
             $greeting = Prism::text()
-                ->using(Provider::Anthropic, 'claude-3-5-haiku-20241022')
+                ->using(Provider::Anthropic, 'claude-3-haiku-20240307')
                 ->withSystemPrompt($this->getSystemPrompt($contextType))
                 ->withPrompt($greetingPrompt)
                 ->generate();
@@ -883,7 +883,7 @@ SCRIPT;
         $dataJson = json_encode($auditData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
         $response = Prism::text()
-            ->using(Provider::Anthropic, 'claude-sonnet-4-6')
+            ->using(Provider::Anthropic, 'claude-3-haiku-20240307')
             ->withSystemPrompt($this->getSystemPrompt($auditType))
             ->withPrompt(
                 "Na podstawie poniższych danych audytu przeprowadź analizę i przygotuj:\n" .
@@ -1049,7 +1049,7 @@ PROMPT,
         };
 
         $response = Prism::text()
-            ->using(Provider::Anthropic, 'claude-3-5-haiku-20241022')
+            ->using(Provider::Anthropic, 'claude-3-haiku-20240307')
             ->withSystemPrompt('Jesteś ekstraktor danych. Zwracasz TYLKO czysty JSON bez żadnych komentarzy, opisu ani markdown.')
             ->withPrompt($extractionPrompt . "\n\n---\nTREŚĆ ROZMOWY:\n\n" . $history)
             ->generate();
@@ -1105,7 +1105,7 @@ PROMPT,
         $contextType = $conversation->context_type ?? 'energy_audit';
 
         $response = Prism::text()
-            ->using(Provider::Anthropic, 'claude-3-5-haiku-20241022')
+            ->using(Provider::Anthropic, 'claude-3-haiku-20240307')
             ->withSystemPrompt(
                 'Jesteś ekspertem od audytów energetycznych i efektywności energetycznej. ' .
                 'Twoje rekomendacje muszą być konkretne, oparte na podanych danych, z szacowanymi oszczędnościami.'
