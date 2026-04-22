@@ -98,11 +98,16 @@ class AiAgentController extends Controller
                 'response' => $response,
             ]);
         } catch (\Throwable $e) {
-            report($e);
+            \Log::error('AiAgentController::sendMessage failed', [
+                'exception' => $e->getMessage(),
+                'class'     => get_class($e),
+                'file'      => $e->getFile(),
+                'line'      => $e->getLine(),
+            ]);
 
             return response()->json([
                 'success' => false,
-                'error'   => 'Błąd połączenia z asystentem AI. Spróbuj ponownie.',
+                'error'   => 'Błąd połączenia z asystentem: ' . $e->getMessage(),
             ], 500);
         }
     }
