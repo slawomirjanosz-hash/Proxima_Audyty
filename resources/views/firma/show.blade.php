@@ -31,6 +31,9 @@
         .status-zapłacony { background:#d1fae5; color:#064e3b; }
         .status-new, .status-in_progress { background:#e0f2fe; color:#0369a1; }
         .status-completed { background:#e5e7eb; color:#374151; }
+        .sec-badge { display:inline-block; font-size:11px; font-weight:700; padding:3px 9px; border-radius:6px; font-family:inherit; }
+        .sec-badge-ok  { background:#bae6fd; color:#0369a1; }
+        .sec-badge-warn { background:#fef3c7; border:1px solid #fbbf24; color:#92400e; }
         .btn-sm { padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; text-decoration:none; border:none; cursor:pointer; }
         .btn-primary-sm { background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; }
         .btn-secondary-sm { background:#dbe9f5; color:#1d4f73; }
@@ -125,7 +128,7 @@
             <button type="button" class="section-box-toggle" onclick="toggleSection('sec-credentials')">
                 <h2>🔐 Dostęp klienta do systemu</h2>
                 <div class="toggle-right">
-                    @if($company->client)<span style="background:#bae6fd;color:#0369a1;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;">✅ Konto istnieje</span>@else<span style="background:#fef3c7;color:#92400e;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;">Brak konta</span>@endif
+                    @if($company->client)<span class="sec-badge sec-badge-ok">✅ Konto istnieje</span>@else<span class="sec-badge sec-badge-warn">Brak konta</span>@endif
                     <span class="chevron">▼</span>
                 </div>
             </button>
@@ -179,7 +182,7 @@
             <button type="button" class="section-box-toggle" onclick="toggleSection('sec-users')">
                 <h2>👥 Użytkownicy firmy</h2>
                 <div class="toggle-right">
-                    <span style="background:#e0f2fe;color:#0369a1;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;">{{ $usersCount }} {{ $usersCount === 1 ? 'użytkownik' : ($usersCount < 5 ? 'użytkownicy' : 'użytkowników') }}</span>
+                    <span class="sec-badge sec-badge-ok">{{ $usersCount }} {{ $usersCount === 1 ? 'użytkownik' : ($usersCount < 5 ? 'użytkownicy' : 'użytkowników') }}</span>
                     <span class="chevron">▼</span>
                 </div>
             </button>
@@ -314,7 +317,12 @@
             <button type="button" class="section-box-toggle" onclick="toggleSection('sec-inquiries')" style="border-left:4px solid #fbbf24;">
                 <h2>📬 Zapytania klientów</h2>
                 <div class="toggle-right">
-                    <span style="background:#fef3c7;border:1px solid #fbbf24;color:#92400e;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;">{{ $inquiries->count() }} {{ $inquiries->count() === 1 ? 'zapytanie' : ($inquiries->count() < 5 ? 'zapytania' : 'zapytań') }}</span>
+                    @php($pendingInquiries = $inquiries->whereIn('status', ['new','in_review','offer_accepted'])->count())
+                    @if($pendingInquiries > 0)
+                        <span class="sec-badge sec-badge-warn">{{ $pendingInquiries }} {{ $pendingInquiries === 1 ? 'do obsługi' : 'do obsługi' }}</span>
+                    @else
+                        <span class="sec-badge sec-badge-ok">{{ $inquiries->count() }} {{ $inquiries->count() === 1 ? 'zapytanie' : ($inquiries->count() < 5 ? 'zapytania' : 'zapytań') }}</span>
+                    @endif
                     <span class="chevron">▼</span>
                 </div>
             </button>
@@ -409,7 +417,12 @@
             <button type="button" class="section-box-toggle" onclick="toggleSection('sec-offers')">
                 <h2>💼 Oferty dla tej firmy</h2>
                 <div class="toggle-right">
-                    <span style="background:#e0f2fe;color:#0369a1;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;">{{ $companyOffers->count() }}</span>
+                    @php($pendingOffers = $companyOffers->whereIn('status', ['inprogress'])->count())
+                    @if($pendingOffers > 0)
+                        <span class="sec-badge sec-badge-warn">{{ $pendingOffers }} {{ $pendingOffers === 1 ? 'w toku' : 'w toku' }}</span>
+                    @else
+                        <span class="sec-badge sec-badge-ok">{{ $companyOffers->count() }}</span>
+                    @endif
                     <span class="chevron">▼</span>
                 </div>
             </button>
@@ -446,8 +459,12 @@
             <button type="button" class="section-box-toggle" onclick="toggleSection('sec-chat')">
                 <h2>💬 Chat z klientem</h2>
                 <div class="toggle-right">
-                    @if($unread > 0)<span id="chat-unread-badge" style="background:#fef3c7;border:1px solid #fbbf24;color:#92400e;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;">{{ $unread }} nieprzeczytane</span>@else<span id="chat-unread-badge" style="display:none;background:#fef3c7;border:1px solid #fbbf24;color:#92400e;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;"></span>@endif
-                    <span style="font-size:11px;color:#6b8aa3;" id="chat-count-label">{{ $chatMessages->count() }} wiad.</span>
+                    @if($unread > 0)
+                        <span id="chat-unread-badge" class="sec-badge sec-badge-warn">{{ $unread }} nieprzeczytane</span>
+                    @else
+                        <span id="chat-unread-badge" class="sec-badge sec-badge-ok" style="display:none;"></span>
+                    @endif
+                    <span class="sec-badge sec-badge-ok" id="chat-count-label">{{ $chatMessages->count() }} wiad.</span>
                     <span class="chevron">▼</span>
                 </div>
             </button>
@@ -477,7 +494,12 @@
             <button type="button" class="section-box-toggle" onclick="toggleSection('sec-audits')">
                 <h2>📋 Audyty firmy</h2>
                 <div class="toggle-right">
-                    <span style="background:#e0f2fe;color:#0369a1;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;">{{ $auditsCount }} {{ $auditsCount === 1 ? 'audyt' : ($auditsCount < 5 ? 'audyty' : 'audytów') }}</span>
+                    @php($activeAudits = $company->energyAudits->whereNotIn('status', ['zakończony','zafakturowany','zapłacony'])->count())
+                    @if($activeAudits > 0)
+                        <span class="sec-badge sec-badge-warn">{{ $activeAudits }} {{ $activeAudits === 1 ? 'w toku' : 'w toku' }}</span>
+                    @else
+                        <span class="sec-badge sec-badge-ok">{{ $auditsCount }} {{ $auditsCount === 1 ? 'audyt' : ($auditsCount < 5 ? 'audyty' : 'audytów') }}</span>
+                    @endif
                     <span class="chevron">▼</span>
                 </div>
             </button>
