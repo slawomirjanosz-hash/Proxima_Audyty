@@ -192,6 +192,38 @@
         @endif
     </table>
 
+    {{-- KWESTIONARIUSZ ISO 50001 --}}
+    @if(isset($questionnaireQuestions) && $questionnaireQuestions && !empty($audit->questionnaire_answers))
+        @php $answers = $audit->questionnaire_answers; @endphp
+        <table class="section-hdr" style="margin-top:20px;">
+            <tr>
+                <td class="acc">&nbsp;</td>
+                <td class="label">Kwestionariusz wstępny ISO 50001</td>
+            </tr>
+        </table>
+        @foreach($questionnaireQuestions as $blockKey => $questions)
+            @php $blockAnswers = $questions->filter(fn($q) => !empty($answers[$q->question_code])); @endphp
+            @if($blockAnswers->isNotEmpty())
+                <table class="data" style="margin-top:0;">
+                    <tr>
+                        <td colspan="2" style="background:#2a4a62; color:#fff; font-weight:700; font-size:8pt; letter-spacing:0.5px; padding:5px 12px;">
+                            {{ \App\Models\Iso50001QuestionnaireQuestion::$blockLabels[$blockKey] ?? 'Blok ' . $blockKey }}
+                        </td>
+                    </tr>
+                    @foreach($blockAnswers as $i => $question)
+                    <tr class="{{ $i % 2 === 1 ? 'even' : '' }}">
+                        <td class="key" style="width:45%;">
+                            <span style="color:#1a6aa0; font-size:7.5pt;">{{ $question->question_code }}</span>
+                            {{ $question->question_text }}
+                        </td>
+                        <td class="val">{{ $answers[$question->question_code] }}</td>
+                    </tr>
+                    @endforeach
+                </table>
+            @endif
+        @endforeach
+    @endif
+
     {{-- DANE AUDYTU --}}
     @php $proto = $conversation?->protocol_data ?? []; @endphp
 

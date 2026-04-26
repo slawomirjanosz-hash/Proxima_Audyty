@@ -116,6 +116,38 @@
         </div>
     @endif
 
+    {{-- Questionnaire answers --}}
+    @if($questionnaireQuestions && !empty($audit->questionnaire_answers))
+        @php $answers = $audit->questionnaire_answers; @endphp
+        <div class="section-title" style="margin-top:24px;">
+            <span class="section-num">📋</span>Kwestionariusz wstępny ISO 50001
+        </div>
+        @foreach($questionnaireQuestions as $blockKey => $questions)
+            @php
+                $blockAnswers = $questions->filter(fn($q) => !empty($answers[$q->question_code]));
+            @endphp
+            @if($blockAnswers->isNotEmpty())
+                <div style="font-size:11px; font-weight:800; color:#0e89d8; text-transform:uppercase; letter-spacing:.5px; margin:12px 0 4px;">
+                    {{ \App\Models\Iso50001QuestionnaireQuestion::$blockLabels[$blockKey] ?? 'Blok ' . $blockKey }}
+                </div>
+                <table>
+                    <thead>
+                        <tr><th style="width:8%">Kod</th><th style="width:42%">Pytanie</th><th>Odpowiedź</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach($blockAnswers as $question)
+                            <tr>
+                                <td style="font-weight:700; color:#0e89d8;">{{ $question->question_code }}</td>
+                                <td style="color:#4c6373;">{{ $question->question_text }}</td>
+                                <td style="font-weight:600;">{{ $answers[$question->question_code] }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+        @endforeach
+    @endif
+
     {{-- AI Protocol sections --}}
     @php
         $proto = $conversation?->protocol_data ?? [];

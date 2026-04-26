@@ -196,7 +196,15 @@ class CompanyController extends Controller
             ->latest()
             ->first();
 
-        return view('firma.report', compact('company', 'audit', 'conversation'));
+        $questionnaireQuestions = null;
+        if ($audit->questionnaire_completed && !empty($audit->questionnaire_answers)) {
+            $questionnaireQuestions = \App\Models\Iso50001QuestionnaireQuestion::active()
+                ->orderBy('sort_order')
+                ->get()
+                ->groupBy('block_key');
+        }
+
+        return view('firma.report', compact('company', 'audit', 'conversation', 'questionnaireQuestions'));
     }
 
     public function addUser(Request $request, Company $company): RedirectResponse
