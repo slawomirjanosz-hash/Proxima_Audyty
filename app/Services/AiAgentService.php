@@ -863,11 +863,11 @@ SCRIPT;
 
         // Pierwsze przywitanie
         $greetingPrompt = match(app()->getLocale()) {
-            'en' => 'Greet the client and briefly explain what we will do together. Ask the first question to start collecting data.',
-            'de' => 'Begrüßen Sie den Kunden und erklären Sie kurz, was wir gemeinsam tun werden. Stellen Sie die erste Frage, um mit der Datenerfassung zu beginnen.',
-            'fr' => 'Saluez le client et expliquez brièvement ce que nous allons faire ensemble. Posez la première question pour commencer la collecte de données.',
-            'es' => 'Salude al cliente y explique brevemente lo que haremos juntos. Haga la primera pregunta para comenzar a recopilar datos.',
-            default => 'Przywitaj się z klientem i wyjaśnij krótko co razem zrobimy. Klient wypełnił już kwestionariusz wstępny — odnieś się do tych danych i przejdź do pogłębionej rozmowy o audycie ISO 50001.',
+            'en' => 'Greet the client briefly. Confirm you have their pre-filled questionnaire data and list the key facts you already know (company name, energy data, etc.). Then ask only ONE follow-up question about something NOT already in the questionnaire.',
+            'de' => 'Begrüßen Sie den Kunden kurz. Bestätigen Sie dass Sie die Fragebogendaten haben und nennen Sie die wichtigsten bekannten Fakten. Stellen Sie dann nur EINE Folgefrage zu etwas das NICHT im Fragebogen steht.',
+            'fr' => 'Saluez brièvement le client. Confirmez que vous avez ses données et listez les faits clés connus. Posez ensuite UNE SEULE question sur quelque chose qui n\'est PAS dans le questionnaire.',
+            'es' => 'Salude brevemente al cliente. Confirme que tiene sus datos y enumere los hechos clave ya conocidos. Luego haga solo UNA pregunta sobre algo que NO esté en el cuestionario.',
+            default => 'Przywitaj się z klientem. Potwierdź że masz dane z kwestionariusza — wymień najważniejsze fakty które już znasz (nazwa firmy, zużycie energii itp.). Następnie zadaj TYLKO JEDNO pytanie uzupełniające dotyczące czegoś czego NIE MA w kwestionariuszu. Absolutnie nie pytaj ponownie o dane które już zostały podane w kwestionariuszu.',
         };
 
         try {
@@ -941,6 +941,7 @@ SCRIPT;
             ->keyBy('question_code');
 
         $lines = [];
+        $answeredCodes = [];
         foreach ($answers as $code => $value) {
             $value = trim((string) $value);
             if ($value === '') {
@@ -948,6 +949,7 @@ SCRIPT;
             }
             $questionText = $questions[$code]->question_text ?? $code;
             $lines[] = "{$code}: {$questionText}\nOdpowiedź: {$value}";
+            $answeredCodes[] = $code;
         }
 
         if (empty($lines)) {
@@ -955,12 +957,17 @@ SCRIPT;
         }
 
         $block = implode("\n\n", $lines);
+        $codesList = implode(', ', $answeredCodes);
 
-        return "\n\nDANE Z KWESTIONARIUSZA WSTĘPNEGO KLIENTA (wypełnione przed rozmową):\n" .
-               "=================================================================\n" .
+        return "\n\nDANE Z KWESTIONARIUSZA WSTĘPNEGO KLIENTA:\n" .
+               "==========================================\n" .
                $block .
-               "\n=================================================================\n" .
-               "Powyższe dane zostały zebrane przed rozmową. Traktuj je jako punkt wyjścia — odwołuj się do nich, uzupełniaj je i pogłębiaj temat tam, gdzie odpowiedzi są niepełne.\n";
+               "\n==========================================\n" .
+               "INSTRUKCJA OBOWIĄZKOWA: Powyższe dane zostały zebrane PRZED rozmową.\n" .
+               "- NIE pytaj ponownie o pytania o kodach: {$codesList}. Klient już na nie odpowiedział.\n" .
+               "- Nawiązuj bezpośrednio do tych danych (np. \"Widzę, że Wasza firma to {$answers['A1'] ?? '...'}\").\n" .
+               "- Pogłębiaj tylko te tematy, gdzie odpowiedź była niepełna lub wymaga doprecyzowania.\n" .
+               "- Pytaj wyłącznie o dane, których NIE MA w kwestionariuszu.\n";
     }
 
     /**

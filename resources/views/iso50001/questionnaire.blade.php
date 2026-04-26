@@ -223,6 +223,8 @@
     </form>
 
     <script>
+        const QST_STORAGE_KEY = 'qst_{{ $audit->id }}_{{ str_contains(get_class($audit), "Iso50001Audit") ? "iso" : "energy" }}';
+
         function toggleBlock(blockId) {
             const block = document.getElementById(blockId);
             if (block) block.classList.toggle('open');
@@ -246,6 +248,7 @@
 
         function markChanged() {
             updateProgress();
+            saveToLocalStorage();
             if (!hasChanges) {
                 hasChanges = true;
                 draftBtn.style.background = '#dc2626';
@@ -255,11 +258,86 @@
 
         function saveDraft() {
             document.getElementById('draft-flag').value = '1';
+            clearLocalStorage();
             document.getElementById('questionnaire-form').submit();
+        }
+
+        // ---------- localStorage auto-save ----------
+
+        function saveToLocalStorage() {
+            const data = {};
+            document.querySelectorAll('.qst-answer-area').forEach(function(ta) {
+                const m = ta.name.match(/answers\[([^\]]+)\]/);
+                if (m) data[m[1]] = ta.value;
+            });
+            try {
+                localStorage.setItem(QST_STORAGE_KEY, JSON.stringify({ data, ts: Date.now() }));
+            } catch(e) {}
+        }
+
+        function clearLocalStorage() {
+            try { localStorage.removeItem(QST_STORAGE_KEY); } catch(e) {}
+        }
+
+        function restoreFromLocalStorage() {
+            try {
+                const raw = localStorage.getItem(QST_STORAGE_KEY);
+                if (!raw) return;
+                const saved = JSON.parse(raw);
+                if (!saved || !saved.data) return;
+
+                // Check if localStorage has any non-empty answer that's missing in the current form
+                let hasExtra = false;
+                for (const [code, val] of Object.entries(saved.data)) {
+                    if (!val) continue;
+                    const ta = document.querySelector('textarea[name="answers[' + code + ']"]');
+                    if (ta && ta.value.trim() === '' && val.trim() !== '') {
+                        hasExtra = true;
+                        break;
+                    }
+                }
+                if (!hasExtra) return;
+
+                const banner = document.createElement('div');
+                banner.id = 'restore-banner';
+                banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:10000;background:#1d4f73;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);';
+                banner.innerHTML = '<span>💾 Masz niezapisaną wersję roboczą z poprzedniej sesji. Czy chcesz ją przywrócić?</span>'
+                    + '<div style="display:flex;gap:8px;">'
+                    + '<button onclick="applyLocalDraft()" style="background:#16a34a;color:#fff;border:none;padding:7px 16px;border-radius:8px;font-weight:700;cursor:pointer;">Przywróć</button>'
+                    + '<button onclick="discardLocalDraft()" style="background:#6b8aa3;color:#fff;border:none;padding:7px 16px;border-radius:8px;cursor:pointer;">Odrzuć</button>'
+                    + '</div>';
+                document.body.prepend(banner);
+                window._localDraft = saved.data;
+            } catch(e) {}
+        }
+
+        function applyLocalDraft() {
+            const data = window._localDraft || {};
+            for (const [code, val] of Object.entries(data)) {
+                const ta = document.querySelector('textarea[name="answers[' + code + ']"]');
+                if (ta && val) ta.value = val;
+            }
+            document.getElementById('restore-banner')?.remove();
+            hasChanges = true;
+            draftBtn.style.background = '#dc2626';
+            updateProgress();
+        }
+
+        function discardLocalDraft() {
+            clearLocalStorage();
+            document.getElementById('restore-banner')?.remove();
         }
 
         // Run on load
         updateProgress();
+        restoreFromLocalStorage();
+
+        // Clear localStorage when the final "save and continue" form is submitted
+        document.getElementById('questionnaire-form').addEventListener('submit', function(e) {
+            if (document.getElementById('draft-flag').value !== '1') {
+                clearLocalStorage();
+            }
+        });
     </script>
 
     {{-- Floating draft save button --}}
