@@ -142,6 +142,11 @@ SCRIPT;
 SKRYPT AUDYTU ISO 50001:
 Przeprowadź klienta przez wymagania systemu zarządzania energią zgodnie z normą ISO 50001:2018.
 
+WAŻNE: Jeśli w systemowym bloku "DANE ZEBRANE OD KLIENTA" są już odpowiedzi na pytania z poniższych
+etapów — POMIŃ te pytania. Pytaj tylko o brakujące informacje lub proś o doprecyzowanie
+gdy odpowiedź jest niepełna. Nie powtarzaj pytań które klient już wypełnił w kwestionariuszu
+lub formularzu krokowym.
+
 ETAP 1 — KONTEKST ORGANIZACJI (rozdział 4 normy):
 - Pytaj o: branżę i profil działalności firmy
 - Pytaj o: liczbę pracowników i lokalizacje/oddziały objęte systemem
@@ -926,50 +931,143 @@ SCRIPT;
 
     /**
      * Builds a questionnaire context block to inject into the system prompt.
+     * Aggregates data from: questionnaire answers, Iso50001Audit step answers, EnergyAudit data_payload.
      */
     private function buildQuestionnaireContext(\App\Models\Iso50001Audit|\App\Models\EnergyAudit $audit): string
     {
-        $answers = (array) $audit->questionnaire_answers;
-        if (empty($answers)) {
-            return '';
-        }
+        $sections = [];
+        $companyName = '';
 
-        $questions = \App\Models\Iso50001QuestionnaireQuestion::query()
-            ->active()
-            ->orderBy('sort_order')
-            ->get()
-            ->keyBy('question_code');
+        // ── 1. Kwestionariusz wstępny (questionnaire_answers) ─────────────────
+        $qAnswers = (array) ($audit->questionnaire_answers ?? []);
+        if (!empty($qAnswers)) {
+            $questions = \App\Models\Iso50001QuestionnaireQuestion::query()
+                ->active()
+                ->orderBy('sort_order')
+                ->get()
+                ->keyBy('question_code');
 
-        $lines = [];
-        $answeredCodes = [];
-        foreach ($answers as $code => $value) {
-            $value = trim((string) $value);
-            if ($value === '') {
-                continue;
+            $lines = [];
+            foreach ($qAnswers as $code => $value) {
+                $value = trim((string) $value);
+                if ($value === '') {
+                    continue;
+                }
+                $questionText = $questions[$code]->question_text ?? $code;
+                $lines[] = "  [{$code}] {$questionText}: {$value}";
             }
-            $questionText = $questions[$code]->question_text ?? $code;
-            $lines[] = "{$code}: {$questionText}\nOdpowiedź: {$value}";
-            $answeredCodes[] = $code;
+
+            if (!empty($lines)) {
+                $sections[] = "KWESTIONARIUSZ WSTĘPNY (wypełniony przez klienta przed rozmową):\n" . implode("\n", $lines);
+            }
+
+            $companyName = trim((string) ($qAnswers['A1'] ?? ''));
         }
 
-        if (empty($lines)) {
+        // ── 2. Formularz krokowy ISO 50001 (Iso50001Audit->answers) ──────────
+        if ($audit instanceof \App\Models\Iso50001Audit) {
+            $stepAnswers = (array) ($audit->answers ?? []);
+            if (!empty($stepAnswers)) {
+                $template = \App\Models\Iso50001Template::query()->first();
+                $steps = $template
+                    ? \App\Support\Iso50001TemplateDefinition::normalizeSteps((array) $template->steps)
+                    : \App\Support\Iso50001TemplateDefinition::defaultSteps();
+
+                // Build label map: stepKey.fieldName => label
+                $labelMap = [];
+                foreach ($steps as $step) {
+                    $key = (string) ($step['key'] ?? '');
+                    foreach ((array) ($step['fields'] ?? []) as $field) {
+                        $fieldName = (string) ($field['name'] ?? '');
+                        $label = (string) ($field['label'] ?? $fieldName);
+                        if ($key !== '' && $fieldName !== '') {
+                            $labelMap["{$key}.{$fieldName}"] = $label;
+                        }
+                    }
+                }
+
+                $lines = [];
+                foreach ($stepAnswers as $stepKey => $fields) {
+                    if (!is_array($fields)) {
+                        continue;
+                    }
+                    foreach ($fields as $fieldName => $value) {
+                        $value = trim((string) $value);
+                        if ($value === '') {
+                            continue;
+                        }
+                        $label = $labelMap["{$stepKey}.{$fieldName}"] ?? "{$stepKey}.{$fieldName}";
+                        $lines[] = "  {$label}: {$value}";
+                    }
+                }
+
+                if (!empty($lines)) {
+                    $sections[] = "FORMULARZ AUDYTU ISO 50001 — kroki wypełnione przez klienta:\n" . implode("\n", $lines);
+                }
+            }
+        }
+
+        // ── 3. EnergyAudit data_payload (dane z sekcji audytu) ───────────────
+        if ($audit instanceof \App\Models\EnergyAudit) {
+            $payload = (array) ($audit->data_payload ?? []);
+            if (!empty($payload)) {
+                $lines = [];
+                foreach ($payload as $sectionId => $sectionData) {
+                    if (!is_array($sectionData)) {
+                        continue;
+                    }
+                    // tasks
+                    if (!empty($sectionData['tasks']) && is_array($sectionData['tasks'])) {
+                        foreach ($sectionData['tasks'] as $taskName => $done) {
+                            if ($done) {
+                                $lines[] = "  Zadanie: {$taskName}: TAK";
+                            }
+                        }
+                    }
+                    // field values
+                    if (!empty($sectionData['fields']) && is_array($sectionData['fields'])) {
+                        foreach ($sectionData['fields'] as $field) {
+                            $name = (string) ($field['name'] ?? '');
+                            $value = trim((string) ($field['value'] ?? ''));
+                            if ($name !== '' && $value !== '') {
+                                $unit = isset($field['unit']) && $field['unit'] !== '' ? " {$field['unit']}" : '';
+                                $lines[] = "  {$name}: {$value}{$unit}";
+                            }
+                        }
+                    }
+                }
+
+                if (!empty($lines)) {
+                    $sections[] = "DANE AUDYTU (uzupełnione przez audytora/administratora):\n" . implode("\n", $lines);
+                }
+            }
+        }
+
+        if (empty($sections)) {
             return '';
         }
 
-        $block = implode("\n\n", $lines);
-        $codesList = implode(', ', $answeredCodes);
-        $companyName = trim((string) ($answers['A1'] ?? ''));
-        $companyExample = $companyName !== '' ? $companyName : '...';
+        $allData = implode("\n\n", $sections);
+        $companyExample = $companyName !== '' ? $companyName : 'firma klienta';
 
-        return "\n\nDANE Z KWESTIONARIUSZA WSTĘPNEGO KLIENTA:\n" .
-               "==========================================\n" .
-               $block .
-               "\n==========================================\n" .
-               "INSTRUKCJA OBOWIĄZKOWA: Powyższe dane zostały zebrane PRZED rozmową.\n" .
-               "- NIE pytaj ponownie o pytania o kodach: {$codesList}. Klient już na nie odpowiedział.\n" .
-               "- Nawiązuj bezpośrednio do tych danych (np. \"Widzę, że Wasza firma to {$companyExample}\").\n" .
-               "- Pogłębiaj tylko te tematy, gdzie odpowiedź była niepełna lub wymaga doprecyzowania.\n" .
-               "- Pytaj wyłącznie o dane, których NIE MA w kwestionariuszu.\n";
+        return "\n\n" .
+               "╔══════════════════════════════════════════════════════════════╗\n" .
+               "║  DANE ZEBRANE OD KLIENTA — OBOWIĄZUJĄCE ZASADY ROZMOWY       ║\n" .
+               "╚══════════════════════════════════════════════════════════════╝\n" .
+               "PONIŻSZE INFORMACJE ZOSTAŁY JUŻ PODANE PRZEZ KLIENTA LUB AUDYTORA.\n\n" .
+               $allData . "\n\n" .
+               "═══════════════════════════════════════════════════════════════\n" .
+               "BEZWZGLĘDNE ZASADY — OBOWIĄZUJĄ PRZEZ CAŁĄ ROZMOWĘ:\n" .
+               "1. ZAKAZ POWTARZANIA: Nie pytaj o żadne dane wymienione powyżej.\n" .
+               "   Klient je już podał — pytanie o to ponownie jest błędem.\n" .
+               "2. DOPYTYWANIE DOZWOLONE: Możesz poprosić o doprecyzowanie lub\n" .
+               "   rozwinięcie konkretnej odpowiedzi jeśli jest niepełna lub niejednoznaczna.\n" .
+               "3. NOWE PYTANIA: Pytaj wyłącznie o tematy których NIE MA w danych powyżej.\n" .
+               "4. NAWIĄZUJ DO DANYCH: Odwołuj się do zebranych informacji\n" .
+               "   (np. \"Widzę, że Wasza firma to {$companyExample} — na tej podstawie...\").\n" .
+               "5. GDY DANE SĄ KOMPLETNE: Jeśli powyższe dane wystarczają do analizy,\n" .
+               "   przejdź do wniosków i rekomendacji zamiast kontynuować pytania.\n" .
+               "═══════════════════════════════════════════════════════════════\n";
     }
 
     /**
