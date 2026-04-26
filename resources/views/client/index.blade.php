@@ -87,6 +87,18 @@
         .cs-chev { font-size: 12px; color: #6b8aa3; transition: transform .2s; flex-shrink: 0; }
         .cs-head-row { display: flex; align-items: center; gap: 8px; }
 
+        /* ─── Chat notification blink ───────────────────────────── */
+        @keyframes cs-blink-yellow {
+            0%, 100% { background: #fff; border-color: #d5e0ea; }
+            50%       { background: #fffbe0; border-color: #f5c400; box-shadow: 0 0 0 3px #fef08a66; }
+        }
+        .cs-box--notify {
+            animation: cs-blink-yellow 1s ease-in-out infinite;
+        }
+        .cs-box--notify .cs-toggle h3::after {
+            content: ' 🔔';
+        }
+
         /* ─── Audit type 3-column radio grid ────────────────────── */
         .audit-type-grid {
             display: grid;
@@ -531,12 +543,21 @@
                                     .then(r => r.json())
                                     .then(data => {
                                         if (!data.messages || !data.messages.length) return;
+                                        let hasAdminMsg = false;
                                         data.messages.forEach(function(msg) {
                                             if (msg.id > lastId) {
                                                 appendBubble(msg);
                                                 lastId = msg.id;
+                                                if (msg.is_from_admin) hasAdminMsg = true;
                                             }
                                         });
+                                        if (hasAdminMsg) {
+                                            var box = document.getElementById('cs-chat');
+                                            // Only blink when section is collapsed
+                                            if (box && !box.classList.contains('open')) {
+                                                box.classList.add('cs-box--notify');
+                                            }
+                                        }
                                     })
                                     .catch(function(){});
                                 }
@@ -622,7 +643,12 @@
 
         <script>
         function toggleCs(id) {
-            document.getElementById(id).classList.toggle('open');
+            var box = document.getElementById(id);
+            box.classList.toggle('open');
+            // Clear notification when user opens the chat
+            if (id === 'cs-chat' && box.classList.contains('open')) {
+                box.classList.remove('cs-box--notify');
+            }
         }
         function toggleOfferSections(id) {
             var el = document.getElementById('offer-sections-' + id);
