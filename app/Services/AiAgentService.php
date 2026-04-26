@@ -958,6 +958,8 @@ SCRIPT;
 
         $block = implode("\n\n", $lines);
         $codesList = implode(', ', $answeredCodes);
+        $companyName = trim((string) ($answers['A1'] ?? ''));
+        $companyExample = $companyName !== '' ? $companyName : '...';
 
         return "\n\nDANE Z KWESTIONARIUSZA WSTĘPNEGO KLIENTA:\n" .
                "==========================================\n" .
@@ -965,7 +967,7 @@ SCRIPT;
                "\n==========================================\n" .
                "INSTRUKCJA OBOWIĄZKOWA: Powyższe dane zostały zebrane PRZED rozmową.\n" .
                "- NIE pytaj ponownie o pytania o kodach: {$codesList}. Klient już na nie odpowiedział.\n" .
-               "- Nawiązuj bezpośrednio do tych danych (np. \"Widzę, że Wasza firma to {$answers['A1'] ?? '...'}\").\n" .
+               "- Nawiązuj bezpośrednio do tych danych (np. \"Widzę, że Wasza firma to {$companyExample}\").\n" .
                "- Pogłębiaj tylko te tematy, gdzie odpowiedź była niepełna lub wymaga doprecyzowania.\n" .
                "- Pytaj wyłącznie o dane, których NIE MA w kwestionariuszu.\n";
     }
