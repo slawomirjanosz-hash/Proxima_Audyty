@@ -140,6 +140,17 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('role:admin,auditor')
         ->name('audits.settings.iso50001.audit-update');
 
+    // Questionnaire questions management (admin)
+    Route::post('/audyty/ustawienia/iso50001/kwestionariusz', [AuditsController::class, 'storeQuestionnaireQuestion'])
+        ->middleware('role:admin,auditor')
+        ->name('audits.settings.iso50001.questionnaire-store');
+    Route::patch('/audyty/ustawienia/iso50001/kwestionariusz/{question}', [AuditsController::class, 'updateQuestionnaireQuestion'])
+        ->middleware('role:admin,auditor')
+        ->name('audits.settings.iso50001.questionnaire-update');
+    Route::delete('/audyty/ustawienia/iso50001/kwestionariusz/{question}', [AuditsController::class, 'destroyQuestionnaireQuestion'])
+        ->middleware('role:admin,auditor')
+        ->name('audits.settings.iso50001.questionnaire-destroy');
+
     Route::post('/audyty/ai-agent/{agentType}/trening', [AiAgentController::class, 'saveAgentTraining'])
         ->middleware('role:admin,auditor')
         ->name('audits.ai-agent.train')
@@ -286,6 +297,10 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('role:client')->name('client.offer.pdf');
     Route::get('/moje-audyty/{audit}/ai', [ClientController::class, 'startAuditAi'])
         ->middleware('role:client')->name('client.audit.ai');
+    Route::get('/moje-audyty/{audit}/kwestionariusz-iso', [ClientController::class, 'showIsoQuestionnaire'])
+        ->middleware('role:client')->name('client.audit.iso.questionnaire');
+    Route::post('/moje-audyty/{audit}/kwestionariusz-iso', [ClientController::class, 'saveIsoQuestionnaire'])
+        ->middleware('role:client')->name('client.audit.iso.questionnaire.save');
     Route::get('/moje-audyty/{audit}/praca/{conversation}', [ClientController::class, 'auditWork'])
         ->middleware('role:client')->name('client.audit.work');
     Route::post('/moje-audyty/{audit}/praca/{conversation}/zakoncz', [ClientController::class, 'finishAuditAi'])
@@ -303,6 +318,12 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/iso50001', [Iso50001AuditController::class, 'store'])
         ->middleware('role:admin,auditor,client')
         ->name('iso50001.store');
+    Route::get('/iso50001/{isoAudit}/kwestionariusz', [Iso50001AuditController::class, 'showQuestionnaire'])
+        ->middleware('role:client')
+        ->name('iso50001.questionnaire');
+    Route::post('/iso50001/{isoAudit}/kwestionariusz', [Iso50001AuditController::class, 'saveQuestionnaire'])
+        ->middleware('role:client')
+        ->name('iso50001.questionnaire.save');
     Route::get('/iso50001/{isoAudit}/krok/{step}', [Iso50001AuditController::class, 'showStep'])
         ->name('iso50001.step');
     Route::patch('/iso50001/{isoAudit}/krok/{step}', [Iso50001AuditController::class, 'saveStep'])
@@ -431,6 +452,7 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/', [AiAgentController::class, 'store'])->name('store');
         Route::get('/{aiConversation}', [AiAgentController::class, 'show'])->name('show');
         Route::post('/{aiConversation}/wiadomosc', [AiAgentController::class, 'sendMessage'])->name('message');
+        Route::post('/{aiConversation}/plik', [AiAgentController::class, 'analyzeFile'])->name('file');
         Route::delete('/{aiConversation}', [AiAgentController::class, 'destroy'])->name('destroy');
         Route::delete('/{aiConversation}/usun', [AiAgentController::class, 'forceDelete'])->name('force-delete');
         Route::post('/analiza', [AiAgentController::class, 'analyzeAudit'])->name('analyze');

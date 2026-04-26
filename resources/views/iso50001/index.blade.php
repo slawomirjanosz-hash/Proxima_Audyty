@@ -161,7 +161,11 @@
                         <td>{{ $audit->updated_at?->format('d.m.Y H:i') }}</td>
                         <td style="white-space:nowrap; display:flex; gap:6px;">
                             @if($isClient)
-                                <a href="{{ route('iso50001.step', ['isoAudit' => $audit, 'step' => max(1, (int) $audit->current_step)]) }}" style="display:inline-block; background:#0e89d8; color:#fff; padding:6px 10px; border-radius:8px; text-decoration:none;">Kontynuuj</a>
+                                @if(!$audit->questionnaire_completed)
+                                    <a href="{{ route('iso50001.questionnaire', $audit) }}" style="display:inline-block; background:#1ba84a; color:#fff; padding:6px 10px; border-radius:8px; text-decoration:none;">Kwestionariusz</a>
+                                @else
+                                    <a href="{{ route('iso50001.step', ['isoAudit' => $audit, 'step' => max(1, (int) $audit->current_step)]) }}" style="display:inline-block; background:#0e89d8; color:#fff; padding:6px 10px; border-radius:8px; text-decoration:none;">Kontynuuj</a>
+                                @endif
                                 <a href="{{ route('iso50001.review', $audit) }}" style="display:inline-block; background:#eff6fb; color:#174666; padding:6px 10px; border-radius:8px; text-decoration:none; border:1px solid #d3e4f1;">Podgląd</a>
                             @else
                                 <a href="{{ route('iso50001.review', $audit) }}" style="display:inline-block; background:#0e89d8; color:#fff; padding:6px 10px; border-radius:8px; text-decoration:none;">Kontrola</a>

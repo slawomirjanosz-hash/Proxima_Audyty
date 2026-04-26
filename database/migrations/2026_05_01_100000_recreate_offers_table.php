@@ -23,6 +23,7 @@ return new class extends Migration
             $table->decimal('total_price', 10, 2)->default(0);
             $table->enum('status', ['portfolio', 'inprogress', 'archived'])->default('portfolio');
             $table->foreignId('crm_deal_id')->nullable()->constrained('crm_deals')->nullOnDelete();
+            $table->foreignId('company_id')->nullable()->constrained('companies')->nullOnDelete();
             $table->string('customer_name')->nullable();
             $table->string('customer_nip')->nullable();
             $table->string('customer_address')->nullable();

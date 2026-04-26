@@ -193,6 +193,22 @@
         <a href="{{ route('iso50001.review', $audit) }}" style="text-decoration:none; color:#0e89d8; font-weight:700;">Podgląd wszystkich odpowiedzi i statusu kontroli</a>
     </section>
 
+    <section class="panel" style="background:#f4fdf9; border-color:#c5e8d5;">
+        <h3 style="margin-top:0; color:#0a5c3a;">🤖 Asystent AI ISO 50001</h3>
+        <p class="muted" style="margin-bottom:10px;">
+            Porozmawiaj z asystentem AI, który zna już Twoje odpowiedzi z kwestionariusza wstępnego.
+            Asystent pomoże Ci uzupełnić brakujące dane i przeprowadzi przez wymagania normy ISO 50001:2018.
+        </p>
+        <form method="POST" action="{{ route('ai.store') }}" style="display:inline;">
+            @csrf
+            <input type="hidden" name="context_type" value="iso50001">
+            <input type="hidden" name="context_id" value="{{ $audit->id }}">
+            <button type="submit" style="background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; font-weight:700; padding:9px 20px; border-radius:10px; border:none; cursor:pointer; font-size:14px;">
+                Rozpocznij rozmowę z agentem →
+            </button>
+        </form>
+    </section>
+
     <div class="help-modal" id="help-modal">
         <div class="help-box">
             <h4>Podpowiedź</h4>

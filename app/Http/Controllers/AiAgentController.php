@@ -113,6 +113,40 @@ class AiAgentController extends Controller
     }
 
     /**
+     * Analiza załączonego pliku / zdjęcia tabliczki znamionowej przez AI.
+     */
+    public function analyzeFile(Request $request, AiConversation $aiConversation): JsonResponse
+    {
+        abort_unless($aiConversation->user_id === auth()->id(), 403);
+
+        $request->validate([
+            'file'    => ['required', 'file', 'max:10240', 'mimes:jpeg,jpg,png,gif,webp,pdf,txt,csv'],
+            'message' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        try {
+            $response = $this->agent->analyzeFileContent(
+                $aiConversation,
+                $request->file('file'),
+                $request->input('message', '')
+            );
+
+            return response()->json(['success' => true, 'response' => $response]);
+        } catch (\Throwable $e) {
+            \Log::error('AiAgentController::analyzeFile failed', [
+                'exception' => $e->getMessage(),
+                'file'      => $e->getFile(),
+                'line'      => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error'   => 'Błąd analizy pliku: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Analiza danych audytu — zwraca analizę AI jako JSON.
      */
     public function analyzeAudit(Request $request): JsonResponse

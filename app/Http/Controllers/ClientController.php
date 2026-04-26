@@ -8,6 +8,7 @@ use App\Models\ClientChatMessage;
 use App\Models\ClientInquiry;
 use App\Models\Company;
 use App\Models\EnergyAudit;
+use App\Models\Iso50001QuestionnaireQuestion;
 use App\Models\Offer;
 use App\Models\SystemSetting;
 use Illuminate\Http\JsonResponse;
@@ -287,6 +288,12 @@ class ClientController extends Controller
 
         $agentType = $audit->agent_type ?: 'general';
 
+        // Redirect to questionnaire first for ISO 50001 audits
+        if ($agentType === 'iso50001' && ! $audit->questionnaire_completed) {
+            return redirect()->route('client.audit.iso.questionnaire', $audit)
+                ->with('status', 'Przed rozpoczęciem audytu wypełnij kwestionariusz wstępny.');
+        }
+
         // Check if conversation already exists
         $existing = AiConversation::where([
             'user_id'      => $user->id,
@@ -312,6 +319,78 @@ class ClientController extends Controller
         }
 
         return redirect()->route('client.audit.work', ['audit' => $audit->id, 'conversation' => $conversation->id]);
+    }
+
+    public function showIsoQuestionnaire(EnergyAudit $audit): \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+    {
+        $user = auth()->user();
+        $clientCompanyId = $user->company_id
+            ?? Company::where('client_id', $user->id)->value('id');
+        abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
+        abort_unless($audit->agent_type === 'iso50001', 404);
+
+        $questions = Iso50001QuestionnaireQuestion::query()
+            ->active()
+            ->orderBy('sort_order')
+            ->get()
+            ->groupBy('block_key');
+
+        $answers = (array) ($audit->questionnaire_answers ?? []);
+
+        $company = \App\Models\Company::find($audit->company_id);
+        $prefilled = [];
+        if ($company) {
+            if ($company->name) $prefilled['A1'] = $company->name;
+            if ($company->nip)  $prefilled['A2'] = $company->nip;
+            $addr = collect([$company->street, trim($company->postal_code . ' ' . $company->city)])->filter()->implode(', ');
+            if ($addr) $prefilled['A3'] = $addr;
+            if ($company->description) $prefilled['A7'] = $company->description;
+        }
+        $contact = collect([$user->name, $user->position, $user->email, $user->phone])->filter()->implode(', ');
+        if ($contact) $prefilled['A4'] = $contact;
+
+        return view('iso50001.questionnaire', [
+            'audit'       => $audit,
+            'questions'   => $questions,
+            'answers'     => $answers,
+            'prefilled'   => $prefilled,
+            'blockLabels' => Iso50001QuestionnaireQuestion::$blockLabels,
+            'saveRoute'   => route('client.audit.iso.questionnaire.save', $audit),
+            'backRoute'   => route('strefa-klienta'),
+        ]);
+    }
+
+    public function saveIsoQuestionnaire(Request $request, EnergyAudit $audit): \Illuminate\Http\RedirectResponse
+    {
+        $user = auth()->user();
+        $clientCompanyId = $user->company_id
+            ?? Company::where('client_id', $user->id)->value('id');
+        abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
+        abort_unless($audit->agent_type === 'iso50001', 404);
+
+        $raw = $request->input('answers', []);
+        $sanitized = [];
+        foreach ($raw as $code => $value) {
+            $code = preg_replace('/[^A-Za-z0-9_\-]/', '', (string) $code);
+            if ($code !== '') {
+                $sanitized[$code] = strip_tags(trim((string) $value));
+            }
+        }
+
+        // Save as draft (no completion flag)
+        if ($request->boolean('save_as_draft')) {
+            $audit->update(['questionnaire_answers' => $sanitized]);
+            return redirect()->route('client.audit.iso.questionnaire', $audit)
+                ->with('draft_saved', true);
+        }
+
+        $audit->update([
+            'questionnaire_answers'   => $sanitized,
+            'questionnaire_completed' => true,
+        ]);
+
+        return redirect()->route('client.audit.ai', $audit)
+            ->with('status', 'Kwestionariusz zapisany. Możesz teraz rozpocząć rozmowę z asystentem AI.');
     }
 
     public function auditWork(EnergyAudit $audit, AiConversation $conversation): \Illuminate\View\View

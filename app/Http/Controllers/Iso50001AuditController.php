@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Company;
 use App\Models\Iso50001Audit;
+use App\Models\Iso50001QuestionnaireQuestion;
 use App\Models\Iso50001Template;
 use App\Models\User;
 use App\Enums\UserRole;
@@ -46,12 +47,12 @@ class Iso50001AuditController extends Controller
                 'status' => 'draft',
                 'current_step' => 1,
                 'answers' => [],
+                'questionnaire_answers' => [],
+                'questionnaire_completed' => false,
             ]);
 
-            return redirect()->route('iso50001.step', [
-                'isoAudit' => $audit,
-                'step' => 1,
-            ])->with('status', 'Nowy audyt ISO 50001 został utworzony.');
+            return redirect()->route('iso50001.questionnaire', $audit)
+                ->with('status', 'Nowy audyt ISO 50001 został utworzony. Wypełnij kwestionariusz wstępny.');
         }
 
         $validated = $request->validate([
@@ -69,12 +70,14 @@ class Iso50001AuditController extends Controller
         ]);
 
         $audit = Iso50001Audit::create([
-            'title' => $validated['title'],
+            'title' => trim((string) $validated['title']),
             'company_id' => (int) $companyValidation['company_id'],
             'created_by_user_id' => (int) $validated['client_user_id'],
             'status' => 'draft',
             'current_step' => 1,
             'answers' => [],
+            'questionnaire_answers' => [],
+            'questionnaire_completed' => false,
         ]);
 
         return redirect()->route('iso50001.review', [
@@ -85,6 +88,12 @@ class Iso50001AuditController extends Controller
     public function showStep(Request $request, Iso50001Audit $isoAudit, int $step): View
     {
         $this->authorizeAuditAccess($request->user(), $isoAudit);
+
+        // Client must complete the questionnaire before accessing any step
+        if ($request->user()->isClient() && ! $isoAudit->questionnaire_completed) {
+            return redirect()->route('iso50001.questionnaire', $isoAudit)
+                ->with('status', 'Najpierw wypełnij kwestionariusz wstępny.');
+        }
 
         $steps = $this->stepDefinitions();
         $totalSteps = count($steps);
@@ -114,6 +123,11 @@ class Iso50001AuditController extends Controller
 
         if (! $user->isClient() || (int) $isoAudit->created_by_user_id !== (int) $user->id) {
             abort(403);
+        }
+
+        if (! $isoAudit->questionnaire_completed) {
+            return redirect()->route('iso50001.questionnaire', $isoAudit)
+                ->with('status', 'Najpierw wypełnij kwestionariusz wstępny.');
         }
 
         if ($isoAudit->status === 'approved') {
@@ -288,6 +302,90 @@ class Iso50001AuditController extends Controller
         }
 
         return Iso50001TemplateDefinition::normalizeSteps((array) $template->steps);
+    }
+
+    /**
+     * Show the pre-audit questionnaire for a client.
+     */
+    public function showQuestionnaire(Request $request, Iso50001Audit $isoAudit): View
+    {
+        $user = $request->user();
+        $this->authorizeAuditAccess($user, $isoAudit);
+
+        $questions = Iso50001QuestionnaireQuestion::query()
+            ->active()
+            ->orderBy('sort_order')
+            ->get()
+            ->groupBy('block_key');
+
+        $answers = (array) ($isoAudit->questionnaire_answers ?? []);
+
+        $isoAudit->load(['company', 'creator']);
+        $company = $isoAudit->company;
+        $creator = $isoAudit->creator;
+
+        $prefilled = [];
+        if ($company) {
+            if ($company->name) $prefilled['A1'] = $company->name;
+            if ($company->nip)  $prefilled['A2'] = $company->nip;
+            $addr = collect([$company->street, trim($company->postal_code . ' ' . $company->city)])->filter()->implode(', ');
+            if ($addr) $prefilled['A3'] = $addr;
+            if ($company->description) $prefilled['A7'] = $company->description;
+        }
+        if ($creator) {
+            $contact = collect([$creator->name, $creator->position, $creator->email, $creator->phone])->filter()->implode(', ');
+            if ($contact) $prefilled['A4'] = $contact;
+        }
+
+        return view('iso50001.questionnaire', [
+            'audit'       => $isoAudit,
+            'questions'   => $questions,
+            'blockLabels' => Iso50001QuestionnaireQuestion::$blockLabels,
+            'answers'     => $answers,
+            'prefilled'   => $prefilled,
+            'statusOptions' => $this->statusOptions(),
+        ]);
+    }
+
+    /**
+     * Save questionnaire answers and redirect to step 1.
+     */
+    public function saveQuestionnaire(Request $request, Iso50001Audit $isoAudit): RedirectResponse
+    {
+        $user = $request->user();
+        $this->authorizeAuditAccess($user, $isoAudit);
+
+        if (! $user->isClient() || (int) $isoAudit->created_by_user_id !== (int) $user->id) {
+            abort(403);
+        }
+
+        $answers = $request->input('answers', []);
+
+        if (! is_array($answers)) {
+            $answers = [];
+        }
+
+        // Sanitize: only string values, max 2000 chars each
+        $sanitized = [];
+        foreach ($answers as $key => $value) {
+            $sanitized[(string) $key] = mb_substr((string) $value, 0, 2000);
+        }
+
+        // Save as draft (no completion flag)
+        if ($request->boolean('save_as_draft')) {
+            $isoAudit->update(['questionnaire_answers' => $sanitized]);
+            return redirect()->route('iso50001.questionnaire', $isoAudit)
+                ->with('draft_saved', true);
+        }
+
+        $isoAudit->update([
+            'questionnaire_answers' => $sanitized,
+            'questionnaire_completed' => true,
+            'status' => in_array($isoAudit->status, ['draft'], true) ? 'in_progress' : $isoAudit->status,
+        ]);
+
+        return redirect()->route('iso50001.step', ['isoAudit' => $isoAudit, 'step' => 1])
+            ->with('status', 'Kwestionariusz został zapisany. Teraz wypełnij formularz audytu krok po kroku.');
     }
 
     /**

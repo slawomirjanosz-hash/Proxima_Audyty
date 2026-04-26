@@ -177,6 +177,142 @@
                 </div>
             @endif
 
+            {{-- ── KWESTIONARIUSZ ────────────────────────────────────────────── --}}
+            <div class="settings-section" id="section-kwestionariusz" style="margin-bottom:10px;">
+                <button type="button" class="settings-toggle" onclick="toggleSettingsSection('section-kwestionariusz')">
+                    <div class="settings-toggle-content">
+                        <h2 style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:22px;">📋</span>
+                            Kwestionariusz wstępny
+                        </h2>
+                        <span class="muted">Pytania wyświetlane klientowi przed rozpoczęciem audytu ISO 50001. Klient wypełnia je jako pierwszy krok, a odpowiedzi trafiają do asystenta AI.</span>
+                    </div>
+                    <span class="settings-chevron">&#9660;</span>
+                </button>
+                <div class="settings-body" style="padding-top:14px;">
+
+                    {{-- Table of current questions --}}
+                    @php
+                        $allBlockLabels = \App\Models\Iso50001QuestionnaireQuestion::$blockLabels;
+                    @endphp
+                    @forelse($questionnaireBlockLabels as $bKey => $bLabel)
+                        @if(isset($questionnaireQuestions[$bKey]) && $questionnaireQuestions[$bKey]->count())
+                        <div style="margin-bottom:16px;">
+                            <div style="font-weight:800; font-size:13px; color:#0e344e; margin-bottom:6px; padding:4px 10px; background:#e8f3fd; border-radius:7px; border-left:3px solid #0e89d8;">
+                                {{ $bLabel }}
+                            </div>
+                            <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                                <thead>
+                                    <tr style="background:#f3f8fd;">
+                                        <th style="padding:7px 8px; border:1px solid #dde9f3; text-align:left; width:60px;">Kod</th>
+                                        <th style="padding:7px 8px; border:1px solid #dde9f3; text-align:left;">Pytanie</th>
+                                        <th style="padding:7px 8px; border:1px solid #dde9f3; text-align:left; width:160px;">Podpowiedź</th>
+                                        <th style="padding:7px 8px; border:1px solid #dde9f3; text-align:center; width:60px;">Aktywne</th>
+                                        <th style="padding:7px 8px; border:1px solid #dde9f3; text-align:center; width:90px;">Akcje</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                @foreach($questionnaireQuestions[$bKey] as $qq)
+                                    <tr id="qrow-{{ $qq->id }}" style="{{ !$qq->is_active ? 'opacity:.55;' : '' }}">
+                                        <td style="padding:6px 8px; border:1px solid #e5eef6; font-weight:700; color:#0e89d8;">{{ $qq->question_code }}</td>
+                                        <td style="padding:6px 8px; border:1px solid #e5eef6;">
+                                            <div class="qrow-view-{{ $qq->id }}">{{ $qq->question_text }}</div>
+                                            <div class="qrow-edit-{{ $qq->id }}" style="display:none;">
+                                                <form method="POST" action="{{ route('audits.settings.iso50001.questionnaire-update', $qq) }}" style="display:grid; gap:5px;">
+                                                    @csrf @method('PATCH')
+                                                    <input type="hidden" name="block_key" value="{{ $qq->block_key }}">
+                                                    <div style="display:flex; gap:5px;">
+                                                        <input type="text" name="question_code" value="{{ $qq->question_code }}" style="width:60px; font-size:12px;">
+                                                        <input type="text" name="answer_hint" value="{{ $qq->answer_hint }}" placeholder="Podpowiedź" style="font-size:12px; flex:1;">
+                                                        <label style="display:flex; align-items:center; gap:4px; font-size:12px; white-space:nowrap;">
+                                                            <input type="checkbox" name="is_active" value="1" @checked($qq->is_active)> Aktywne
+                                                        </label>
+                                                    </div>
+                                                    <textarea name="question_text" rows="2" style="width:100%; font-size:13px; border:1px solid #c9d7e3; border-radius:7px; padding:5px 7px; resize:vertical;">{{ $qq->question_text }}</textarea>
+                                                    <div style="display:flex; gap:6px;">
+                                                        <button type="submit" style="padding:5px 12px; border-radius:7px; border:none; background:#0e89d8; color:#fff; font-size:12px; cursor:pointer; font-weight:700;">Zapisz</button>
+                                                        <button type="button" onclick="toggleQRowEdit({{ $qq->id }})" style="padding:5px 10px; border-radius:7px; border:1px solid #c9d7e3; background:#f5f9fd; font-size:12px; cursor:pointer;">Anuluj</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </td>
+                                        <td style="padding:6px 8px; border:1px solid #e5eef6; color:#6b8aa3; font-size:12px;">{{ $qq->answer_hint ?: '—' }}</td>
+                                        <td style="padding:6px 8px; border:1px solid #e5eef6; text-align:center;">
+                                            <span style="font-size:16px;">{{ $qq->is_active ? '✓' : '—' }}</span>
+                                        </td>
+                                        <td style="padding:6px 8px; border:1px solid #e5eef6; text-align:center; white-space:nowrap;">
+                                            <button type="button" onclick="toggleQRowEdit({{ $qq->id }})"
+                                                    style="padding:4px 8px; border-radius:6px; border:1px solid #c8dce9; background:#eef5fb; color:#1d4f73; font-size:11px; cursor:pointer; font-weight:700;">
+                                                Edytuj
+                                            </button>
+                                            <form method="POST" action="{{ route('audits.settings.iso50001.questionnaire-destroy', $qq) }}"
+                                                  onsubmit="return confirm('Usunąć to pytanie?')" style="display:inline; margin-left:4px;">
+                                                @csrf @method('DELETE')
+                                                <button type="submit"
+                                                        style="padding:4px 8px; border-radius:6px; border:1px solid #f5c2c7; background:#fff5f5; color:#842029; font-size:11px; cursor:pointer; font-weight:700;">
+                                                    Usuń
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        @endif
+                    @empty
+                        <p style="color:#6b8aa3; font-size:13px;">Brak bloków kwestionariusza.</p>
+                    @endforelse
+
+                    {{-- Add new question --}}
+                    <div style="margin-top:14px; padding-top:12px; border-top:1px solid #dce8f5;">
+                        <button type="button"
+                                onclick="toggleAddQuestion()"
+                                style="display:flex; align-items:center; gap:6px; padding:8px 14px; border:1px solid #c6d8ea; border-radius:9px; background:#f2f8fd; color:#1d4f73; font-weight:700; font-size:13px; cursor:pointer;">
+                            <span style="font-size:16px; font-weight:800;">+</span> Dodaj pytanie do kwestionariusza
+                        </button>
+                        <div id="add-question-form" style="display:none; margin-top:10px; padding:12px; border:1px solid #d2e3f1; border-radius:10px; background:#f8fbff;">
+                            <form method="POST" action="{{ route('audits.settings.iso50001.questionnaire-store') }}" style="display:grid; gap:10px;">
+                                @csrf
+                                <div style="display:grid; grid-template-columns:140px 100px 1fr; gap:10px;">
+                                    <div>
+                                        <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin-bottom:4px;">Blok</label>
+                                        <select name="block_key" required style="width:100%; font-size:13px;">
+                                            @foreach($questionnaireBlockLabels as $bk => $bl)
+                                                <option value="{{ $bk }}">{{ $bk }} — {{ Str::before($bl, ' —') }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin-bottom:4px;">Kod pytania</label>
+                                        <input type="text" name="question_code" placeholder="np. A8" required maxlength="10" style="width:100%; font-size:13px;">
+                                    </div>
+                                    <div>
+                                        <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin-bottom:4px;">Podpowiedź / opcje odpowiedzi</label>
+                                        <input type="text" name="answer_hint" placeholder="np. TAK / NIE" maxlength="255" style="width:100%; font-size:13px;">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin-bottom:4px;">Treść pytania *</label>
+                                    <textarea name="question_text" rows="2" required maxlength="1000"
+                                              style="width:100%; font-size:13px; border:1px solid #c9d7e3; border-radius:8px; padding:7px 9px; resize:vertical; box-sizing:border-box;"
+                                              placeholder="Wpisz treść pytania…"></textarea>
+                                </div>
+                                <div style="display:flex; gap:8px;">
+                                    <button type="submit" style="padding:7px 18px; border-radius:8px; border:none; background:linear-gradient(130deg,#0e89d8,#1ba84a); color:#fff; font-weight:700; font-size:13px; cursor:pointer;">
+                                        Dodaj pytanie
+                                    </button>
+                                    <button type="button" onclick="toggleAddQuestion()"
+                                            style="padding:7px 14px; border-radius:8px; border:1px solid #c9d7e3; background:#f5f9fd; color:#1d4f73; font-size:13px; cursor:pointer;">
+                                        Anuluj
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <p style="margin:0 0 18px; color:#355c77; font-size:14px;">
                 Agent ISO 50001 prowadzi rozmowy wyłącznie na temat normy ISO 50001 i systemów zarządzania energią. Kliknij <strong>Trenuj agenta</strong>, by dostosować jego skrypt systemowy.
             </p>
@@ -351,6 +487,21 @@
             const isOpen = container.style.display !== 'none';
             container.style.display = isOpen ? 'none' : 'block';
             if (arrow) arrow.textContent = isOpen ? '▼' : '▲';
+        }
+
+        function toggleAddQuestion() {
+            const form = document.getElementById('add-question-form');
+            if (!form) return;
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function toggleQRowEdit(id) {
+            const view = document.querySelector('.qrow-view-' + id);
+            const edit = document.querySelector('.qrow-edit-' + id);
+            if (!view || !edit) return;
+            const editing = edit.style.display !== 'none';
+            view.style.display = editing ? '' : 'none';
+            edit.style.display = editing ? 'none' : 'block';
         }
 
         function toggleUnitEditForm(unitId) {

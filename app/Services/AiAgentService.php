@@ -4,8 +4,11 @@ namespace App\Services;
 
 use App\Models\AiConversation;
 use App\Models\AiMessage;
+use Illuminate\Http\UploadedFile;
 use Prism\Prism\Facades\Prism;
 use Prism\Prism\Enums\Provider;
+use Prism\Prism\ValueObjects\Media\Document;
+use Prism\Prism\ValueObjects\Media\Image;
 use Prism\Prism\ValueObjects\Messages\UserMessage;
 use Prism\Prism\ValueObjects\Messages\AssistantMessage;
 use Prism\Prism\ValueObjects\Messages\SystemMessage;
@@ -35,13 +38,15 @@ class AiAgentService
      */
     public function getSystemPrompt(string $contextType = 'general'): string
     {
+        $formattingRule = "\n\nBEZWZGLĘDNA ZASADA FORMATOWANIA: Nigdy nie używaj gwiazdek (*), hashów (#), podkreśleń (_) ani żadnych innych znaczników Markdown. Pisz wyłącznie czystym tekstem. Liczby i wyniki podawaj w formacie: \"nazwa parametru: wartość jednostka\" — bez żadnych ozdobników.";
+
         // Check for custom training prompt saved by admin
         $customPrompt = \App\Models\SystemSetting::get("ai_agent_prompt_{$contextType}");
         if (!empty(trim((string) ($customPrompt ?? '')))) {
-            return (string) $customPrompt;
+            return (string) $customPrompt . $formattingRule;
         }
 
-        return $this->getDefaultSystemPrompt($contextType);
+        return $this->getDefaultSystemPrompt($contextType) . $formattingRule;
     }
 
     /**
@@ -795,10 +800,21 @@ SCRIPT;
         // Zbuduj historię dla Prisma
         $history = $this->buildMessageHistory($conversation);
 
+        // Build system prompt — inject questionnaire answers for iso50001 context
+        $contextType = $conversation->context_type ?? 'general';
+        $systemPrompt = $this->getSystemPrompt($contextType);
+        if ($contextType === 'iso50001' && $conversation->context_id !== null) {
+            $auditWithQuestionnaire = \App\Models\Iso50001Audit::find($conversation->context_id)
+                ?? \App\Models\EnergyAudit::find($conversation->context_id);
+            if ($auditWithQuestionnaire && ! empty($auditWithQuestionnaire->questionnaire_answers)) {
+                $systemPrompt .= $this->buildQuestionnaireContext($auditWithQuestionnaire);
+            }
+        }
+
         // Wywołaj Claude przez Prism
         $response = Prism::text()
             ->using(Provider::Anthropic, 'claude-haiku-4-5-20251001')
-            ->withSystemPrompt($this->getSystemPrompt($conversation->context_type ?? 'general'))
+            ->withSystemPrompt($systemPrompt)
             ->withMessages($history)
             ->generate();
 
@@ -835,19 +851,29 @@ SCRIPT;
             'status'       => 'active',
         ]);
 
+        // Build system prompt — inject questionnaire answers for iso50001 context
+        $systemPrompt = $this->getSystemPrompt($contextType);
+        if ($contextType === 'iso50001' && $contextId !== null) {
+            $auditWithQuestionnaire = \App\Models\Iso50001Audit::find($contextId)
+                ?? \App\Models\EnergyAudit::find($contextId);
+            if ($auditWithQuestionnaire && ! empty($auditWithQuestionnaire->questionnaire_answers)) {
+                $systemPrompt .= $this->buildQuestionnaireContext($auditWithQuestionnaire);
+            }
+        }
+
         // Pierwsze przywitanie
         $greetingPrompt = match(app()->getLocale()) {
             'en' => 'Greet the client and briefly explain what we will do together. Ask the first question to start collecting data.',
             'de' => 'Begrüßen Sie den Kunden und erklären Sie kurz, was wir gemeinsam tun werden. Stellen Sie die erste Frage, um mit der Datenerfassung zu beginnen.',
             'fr' => 'Saluez le client et expliquez brièvement ce que nous allons faire ensemble. Posez la première question pour commencer la collecte de données.',
             'es' => 'Salude al cliente y explique brevemente lo que haremos juntos. Haga la primera pregunta para comenzar a recopilar datos.',
-            default => 'Przywitaj się z klientem i wyjaśnij krótko co razem zrobimy. Zadaj pierwsze pytanie żeby zacząć zbieranie danych.',
+            default => 'Przywitaj się z klientem i wyjaśnij krótko co razem zrobimy. Klient wypełnił już kwestionariusz wstępny — odnieś się do tych danych i przejdź do pogłębionej rozmowy o audycie ISO 50001.',
         };
 
         try {
             $greeting = Prism::text()
                 ->using(Provider::Anthropic, 'claude-haiku-4-5-20251001')
-                ->withSystemPrompt($this->getSystemPrompt($contextType))
+                ->withSystemPrompt($systemPrompt)
                 ->withPrompt($greetingPrompt)
                 ->generate();
 
@@ -896,6 +922,45 @@ SCRIPT;
             ->generate();
 
         return $response->text;
+    }
+
+    /**
+     * Builds a questionnaire context block to inject into the system prompt.
+     */
+    private function buildQuestionnaireContext(\App\Models\Iso50001Audit|\App\Models\EnergyAudit $audit): string
+    {
+        $answers = (array) $audit->questionnaire_answers;
+        if (empty($answers)) {
+            return '';
+        }
+
+        $questions = \App\Models\Iso50001QuestionnaireQuestion::query()
+            ->active()
+            ->orderBy('sort_order')
+            ->get()
+            ->keyBy('question_code');
+
+        $lines = [];
+        foreach ($answers as $code => $value) {
+            $value = trim((string) $value);
+            if ($value === '') {
+                continue;
+            }
+            $questionText = $questions[$code]->question_text ?? $code;
+            $lines[] = "{$code}: {$questionText}\nOdpowiedź: {$value}";
+        }
+
+        if (empty($lines)) {
+            return '';
+        }
+
+        $block = implode("\n\n", $lines);
+
+        return "\n\nDANE Z KWESTIONARIUSZA WSTĘPNEGO KLIENTA (wypełnione przed rozmową):\n" .
+               "=================================================================\n" .
+               $block .
+               "\n=================================================================\n" .
+               "Powyższe dane zostały zebrane przed rozmową. Traktuj je jako punkt wyjścia — odwołuj się do nich, uzupełniaj je i pogłębiaj temat tam, gdzie odpowiedzi są niepełne.\n";
     }
 
     /**
@@ -1148,6 +1213,100 @@ PROMPT,
         }
 
         $conversation->update(['protocol_data' => $protocol]);
+    }
+
+    /**
+     * Analizuje przesłany plik (zdjęcie tabliczki znamionowej, PDF, CSV, TXT).
+     * Wysyła zawartość do Claude, który odczytuje dane i pyta o potwierdzenie.
+     * Zapisuje wiadomości do bazy i zwraca odpowiedź asystenta.
+     */
+    public function analyzeFileContent(AiConversation $conversation, UploadedFile $file, string $userNote = ''): string
+    {
+        $mimeType = $file->getMimeType() ?? 'application/octet-stream';
+        $fileName = $file->getClientOriginalName();
+        $isImage  = str_starts_with($mimeType, 'image/');
+        $isPdf    = $mimeType === 'application/pdf';
+
+        // Display message saved to DB (short, readable)
+        $userDisplayMessage = $userNote
+            ? $userNote . ' [załączono: ' . $fileName . ']'
+            : ($isImage ? 'Przesłano zdjęcie: ' . $fileName : 'Przesłano plik: ' . $fileName);
+
+        // Build existing conversation history (excluding the new message)
+        $history = $this->buildMessageHistory($conversation);
+
+        if ($isImage) {
+            $analysisPrompt =
+                ($userNote ? $userNote . "\n\n" : '') .
+                "Przeanalizuj to zdjęcie (tabliczka znamionowa lub dokument techniczny). " .
+                "Wylistuj WSZYSTKIE widoczne dane techniczne: model, producent, moc [kW/W], napięcie [V], " .
+                "prąd [A], częstotliwość [Hz], prędkość obrotowa [rpm], nr seryjny, rok produkcji, " .
+                "klasa ochrony IP, klasa izolacji, certyfikaty i wszelkie inne parametry. " .
+                "Następnie zapytaj: czy odczytane dane są poprawne i mogę je zapisać do protokołu, " .
+                "czy należy coś poprawić?";
+
+            $base64       = base64_encode(file_get_contents($file->getRealPath()));
+            $imageContent = Image::fromBase64($base64, $mimeType);
+            $prismMessage = new UserMessage($analysisPrompt, [$imageContent]);
+
+        } elseif ($isPdf) {
+            $base64   = base64_encode(file_get_contents($file->getRealPath()));
+            $document = Document::fromBase64($base64, 'application/pdf', $fileName);
+
+            $analysisPrompt =
+                ($userNote ? $userNote . "\n\n" : '') .
+                "Przeanalizuj załączony dokument PDF '{$fileName}'. " .
+                "Wylistuj WSZYSTKIE odczytane dane techniczne, parametry urządzeń, zużycia energii, " .
+                "wartości mierzone i wszelkie inne istotne informacje. " .
+                "Następnie zapytaj: czy odczytane dane są poprawne i mogę je zapisać do protokołu, " .
+                "czy należy coś poprawić?";
+
+            $prismMessage = new UserMessage($analysisPrompt, [$document]);
+
+        } else {
+            // Text / CSV — read content directly
+            $fileContent  = file_get_contents($file->getRealPath());
+            $truncated    = mb_substr((string) $fileContent, 0, 8000);
+
+            $analysisPrompt =
+                "Użytkownik przesłał plik '{$fileName}'." .
+                ($userNote ? " Dodatkowa wiadomość: {$userNote}" : '') .
+                "\n\nZawartość pliku:\n" . $truncated .
+                "\n\nDokładnie przeanalizuj powyższe dane. Wylistuj wszystkie odczytane informacje " .
+                "techniczne, parametry i ważne wartości. Następnie zapytaj: czy te dane są poprawne " .
+                "i mogę je zapisać do protokołu, czy należy coś poprawić?";
+
+            $prismMessage = new UserMessage($analysisPrompt);
+        }
+
+        $history[] = $prismMessage;
+
+        $response = Prism::text()
+            ->using(Provider::Anthropic, 'claude-haiku-4-5-20251001')
+            ->withSystemPrompt($this->getSystemPrompt($conversation->context_type ?? 'general'))
+            ->withMessages($history)
+            ->generate();
+
+        $assistantText = $response->text;
+
+        // Save user message (display version) and assistant reply
+        $conversation->messages()->create([
+            'role'    => 'user',
+            'content' => $userDisplayMessage,
+        ]);
+
+        $conversation->messages()->create([
+            'role'     => 'assistant',
+            'content'  => $assistantText,
+            'metadata' => [
+                'model'         => 'claude-haiku-4-5-20251001',
+                'file_analysis' => true,
+                'file_name'     => $fileName,
+                'file_type'     => $mimeType,
+            ],
+        ]);
+
+        return $assistantText;
     }
 
     private function buildMessageHistory(AiConversation $conversation): array

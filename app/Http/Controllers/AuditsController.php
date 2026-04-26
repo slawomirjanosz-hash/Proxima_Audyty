@@ -9,6 +9,7 @@ use App\Models\AuditUnit;
 use App\Models\Company;
 use App\Models\EnergyAudit;
 use App\Models\Iso50001Audit;
+use App\Models\Iso50001QuestionnaireQuestion;
 use App\Models\Iso50001Template;
 use App\Models\User;
 use App\Support\Iso50001TemplateDefinition;
@@ -150,6 +151,11 @@ class AuditsController extends Controller
         $companies = Company::query()->orderBy('name')->get();
         $isoAudits = Iso50001Audit::with(['company', 'creator', 'reviewer'])->latest()->get();
 
+        $questionnaireQuestions = Iso50001QuestionnaireQuestion::query()
+            ->orderBy('sort_order')
+            ->get()
+            ->groupBy('block_key');
+
         // AI agents for the "energetyczne" tab
         $agentService = app(\App\Services\AiAgentService::class);
         $agentDefs = [
@@ -213,6 +219,8 @@ class AuditsController extends Controller
             'aiAgents' => $aiAgents,
             'isoAgents' => $isoAgents,
             'bcAgents' => $bcAgents,
+            'questionnaireQuestions' => $questionnaireQuestions,
+            'questionnaireBlockLabels' => Iso50001QuestionnaireQuestion::$blockLabels,
         ]);
     }
 
@@ -976,6 +984,62 @@ class AuditsController extends Controller
             ->filter()
             ->values()
             ->all();
+    }
+
+    public function storeQuestionnaireQuestion(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'block_key'     => ['required', 'string', 'max:10'],
+            'question_code' => ['required', 'string', 'max:10'],
+            'question_text' => ['required', 'string', 'max:1000'],
+            'answer_hint'   => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $maxOrder = Iso50001QuestionnaireQuestion::query()
+            ->where('block_key', $validated['block_key'])
+            ->max('sort_order') ?? 0;
+
+        Iso50001QuestionnaireQuestion::create([
+            'block_key'     => strtoupper(trim($validated['block_key'])),
+            'question_code' => strtoupper(trim($validated['question_code'])),
+            'question_text' => trim($validated['question_text']),
+            'answer_hint'   => $validated['answer_hint'] ? trim($validated['answer_hint']) : null,
+            'sort_order'    => $maxOrder + 10,
+            'is_active'     => true,
+        ]);
+
+        return redirect()->route('audits.types', ['tab' => 'iso50001'])
+            ->with('status', 'Pytanie zostało dodane do kwestionariusza.');
+    }
+
+    public function updateQuestionnaireQuestion(Request $request, Iso50001QuestionnaireQuestion $question): RedirectResponse
+    {
+        $validated = $request->validate([
+            'block_key'     => ['required', 'string', 'max:10'],
+            'question_code' => ['required', 'string', 'max:10'],
+            'question_text' => ['required', 'string', 'max:1000'],
+            'answer_hint'   => ['nullable', 'string', 'max:255'],
+            'is_active'     => ['nullable', 'boolean'],
+        ]);
+
+        $question->update([
+            'block_key'     => strtoupper(trim($validated['block_key'])),
+            'question_code' => strtoupper(trim($validated['question_code'])),
+            'question_text' => trim($validated['question_text']),
+            'answer_hint'   => $validated['answer_hint'] ? trim($validated['answer_hint']) : null,
+            'is_active'     => (bool) ($validated['is_active'] ?? true),
+        ]);
+
+        return redirect()->route('audits.types', ['tab' => 'iso50001'])
+            ->with('status', 'Pytanie zostało zaktualizowane.');
+    }
+
+    public function destroyQuestionnaireQuestion(Iso50001QuestionnaireQuestion $question): RedirectResponse
+    {
+        $question->delete();
+
+        return redirect()->route('audits.types', ['tab' => 'iso50001'])
+            ->with('status', 'Pytanie zostało usunięte z kwestionariusza.');
     }
 
     /**

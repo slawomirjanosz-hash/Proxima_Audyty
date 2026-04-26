@@ -19,6 +19,8 @@ class Iso50001Audit extends Model
         'current_step',
         'due_date',
         'answers',
+        'questionnaire_answers',
+        'questionnaire_completed',
         'reviewer_notes',
         'submitted_at',
         'reviewed_at',
@@ -26,6 +28,8 @@ class Iso50001Audit extends Model
 
     protected $casts = [
         'answers' => 'array',
+        'questionnaire_answers' => 'array',
+        'questionnaire_completed' => 'boolean',
         'due_date' => 'date',
         'submitted_at' => 'datetime',
         'reviewed_at' => 'datetime',
