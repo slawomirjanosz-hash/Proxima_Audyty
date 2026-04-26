@@ -585,10 +585,23 @@
                                             </span>
                                         </div>
                                         <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                                            <a href="{{ route('client.audit.ai', $audit) }}"
-                                               style="padding:7px 14px; border-radius:8px; background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; font-size:12px; font-weight:700; text-decoration:none;">
-                                                {{ $hasStarted ? '▶ Kontynuuj audyt' : '▶ Rozpocznij audyt' }}
-                                            </a>
+                                            @if($audit->agent_type === 'iso50001' && !$audit->questionnaire_completed)
+                                                <a href="{{ route('client.audit.iso.questionnaire', $audit) }}"
+                                                   style="padding:7px 14px; border-radius:8px; background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; font-size:12px; font-weight:700; text-decoration:none;">
+                                                    📋 Wypełnij kwestionariusz
+                                                </a>
+                                            @else
+                                                <a href="{{ route('client.audit.ai', $audit) }}"
+                                                   style="padding:7px 14px; border-radius:8px; background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; font-size:12px; font-weight:700; text-decoration:none;">
+                                                    {{ $hasStarted ? '▶ Kontynuuj audyt' : '▶ Rozpocznij audyt' }}
+                                                </a>
+                                            @endif
+                                            @if($audit->agent_type === 'iso50001' && $audit->questionnaire_completed)
+                                                <a href="{{ route('client.audit.iso.questionnaire', $audit) }}"
+                                                   style="padding:7px 14px; border-radius:8px; background:#e0f2fe; color:#0369a1; font-size:12px; font-weight:700; text-decoration:none; border:1px solid #bfdfff;">
+                                                    📋 Edytuj kwestionariusz
+                                                </a>
+                                            @endif
                                             @if($hasData)
                                             <a href="{{ route('client.audit.edit', $audit) }}"
                                                style="padding:7px 14px; border-radius:8px; background:#dbe9f5; color:#1d4f73; font-size:12px; font-weight:700; text-decoration:none;">

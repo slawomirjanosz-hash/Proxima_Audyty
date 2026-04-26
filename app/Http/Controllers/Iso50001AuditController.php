@@ -378,6 +378,13 @@ class Iso50001AuditController extends Controller
                 ->with('draft_saved', true);
         }
 
+        // Require at least a few answers before marking as completed
+        $nonEmpty = array_filter($sanitized, fn($v) => trim($v) !== '');
+        if (count($nonEmpty) < 3) {
+            return redirect()->route('iso50001.questionnaire', $isoAudit)
+                ->withErrors(['Wypełnij co najmniej kilka pól przed zapisaniem kwestionariusza.']);
+        }
+
         $isoAudit->update([
             'questionnaire_answers' => $sanitized,
             'questionnaire_completed' => true,

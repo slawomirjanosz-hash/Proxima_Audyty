@@ -384,6 +384,14 @@ class ClientController extends Controller
                 ->with('draft_saved', true);
         }
 
+        // Require at least a few answers before marking as completed
+        $nonEmpty = array_filter($sanitized, fn($v) => trim($v) !== '');
+        if (count($nonEmpty) < 3) {
+            return redirect()->route('client.audit.iso.questionnaire', $audit)
+                ->with('draft_saved', false)
+                ->withErrors(['Wypełnij co najmniej kilka pól przed zapisaniem kwestionariusza.']);
+        }
+
         $audit->update([
             'questionnaire_answers'   => $sanitized,
             'questionnaire_completed' => true,
