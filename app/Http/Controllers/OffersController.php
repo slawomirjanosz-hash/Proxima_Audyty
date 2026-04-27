@@ -206,7 +206,9 @@ class OffersController extends Controller
 
     public function settings()
     {
-        $settings = DB::table('offer_settings')->first();
+        $settings = \Illuminate\Support\Facades\Schema::hasTable('offer_settings')
+            ? DB::table('offer_settings')->first()
+            : null;
         return view('offers.settings', compact('settings'));
     }
 
@@ -309,6 +311,10 @@ class OffersController extends Controller
 
     public function generateOfferNumber(): string
     {
+        if (! \Illuminate\Support\Facades\Schema::hasTable('offer_settings')) {
+            $count = Offer::count() + 1;
+            return 'OF-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+        }
         $settings = DB::table('offer_settings')->first();
         if (!$settings) {
             $count = Offer::count() + 1;

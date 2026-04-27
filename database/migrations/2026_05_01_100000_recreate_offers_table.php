@@ -8,6 +8,13 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Drop FK from client_inquiries so PostgreSQL allows dropping the offers table
+        if (Schema::hasTable('client_inquiries') && Schema::hasColumn('client_inquiries', 'offer_id')) {
+            Schema::table('client_inquiries', function (Blueprint $table) {
+                $table->dropForeign(['offer_id']);
+            });
+        }
+
         Schema::dropIfExists('offers');
 
         Schema::create('offers', function (Blueprint $table) {

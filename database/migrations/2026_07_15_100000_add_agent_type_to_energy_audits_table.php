@@ -8,9 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('energy_audits', function (Blueprint $table) {
-            $table->string('agent_type')->nullable()->after('audit_type_id');
-        });
+        if (! Schema::hasColumn('energy_audits', 'agent_type')) {
+            Schema::table('energy_audits', function (Blueprint $table) {
+                $table->string('agent_type')->nullable()->after('audit_type_id');
+            });
+        }
     }
 
     public function down(): void

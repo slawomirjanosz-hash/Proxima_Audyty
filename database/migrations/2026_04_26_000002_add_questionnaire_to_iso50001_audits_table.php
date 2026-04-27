@@ -9,8 +9,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('iso50001_audits', function (Blueprint $table): void {
-            $table->json('questionnaire_answers')->nullable()->after('answers');
-            $table->boolean('questionnaire_completed')->default(false)->after('questionnaire_answers');
+            if (! Schema::hasColumn('iso50001_audits', 'questionnaire_answers')) {
+                $table->json('questionnaire_answers')->nullable()->after('answers');
+            }
+            if (! Schema::hasColumn('iso50001_audits', 'questionnaire_completed')) {
+                $table->boolean('questionnaire_completed')->default(false)->after('questionnaire_answers');
+            }
         });
     }
 
