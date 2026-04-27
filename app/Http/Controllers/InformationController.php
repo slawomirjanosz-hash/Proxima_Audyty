@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\HeatRecoveryCalculation;
 use App\Models\SystemSetting;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\View\View;
@@ -62,13 +65,72 @@ class InformationController extends Controller
             abort(403, 'Dostęp do tej strony wymaga zalogowania.');
         }
 
+        $savedCalculations = auth()->check()
+            ? HeatRecoveryCalculation::where('user_id', auth()->id())
+                ->orderByDesc('created_at')
+                ->get()
+            : collect();
+
         return view('information.index', [
-            'generationData'  => $this->getGenerationStructureSnapshot(),
-            'toePricePln'     => $this->getToePricePln(),
-            'co2ElCombFactor' => (int) SystemSetting::get('co2_el_comb_factor', '717'),
-            'co2ElNatFactor'  => (int) SystemSetting::get('co2_el_nat_factor',  '552'),
-            'co2ElYear'       => (string) SystemSetting::get('co2_el_year', '2024'),
+            'generationData'       => $this->getGenerationStructureSnapshot(),
+            'toePricePln'          => $this->getToePricePln(),
+            'co2ElCombFactor'      => (int) SystemSetting::get('co2_el_comb_factor', '717'),
+            'co2ElNatFactor'       => (int) SystemSetting::get('co2_el_nat_factor',  '552'),
+            'co2ElYear'            => (string) SystemSetting::get('co2_el_year', '2024'),
+            'savedCalculations'    => $savedCalculations,
         ]);
+    }
+
+    public function storeCalculation(Request $request): JsonResponse
+    {
+        if (! auth()->check()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $validated = $request->validate([
+            'name'               => ['required', 'string', 'max:120'],
+            'fuel_type'          => ['required', 'in:gas,coal'],
+            'boiler_power'       => ['nullable', 'numeric', 'min:0', 'max:10000000'],
+            'boiler_efficiency'  => ['nullable', 'numeric', 'min:0', 'max:200'],
+            'flue_temp_in'       => ['nullable', 'numeric', 'min:0', 'max:2000'],
+            'mass_flow'          => ['nullable', 'numeric', 'min:0', 'max:10000000'],
+            'xh2o'               => ['nullable', 'numeric', 'min:0', 'max:1'],
+            'medium_type'        => ['required', 'in:water,steam,glycol,air,other'],
+            'medium_temp_supply' => ['nullable', 'numeric', 'min:-100', 'max:1000'],
+            'medium_temp_return' => ['nullable', 'numeric', 'min:-100', 'max:1000'],
+            'medium_pressure'    => ['nullable', 'numeric', 'min:0', 'max:1000'],
+            'medium_flow'        => ['nullable', 'numeric', 'min:0', 'max:10000000'],
+            'exchangers'         => ['nullable', 'array'],
+            'exchangers.*.tout'  => ['nullable', 'numeric'],
+            'exchangers.*.dry'   => ['nullable', 'numeric'],
+            'exchangers.*.wet'   => ['nullable', 'numeric'],
+            'exchangers.*.total' => ['nullable', 'numeric'],
+            'result_dry_kw'      => ['nullable', 'numeric'],
+            'result_wet_kw'      => ['nullable', 'numeric'],
+            'result_total_kw'    => ['nullable', 'numeric'],
+        ]);
+
+        $calc = HeatRecoveryCalculation::create([
+            'user_id' => auth()->id(),
+            ...$validated,
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'id' => $calc->id,
+            'created_at' => $calc->created_at->format('d.m.Y H:i'),
+        ]);
+    }
+
+    public function destroyCalculation(HeatRecoveryCalculation $calculation): JsonResponse
+    {
+        if (! auth()->check() || $calculation->user_id !== auth()->id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $calculation->delete();
+
+        return response()->json(['ok' => true]);
     }
 
     public function snapshot(): JsonResponse

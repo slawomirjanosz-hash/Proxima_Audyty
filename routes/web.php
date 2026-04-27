@@ -59,6 +59,12 @@ Route::get('/informacje', [InformationController::class, 'index'])
     ->name('information.index');
 Route::get('/informacje/pse-kse', [InformationController::class, 'snapshot'])
     ->name('information.pse-kse');
+Route::post('/informacje/kalkulacje', [InformationController::class, 'storeCalculation'])
+    ->middleware('auth')
+    ->name('information.calculations.store');
+Route::delete('/informacje/kalkulacje/{calculation}', [InformationController::class, 'destroyCalculation'])
+    ->middleware('auth')
+    ->name('information.calculations.destroy');
 
 // Diagnostics – dostępne bez logowania (tylko informacje o stanie serwera)
 Route::get('/admin/diagnostyka', [DiagnosticsController::class, 'index'])

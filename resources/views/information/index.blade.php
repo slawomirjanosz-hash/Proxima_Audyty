@@ -623,6 +623,258 @@
             </div>
         </div>
 
+        {{-- ══════════════════════════════════════════════════════
+             SEKCJA 5 – KALKULATOR MOCY ODZYSKANEJ ZE SPALIN
+        ══════════════════════════════════════════════════════ --}}
+        <div class="ec-acc" id="acc-hrec">
+            <button class="ec-acc-trigger" onclick="ecAccToggle('acc-hrec')">
+                <div class="ec-acc-icon">♻️</div>
+                <div class="ec-acc-text">
+                    <strong>Kalkulator mocy odzyskanej ze spalin</strong>
+                    <span>Moc sucha (jawna) i mokra (kondensacja) · wielostopniowe wymienniki · ekonomajzery</span>
+                </div>
+                <div class="ec-acc-chevron">▾</div>
+            </button>
+            <div class="ec-acc-body">
+                <style>
+                    .hrec-label { font-size:12px; font-weight:700; color:#1d4f73; margin-bottom:5px; display:flex; align-items:center; gap:5px; }
+                    .hrec-badge { font-size:10px; background:#e6f4ea; color:#1a5c2e; border-radius:4px; padding:1px 5px; font-weight:600; }
+                    .hrec-input { width:100%; box-sizing:border-box; padding:9px 12px; border-radius:9px; border:1.5px solid #c9d7e3; font-size:14px; font-weight:600; color:#0f2330; transition:border-color .15s; }
+                    .hrec-input:focus { border-color:#0e89d8; outline:none; }
+                    .hrec-input.suggested { border-color:#b0c8d8; color:#6a9ab5; background:#f4f9fc; }
+                    .hrec-select { width:100%; padding:9px 12px; border-radius:9px; border:1.5px solid #c9d7e3; font-size:14px; font-weight:600; color:#0f2330; background:#fff; }
+                    .hrec-hint { font-size:11px; color:#8aacbe; margin-top:4px; min-height:16px; line-height:1.5; }
+                    .hrec-section-title { font-size:13px; font-weight:700; color:#1d4f73; margin:18px 0 10px; padding-top:16px; border-top:2px dashed #c9d7e3; display:flex; align-items:center; gap:6px; }
+                    .hrec-hx-block { border:1px solid #d0e4f5; border-radius:12px; padding:14px 16px; margin-bottom:10px; background:#f7fbff; }
+                    .hrec-hx-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+                    .hrec-hx-title { font-size:14px; font-weight:800; color:#0f2330; }
+                    .hrec-hx-tin { font-size:12px; color:#4c6373; background:#e6eff7; border-radius:6px; padding:3px 8px; }
+                    .hrec-result-card { background:#fff; border:1px solid #d2e3f1; border-radius:9px; padding:10px 12px; }
+                    .hrec-result-label { font-size:10px; font-weight:700; letter-spacing:.7px; text-transform:uppercase; color:#6b8294; margin-bottom:5px; }
+                    .hrec-result-val { font-size:18px; font-weight:800; color:#10344c; }
+                    .hrec-result-unit { font-size:11px; color:#6b8294; margin-top:2px; }
+                    .hrec-result-card.hrec-dry { border-color:#b3d4ee; background:#f0f7ff; }
+                    .hrec-result-card.hrec-dry .hrec-result-val { color:#0e5a8a; }
+                    .hrec-result-card.hrec-wet { border-color:#a8d5b5; background:#f0fff4; }
+                    .hrec-result-card.hrec-wet .hrec-result-val { color:#1a5c2e; }
+                    .hrec-result-card.hrec-tot { border-color:#fbb040; background:#fffdf0; }
+                    .hrec-result-card.hrec-tot .hrec-result-val { color:#c47c00; font-size:20px; }
+                    .hrec-summary-box { background:linear-gradient(135deg,#0f1e30 0%,#163854 100%); border-radius:13px; padding:16px 20px; margin-top:14px; }
+                    .hrec-sum-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+                    .hrec-sum-card { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); border-radius:11px; padding:12px 14px; text-align:center; }
+                    .hrec-sum-label { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:rgba(255,255,255,.5); margin-bottom:6px; }
+                    .hrec-sum-val { font-size:22px; font-weight:900; color:#fff; }
+                    .hrec-sum-val.hwet { color:#4ade80; }
+                    .hrec-sum-val.htot { color:#fbbf24; font-size:26px; }
+                    .hrec-sum-unit { font-size:11px; color:rgba(255,255,255,.4); margin-top:2px; }
+                    .hrec-note { font-size:12px; color:#4c6373; padding:10px 14px; background:#edf3f8; border-radius:8px; border-left:3px solid #0e89d8; }
+                    .hrec-add-btn { display:inline-flex; align-items:center; gap:6px; padding:9px 16px; background:#dbe9f5; color:#1d4f73; border:1px solid #b0c8d8; border-radius:9px; font-size:13px; font-weight:700; cursor:pointer; margin-top:4px; transition:background .15s; }
+                    .hrec-add-btn:hover { background:#c5ddef; }
+                    .hrec-remove-btn { background:none; border:none; color:#9aabbb; font-size:16px; cursor:pointer; padding:2px 6px; border-radius:6px; transition:color .15s; }
+                    .hrec-remove-btn:hover { color:#e53e3e; background:#fee2e2; }
+                    .hrec-dew-badge { display:inline-flex; align-items:center; gap:4px; font-size:11px; padding:3px 8px; border-radius:6px; font-weight:700; }
+                    .hrec-dew-dry { background:#fff3cd; color:#856404; }
+                    .hrec-dew-wet { background:#d1e7dd; color:#0a3622; }
+                    .hrec-hx-grid { display:grid; grid-template-columns:220px 1fr 1fr 1fr; gap:10px; align-items:end; }
+                    @media(max-width:960px) {
+                        .hrec-hx-grid { grid-template-columns:1fr 1fr; }
+                        .hrec-sum-grid { grid-template-columns:1fr 1fr; }
+                    }
+                    @media(max-width:600px) {
+                        .hrec-hx-grid { grid-template-columns:1fr; }
+                        .hrec-sum-grid { grid-template-columns:1fr; }
+                    }
+                </style>
+
+                {{-- ── Dane kotła ── --}}
+                <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:14px;">
+                    <div>
+                        <div class="hrec-label">Rodzaj kotła / paliwa</div>
+                        <select id="hrec-fuel" class="hrec-select" onchange="hrecOnFuelChange()">
+                            <option value="gas">🔥 Gaz ziemny (GZ-50)</option>
+                            <option value="coal">⚫ Węgiel kamienny</option>
+                        </select>
+                        <div class="hrec-hint">Temp. punktu rosy spalin: <strong id="hrec-dew-display">57°C</strong></div>
+                    </div>
+                    <div>
+                        <div class="hrec-label">Moc kotła [kW] <span class="hrec-badge">wymagane</span></div>
+                        <input type="number" id="hrec-power" class="hrec-input" min="1" max="100000" step="1" placeholder="np. 500" oninput="hrecOnPowerChange()">
+                        <div class="hrec-hint">Po wpisaniu obliczę automatycznie ilość spalin</div>
+                    </div>
+                    <div>
+                        <div class="hrec-label">Sprawność kotła [%]</div>
+                        <input type="number" id="hrec-eff" class="hrec-input" min="50" max="110" step="0.5" placeholder="np. 90" oninput="hrecOnPowerChange()">
+                        <div class="hrec-hint" id="hrec-eff-hint">Sugerowana dla gazu: 88–92%</div>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:6px;">
+                    <div>
+                        <div class="hrec-label">Temp. spalin wejściowa [°C] <span class="hrec-badge">wymagane</span></div>
+                        <input type="number" id="hrec-t-in" class="hrec-input" min="50" max="1200" step="1" placeholder="np. 200" oninput="hrecCalc()">
+                        <div class="hrec-hint" id="hrec-tin-hint">Sugerowana dla gazu: 160–220°C</div>
+                    </div>
+                    <div>
+                        <div class="hrec-label">Ilość spalin [kg/h] <span class="hrec-badge">wymagane</span></div>
+                        <input type="number" id="hrec-mass-flow" class="hrec-input" min="0" step="1" placeholder="np. 2500" oninput="hrecMassFlowEdited()">
+                        <div class="hrec-hint" id="hrec-mflow-hint">Lub oblicz automatycznie z mocy kotła ↑</div>
+                    </div>
+                    <div>
+                        <div class="hrec-label">Zawartość H₂O w spalinach [kg/kg]</div>
+                        <input type="number" id="hrec-xh2o" class="hrec-input" min="0.01" max="0.5" step="0.001" placeholder="np. 0.190" oninput="hrecCalc()">
+                        <div class="hrec-hint" id="hrec-xh2o-hint">Sugerowana dla gazu: ~0.190 kg/kg (GZ-50)</div>
+                    </div>
+                </div>
+
+                {{-- ── Czynnik grzewczy ── --}}
+                <div class="hrec-section-title">💧 Parametry produkowanego czynnika</div>
+                <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:10px;">
+                    <div>
+                        <div class="hrec-label">Rodzaj czynnika</div>
+                        <select id="hrec-medium" class="hrec-select" onchange="hrecOnMediumChange()">
+                            <option value="water">Woda</option>
+                            <option value="steam">Para wodna</option>
+                            <option value="glycol">Glikol / woda-glikol</option>
+                            <option value="air">Powietrze</option>
+                            <option value="other">Inne</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="hrec-label" id="hrec-supply-temp-label">Temperatura zasilania [°C]</div>
+                        <input type="number" id="hrec-medium-temp" class="hrec-input" min="-30" max="400" step="1" placeholder="np. 80" oninput="hrecMediumCalc()">
+                        <div class="hrec-hint" id="hrec-medium-hint">Sugerowana dla wody grzewczej: 60–80°C</div>
+                    </div>
+                    <div>
+                        <div class="hrec-label">Ciśnienie czynnika [bar]</div>
+                        <input type="number" id="hrec-medium-pres" class="hrec-input" min="0.1" max="250" step="0.1" placeholder="np. 4" oninput="hrecMediumCalc()">
+                        <div class="hrec-hint" id="hrec-pres-hint">Sugerowane dla sieci c.o.: 3–6 bar</div>
+                    </div>
+                </div>
+                {{-- ── Wiersz 2: T_powrót + przepływ + karta wynikowa ── --}}
+                <div style="display:grid; grid-template-columns:200px 200px 1fr; gap:12px; margin-bottom:0; align-items:start;">
+                    <div id="hrec-ret-wrap">
+                        <div class="hrec-label" id="hrec-ret-temp-label">Temperatura powrotu [°C]</div>
+                        <input type="number" id="hrec-medium-ret" class="hrec-input" min="-30" max="380" step="1" placeholder="np. 60" oninput="hrecMediumCalc()">
+                        <div class="hrec-hint" id="hrec-ret-hint">Sieć c.o.: 50–60°C · ΔT = T_zas − T_pow</div>
+                    </div>
+                    <div>
+                        <div class="hrec-label">Przepływ czynnika [kg/h] <span class="hrec-badge" id="hrec-flow-badge">sugerowany</span></div>
+                        <input type="number" id="hrec-medium-flow" class="hrec-input suggested" min="0" step="1" placeholder="obliczam…" oninput="hrecMediumFlowEdited()">
+                        <div class="hrec-hint" id="hrec-flow-hint">Wpisz ręcznie lub wyliczy się z mocy kotła ↑</div>
+                    </div>
+                    <div id="hrec-medium-result-card" style="background:#edf3f8; border-radius:10px; padding:12px 14px; font-size:12px; color:#355468; line-height:1.8; display:none;">
+                        <div id="hrec-medium-result-text"></div>
+                    </div>
+                </div>
+
+                {{-- ── Wymienniki ciepła ── --}}
+                <div class="hrec-section-title">🔧 Wymienniki ciepła (ekonomajzery)</div>
+                <div id="hrec-hx-container"></div>
+
+                <button class="hrec-add-btn" onclick="hrecAddHX()">
+                    <span style="font-size:18px; line-height:1;">+</span> Dodaj wymiennik
+                </button>
+
+                {{-- ── Podsumowanie ── --}}
+                <div class="hrec-summary-box" id="hrec-summary" style="display:none; margin-top:14px;">
+                    <div style="color:rgba(255,255,255,.6); font-size:12px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; margin-bottom:12px;">📊 Sumaryczna moc odzyskana ze spalin</div>
+                    <div class="hrec-sum-grid">
+                        <div class="hrec-sum-card">
+                            <div class="hrec-sum-label">Moc sucha (jawna)</div>
+                            <div class="hrec-sum-val" id="hrec-sum-dry">—</div>
+                            <div class="hrec-sum-unit">kW</div>
+                        </div>
+                        <div class="hrec-sum-card">
+                            <div class="hrec-sum-label">Moc mokra (kondensacja)</div>
+                            <div class="hrec-sum-val hwet" id="hrec-sum-wet">—</div>
+                            <div class="hrec-sum-unit">kW</div>
+                        </div>
+                        <div class="hrec-sum-card">
+                            <div class="hrec-sum-label">Moc sumaryczna</div>
+                            <div class="hrec-sum-val htot" id="hrec-sum-total">—</div>
+                            <div class="hrec-sum-unit">kW</div>
+                        </div>
+                    </div>
+                    <div class="hrec-note" id="hrec-sum-note" style="margin-top:12px; display:none; background:rgba(255,255,255,.06); border-left-color:rgba(255,255,255,.3); color:rgba(255,255,255,.75);"></div>
+                </div>
+
+                <div class="hrec-note" id="hrec-main-note" style="margin-top:12px; display:none;"></div>
+
+                {{-- ── Zapis kalkulacji (tylko zalogowani) ── --}}
+                @auth
+                <div class="hrec-section-title" style="margin-top:18px;">💾 Zapisz kalkulację na koncie</div>
+                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                    <input type="text" id="hrec-save-name" class="hrec-input" style="max-width:340px;"
+                           placeholder="Nazwa kalkulacji, np. Kotłownia A – gaz 500 kW"
+                           maxlength="120">
+                    <button onclick="hrecSave()" style="padding:9px 18px; background:#1a5c2e; color:#fff; border:none; border-radius:9px; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                        💾 Zapisz
+                    </button>
+                    <span id="hrec-save-msg" style="font-size:12px; color:#1a5c2e; display:none;"></span>
+                </div>
+
+                {{-- ── Lista zapisanych kalkulacji ── --}}
+                @if($savedCalculations->isNotEmpty())
+                <div class="hrec-section-title" style="margin-top:18px;">📋 Zapisane kalkulacje</div>
+                <div id="hrec-saved-list">
+                @foreach($savedCalculations as $sc)
+                <div class="hrec-hx-block" id="hrec-saved-{{ $sc->id }}" style="background:#f4f8fb;">
+                    <div class="hrec-hx-header">
+                        <div>
+                            <span class="hrec-hx-title">{{ e($sc->name) }}</span>
+                            <span class="hrec-hx-tin" style="margin-left:8px;">{{ $sc->created_at->format('d.m.Y H:i') }}</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                            <span style="font-size:11px; color:#4c6373;">{{ $sc->fuelLabel() }} · {{ $sc->mediumLabel() }}
+                                @if($sc->boiler_power) · {{ number_format($sc->boiler_power, 0, ',', ' ') }} kW @endif
+                            </span>
+                            <button onclick="hrecLoadSaved({{ $sc->id }})" style="padding:4px 10px; background:#dbe9f5; color:#1d4f73; border:1px solid #b0c8d8; border-radius:7px; font-size:12px; font-weight:700; cursor:pointer;">
+                                ↩ Wczytaj
+                            </button>
+                            <button onclick="hrecDeleteSaved({{ $sc->id }}, this)" class="hrec-remove-btn" title="Usuń">✕</button>
+                        </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(3,auto) 1fr; gap:8px 14px; font-size:12px; color:#355468;">
+                        <div>🌡️ Sucha: <strong>{{ $sc->result_dry_kw !== null ? number_format($sc->result_dry_kw, 1, ',', ' ').' kW' : '—' }}</strong></div>
+                        <div>💧 Mokra: <strong>{{ $sc->result_wet_kw !== null ? number_format($sc->result_wet_kw, 1, ',', ' ').' kW' : '—' }}</strong></div>
+                        <div>⚡ Łącznie: <strong>{{ $sc->result_total_kw !== null ? number_format($sc->result_total_kw, 1, ',', ' ').' kW' : '—' }}</strong></div>
+                        @if($sc->flue_temp_in)<div style="color:#6b8294;">T_spalin: {{ number_format($sc->flue_temp_in, 0, ',', ' ') }}°C</div>@endif
+                    </div>
+                </div>
+                @endforeach
+                </div>
+                @else
+                <div id="hrec-saved-list"></div>
+                @endif
+
+                <script id="hrec-saved-data" type="application/json">
+                    {!! json_encode($savedCalculations->keyBy('id')->map(fn($sc) => [
+                        'id'              => $sc->id,
+                        'name'            => $sc->name,
+                        'fuel_type'       => $sc->fuel_type,
+                        'boiler_power'    => $sc->boiler_power,
+                        'boiler_eff'      => $sc->boiler_efficiency,
+                        'flue_temp_in'    => $sc->flue_temp_in,
+                        'mass_flow'       => $sc->mass_flow,
+                        'xh2o'            => $sc->xh2o,
+                        'medium_type'     => $sc->medium_type,
+                        'medium_temp'     => $sc->medium_temp_supply,
+                        'medium_ret'      => $sc->medium_temp_return,
+                        'medium_pres'     => $sc->medium_pressure,
+                        'medium_flow'     => $sc->medium_flow,
+                        'exchangers'      => $sc->exchangers ?? [],
+                        'result_dry'      => $sc->result_dry_kw,
+                        'result_wet'      => $sc->result_wet_kw,
+                        'result_total'    => $sc->result_total_kw,
+                        'created_at'      => $sc->created_at->format('d.m.Y H:i'),
+                        'fuel_label'      => $sc->fuelLabel(),
+                        'medium_label'    => $sc->mediumLabel(),
+                    ])->values()) !!}
+                </script>
+                @endauth
+            </div>
+        </div>
+
         {{-- ── JavaScript ── --}}
         <script>
         // ── Accordion toggle ─────────────────────────────────────
@@ -793,7 +1045,799 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => { ecFlueCalc(); ecCo2ElCalc(); });
+        document.addEventListener('DOMContentLoaded', () => { ecFlueCalc(); ecCo2ElCalc(); hrecOnFuelChange(); hrecAddHX(); });
+
+        // ── Kalkulator mocy odzyskanej ze spalin ──────────────────────────────
+        const HREC_FUEL = {
+            gas: {
+                cp: 1.04, xH2O: 0.190, tDew: 57, r: 2358,
+                tFlueTyp: 200, etaTyp: 90, hu: 9.444, vSp: 11.45, rhoSp: 1.25, fuelUnit: 'm³/h',
+                effHint: 'Sugerowana dla gazu: 88–92%',
+                tinHint: 'Sugerowana dla gazu: 160–220°C',
+                xh2oHint: 'Sugerowana dla gazu: ~0.190 kg/kg (GZ-50)',
+            },
+            coal: {
+                cp: 1.02, xH2O: 0.085, tDew: 47, r: 2380,
+                tFlueTyp: 250, etaTyp: 82, hu: 6.667, vSp: 8.20, rhoSp: 1.30, fuelUnit: 'kg/h',
+                effHint: 'Sugerowana dla węgla: 78–84%',
+                tinHint: 'Sugerowana dla węgla: 200–280°C',
+                xh2oHint: 'Sugerowana dla węgla: ~0.085 kg/kg',
+            },
+        };
+
+        let hrecNextId  = 0;
+        let hrecHxList  = [];
+        let hrecAutoFlow = false;
+        let hrecWaterManualTout = {}; // uid -> true when T_wyjście wody entered manually
+
+        function hrecOnFuelChange() {
+            const fuelKey = document.getElementById('hrec-fuel').value;
+            const fuel    = HREC_FUEL[fuelKey];
+            document.getElementById('hrec-dew-display').textContent = fuel.tDew + '°C';
+            document.getElementById('hrec-eff-hint').textContent    = fuel.effHint;
+            document.getElementById('hrec-tin-hint').textContent    = fuel.tinHint;
+            document.getElementById('hrec-xh2o-hint').textContent   = fuel.xh2oHint;
+            const effEl  = document.getElementById('hrec-eff');
+            const tinEl  = document.getElementById('hrec-t-in');
+            const xEl    = document.getElementById('hrec-xh2o');
+            if (!effEl.value) effEl.placeholder = 'np. ' + fuel.etaTyp;
+            if (!tinEl.value) tinEl.placeholder  = 'np. ' + fuel.tFlueTyp;
+            if (!xEl.value)   xEl.placeholder    = 'np. ' + fuel.xH2O;
+            hrecOnPowerChange();
+        }
+
+        function hrecOnPowerChange() {
+            const fuelKey = document.getElementById('hrec-fuel').value;
+            const fuel    = HREC_FUEL[fuelKey];
+            const power   = parseFloat(document.getElementById('hrec-power').value);
+            const effRaw  = parseFloat(document.getElementById('hrec-eff').value);
+            const eff     = isNaN(effRaw) ? fuel.etaTyp : effRaw;
+            const mfEl    = document.getElementById('hrec-mass-flow');
+            const mfHint  = document.getElementById('hrec-mflow-hint');
+            if (!isNaN(power) && power > 0) {
+                const eta      = eff / 100;
+                const fuelFlow = power / (eta * fuel.hu);
+                const massFlow = fuelFlow * fuel.vSp * fuel.rhoSp;
+                if (!mfEl.value || hrecAutoFlow) {
+                    mfEl.value = Math.round(massFlow);
+                    mfEl.classList.add('suggested');
+                    hrecAutoFlow = true;
+                    mfHint.innerHTML = 'Obliczono: ' + power + ' kW, η=' + eff.toFixed(0) + '% → <strong>' + fuelFlow.toFixed(1) + ' ' + fuel.fuelUnit + '</strong> → <strong>' + Math.round(massFlow) + ' kg/h</strong>';
+                }
+            }
+            hrecMediumCalc();
+            hrecCalc();
+        }
+
+        function hrecMassFlowEdited() {
+            hrecAutoFlow = false;
+            document.getElementById('hrec-mass-flow').classList.remove('suggested');
+            hrecCalc();
+        }
+
+        function hrecOnMediumChange() {
+            const medium = document.getElementById('hrec-medium').value;
+            const hints  = {
+                water:  { supLabel: 'Temperatura zasilania [°C]', temp: 'Woda grzewcza zasilanie: 70–90°C',  pres: 'Sieć c.o.: 3–6 bar',      ret: true,  retHint: 'Sieć c.o.: 50–60°C · ΔT = T_zas − T_pow', retPH: 'np. 60', retLabel: 'Temperatura powrotu [°C]' },
+                steam:  { supLabel: 'Temperatura pary [°C]',      temp: 'Para 4 bar → ~144°C; 10 bar → ~180°C — obliczam z ciśnienia', pres: 'Sugerowane: 4–16 bar', ret: false, retHint: '', retPH: '', retLabel: '' },
+                glycol: { supLabel: 'Temperatura zasilania [°C]', temp: 'Glikol: temp. zasilania 50–70°C',  pres: 'Sugerowane: 3–5 bar',     ret: true,  retHint: 'Typowy powrót: 40–55°C',                  retPH: 'np. 45', retLabel: 'Temperatura powrotu [°C]' },
+                air:    { supLabel: 'Temperatura wylotowa [°C]',  temp: 'Powietrze wylot: 30–60°C',          pres: 'Atmosferyczne: ~1 bar',   ret: true,  retHint: 'Temperatura wlotowa powietrza: 15–25°C',  retPH: 'np. 20', retLabel: 'Temperatura wlotowa [°C]' },
+                other:  { supLabel: 'Temperatura czynnika [°C]',  temp: 'Podaj temperaturę zasilania',       pres: 'Podaj ciśnienie robocze', ret: true,  retHint: 'Podaj temperaturę powrotu / wlotową',    retPH: '',       retLabel: 'Temperatura powrotu [°C]' },
+            };
+            const h = hints[medium] || hints.other;
+            document.getElementById('hrec-supply-temp-label').textContent = h.supLabel;
+            document.getElementById('hrec-medium-hint').textContent       = h.temp;
+            document.getElementById('hrec-pres-hint').textContent         = h.pres;
+            const retWrap = document.getElementById('hrec-ret-wrap');
+            if (h.ret) {
+                retWrap.style.display = '';
+                document.getElementById('hrec-ret-temp-label').textContent          = h.retLabel;
+                document.getElementById('hrec-medium-ret').placeholder             = h.retPH;
+                document.getElementById('hrec-ret-hint').textContent               = h.retHint;
+                // Auto-fill steam temp from pressure
+            } else {
+                retWrap.style.display = 'none';
+                document.getElementById('hrec-medium-ret').value = '';
+            }
+            // For steam: autofill temp from pressure
+            if (medium === 'steam') {
+                const pres = parseFloat(document.getElementById('hrec-medium-pres').value);
+                if (!isNaN(pres) && pres > 0) {
+                    const tSat = hrecSteamTsat(pres);
+                    const tEl  = document.getElementById('hrec-medium-temp');
+                    tEl.placeholder = 'auto: ' + tSat.toFixed(0) + '°C';
+                    document.getElementById('hrec-medium-hint').textContent = 'Przy ' + pres + ' bar → T_nasycenia ≈ ' + tSat.toFixed(1) + '°C (automatycznie)';
+                }
+            }
+            hrecMediumCalc();
+            hrecCalc();
+        }
+
+        // ── Uproszczone tablice pary nasyconej ──────────────────────────────
+        const HREC_STEAM_TABLE = [
+            { p:0.5,  t: 81.3, hg:2645, hf:340,  hfg:2305 },
+            { p:1,    t:100.0, hg:2676, hf:419,  hfg:2257 },
+            { p:1.5,  t:111.4, hg:2693, hf:467,  hfg:2226 },
+            { p:2,    t:120.2, hg:2707, hf:505,  hfg:2202 },
+            { p:3,    t:133.5, hg:2725, hf:562,  hfg:2163 },
+            { p:4,    t:143.6, hg:2738, hf:605,  hfg:2133 },
+            { p:5,    t:151.8, hg:2748, hf:640,  hfg:2108 },
+            { p:6,    t:158.8, hg:2756, hf:670,  hfg:2086 },
+            { p:8,    t:170.4, hg:2769, hf:721,  hfg:2048 },
+            { p:10,   t:179.9, hg:2778, hf:763,  hfg:2015 },
+            { p:12,   t:187.9, hg:2784, hf:799,  hfg:1985 },
+            { p:16,   t:201.4, hg:2794, hf:858,  hfg:1936 },
+            { p:20,   t:212.4, hg:2799, hf:908,  hfg:1891 },
+            { p:25,   t:224.0, hg:2803, hf:962,  hfg:1841 },
+            { p:40,   t:250.4, hg:2801, hf:1087, hfg:1714 },
+        ];
+
+        function hrecSteamInterp(pres, prop) {
+            const tbl = HREC_STEAM_TABLE;
+            if (pres <= tbl[0].p) return tbl[0][prop];
+            if (pres >= tbl[tbl.length-1].p) return tbl[tbl.length-1][prop];
+            for (let i = 0; i < tbl.length - 1; i++) {
+                if (pres >= tbl[i].p && pres <= tbl[i+1].p) {
+                    const f = (pres - tbl[i].p) / (tbl[i+1].p - tbl[i].p);
+                    return tbl[i][prop] + f * (tbl[i+1][prop] - tbl[i][prop]);
+                }
+            }
+            return tbl[tbl.length-1][prop];
+        }
+
+        function hrecSteamTsat(pres) { return hrecSteamInterp(pres, 't'); }
+
+        // ── Stała: Cp czynników [kJ/(kg·K)] ────────────────────────────────
+        const HREC_CP = { water:4.18, glycol:3.5, air:1.005, other:4.0 };
+
+        // ── Zmienna kontroli kierunku obliczeń ──────────────────────────────
+        let hrecMedAutoFlow = true; // true = flow suggested from power; false = power from flow
+
+        function hrecMediumFlowEdited() {
+            hrecMedAutoFlow = false;
+            const flowEl = document.getElementById('hrec-medium-flow');
+            const badgeEl = document.getElementById('hrec-flow-badge');
+            flowEl.classList.remove('suggested');
+            if (badgeEl) badgeEl.textContent = 'wprowadzono';
+            hrecMediumCalc();
+        }
+
+        function hrecMediumCalc() {
+            const medium    = document.getElementById('hrec-medium').value;
+            const tSupRaw   = parseFloat(document.getElementById('hrec-medium-temp').value);
+            const presRaw   = parseFloat(document.getElementById('hrec-medium-pres').value);
+            const tRetRaw   = parseFloat(document.getElementById('hrec-medium-ret').value);
+            const powerRaw  = parseFloat(document.getElementById('hrec-power').value);
+            const flowEl    = document.getElementById('hrec-medium-flow');
+            const flowHint  = document.getElementById('hrec-flow-hint');
+            const badgeEl   = document.getElementById('hrec-flow-badge');
+            const resultCard = document.getElementById('hrec-medium-result-card');
+            const resultText = document.getElementById('hrec-medium-result-text');
+
+            let lines = [];
+
+            // ── Para nasycona ──
+            if (medium === 'steam') {
+                const pres  = isNaN(presRaw) ? 4 : presRaw;
+                const tSat  = hrecSteamTsat(pres);
+                const hfg   = hrecSteamInterp(pres, 'hfg');  // kJ/kg
+                const hf    = hrecSteamInterp(pres, 'hf');
+                const hg    = hrecSteamInterp(pres, 'hg');
+                // Enthalpia zasilania (zimna woda do kotła: ~20°C → 84 kJ/kg)
+                const hFeedWater = 4.18 * 20; // ≈ 84 kJ/kg
+                const deltaH = hg - hFeedWater; // kJ/kg — od wody zasilającej do pary
+
+                // Autofill temp
+                const tEl = document.getElementById('hrec-medium-temp');
+                tEl.placeholder = 'auto: ' + tSat.toFixed(0) + '°C';
+                document.getElementById('hrec-medium-hint').textContent =
+                    'Przy ' + pres.toFixed(1) + ' bar → T_nasc ≈ ' + tSat.toFixed(1) + '°C · h_fg=' + Math.round(hfg) + ' kJ/kg · h_g=' + Math.round(hg) + ' kJ/kg';
+
+                if (hrecMedAutoFlow && !isNaN(powerRaw) && powerRaw > 0) {
+                    // power → flow
+                    const flowKgh = powerRaw * 3600 / deltaH;
+                    flowEl.value = flowKgh.toFixed(1);
+                    flowEl.classList.add('suggested');
+                    if (badgeEl) badgeEl.textContent = 'sugerowany';
+                    flowHint.innerHTML = 'Przy ' + powerRaw + ' kW → <strong>' + flowKgh.toFixed(1) + ' kg/h</strong> pary (' + pres.toFixed(1) + ' bar, Δh=' + Math.round(deltaH) + ' kJ/kg)';
+                    lines = [
+                        '<strong>Para nasycona</strong> @ ' + pres.toFixed(1) + ' bar',
+                        'T_nasycenia = ' + tSat.toFixed(1) + '°C',
+                        'Δh (woda 20°C → para) = ' + Math.round(deltaH) + ' kJ/kg',
+                        'Moc ' + powerRaw + ' kW → <strong>' + flowKgh.toFixed(1) + ' kg/h</strong> pary',
+                    ];
+                } else if (!hrecMedAutoFlow && !isNaN(parseFloat(flowEl.value)) && parseFloat(flowEl.value) > 0) {
+                    // flow → power
+                    const flowKgh = parseFloat(flowEl.value);
+                    const impliedPower = flowKgh * deltaH / 3600;
+                    lines = [
+                        '<strong>Para nasycona</strong> @ ' + pres.toFixed(1) + ' bar',
+                        'T_nasycenia = ' + tSat.toFixed(1) + '°C · Δh=' + Math.round(deltaH) + ' kJ/kg',
+                        flowKgh.toFixed(1) + ' kg/h pary → potrzebna moc kotła: <strong style="color:#c47c00;">' + impliedPower.toFixed(0) + ' kW</strong>',
+                        '<span style="font-size:11px;color:#4c6373;">Uwzględniono podgrzanie wody zasilającej od ~20°C</span>',
+                    ];
+                    flowHint.textContent = flowKgh.toFixed(1) + ' kg/h → moc kotła ≈ ' + impliedPower.toFixed(0) + ' kW';
+                }
+            } else {
+                // ── Woda / Glikol / Powietrze / Inne ──
+                const cp     = HREC_CP[medium] || 4.18;
+                const tSup   = isNaN(tSupRaw) ? NaN : tSupRaw;
+                const tRet   = isNaN(tRetRaw) ? NaN : tRetRaw;
+                const deltaT = (!isNaN(tSup) && !isNaN(tRet)) ? Math.abs(tSup - tRet) : NaN;
+
+                if (!isNaN(deltaT) && deltaT > 0) {
+                    if (hrecMedAutoFlow && !isNaN(powerRaw) && powerRaw > 0) {
+                        // power → flow
+                        const flowKgh = powerRaw * 3600 / (cp * deltaT);
+                        flowEl.value = flowKgh.toFixed(0);
+                        flowEl.classList.add('suggested');
+                        if (badgeEl) badgeEl.textContent = 'sugerowany';
+                        flowHint.innerHTML = 'Przy ' + powerRaw + ' kW, ΔT=' + deltaT.toFixed(1) + '°C → <strong>' + flowKgh.toFixed(0) + ' kg/h</strong>';
+                        const cpLabel = medium === 'glycol' ? 'glikol c_p=3.5' : (medium === 'air' ? 'powietrze c_p=1.005' : 'woda c_p=4.18');
+                        lines = [
+                            'ΔT = ' + tSup.toFixed(0) + ' − ' + tRet.toFixed(0) + ' = <strong>' + deltaT.toFixed(1) + '°C</strong>',
+                            'c_p (' + cpLabel + ') = ' + cp + ' kJ/(kg·K)',
+                            'Q = ṁ · c_p · ΔT → ṁ = Q / (c_p · ΔT)',
+                            'Moc ' + powerRaw + ' kW → <strong>' + flowKgh.toFixed(0) + ' kg/h</strong>',
+                        ];
+                    } else if (!hrecMedAutoFlow && !isNaN(parseFloat(flowEl.value)) && parseFloat(flowEl.value) > 0) {
+                        // flow → power
+                        const flowKgh  = parseFloat(flowEl.value);
+                        const impliedP = flowKgh * cp * deltaT / 3600;
+                        const cpLabel  = medium === 'glycol' ? 'glikol c_p=3.5' : (medium === 'air' ? 'c_p=1.005' : 'c_p=4.18');
+                        lines = [
+                            'ΔT = ' + deltaT.toFixed(1) + '°C · ' + cpLabel + ' kJ/(kg·K)',
+                            flowKgh.toFixed(0) + ' kg/h → Q = ' + flowKgh.toFixed(0) + ' × ' + cp + ' × ' + deltaT.toFixed(1) + ' / 3600',
+                            'Potrzebna moc kotła: <strong style="color:#c47c00;">' + impliedP.toFixed(0) + ' kW</strong>',
+                        ];
+                        flowHint.textContent = flowKgh + ' kg/h, ΔT=' + deltaT.toFixed(1) + '°C → moc kotła ≈ ' + impliedP.toFixed(0) + ' kW';
+                    } else if (isNaN(parseFloat(document.getElementById('hrec-power').value)) && isNaN(parseFloat(flowEl.value))) {
+                        lines = ['Wpisz moc kotła lub przepływ czynnika, aby obliczyć drugą wartość.'];
+                    }
+                } else if (!isNaN(tSup) && isNaN(tRet)) {
+                    lines = ['Podaj temperaturę powrotu/wlotową, aby obliczyć ΔT.'];
+                } else if (isNaN(tSup)) {
+                    lines = ['Podaj temperaturę zasilania czynnika.'];
+                }
+            }
+
+            if (lines.length > 0) {
+                resultText.innerHTML = lines.join('<br>');
+                resultCard.style.display = '';
+            } else {
+                resultCard.style.display = 'none';
+            }
+        }
+
+        function hrecAddHX() {
+            const uid    = hrecNextId++;
+            hrecHxList.push(uid);
+            const posNum  = hrecHxList.length;
+            const isFirst = posNum === 1;
+            const fuelKey = document.getElementById('hrec-fuel').value;
+            const tDew    = HREC_FUEL[fuelKey].tDew;
+            const toutPH  = isFirst ? 'np. 120' : 'np. 40';
+            const toutH   = isFirst
+                ? ('Powyżej ~' + tDew + '°C – suchy; poniżej – kondensacja')
+                : 'Kolejny stopień chłodzenia spalin';
+            const div = document.createElement('div');
+            div.className = 'hrec-hx-block';
+            div.id = 'hrec-hx-block-' + uid;
+            div.innerHTML =
+                // ─── Nagłówek ───
+                '<div class="hrec-hx-header">' +
+                    '<div style="display:flex;align-items:center;gap:10px;">' +
+                        '<span class="hrec-hx-title" id="hrec-hx-title-' + uid + '">Wymiennik ' + posNum + '</span>' +
+                        '<span class="hrec-hx-tin" id="hrec-hx-' + uid + '-tin">T<sub>wej</sub>: —</span>' +
+                    '</div>' +
+                    '<div style="display:flex;align-items:center;gap:8px;">' +
+                        '<span id="hrec-hx-' + uid + '-mode"></span>' +
+                        (!isFirst ? '<button class="hrec-remove-btn" onclick="hrecRemoveHX(' + uid + ')" title="Usuń wymiennik">✕</button>' : '') +
+                    '</div>' +
+                '</div>' +
+                // ─── Strona spalin ───
+                '<div class="hrec-hx-grid">' +
+                    '<div>' +
+                        '<div class="hrec-label">T<sub>wyj</sub> spalin [°C] <span class="hrec-badge">wymagane</span></div>' +
+                        '<input type="number" id="hrec-hx-' + uid + '-tout" class="hrec-input" min="5" max="1000" step="1" placeholder="' + toutPH + '" oninput="hrecCalc()">' +
+                        '<div class="hrec-hint">' + toutH + '</div>' +
+                    '</div>' +
+                    '<div class="hrec-result-card hrec-dry" style="text-align:center;">' +
+                        '<div class="hrec-result-label">🌡️ Moc sucha</div>' +
+                        '<div class="hrec-result-val" id="hrec-hx-' + uid + '-dry">—</div>' +
+                        '<div class="hrec-result-unit">kW</div>' +
+                        '<div style="font-size:10px;color:#6b8294;margin-top:3px;">ciepło jawne</div>' +
+                    '</div>' +
+                    '<div class="hrec-result-card hrec-wet" style="text-align:center;">' +
+                        '<div class="hrec-result-label">💧 Moc mokra</div>' +
+                        '<div class="hrec-result-val" id="hrec-hx-' + uid + '-wet">—</div>' +
+                        '<div class="hrec-result-unit">kW</div>' +
+                        '<div style="font-size:10px;color:#6b8294;margin-top:3px;">kondensacja</div>' +
+                    '</div>' +
+                    '<div class="hrec-result-card hrec-tot" style="text-align:center;">' +
+                        '<div class="hrec-result-label">⚡ Moc łączna</div>' +
+                        '<div class="hrec-result-val" id="hrec-hx-' + uid + '-total">—</div>' +
+                        '<div class="hrec-result-unit">kW</div>' +
+                        '<div style="font-size:10px;color:#6b8294;margin-top:3px;">sucha + mokra</div>' +
+                    '</div>' +
+                '</div>' +
+                // ─── Strona wody / czynnika ───
+                '<div style="margin-top:10px;border-top:1px dashed #c9d7e3;padding-top:10px;">' +
+                    '<div style="font-size:11px;font-weight:700;color:#1d4f73;margin-bottom:8px;display:flex;align-items:center;gap:6px;">' +
+                        '💧 Bilans strony wody ' +
+                        '<span style="font-weight:400;color:#8aacbe;font-size:10px;">(kontrolny bilans cieplny – możesz zmieniać każdy parametr niezależnie)</span>' +
+                    '</div>' +
+                    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;align-items:start;">' +
+                        '<div>' +
+                            '<div class="hrec-label" style="font-size:11px;">Przepływ wody [kg/h]</div>' +
+                            '<input type="number" id="hrec-hx-' + uid + '-wflow" class="hrec-input suggested" min="0" step="1" placeholder="z globalnych" oninput="hrecWaterFlowEdited(' + uid + ')">' +
+                            '<div class="hrec-hint" id="hrec-hx-' + uid + '-wflow-hint">Pobrane z parametrów czynnika ↑</div>' +
+                        '</div>' +
+                        '<div>' +
+                            '<div class="hrec-label" style="font-size:11px;">T<sub>wej</sub> wody [°C]</div>' +
+                            '<input type="number" id="hrec-hx-' + uid + '-wtin" class="hrec-input suggested" min="-30" max="400" step="0.5" placeholder="sugerowane" oninput="hrecWaterTinEdited(' + uid + ')">' +
+                            '<div class="hrec-hint" id="hrec-hx-' + uid + '-wtin-hint">Z poprzedniego stopnia lub powrotu globalnego</div>' +
+                        '</div>' +
+                        '<div>' +
+                            '<div class="hrec-label" style="font-size:11px;">T<sub>wyj</sub> wody [°C] <span class="hrec-badge" id="hrec-hx-' + uid + '-wtout-badge">sugerowane</span></div>' +
+                            '<input type="number" id="hrec-hx-' + uid + '-wtout" class="hrec-input suggested" min="-30" max="400" step="0.5" placeholder="obliczam\u2026" oninput="hrecWaterToutEdited(' + uid + ')">' +
+                            '<div class="hrec-hint" id="hrec-hx-' + uid + '-wtout-hint">Auto z bilansu Q_spalin lub wpisz ręcznie</div>' +
+                        '</div>' +
+                        '<div id="hrec-hx-' + uid + '-balance" style="background:#f0f7ff;border-radius:9px;padding:8px 12px;font-size:12px;color:#355468;line-height:1.7;">' +
+                            '<span style="color:#b0c8d8;">Uzupełnij przepływ i T<sub>wej</sub></span>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            document.getElementById('hrec-hx-container').appendChild(div);
+            hrecCalc();
+        }
+
+        function hrecRemoveHX(uid) {
+            hrecHxList = hrecHxList.filter(function(id) { return id !== uid; });
+            delete hrecWaterManualTout[uid];
+            const block = document.getElementById('hrec-hx-block-' + uid);
+            if (block) block.remove();
+            hrecHxList.forEach(function(id, idx) {
+                const titleEl = document.getElementById('hrec-hx-title-' + id);
+                if (titleEl) titleEl.textContent = 'Wymiennik ' + (idx + 1);
+            });
+            hrecCalc();
+        }
+
+        // ── Edycja strony wody ────────────────────────────────────────────────
+        function hrecWaterFlowEdited(uid) {
+            const el = document.getElementById('hrec-hx-' + uid + '-wflow');
+            if (el) el.classList.remove('suggested');
+            hrecCalc();
+        }
+        function hrecWaterTinEdited(uid) {
+            const el = document.getElementById('hrec-hx-' + uid + '-wtin');
+            if (el) el.classList.remove('suggested');
+            hrecCalc();
+        }
+        function hrecWaterToutEdited(uid) {
+            hrecWaterManualTout[uid] = true;
+            const el    = document.getElementById('hrec-hx-' + uid + '-wtout');
+            const badge = document.getElementById('hrec-hx-' + uid + '-wtout-badge');
+            if (el)    el.classList.remove('suggested');
+            if (badge) badge.textContent = 'ręcznie';
+            hrecCalc();
+        }
+
+        function hrecCalc() {
+            const fuelKey  = document.getElementById('hrec-fuel').value;
+            const fuel     = HREC_FUEL[fuelKey];
+            const tIn0     = parseFloat(document.getElementById('hrec-t-in').value);
+            const massFlow = parseFloat(document.getElementById('hrec-mass-flow').value);
+            const xH2ORaw  = parseFloat(document.getElementById('hrec-xh2o').value);
+            const xH2O     = isNaN(xH2ORaw) ? fuel.xH2O : xH2ORaw;
+            const noInputs = isNaN(tIn0) || isNaN(massFlow) || massFlow <= 0 || tIn0 <= 0;
+            if (noInputs) {
+                document.getElementById('hrec-summary').style.display = 'none';
+                hrecHxList.forEach(function(uid) {
+                    ['dry','wet','total'].forEach(function(p) {
+                        const e = document.getElementById('hrec-hx-' + uid + '-' + p);
+                        if (e) e.textContent = '—';
+                    });
+                    const m = document.getElementById('hrec-hx-' + uid + '-mode');
+                    if (m) m.innerHTML = '';
+                    const t = document.getElementById('hrec-hx-' + uid + '-tin');
+                    if (t) t.innerHTML = 'T<sub>wej</sub>: —';
+                });
+                return;
+            }
+            let tCur        = tIn0;
+            let sumDry      = 0;
+            let sumWet      = 0;
+            // Initialise water chain from global medium return temperature
+            let waterTinCur = NaN;
+            const globalRetTemp = parseFloat((document.getElementById('hrec-medium-ret') || {}).value);
+            if (!isNaN(globalRetTemp)) waterTinCur = globalRetTemp;
+
+            hrecHxList.forEach(function(uid, idx) {
+                const tinEl  = document.getElementById('hrec-hx-' + uid + '-tin');
+                if (tinEl) tinEl.innerHTML = 'T<sub>wej</sub>: ' + tCur.toFixed(1) + '°C';
+                const tOutEl = document.getElementById('hrec-hx-' + uid + '-tout');
+                const tOut   = tOutEl ? parseFloat(tOutEl.value) : NaN;
+                const dryEl  = document.getElementById('hrec-hx-' + uid + '-dry');
+                const wetEl  = document.getElementById('hrec-hx-' + uid + '-wet');
+                const totEl  = document.getElementById('hrec-hx-' + uid + '-total');
+                const modeEl = document.getElementById('hrec-hx-' + uid + '-mode');
+
+                let qDry = 0, qWet = 0, qTotal = 0, flueOk = false;
+
+                if (isNaN(tOut) || tOut <= 0) {
+                    if (dryEl) dryEl.textContent  = '—';
+                    if (wetEl) wetEl.textContent  = '—';
+                    if (totEl) totEl.textContent  = '—';
+                    if (modeEl) modeEl.innerHTML  = '';
+                } else if (tOut >= tCur) {
+                    if (dryEl) dryEl.innerHTML  = '<span style="color:#e53e3e;font-size:12px;">T_wyj ≥ T_wej</span>';
+                    if (wetEl) wetEl.textContent = '—';
+                    if (totEl) totEl.textContent = '—';
+                    if (modeEl) modeEl.innerHTML = '';
+                } else {
+                    // Ciepło jawne (suche)
+                    qDry = massFlow * fuel.cp * (tCur - tOut) / 3600;
+                    // Ciepło kondensacji (mokre) – poniżej punktu rosy
+                    if (tOut < fuel.tDew) {
+                        const tRef  = 20;
+                        const frac  = Math.max(0, Math.min(1, (fuel.tDew - tOut) / Math.max(1, fuel.tDew - tRef)));
+                        const mCond = massFlow * xH2O * frac;
+                        qWet = mCond * fuel.r / 3600;
+                    }
+                    qTotal = qDry + qWet;
+                    flueOk = true;
+                    if (dryEl)  dryEl.textContent  = qDry.toFixed(1);
+                    if (wetEl)  wetEl.textContent  = qWet.toFixed(1);
+                    if (totEl)  totEl.textContent  = qTotal.toFixed(1);
+                    if (modeEl) {
+                        if (tOut < fuel.tDew) {
+                            modeEl.innerHTML = '<span class="hrec-dew-badge hrec-dew-wet">💧 kondensacja (T &lt; ' + fuel.tDew + '°C)</span>';
+                        } else {
+                            modeEl.innerHTML = '<span class="hrec-dew-badge hrec-dew-dry">🌡️ suchy (T &gt; ' + fuel.tDew + '°C)</span>';
+                        }
+                    }
+                    sumDry += qDry;
+                    sumWet += qWet;
+                    tCur = tOut;
+                }
+
+                // ── Water / medium side balance ───────────────────────────────
+                const medium    = document.getElementById('hrec-medium').value;
+                const cpW       = HREC_CP[medium] || 4.18;
+                const wFlowEl   = document.getElementById('hrec-hx-' + uid + '-wflow');
+                const wTinEl    = document.getElementById('hrec-hx-' + uid + '-wtin');
+                const wToutEl   = document.getElementById('hrec-hx-' + uid + '-wtout');
+                const wBal      = document.getElementById('hrec-hx-' + uid + '-balance');
+                const wtBadge   = document.getElementById('hrec-hx-' + uid + '-wtout-badge');
+                const wToutHint = document.getElementById('hrec-hx-' + uid + '-wtout-hint');
+                const wFlowHint = document.getElementById('hrec-hx-' + uid + '-wflow-hint');
+                const wTinHint  = document.getElementById('hrec-hx-' + uid + '-wtin-hint');
+
+                // Auto-fill flow from global medium flow if field is still in 'suggested' state
+                const globalMedFlow = parseFloat((document.getElementById('hrec-medium-flow') || {}).value);
+                if (wFlowEl && wFlowEl.classList.contains('suggested') && !isNaN(globalMedFlow) && globalMedFlow > 0) {
+                    wFlowEl.value = Math.round(globalMedFlow);
+                    if (wFlowHint) wFlowHint.textContent = 'Auto z globalnych: ' + Math.round(globalMedFlow) + ' kg/h';
+                }
+
+                // Auto-fill T_in from chain if field is still in 'suggested' state
+                if (wTinEl && wTinEl.classList.contains('suggested') && !isNaN(waterTinCur)) {
+                    wTinEl.value = waterTinCur.toFixed(1);
+                    if (wTinHint) wTinHint.textContent = idx === 0
+                        ? ('Globalny powrót: ' + waterTinCur.toFixed(1) + '°C')
+                        : ('Z wymiennika ' + idx + ': ' + waterTinCur.toFixed(1) + '°C');
+                }
+
+                const wFlow = parseFloat(wFlowEl ? wFlowEl.value : 'NaN');
+                const wTin  = parseFloat(wTinEl  ? wTinEl.value  : 'NaN');
+
+                if (!isNaN(wFlow) && wFlow > 0 && !isNaN(wTin)) {
+                    if (flueOk && qTotal > 0) {
+                        if (!hrecWaterManualTout[uid]) {
+                            // Auto mode: calculate T_out from Q_flue
+                            const wTout = wTin + qTotal * 3600 / (wFlow * cpW);
+                            if (wToutEl) { wToutEl.value = wTout.toFixed(1); wToutEl.classList.add('suggested'); }
+                            if (wtBadge)   wtBadge.textContent  = 'sugerowane';
+                            if (wToutHint) wToutHint.textContent = wTin.toFixed(1) + ' + ' + qTotal.toFixed(1) + '×3600/(' + wFlow.toFixed(0) + '×' + cpW + ') = ' + wTout.toFixed(1) + '°C';
+                            if (wBal) wBal.innerHTML =
+                                '✅ <strong style="color:#1a5c2e;">Bilans OK</strong><br>' +
+                                'Q = <strong>' + qTotal.toFixed(1) + ' kW</strong><br>' +
+                                'T_woda: ' + wTin.toFixed(1) + ' → <strong>' + wTout.toFixed(1) + '°C</strong>' +
+                                ' (+' + (wTout - wTin).toFixed(1) + ' K)';
+                            waterTinCur = wTout;
+                        } else {
+                            // Manual T_out: check balance
+                            const wTout = parseFloat(wToutEl ? wToutEl.value : 'NaN');
+                            if (!isNaN(wTout)) {
+                                const qWater = wFlow * cpW * Math.abs(wTout - wTin) / 3600;
+                                const diff   = qTotal - qWater;
+                                const pct    = qTotal > 0 ? Math.abs(diff / qTotal * 100) : 0;
+                                const ok     = pct < 5;
+                                if (wBal) wBal.innerHTML =
+                                    'Q_spaliny: <strong>' + qTotal.toFixed(1) + ' kW</strong><br>' +
+                                    'Q_woda: <strong>' + qWater.toFixed(1) + ' kW</strong><br>' +
+                                    (ok
+                                        ? '<span style="color:#1a5c2e;font-weight:700;">✅ Bilans OK (' + pct.toFixed(1) + '%)</span>'
+                                        : '<span style="color:#c53030;font-weight:700;">⚠️ Różnica: ' + Math.abs(diff).toFixed(1) + ' kW (' + pct.toFixed(1) + '%)</span>'
+                                    ) +
+                                    (Math.abs(diff) > 0.5
+                                        ? '<br><span style="font-size:10px;color:#8aacbe;">Może być dolewanie wody / straty</span>'
+                                        : '');
+                                waterTinCur = wTout;
+                            } else {
+                                if (wBal) wBal.innerHTML = '<span style="color:#b0c8d8;">Podaj T<sub>wyj</sub> wody (ręcznie)</span>';
+                            }
+                        }
+                    } else {
+                        // Flue side not yet computed for this HX
+                        if (!hrecWaterManualTout[uid] && wToutEl) { wToutEl.value = ''; }
+                        if (wBal) wBal.innerHTML = '<span style="color:#b0c8d8;">Podaj T<sub>wyj</sub> spalin (powyżej)</span>';
+                    }
+                } else {
+                    if (wBal) wBal.innerHTML = '<span style="color:#b0c8d8;">Uzupełnij przepływ i T<sub>wej</sub> wody</span>';
+                }
+            });
+            const sumTotal  = sumDry + sumWet;
+            const summaryEl = document.getElementById('hrec-summary');
+            if (hrecHxList.length > 0) {
+                summaryEl.style.display = '';
+                document.getElementById('hrec-sum-dry').textContent   = sumDry.toFixed(1);
+                document.getElementById('hrec-sum-wet').textContent   = sumWet.toFixed(1);
+                document.getElementById('hrec-sum-total').textContent = sumTotal.toFixed(1);
+                const boilerPower = parseFloat(document.getElementById('hrec-power').value);
+                const noteEl = document.getElementById('hrec-sum-note');
+                if (!isNaN(boilerPower) && boilerPower > 0 && sumTotal > 0) {
+                    const pct      = (sumTotal / boilerPower * 100).toFixed(1);
+                    const condInfo = sumWet > 0
+                        ? '💧 Ekonomajzer kondensacyjny – odzysk skraplania: ' + sumWet.toFixed(1) + ' kW.'
+                        : '🌡️ Ekonomajzer suchy – brak kondensacji (T > ' + fuel.tDew + '°C).';
+                    noteEl.innerHTML     = 'Odzyskano łącznie <strong>' + sumTotal.toFixed(1) + ' kW</strong> z mocy kotła <strong>' + boilerPower + ' kW</strong> → <strong>' + pct + '%</strong> mocy nominalnej. ' + condInfo;
+                    noteEl.style.display = '';
+                } else {
+                    noteEl.style.display = 'none';
+                }
+            } else {
+                summaryEl.style.display = 'none';
+            }
+        }
+
+        // ── Zapis / wczytywanie / usuwanie kalkulacji ─────────────────────────
+        @auth
+        const HREC_STORE_URL   = '{{ route('information.calculations.store') }}';
+        const HREC_DELETE_BASE = '{{ url('/informacje/kalkulacje') }}';
+        const HREC_CSRF        = '{{ csrf_token() }}';
+
+        // Dane zapisanych kalkulacji załadowane z backendu
+        let hrecSavedData = {};
+        try {
+            const raw = document.getElementById('hrec-saved-data');
+            if (raw) {
+                const arr = JSON.parse(raw.textContent);
+                arr.forEach(function(item) { hrecSavedData[item.id] = item; });
+            }
+        } catch(e) {}
+
+        function hrecCollectState() {
+            const fuel = document.getElementById('hrec-fuel').value;
+            const hxList = hrecHxList.map(function(uid) {
+                const fv2 = function(sfx) {
+                    const v = parseFloat((document.getElementById('hrec-hx-' + uid + sfx) || {}).value);
+                    return isNaN(v) ? null : v;
+                };
+                const tv2 = function(sfx) {
+                    const v = parseFloat((document.getElementById('hrec-hx-' + uid + sfx) || {}).textContent);
+                    return isNaN(v) ? null : v;
+                };
+                return {
+                    tout:         fv2('-tout'),
+                    dry:          tv2('-dry'),
+                    wet:          tv2('-wet'),
+                    total:        tv2('-total'),
+                    wflow:        fv2('-wflow'),
+                    wtin:         fv2('-wtin'),
+                    wtout:        fv2('-wtout'),
+                    wtout_manual: !!hrecWaterManualTout[uid],
+                };
+            });
+            const fv = function(id) {
+                const v = parseFloat((document.getElementById(id) || {}).value);
+                return isNaN(v) ? null : v;
+            };
+            const tv = function(id) {
+                const v = parseFloat((document.getElementById(id) || {}).textContent);
+                return isNaN(v) ? null : v;
+            };
+            return {
+                fuel_type:          fuel,
+                boiler_power:       fv('hrec-power'),
+                boiler_efficiency:  fv('hrec-eff'),
+                flue_temp_in:       fv('hrec-t-in'),
+                mass_flow:          fv('hrec-mass-flow'),
+                xh2o:               fv('hrec-xh2o'),
+                medium_type:        document.getElementById('hrec-medium').value,
+                medium_temp_supply: fv('hrec-medium-temp'),
+                medium_temp_return: fv('hrec-medium-ret'),
+                medium_pressure:    fv('hrec-medium-pres'),
+                medium_flow:        fv('hrec-medium-flow'),
+                exchangers:         hxList,
+                result_dry_kw:      tv('hrec-sum-dry'),
+                result_wet_kw:      tv('hrec-sum-wet'),
+                result_total_kw:    tv('hrec-sum-total'),
+            };
+        }
+
+        async function hrecSave() {
+            const nameEl  = document.getElementById('hrec-save-name');
+            const msgEl   = document.getElementById('hrec-save-msg');
+            const name    = (nameEl.value || '').trim();
+            if (!name) {
+                nameEl.focus();
+                nameEl.style.borderColor = '#e53e3e';
+                setTimeout(function() { nameEl.style.borderColor = ''; }, 2000);
+                return;
+            }
+            const payload = { name, ...hrecCollectState() };
+            msgEl.style.display = '';
+            msgEl.textContent   = 'Zapisuję…';
+            msgEl.style.color   = '#4c6373';
+            try {
+                const resp = await fetch(HREC_STORE_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': HREC_CSRF,
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: JSON.stringify(payload),
+                });
+                const json = await resp.json();
+                if (!resp.ok || !json.ok) throw new Error(json.error || 'Błąd zapisu');
+                msgEl.textContent = '✅ Zapisano: ' + name + ' (' + json.created_at + ')';
+                msgEl.style.color = '#1a5c2e';
+                nameEl.value      = '';
+                // Dodaj wiersz do listy
+                hrecSavedData[json.id] = { id: json.id, ...payload, created_at: json.created_at };
+                hrecInsertSavedRow(json.id, name, json.created_at, payload);
+            } catch(err) {
+                msgEl.textContent = '❌ ' + (err.message || 'Nie udało się zapisać');
+                msgEl.style.color = '#c53030';
+            }
+        }
+
+        function hrecInsertSavedRow(id, name, createdAt, payload) {
+            const list = document.getElementById('hrec-saved-list');
+            if (!list) return;
+            const fuelLabels   = { gas: 'Gaz ziemny GZ-50', coal: 'Węgiel kamienny' };
+            const medLabels    = { water: 'Woda', steam: 'Para wodna', glycol: 'Glikol', air: 'Powietrze', other: 'Inne' };
+            const fuelLabel    = fuelLabels[payload.fuel_type] || payload.fuel_type;
+            const medLabel     = medLabels[payload.medium_type] || payload.medium_type;
+            const powerStr     = payload.boiler_power ? ' · ' + payload.boiler_power + ' kW' : '';
+            const dryStr       = payload.result_dry_kw   != null ? payload.result_dry_kw.toFixed(1)   + ' kW' : '—';
+            const wetStr       = payload.result_wet_kw   != null ? payload.result_wet_kw.toFixed(1)   + ' kW' : '—';
+            const totalStr     = payload.result_total_kw != null ? payload.result_total_kw.toFixed(1) + ' kW' : '—';
+            const tempStr      = payload.flue_temp_in    != null ? '<div style="color:#6b8294;">T_spalin: ' + payload.flue_temp_in.toFixed(0) + '°C</div>' : '';
+            const div = document.createElement('div');
+            div.className = 'hrec-hx-block';
+            div.id        = 'hrec-saved-' + id;
+            div.style.background = '#f4f8fb';
+            div.innerHTML =
+                '<div class="hrec-hx-header">' +
+                    '<div>' +
+                        '<span class="hrec-hx-title">' + name.replace(/</g,'&lt;') + '</span>' +
+                        '<span class="hrec-hx-tin" style="margin-left:8px;">' + createdAt + '</span>' +
+                    '</div>' +
+                    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+                        '<span style="font-size:11px;color:#4c6373;">' + fuelLabel + ' · ' + medLabel + powerStr + '</span>' +
+                        '<button onclick="hrecLoadSaved(' + id + ')" style="padding:4px 10px;background:#dbe9f5;color:#1d4f73;border:1px solid #b0c8d8;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">↩ Wczytaj</button>' +
+                        '<button onclick="hrecDeleteSaved(' + id + ', this)" class="hrec-remove-btn" title="Usuń">✕</button>' +
+                    '</div>' +
+                '</div>' +
+                '<div style="display:grid;grid-template-columns:repeat(3,auto) 1fr;gap:8px 14px;font-size:12px;color:#355468;">' +
+                    '<div>🌡️ Sucha: <strong>' + dryStr + '</strong></div>' +
+                    '<div>💧 Mokra: <strong>' + wetStr + '</strong></div>' +
+                    '<div>⚡ Łącznie: <strong>' + totalStr + '</strong></div>' +
+                    tempStr +
+                '</div>';
+            list.insertBefore(div, list.firstChild);
+        }
+
+        function hrecLoadSaved(id) {
+            const data = hrecSavedData[id];
+            if (!data) return;
+            const sv = function(elId, val) {
+                const el = document.getElementById(elId);
+                if (el && val != null) el.value = val;
+            };
+            const selv = function(elId, val) {
+                const el = document.getElementById(elId);
+                if (el && val) el.value = val;
+            };
+            selv('hrec-fuel',   data.fuel_type);
+            sv('hrec-power',    data.boiler_power);
+            sv('hrec-eff',      data.boiler_eff);
+            sv('hrec-t-in',     data.flue_temp_in);
+            sv('hrec-mass-flow',data.mass_flow);
+            sv('hrec-xh2o',     data.xh2o);
+            selv('hrec-medium', data.medium_type);
+            sv('hrec-medium-temp', data.medium_temp);
+            sv('hrec-medium-ret',  data.medium_ret);
+            sv('hrec-medium-pres', data.medium_pres);
+            sv('hrec-medium-flow', data.medium_flow);
+            // Odbuduj wymienniki
+            const container = document.getElementById('hrec-hx-container');
+            container.innerHTML = '';
+            hrecHxList = [];
+            hrecNextId = 0;
+            const exchangers = Array.isArray(data.exchangers) ? data.exchangers : [];
+            if (exchangers.length === 0) {
+                hrecAddHX();
+            } else {
+                exchangers.forEach(function(hx) {
+                    hrecAddHX();
+                    const uid = hrecHxList[hrecHxList.length - 1];
+                    const sv2 = function(sfx, val) {
+                        const el = document.getElementById('hrec-hx-' + uid + sfx);
+                        if (el && val != null) { el.value = val; el.classList.remove('suggested'); }
+                    };
+                    sv2('-tout',  hx.tout);
+                    sv2('-wflow', hx.wflow);
+                    sv2('-wtin',  hx.wtin);
+                    if (hx.wtout_manual && hx.wtout != null) {
+                        sv2('-wtout', hx.wtout);
+                        hrecWaterManualTout[uid] = true;
+                        const badge = document.getElementById('hrec-hx-' + uid + '-wtout-badge');
+                        if (badge) badge.textContent = 'ręcznie';
+                    }
+                });
+            }
+            hrecWaterManualTout = {};
+            // Re-apply only manual tout flags from loaded data
+            if (Array.isArray(data.exchangers)) {
+                data.exchangers.forEach(function(hx, i) {
+                    if (hx.wtout_manual && hrecHxList[i] != null) {
+                        hrecWaterManualTout[hrecHxList[i]] = true;
+                    }
+                });
+            }
+            hrecAutoFlow    = false;
+            hrecMedAutoFlow = false;
+            hrecOnFuelChange();
+            hrecOnMediumChange();
+            hrecCalc();
+            // Przewiń do sekcji
+            const acc = document.getElementById('acc-hrec');
+            if (acc && !acc.classList.contains('open')) ecAccToggle('acc-hrec');
+            setTimeout(function() {
+                document.getElementById('acc-hrec').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+
+        async function hrecDeleteSaved(id, btn) {
+            if (!confirm('Usunąć tę kalkulację?')) return;
+            btn.disabled    = true;
+            btn.textContent = '…';
+            try {
+                const resp = await fetch(HREC_DELETE_BASE + '/' + id, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': HREC_CSRF,
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
+                const json = await resp.json();
+                if (!resp.ok || !json.ok) throw new Error(json.error || 'Błąd');
+                delete hrecSavedData[id];
+                const row = document.getElementById('hrec-saved-' + id);
+                if (row) row.remove();
+            } catch(err) {
+                btn.disabled    = false;
+                btn.textContent = '✕';
+                alert('Nie udało się usunąć: ' + err.message);
+            }
+        }
+        @endauth
         </script>
     </section>
 </x-layouts.app>
