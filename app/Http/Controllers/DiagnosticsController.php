@@ -419,7 +419,8 @@ class DiagnosticsController extends Controller
 
     /**
      * Test mail connectivity and optionally send a test message (POST).
-     * Steps: 1) verify config, 2) TCP socket connect, 3) send via Laravel Mail.
+     * Steps: 1) verify config, 2) TCP socket test on configured port,
+     *         3) TCP socket test on fallback port 587, 4) send via Laravel Mail.
      */
     public function testMail(Request $request)
     {
@@ -442,37 +443,62 @@ class DiagnosticsController extends Controller
             'detail'=> $mailer . ($mailer === 'log' ? ' — ⚠ maile idą TYLKO do logów, nie są wysyłane!' : ' — OK'),
         ];
 
-        // 2. Socket test (only for smtp)
+        // Helper: TCP socket test
+        $socketTest = function (string $h, int $p, string $sc): array {
+            $prefix = ($sc === 'ssl' || $sc === 'smtps') ? 'ssl://' : '';
+            $errno = 0; $errstr = '';
+            $t0 = microtime(true);
+            $fp = @fsockopen($prefix . $h, $p, $errno, $errstr, 8);
+            $ms = round((microtime(true) - $t0) * 1000);
+            if ($fp) { fclose($fp); return ['ok' => true, 'ms' => $ms, 'error' => '']; }
+            return ['ok' => false, 'ms' => $ms, 'error' => "errno={$errno}: {$errstr}"];
+        };
+
+        // 2. Socket test on configured port
         if ($mailer === 'smtp' && $host) {
-            $socketOk    = false;
-            $socketError = '';
-            try {
-                $fp = @fsockopen(($scheme === 'ssl' || $scheme === 'smtps' ? 'ssl://' : '') . $host, $port, $errno, $errstr, 10);
-                if ($fp) {
-                    fclose($fp);
-                    $socketOk = true;
-                } else {
-                    $socketError = "errno={$errno}: {$errstr}";
-                }
-            } catch (Throwable $e) {
-                $socketError = $e->getMessage();
-            }
+            $r = $socketTest($host, $port, $scheme);
             $steps[] = [
-                'label'  => "Połączenie TCP z {$host}:{$port}",
-                'ok'     => $socketOk,
-                'detail' => $socketOk ? 'Połączono pomyślnie' : ('Błąd: ' . $socketError),
+                'label'  => "Połączenie TCP z {$host}:{$port} (skonfigurowany)",
+                'ok'     => $r['ok'],
+                'detail' => $r['ok']
+                    ? "✅ Połączono ({$r['ms']} ms)"
+                    : "❌ Zablokowane ({$r['ms']} ms): {$r['error']}" . ($r['ms'] > 7000 ? ' — port zablokowany przez firewall!' : ''),
             ];
+
+            // 3. Fallback test: port 587 (STARTTLS)
+            if (!$r['ok'] && $port !== 587) {
+                $r587 = $socketTest($host, 587, 'tls');
+                $steps[] = [
+                    'label'  => "Połączenie TCP z {$host}:587 (fallback STARTTLS)",
+                    'ok'     => $r587['ok'],
+                    'detail' => $r587['ok']
+                        ? "✅ Port 587 działa! Zmień MAIL_PORT=587 i MAIL_SCHEME=tls w zmiennych Railway."
+                        : "❌ Port 587 też zablokowany ({$r587['ms']} ms). Railway blokuje wychodzące SMTP — wymagany Resend lub inny HTTP API.",
+                ];
+            }
+
+            // 4. If both ports blocked, recommend Resend
+            if (!$r['ok']) {
+                $port587Works = isset($r587) && $r587['ok'];
+                if (!$port587Works) {
+                    $steps[] = [
+                        'label'  => '💡 Zalecenie',
+                        'ok'     => false,
+                        'detail' => 'Railway blokuje SMTP (porty 465 i 587). Wymagane przejście na serwis oparty na HTTP API: Resend (resend.com) — darmowy do 3000 maili/mc, Laravel ma wbudowany driver. Instrukcja poniżej na tej stronie.',
+                    ];
+                }
+            }
         }
 
-        // 3. Send test mail (only if target provided)
+        // 5. Send test mail (only if target provided)
         if ($target) {
             $sendOk    = false;
             $sendError = '';
             $elapsed   = 0;
+            $t0        = microtime(true);
             try {
-                $t0 = microtime(true);
                 \Illuminate\Support\Facades\Mail::raw(
-                    'To jest testowa wiadomość z systemu ENESA. Jeśli ją widzisz — konfiguracja SMTP działa poprawnie.',
+                    'To jest testowa wiadomość z systemu ENESA. Jeśli ją widzisz — konfiguracja e-mail działa poprawnie.',
                     function ($msg) use ($target) {
                         $msg->to($target)
                             ->subject('[ENESA] Test połączenia e-mail — ' . now()->format('Y-m-d H:i:s'));
@@ -481,8 +507,8 @@ class DiagnosticsController extends Controller
                 $elapsed = round((microtime(true) - $t0) * 1000);
                 $sendOk  = true;
             } catch (Throwable $e) {
+                $elapsed   = round((microtime(true) - $t0) * 1000);
                 $sendError = $e->getMessage();
-                $elapsed   = round((microtime(true) - ($t0 ?? microtime(true))) * 1000);
             }
             $steps[] = [
                 'label'  => "Wysyłka testowego maila na {$target}",

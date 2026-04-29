@@ -390,6 +390,58 @@ function runMailTest() {
 }
 </script>
 
+{{-- ═══ RESEND INSTRUCTIONS ═══ --}}
+<div class="card" style="border-color:#8b5cf6; background:#faf5ff;">
+    <h2 style="margin-top:0; color:#6d28d9;">🔧 Rozwiązanie: Przejście na Resend (zalecane dla Railway)</h2>
+
+    <div style="background:#ede9fe; border:1px solid #c4b5fd; border-radius:8px; padding:12px 16px; margin-bottom:16px; font-size:13px; color:#4c1d95;">
+        <strong>Dlaczego Railway blokuje SMTP?</strong> Railway i inne platformy chmurowe blokują wychodzące połączenia na portach 25, 465, 587 żeby zapobiegać spamowi. Jedyne rozwiązanie to użycie serwisu e-mail przez <strong>HTTPS (port 443)</strong> — np. Resend, Mailgun, SendGrid.
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+        <div style="background:#fff; border:1px solid #ddd6fe; border-radius:10px; padding:14px;">
+            <div style="font-size:13px; font-weight:800; color:#6d28d9; margin-bottom:8px;">📋 Krok 1 — Zarejestruj się w Resend</div>
+            <ol style="font-size:12px; color:#374151; line-height:1.8; padding-left:18px; margin:0;">
+                <li>Wejdź na <strong>resend.com</strong> i załóż konto (darmowe)</li>
+                <li>W panelu wejdź w <strong>Domains</strong> → Add Domain</li>
+                <li>Wpisz <strong>enesa.pl</strong> i dodaj 3 rekordy DNS (TXT + DKIM)</li>
+                <li>Zweryfikuj domenę</li>
+            </ol>
+        </div>
+        <div style="background:#fff; border:1px solid #ddd6fe; border-radius:10px; padding:14px;">
+            <div style="font-size:13px; font-weight:800; color:#6d28d9; margin-bottom:8px;">🔑 Krok 2 — Pobierz API Key</div>
+            <ol style="font-size:12px; color:#374151; line-height:1.8; padding-left:18px; margin:0;">
+                <li>W Resend wejdź w <strong>API Keys</strong> → Create API Key</li>
+                <li>Skopiuj klucz zaczynający się od <code style="background:#f3f4f6; padding:1px 4px; border-radius:3px;">re_</code></li>
+            </ol>
+        </div>
+    </div>
+
+    <div style="background:#fff; border:1px solid #ddd6fe; border-radius:10px; padding:14px; margin-bottom:16px;">
+        <div style="font-size:13px; font-weight:800; color:#6d28d9; margin-bottom:10px;">⚙️ Krok 3 — Zmień zmienne na Railway</div>
+        <p style="font-size:12px; color:#6b7280; margin:0 0 10px;">W Railway Dashboard → Variables, zmień/dodaj:</p>
+        <table style="font-size:12px; width:100%; border-collapse:collapse;">
+            <thead>
+                <tr style="background:#ede9fe;">
+                    <th style="text-align:left; padding:6px 10px; border:1px solid #ddd6fe;">Zmienna</th>
+                    <th style="text-align:left; padding:6px 10px; border:1px solid #ddd6fe;">Stara wartość</th>
+                    <th style="text-align:left; padding:6px 10px; border:1px solid #ddd6fe;">Nowa wartość</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td style="padding:5px 10px; border:1px solid #e5e7eb;"><code>MAIL_MAILER</code></td><td style="padding:5px 10px; border:1px solid #e5e7eb; color:#dc2626;">smtp</td><td style="padding:5px 10px; border:1px solid #e5e7eb; color:#16a34a; font-weight:700;">resend</td></tr>
+                <tr style="background:#f9f9f9;"><td style="padding:5px 10px; border:1px solid #e5e7eb;"><code>RESEND_API_KEY</code></td><td style="padding:5px 10px; border:1px solid #e5e7eb; color:#9ca3af;">(nie istnieje)</td><td style="padding:5px 10px; border:1px solid #e5e7eb; color:#16a34a; font-weight:700;">re_TWÓJ_KLUCZ_API</td></tr>
+                <tr><td style="padding:5px 10px; border:1px solid #e5e7eb;"><code>MAIL_FROM_ADDRESS</code></td><td style="padding:5px 10px; border:1px solid #e5e7eb;">enesa.api@enesa.pl</td><td style="padding:5px 10px; border:1px solid #e5e7eb; color:#16a34a;">enesa.api@enesa.pl (bez zmian, po weryfikacji domeny)</td></tr>
+                <tr style="background:#f9f9f9;"><td style="padding:5px 10px; border:1px solid #e5e7eb;"><code>MAIL_HOST</code></td><td style="padding:5px 10px; border:1px solid #e5e7eb; color:#9ca3af;">serwer1858017... (można zostawić)</td><td style="padding:5px 10px; border:1px solid #e5e7eb; color:#6b7280;">nieużywane przez Resend</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 14px; font-size:12px; color:#15803d;">
+        ✅ <strong>Resend</strong> — darmowy plan: <strong>3 000 maili/miesiąc</strong>, 100/dzień. Laravel 10+ ma wbudowany driver. Po zmianie zmiennych Railway automatycznie wdroży aplikację.
+    </div>
+</div>
+
 {{-- ═══ QUICK LINKS ═══ --}}
 <div class="card">
     <h2 style="margin-top:0;">🔗 Szybkie linki testowe</h2>
