@@ -93,6 +93,7 @@ class InformationController extends Controller
             'fuel_type'          => ['required', 'in:gas,coal'],
             'boiler_power'       => ['nullable', 'numeric', 'min:0', 'max:10000000'],
             'boiler_efficiency'  => ['nullable', 'numeric', 'min:0', 'max:200'],
+            'boiler_load_pct'    => ['nullable', 'numeric', 'min:1', 'max:100'],
             'flue_temp_in'       => ['nullable', 'numeric', 'min:0', 'max:2000'],
             'mass_flow'          => ['nullable', 'numeric', 'min:0', 'max:10000000'],
             'xh2o'               => ['nullable', 'numeric', 'min:0', 'max:1'],

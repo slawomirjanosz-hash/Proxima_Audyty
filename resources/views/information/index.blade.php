@@ -805,6 +805,19 @@
                             <div class="hrec-hint" id="hrec-eff-hint">Sugerowana dla gazu: 88–92%</div>
                         </td>
                     </tr>
+                    {{-- wiersz 1b: wydajność kotła --}}
+                    <tr style="background:rgba(255,255,255,.06);">
+                        <td colspan="3" style="padding:10px 12px;border:1px solid rgba(0,0,0,.07);border-top:none;">
+                            <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+                                <div style="flex:0 0 200px;">
+                                    <div class="hrec-label hrec-tip-host" data-tip="Wydajność (obciążenie) kotła [%]&#10;Rzeczywista moc robocza = moc nominalna × wydajność/100&#10;Np. kocioł 500 kW przy wydajności 70% pracuje z mocą 350 kW.&#10;Wpływa na: strumień paliwa, ilość spalin, odzysk ciepła.&#10;Domyślnie: 100% (pełne obciążenie).">Wydajność kotła [%] <span class="hrec-badge">obciążenie</span></div>
+                                    <input type="number" id="hrec-load" class="hrec-input" min="1" max="100" step="1" placeholder="np. 100" value="100" oninput="hrecOnPowerChange()">
+                                    <div class="hrec-hint" id="hrec-load-hint">100% = pełne obciążenie nominalne</div>
+                                </div>
+                                <div id="hrec-load-note" style="font-size:12px;color:#355468;background:rgba(14,137,216,.07);border-radius:8px;padding:7px 12px;display:none;line-height:1.6;"></div>
+                            </div>
+                        </td>
+                    </tr>
                     {{-- wiersz 2: temp spalin | O₂ | ilość spalin --}}
                     <tr>
                         <td style="padding:10px 12px;border:1px solid rgba(0,0,0,.07);border-top:none;border-right:none;">
@@ -1289,7 +1302,22 @@
             const fuel    = HREC_FUEL[fuelKey];
             const power   = parseFloat(document.getElementById('hrec-power').value);
             const effRaw  = parseFloat(document.getElementById('hrec-eff').value);
+            const loadRaw = parseFloat(document.getElementById('hrec-load').value);
             const eff     = isNaN(effRaw) ? fuel.etaTyp : effRaw;
+            const load    = (!isNaN(loadRaw) && loadRaw > 0 && loadRaw <= 100) ? loadRaw : 100;
+            const effectivePower = !isNaN(power) && power > 0 ? power * load / 100 : NaN;
+            // Wyświetl notatkę o mocy roboczej
+            const loadNoteEl = document.getElementById('hrec-load-note');
+            if (!isNaN(power) && power > 0) {
+                loadNoteEl.style.display = '';
+                if (load < 100) {
+                    loadNoteEl.innerHTML = 'Moc nominalna: <strong>' + power + ' kW</strong> × ' + load + '% = moc robocza: <strong>' + effectivePower.toFixed(1) + ' kW</strong>';
+                } else {
+                    loadNoteEl.innerHTML = 'Moc robocza: <strong>' + effectivePower.toFixed(1) + ' kW</strong> (100% obciążenia)';
+                }
+            } else {
+                loadNoteEl.style.display = 'none';
+            }
             const o2Raw   = parseFloat((document.getElementById('hrec-o2') || {}).value);
             const o2      = (!isNaN(o2Raw) && o2Raw >= 0 && o2Raw < 21) ? o2Raw : 3;
             const lambda  = 21 / (21 - o2);
@@ -1299,15 +1327,16 @@
             if (ldEl) ldEl.textContent = lambda.toFixed(3);
             const mfEl    = document.getElementById('hrec-mass-flow');
             const mfHint  = document.getElementById('hrec-mflow-hint');
-            if (!isNaN(power) && power > 0) {
+            if (!isNaN(effectivePower) && effectivePower > 0) {
                 const eta      = eff / 100;
-                const fuelFlow = power / (eta * fuel.hu);
+                const fuelFlow = effectivePower / (eta * fuel.hu);
                 const massFlow = fuelFlow * vFlue * fuel.rhoSp;
                 if (!mfEl.value || hrecAutoFlow) {
                     mfEl.value = Math.round(massFlow);
                     mfEl.classList.add('suggested');
                     hrecAutoFlow = true;
-                    mfHint.innerHTML = 'Obliczono: ' + power + ' kW, η=' + eff.toFixed(0) + '%, λ=' + lambda.toFixed(3) + ' → <strong>' + fuelFlow.toFixed(1) + ' ' + fuel.fuelUnit + '</strong> → <strong>' + Math.round(massFlow) + ' kg/h</strong>';
+                    const loadInfo = load < 100 ? ', wydajność=' + load + '% → P_rob=' + effectivePower.toFixed(0) + ' kW' : '';
+                    mfHint.innerHTML = 'Obliczono: ' + power + ' kW' + loadInfo + ', η=' + eff.toFixed(0) + '%, λ=' + lambda.toFixed(3) + ' → <strong>' + fuelFlow.toFixed(1) + ' ' + fuel.fuelUnit + '</strong> → <strong>' + Math.round(massFlow) + ' kg/h</strong>';
                 }
             }
             hrecMediumCalc();
@@ -1910,13 +1939,17 @@
                 document.getElementById('hrec-sum-wet').textContent   = sumWet.toFixed(1);
                 document.getElementById('hrec-sum-total').textContent = sumTotal.toFixed(1);
                 const boilerPower = parseFloat(document.getElementById('hrec-power').value);
+                const boilerLoad  = parseFloat(document.getElementById('hrec-load').value);
+                const load        = (!isNaN(boilerLoad) && boilerLoad > 0 && boilerLoad <= 100) ? boilerLoad : 100;
                 const noteEl = document.getElementById('hrec-sum-note');
                 if (!isNaN(boilerPower) && boilerPower > 0 && sumTotal > 0) {
-                    const pct      = (sumTotal / boilerPower * 100).toFixed(1);
+                    const effectivePower = boilerPower * load / 100;
+                    const pct      = (sumTotal / effectivePower * 100).toFixed(1);
+                    const loadInfo = load < 100 ? ' (wydajność ' + load + '%, moc robocza: <strong>' + effectivePower.toFixed(0) + ' kW</strong>)' : '';
                     const condInfo = sumWet > 0
                         ? '💧 Ekonomajzer kondensacyjny – odzysk skraplania: ' + sumWet.toFixed(1) + ' kW.'
                         : '🌡️ Ekonomajzer suchy – brak kondensacji (T > ' + fuel.tDew + '°C).';
-                    noteEl.innerHTML     = 'Odzyskano łącznie <strong>' + sumTotal.toFixed(1) + ' kW</strong> z mocy kotła <strong>' + boilerPower + ' kW</strong> → <strong>' + pct + '%</strong> mocy nominalnej. ' + condInfo;
+                    noteEl.innerHTML     = 'Odzyskano łącznie <strong>' + sumTotal.toFixed(1) + ' kW</strong> z mocy roboczej kotła <strong>' + effectivePower.toFixed(0) + ' kW</strong>' + loadInfo + ' → <strong>' + pct + '%</strong> mocy roboczej. ' + condInfo;
                     noteEl.style.display = '';
                 } else {
                     noteEl.style.display = 'none';
@@ -1976,6 +2009,7 @@
                 fuel_type:          fuel,
                 boiler_power:       fv('hrec-power'),
                 boiler_efficiency:  fv('hrec-eff'),
+                boiler_load_pct:    fv('hrec-load'),
                 flue_temp_in:       fv('hrec-t-in'),
                 mass_flow:          fv('hrec-mass-flow'),
                 xh2o:               fv('hrec-xh2o'),
@@ -2037,6 +2071,7 @@
             const fuelLabel    = fuelLabels[payload.fuel_type] || payload.fuel_type;
             const medLabel     = medLabels[payload.medium_type] || payload.medium_type;
             const powerStr     = payload.boiler_power ? ' · ' + payload.boiler_power + ' kW' : '';
+            const loadStr      = (payload.boiler_load_pct != null && payload.boiler_load_pct < 100) ? ' · wydajność: ' + payload.boiler_load_pct + '%' : '';
             const dryStr       = payload.result_dry_kw   != null ? payload.result_dry_kw.toFixed(1)   + ' kW' : '—';
             const wetStr       = payload.result_wet_kw   != null ? payload.result_wet_kw.toFixed(1)   + ' kW' : '—';
             const totalStr     = payload.result_total_kw != null ? payload.result_total_kw.toFixed(1) + ' kW' : '—';
@@ -2052,7 +2087,7 @@
                         '<span class="hrec-hx-tin" style="margin-left:8px;">' + createdAt + '</span>' +
                     '</div>' +
                     '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
-                        '<span style="font-size:11px;color:#4c6373;">' + fuelLabel + ' · ' + medLabel + powerStr + '</span>' +
+                        '<span style="font-size:11px;color:#4c6373;">' + fuelLabel + ' · ' + medLabel + powerStr + loadStr + '</span>' +
                         '<button onclick="hrecLoadSaved(' + id + ')" style="padding:4px 10px;background:#dbe9f5;color:#1d4f73;border:1px solid #b0c8d8;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">↩ Wczytaj</button>' +
                         '<button onclick="hrecDeleteSaved(' + id + ', this)" class="hrec-remove-btn" title="Usuń">✕</button>' +
                     '</div>' +
@@ -2079,7 +2114,8 @@
             };
             selv('hrec-fuel',   data.fuel_type);
             sv('hrec-power',    data.boiler_power);
-            sv('hrec-eff',      data.boiler_eff);
+            sv('hrec-eff',      data.boiler_efficiency);
+            sv('hrec-load',     data.boiler_load_pct != null ? data.boiler_load_pct : 100);
             sv('hrec-t-in',     data.flue_temp_in);
             sv('hrec-mass-flow',data.mass_flow);
             sv('hrec-xh2o',     data.xh2o);
