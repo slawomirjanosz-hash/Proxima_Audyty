@@ -274,6 +274,122 @@
 </div>
 @endif
 
+{{-- ═══ MAIL DIAGNOSTICS ═══ --}}
+<div class="card" style="{{ $mailConfig['mailer'] === 'log' ? 'border-color:#f59e0b; background:#fffbeb;' : '' }}">
+    <h2 style="margin-top:0;">📧 Konfiguracja i test e-mail</h2>
+
+    @if($mailConfig['mailer'] === 'log')
+    <div style="background:#fef3c7; border:2px solid #f59e0b; border-radius:8px; padding:12px 16px; margin-bottom:14px; color:#92400e; font-weight:700; font-size:13px;">
+        ⚠ MAIL_MAILER = <code style="background:#fbbf24; padding:1px 6px; border-radius:4px;">log</code> — maile <strong>NIE są wysyłane</strong>! Trafiają tylko do pliku logów. Zmień zmienną na <code>smtp</code>.
+    </div>
+    @endif
+
+    <table style="margin-bottom:16px;">
+        <thead><tr><th>Zmienna</th><th>Wartość</th><th>Status</th></tr></thead>
+        <tbody>
+            <tr>
+                <td><code>MAIL_MAILER</code></td>
+                <td><code>{{ $mailConfig['mailer'] }}</code></td>
+                <td>{!! $mailConfig['mailer'] === 'smtp' ? '<span style="color:#16a34a;">✅ OK</span>' : '<span style="color:#dc2626;">❌ Powinno być smtp</span>' !!}</td>
+            </tr>
+            <tr>
+                <td><code>MAIL_HOST</code></td>
+                <td><code>{{ $mailConfig['host'] }}</code></td>
+                <td>{!! $mailConfig['host'] !== 'n/a' && $mailConfig['host'] !== '' ? '<span style="color:#16a34a;">✅ OK</span>' : '<span style="color:#dc2626;">❌ Brak</span>' !!}</td>
+            </tr>
+            <tr>
+                <td><code>MAIL_PORT</code></td>
+                <td><code>{{ $mailConfig['port'] }}</code></td>
+                <td>{!! in_array((string)$mailConfig['port'], ['465','587','25']) ? '<span style="color:#16a34a;">✅ OK</span>' : '<span style="color:#dc2626;">❌ Nieznany port</span>' !!}</td>
+            </tr>
+            <tr>
+                <td><code>MAIL_SCHEME</code></td>
+                <td><code>{{ $mailConfig['scheme'] }}</code></td>
+                <td><span style="color:#4c6373;">ℹ {{ $mailConfig['port'] == 465 ? 'port 465 wymaga smtps/ssl' : 'port 587 = tls' }}</span></td>
+            </tr>
+            <tr>
+                <td><code>MAIL_USERNAME</code></td>
+                <td><code>{{ $mailConfig['username'] }}</code></td>
+                <td>{!! $mailConfig['username'] !== 'n/a' ? '<span style="color:#16a34a;">✅ Ustawiony</span>' : '<span style="color:#dc2626;">❌ Brak</span>' !!}</td>
+            </tr>
+            <tr>
+                <td><code>MAIL_PASSWORD</code></td>
+                <td><code>{{ $mailConfig['password_set'] ? '••••••••' : '(brak)' }}</code></td>
+                <td>{!! $mailConfig['password_set'] ? '<span style="color:#16a34a;">✅ Ustawione</span>' : '<span style="color:#dc2626;">❌ Brak hasła</span>' !!}</td>
+            </tr>
+            <tr>
+                <td><code>MAIL_FROM_ADDRESS</code></td>
+                <td><code>{{ $mailConfig['from_address'] }}</code></td>
+                <td>{!! filter_var($mailConfig['from_address'], FILTER_VALIDATE_EMAIL) ? '<span style="color:#16a34a;">✅ OK</span>' : '<span style="color:#dc2626;">❌ Nieprawidłowy e-mail</span>' !!}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    {{-- Live test form --}}
+    <div style="background:#f3f8fc; border:1px solid #c9dcea; border-radius:10px; padding:16px 18px;">
+        <h3 style="margin:0 0 10px; font-size:15px; color:#0f2330;">🔬 Test połączenia SMTP + wysyłka</h3>
+        <p style="font-size:12px; color:#4c6373; margin:0 0 12px;">Wpisz adres e-mail aby wykonać pełny test: sprawdzenie konfiguracji → połączenie TCP → wysyłka wiadomości testowej.</p>
+        <div style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;">
+            <div>
+                <label style="font-size:12px; font-weight:700; color:#1d3a50; display:block; margin-bottom:4px;">Adres docelowy testu</label>
+                <input type="email" id="mail-test-to" placeholder="twoj@email.com"
+                    style="padding:8px 12px; border:1px solid #c8d8e6; border-radius:8px; font-size:13px; min-width:240px;">
+            </div>
+            <button onclick="runMailTest()" id="mail-test-btn"
+                style="padding:9px 18px; background:#0e89d8; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">
+                ▶ Uruchom test
+            </button>
+        </div>
+        <div id="mail-test-results" style="margin-top:14px; display:none;">
+            <div id="mail-test-steps"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+function runMailTest() {
+    const to = document.getElementById('mail-test-to').value.trim();
+    const btn = document.getElementById('mail-test-btn');
+    const results = document.getElementById('mail-test-results');
+    const steps = document.getElementById('mail-test-steps');
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Testuję…';
+    results.style.display = 'none';
+    steps.innerHTML = '';
+
+    fetch('{{ route('diagnostics.test-mail') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]') ? document.querySelector('meta[name=csrf-token]').content : '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ to_email: to })
+    })
+    .then(r => r.json())
+    .then(data => {
+        steps.innerHTML = data.steps.map(s => `
+            <div style="display:flex; gap:10px; align-items:flex-start; padding:8px 10px; border-radius:8px; background:${s.ok ? '#f0fdf4' : '#fef2f2'}; border:1px solid ${s.ok ? '#bbf7d0' : '#fca5a5'}; margin-bottom:6px;">
+                <span style="font-size:16px; flex-shrink:0;">${s.ok ? '✅' : '❌'}</span>
+                <div>
+                    <div style="font-size:13px; font-weight:700; color:#0f2330;">${s.label}</div>
+                    <div style="font-size:12px; color:${s.ok ? '#15803d' : '#dc2626'}; margin-top:2px;">${s.detail}</div>
+                </div>
+            </div>
+        `).join('');
+        results.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = '▶ Uruchom test';
+    })
+    .catch(err => {
+        steps.innerHTML = `<div style="color:#dc2626; font-size:13px;">❌ Błąd żądania: ${err.message}</div>`;
+        results.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = '▶ Uruchom test';
+    });
+}
+</script>
+
 {{-- ═══ QUICK LINKS ═══ --}}
 <div class="card">
     <h2 style="margin-top:0;">🔗 Szybkie linki testowe</h2>

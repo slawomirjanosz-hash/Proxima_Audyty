@@ -75,6 +75,8 @@ Route::post('/admin/diagnostyka/migrate', [DiagnosticsController::class, 'migrat
 Route::post('/admin/diagnostyka/cache-clear', [DiagnosticsController::class, 'clearCache'])
     ->middleware('auth')
     ->name('diagnostics.cache-clear');
+Route::post('/admin/diagnostyka/test-mail', [DiagnosticsController::class, 'testMail'])
+    ->name('diagnostics.test-mail');
 
 Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');

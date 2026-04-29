@@ -359,11 +359,24 @@ class DiagnosticsController extends Controller
             }
         }
 
+        // ─── Mail configuration info ───────────────────────────────────────
+        $mailConfig = [
+            'mailer'       => config('mail.default', 'n/a'),
+            'host'         => config('mail.mailers.smtp.host', 'n/a'),
+            'port'         => config('mail.mailers.smtp.port', 'n/a'),
+            'scheme'       => config('mail.mailers.smtp.scheme', config('mail.mailers.smtp.encryption', 'n/a')),
+            'username'     => config('mail.mailers.smtp.username', 'n/a'),
+            'from_address' => config('mail.from.address', 'n/a'),
+            'from_name'    => config('mail.from.name', 'n/a'),
+            'password_set' => ! empty(config('mail.mailers.smtp.password')),
+        ];
+
         return view('diagnostics.index', compact(
             'dbOk', 'dbError', 'dbDriver',
             'tableStatus', 'migrationOutput', 'migrationError', 'pendingCount',
             'recentErrors', 'sysInfo', 'columnChecks', 'crmProbe', 'crmProbeError',
-            'auditsProbe', 'auditsProbeError'
+            'auditsProbe', 'auditsProbeError',
+            'mailConfig'
         ));
     }
 
@@ -402,5 +415,84 @@ class DiagnosticsController extends Controller
         }
 
         return back()->with('cache_output', implode("\n", $output));
+    }
+
+    /**
+     * Test mail connectivity and optionally send a test message (POST).
+     * Steps: 1) verify config, 2) TCP socket connect, 3) send via Laravel Mail.
+     */
+    public function testMail(Request $request)
+    {
+        $steps   = [];
+        $target  = filter_var($request->input('to_email', ''), FILTER_VALIDATE_EMAIL)
+            ? $request->input('to_email')
+            : null;
+
+        // 1. Read effective config
+        $mailer   = config('mail.default', 'log');
+        $host     = config('mail.mailers.smtp.host', '');
+        $port     = (int) config('mail.mailers.smtp.port', 465);
+        $username = config('mail.mailers.smtp.username', '');
+        $password = config('mail.mailers.smtp.password', '');
+        $scheme   = config('mail.mailers.smtp.scheme', config('mail.mailers.smtp.encryption', ''));
+
+        $steps[] = [
+            'label' => 'Aktywny mailer (MAIL_MAILER)',
+            'ok'    => $mailer !== 'log',
+            'detail'=> $mailer . ($mailer === 'log' ? ' — ⚠ maile idą TYLKO do logów, nie są wysyłane!' : ' — OK'),
+        ];
+
+        // 2. Socket test (only for smtp)
+        if ($mailer === 'smtp' && $host) {
+            $socketOk    = false;
+            $socketError = '';
+            try {
+                $fp = @fsockopen(($scheme === 'ssl' || $scheme === 'smtps' ? 'ssl://' : '') . $host, $port, $errno, $errstr, 10);
+                if ($fp) {
+                    fclose($fp);
+                    $socketOk = true;
+                } else {
+                    $socketError = "errno={$errno}: {$errstr}";
+                }
+            } catch (Throwable $e) {
+                $socketError = $e->getMessage();
+            }
+            $steps[] = [
+                'label'  => "Połączenie TCP z {$host}:{$port}",
+                'ok'     => $socketOk,
+                'detail' => $socketOk ? 'Połączono pomyślnie' : ('Błąd: ' . $socketError),
+            ];
+        }
+
+        // 3. Send test mail (only if target provided)
+        if ($target) {
+            $sendOk    = false;
+            $sendError = '';
+            $elapsed   = 0;
+            try {
+                $t0 = microtime(true);
+                \Illuminate\Support\Facades\Mail::raw(
+                    'To jest testowa wiadomość z systemu ENESA. Jeśli ją widzisz — konfiguracja SMTP działa poprawnie.',
+                    function ($msg) use ($target) {
+                        $msg->to($target)
+                            ->subject('[ENESA] Test połączenia e-mail — ' . now()->format('Y-m-d H:i:s'));
+                    }
+                );
+                $elapsed = round((microtime(true) - $t0) * 1000);
+                $sendOk  = true;
+            } catch (Throwable $e) {
+                $sendError = $e->getMessage();
+                $elapsed   = round((microtime(true) - ($t0 ?? microtime(true))) * 1000);
+            }
+            $steps[] = [
+                'label'  => "Wysyłka testowego maila na {$target}",
+                'ok'     => $sendOk,
+                'detail' => $sendOk
+                    ? "✅ Wysłano pomyślnie ({$elapsed} ms) — sprawdź skrzynkę i folder SPAM"
+                    : "❌ Błąd ({$elapsed} ms): {$sendError}",
+            ];
+        }
+
+        return response()->json(['steps' => $steps]);
     }
 }
