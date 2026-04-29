@@ -6,7 +6,6 @@ use App\Models\ClientChatMessage;
 use App\Models\ClientInquiry;
 use App\Models\ClientRegistration;
 use App\Models\Company;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -52,22 +51,39 @@ class DashboardController extends Controller
             ->pluck('cnt', 'company_id');
 
         // ── AI token usage per company ─────────────────────────────────────
-        // Aggregates input/output tokens from ai_messages.metadata JSON
-        // joined through ai_conversations.user_id → companies.client_id
-        $tokenRows = DB::select(
-            "SELECT c.id AS company_id,
-                    COALESCE(SUM(CAST(json_extract(am.metadata, '$.input_tokens')  AS INTEGER)), 0) AS input_tokens,
-                    COALESCE(SUM(CAST(json_extract(am.metadata, '$.output_tokens') AS INTEGER)), 0) AS output_tokens
-             FROM companies c
-             LEFT JOIN users u              ON u.id  = c.client_id
-             LEFT JOIN ai_conversations ac  ON ac.user_id = u.id
-             LEFT JOIN ai_messages am       ON am.ai_conversation_id = ac.id AND am.role = 'assistant'
-             GROUP BY c.id"
-        );
+        // Load assistant messages with their conversations, then aggregate per company.
+        // Uses Eloquent (no raw JSON SQL) so it works on SQLite, MySQL and PostgreSQL.
+        $assistantMessages = \App\Models\AiMessage::where('role', 'assistant')
+            ->whereNotNull('metadata')
+            ->with('conversation:id,user_id')
+            ->get(['id', 'ai_conversation_id', 'metadata']);
 
-        $tokensByCompany = collect($tokenRows)->keyBy('company_id')->map(function ($row) {
-            $input  = (int) $row->input_tokens;
-            $output = (int) $row->output_tokens;
+        // Build user_id → company_id map from already-loaded $companies
+        $clientToCompany = $companies->filter(fn($c) => $c->client_id)
+            ->pluck('id', 'client_id'); // [user_id => company_id]
+
+        $tokensByCompany = collect();
+        foreach ($assistantMessages as $msg) {
+            $userId    = $msg->conversation?->user_id;
+            $companyId = $clientToCompany[$userId] ?? null;
+            if (!$companyId) continue;
+
+            $meta   = is_array($msg->metadata) ? $msg->metadata : [];
+            $input  = (int) ($meta['input_tokens']  ?? 0);
+            $output = (int) ($meta['output_tokens'] ?? 0);
+
+            if (!$tokensByCompany->has($companyId)) {
+                $tokensByCompany->put($companyId, ['input' => 0, 'output' => 0]);
+            }
+            $tokensByCompany[$companyId] = [
+                'input'  => $tokensByCompany[$companyId]['input']  + $input,
+                'output' => $tokensByCompany[$companyId]['output'] + $output,
+            ];
+        }
+
+        $tokensByCompany = $tokensByCompany->map(function ($row) {
+            $input   = $row['input'];
+            $output  = $row['output'];
             $costUsd = $input  * self::INPUT_COST_PER_TOKEN
                      + $output * self::OUTPUT_COST_PER_TOKEN;
             return [
