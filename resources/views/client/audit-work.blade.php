@@ -251,7 +251,24 @@
                         <span>Audytor ENESA</span>
                     </div>
                 </div>
-                <a href="{{ route('strefa-klienta') }}" class="aw-back">&larr; Strefa klienta</a>
+                <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end; flex-shrink:0;">
+                    <a href="{{ route('strefa-klienta') }}" class="aw-back">&larr; Strefa klienta</a>
+                    @if($audit->agent_type === 'compressor_room')
+                        <a href="{{ route('client.audit.compressor.questionnaire', $audit) }}"
+                           class="aw-back"
+                           style="color:#059669; font-size:12px;"
+                           title="Wróć do ankiety wstępnej i uzupełnij dane">
+                            📋 Edytuj ankietę sprężarkowni
+                        </a>
+                    @elseif($audit->agent_type === 'iso50001')
+                        <a href="{{ route('client.audit.iso.questionnaire', $audit) }}"
+                           class="aw-back"
+                           style="color:#059669; font-size:12px;"
+                           title="Wróć do kwestionariusza ISO 50001 i uzupełnij dane">
+                            📋 Edytuj kwestionariusz ISO 50001
+                        </a>
+                    @endif
+                </div>
             </div>
 
             {{-- Q&A pairs (history, excluding the last AI message which is "active") --}}

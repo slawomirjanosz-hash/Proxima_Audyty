@@ -145,7 +145,8 @@ Przeprowadź klienta przez wymagania systemu zarządzania energią zgodnie z nor
 WAŻNE: Jeśli w systemowym bloku "DANE ZEBRANE OD KLIENTA" są już odpowiedzi na pytania z poniższych
 etapów — POMIŃ te pytania. Pytaj tylko o brakujące informacje lub proś o doprecyzowanie
 gdy odpowiedź jest niepełna. Nie powtarzaj pytań które klient już wypełnił w kwestionariuszu
-lub formularzu krokowym.
+lub formularzu krokowym. Jeśli klient ma niekompletną ankietę, powiedz że może wrócić
+do kwestionariusza (przycisk "Edytuj kwestionariusz ISO 50001" widoczny nad rozmową).
 
 ETAP 1 — KONTEKST ORGANIZACJI (rozdział 4 normy):
 - Pytaj o: branżę i profil działalności firmy
@@ -203,6 +204,13 @@ SCRIPT;
 
 SKRYPT AUDYTU SPRĘŻARKOWNI:
 Przeprowadź klienta przez zbieranie danych niezbędnych do audytu energetycznego sprężarkowni.
+
+WAŻNE — DANE Z ANKIETY WSTĘPNEJ:
+Jeśli w bloku "DANE ZEBRANE OD KLIENTA" są już dane z ankiety sprężarkowni — TRAKTUJ JE JAKO ZNANE.
+NIE pytaj ponownie o żadne dane które tam widnieją (nawet przybliżone).
+Pytaj WYŁĄCZNIE o dane których tam brakuje lub które są niejasne/puste.
+Jeśli klient ma niekompletną ankietę, powiedz mu że może wrócić do ankiety i ją uzupełnić
+(przycisk "Edytuj ankietę sprężarkowni" widoczny nad rozmową).
 
 ETAP 1 — IDENTYFIKACJA INSTALACJI:
 - Pytaj o: liczbę i rodzaje sprężarek (śrubowe, tłokowe, odśrodkowe, spiralne)
@@ -878,11 +886,17 @@ SCRIPT;
 
         // Pierwsze przywitanie
         $greetingPrompt = match(app()->getLocale()) {
-            'en' => 'Greet the client briefly. Confirm you have their pre-filled questionnaire data and list the key facts you already know (company name, energy data, etc.). Then ask only ONE follow-up question about something NOT already in the questionnaire.',
-            'de' => 'Begrüßen Sie den Kunden kurz. Bestätigen Sie dass Sie die Fragebogendaten haben und nennen Sie die wichtigsten bekannten Fakten. Stellen Sie dann nur EINE Folgefrage zu etwas das NICHT im Fragebogen steht.',
-            'fr' => 'Saluez brièvement le client. Confirmez que vous avez ses données et listez les faits clés connus. Posez ensuite UNE SEULE question sur quelque chose qui n\'est PAS dans le questionnaire.',
-            'es' => 'Salude brevemente al cliente. Confirme que tiene sus datos y enumere los hechos clave ya conocidos. Luego haga solo UNA pregunta sobre algo que NO esté en el cuestionario.',
-            default => 'Przywitaj się z klientem. Potwierdź że masz dane z kwestionariusza — wymień najważniejsze fakty które już znasz (nazwa firmy, zużycie energii itp.). Następnie zadaj TYLKO JEDNO pytanie uzupełniające dotyczące czegoś czego NIE MA w kwestionariuszu. Absolutnie nie pytaj ponownie o dane które już zostały podane w kwestionariuszu.',
+            'en' => 'Greet the client briefly. Review the pre-filled questionnaire data in the system block "DANE ZEBRANE OD KLIENTA". Confirm what key facts you already have (list them concisely). Then identify what critical information is MISSING or incomplete — pick the single most important gap and ask ONLY that ONE question. Do NOT ask about data already provided.',
+            'de' => 'Begrüßen Sie den Kunden kurz. Prüfen Sie die Fragebogendaten im Block "DANE ZEBRANE OD KLIENTA". Bestätigen Sie die bekannten Schlüsselfakten (kurz auflisten). Identifizieren Sie dann die wichtigste fehlende Information und stellen Sie genau EINE Frage dazu.',
+            'fr' => 'Saluez brièvement le client. Examinez les données du questionnaire dans le bloc "DANE ZEBRANE OD KLIENTA". Confirmez les faits clés connus (liste concise). Identifiez ensuite le manque le plus important et posez UNE SEULE question à ce sujet.',
+            'es' => 'Salude al cliente brevemente. Revise los datos del cuestionario en el bloque "DANE ZEBRANE OD KLIENTA". Confirme los hechos clave conocidos (lista concisa). Luego identifique la información más importante que falta y haga solo UNA pregunta al respecto.',
+            default => implode(' ', [
+                'Przywitaj się z klientem.',
+                'Przejrzyj dane z bloku "DANE ZEBRANE OD KLIENTA" — jeśli blok istnieje, wymień klientowi konkretne kluczowe fakty które już posiadasz (np. moc sprężarek, ciśnienie robocze, zużycie energii).',
+                'Jeśli danych z ankiety brak lub są bardzo skąpe — powiedz o tym i wyjaśnij że można wrócić do ankiety i ją uzupełnić.',
+                'Następnie zidentyfikuj JEDNĄ najważniejszą brakującą lub niepełną informację i zadaj TYLKO to jedno pytanie.',
+                'Absolutnie nie pytaj ponownie o dane które już zostały podane. Nie wymieniaj listy pytań — tylko jedno.',
+            ]),
         };
 
         try {
