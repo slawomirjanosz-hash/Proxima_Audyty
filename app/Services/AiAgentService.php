@@ -816,12 +816,12 @@ SCRIPT;
             }
         }
 
-        // Wywołaj Claude przez Prism
-        $response = Prism::text()
+        // Wywołaj Claude przez Prism (z automatycznym retry przy rate limit)
+        $response = $this->withRetry(fn() => Prism::text()
             ->using(Provider::Anthropic, 'claude-haiku-4-5-20251001')
             ->withSystemPrompt($systemPrompt)
             ->withMessages($history)
-            ->generate();
+            ->generate());
 
         $assistantText = $response->text;
 
@@ -876,11 +876,11 @@ SCRIPT;
         };
 
         try {
-            $greeting = Prism::text()
+            $greeting = $this->withRetry(fn() => Prism::text()
                 ->using(Provider::Anthropic, 'claude-haiku-4-5-20251001')
                 ->withSystemPrompt($systemPrompt)
                 ->withPrompt($greetingPrompt)
-                ->generate();
+                ->generate());
 
             $greetingText = $greeting->text;
         } catch (\Throwable $e) {
@@ -1416,11 +1416,18 @@ PROMPT,
         return $assistantText;
     }
 
-    private function buildMessageHistory(AiConversation $conversation): array
+    private function buildMessageHistory(AiConversation $conversation, int $maxMessages = 40): array
     {
         $messages = [];
 
-        foreach ($conversation->messages()->orderBy('created_at')->get() as $msg) {
+        $allMsgs = $conversation->messages()->orderBy('created_at')->get();
+        // Limit context size to avoid rate-limit token spikes on long conversations.
+        // Keep first message (AI greeting) + the most recent (maxMessages-1) messages.
+        if ($allMsgs->count() > $maxMessages) {
+            $allMsgs = $allMsgs->take(1)->concat($allMsgs->slice(-($maxMessages - 1)));
+        }
+
+        foreach ($allMsgs as $msg) {
             $messages[] = match ($msg->role) {
                 'user'      => new UserMessage($msg->content),
                 'assistant' => new AssistantMessage($msg->content),
@@ -1429,6 +1436,44 @@ PROMPT,
         }
 
         return array_filter($messages);
+    }
+
+    /**
+     * Wraps a Prism generate() call with automatic retry on provider rate-limit errors.
+     * Sleeps for the requested seconds (capped at 30 s) and retries once.
+     */
+    private function withRetry(callable $fn, int $maxRetries = 1): mixed
+    {
+        $attempt = 0;
+        while (true) {
+            try {
+                return $fn();
+            } catch (\Throwable $e) {
+                $retryAfter = $this->parseRateLimitRetryAfter($e->getMessage());
+                if ($retryAfter !== null && $attempt < $maxRetries && $retryAfter <= 30) {
+                    $attempt++;
+                    \Log::info('AI rate limit — retrying after ' . $retryAfter . 's', ['attempt' => $attempt]);
+                    sleep($retryAfter + 1);
+                    continue;
+                }
+                throw $e;
+            }
+        }
+    }
+
+    /**
+     * Detects an Anthropic rate-limit error and parses the wait time.
+     * Returns seconds to wait, or null if not a rate-limit error.
+     */
+    private function parseRateLimitRetryAfter(string $message): ?int
+    {
+        if (!str_contains(strtolower($message), 'rate limit') && !str_contains($message, 'rate_limit')) {
+            return null;
+        }
+        if (preg_match('/retry after (\d+) seconds?/i', $message, $m)) {
+            return (int) $m[1];
+        }
+        return 15; // fallback: wait 15 s when no explicit time given
     }
 
     private function defaultTitle(string $contextType): string

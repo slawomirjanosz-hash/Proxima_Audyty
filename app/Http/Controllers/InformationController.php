@@ -74,6 +74,7 @@ class InformationController extends Controller
         return view('information.index', [
             'generationData'       => $this->getGenerationStructureSnapshot(),
             'toePricePln'          => $this->getToePricePln(),
+            'gasPricePln'          => $this->getGasPricePln(),
             'co2ElCombFactor'      => (int) SystemSetting::get('co2_el_comb_factor', '717'),
             'co2ElNatFactor'       => (int) SystemSetting::get('co2_el_nat_factor',  '552'),
             'co2ElYear'            => (string) SystemSetting::get('co2_el_year', '2024'),
@@ -254,6 +255,59 @@ class InformationController extends Controller
         $normalized = str_replace([' ', ','], ['', '.'], trim($raw));
 
         return is_numeric($normalized) ? (float) $normalized : 0.0;
+    }
+
+    private function getGasPricePln(): array
+    {
+        return Cache::remember('gas_price_pln_v1', now()->addHours(4), function (): array {
+            try {
+                // EUR/PLN from NBP open API
+                $nbp = Http::timeout(8)->get('https://api.nbp.pl/api/exchangerates/rates/a/eur/?format=json');
+                $eurPln = $nbp->successful()
+                    ? (float) ($nbp->json('rates.0.mid') ?? 4.25)
+                    : 4.25;
+
+                // TTF Natural Gas Futures (EUR/MWh) from Yahoo Finance
+                $gas = Http::timeout(10)
+                    ->withHeaders(['User-Agent' => 'Mozilla/5.0 (compatible; energy-calc/1.0)'])
+                    ->get('https://query1.finance.yahoo.com/v8/finance/chart/TTF=F', [
+                        'interval' => '1d',
+                        'range'    => '5d',
+                    ]);
+
+                $priceEurMwh = null;
+                if ($gas->successful()) {
+                    $priceEurMwh = $gas->json('chart.result.0.meta.regularMarketPrice');
+                }
+
+                if (! is_numeric($priceEurMwh)) {
+                    return [
+                        'ok'        => false,
+                        'eurPln'    => round($eurPln, 4),
+                        'fetchedAt' => now('Europe/Warsaw')->toDateTimeString(),
+                        'message'   => 'Brak danych o cenie gazu TTF.',
+                    ];
+                }
+
+                // 1 MWh = 3.6 GJ → PLN/GJ = (EUR/MWh × EUR/PLN) / 3.6
+                $priceGjPln = round((float) $priceEurMwh * $eurPln / 3.6, 2);
+
+                return [
+                    'ok'          => true,
+                    'priceEurMwh' => round((float) $priceEurMwh, 2),
+                    'eurPln'      => round($eurPln, 4),
+                    'priceGjPln'  => $priceGjPln,
+                    'source'      => 'Yahoo Finance (TTF) / NBP',
+                    'fetchedAt'   => now('Europe/Warsaw')->toDateTimeString(),
+                ];
+            } catch (Throwable $e) {
+                return [
+                    'ok'        => false,
+                    'fetchedAt' => now('Europe/Warsaw')->toDateTimeString(),
+                    'message'   => 'Błąd pobierania danych: ' . $e->getMessage(),
+                ];
+            }
+        });
     }
 
     private function getToePricePln(): array

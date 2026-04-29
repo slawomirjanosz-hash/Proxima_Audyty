@@ -34,7 +34,7 @@
         .sec-badge { display:inline-block; font-size:11px; font-weight:700; padding:3px 9px; border-radius:6px; font-family:inherit; }
         .sec-badge-ok  { background:#bae6fd; color:#0369a1; }
         .sec-badge-warn { background:#fef3c7; border:1px solid #fbbf24; color:#92400e; }
-        .btn-sm { padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; text-decoration:none; border:none; cursor:pointer; }
+        .btn-sm { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; text-decoration:none; border:none; cursor:pointer; line-height:1; white-space:nowrap; }
         .btn-primary-sm { background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; }
         .btn-secondary-sm { background:#dbe9f5; color:#1d4f73; }
         .btn-danger-sm { background:#fee2e2; color:#991b1b; }
@@ -63,7 +63,7 @@
         .field-sm input, .field-sm select { padding:8px 10px; border:1px solid #c8d8e6; border-radius:8px; font-size:13px; background:#f8fbfd; min-width:160px; }
         .credential-box { background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:14px 16px; }
         .credential-box.has { background:#f0f9ff; border-color:#bae6fd; }
-        .user-row { display:grid; grid-template-columns:auto 1fr auto auto auto; gap:12px; align-items:center; padding:10px 14px; border:1px solid #d5e0ea; border-radius:11px; background:#f8fbfd; margin-bottom:8px; }
+        .user-row { display:grid; grid-template-columns:auto 1fr auto auto; gap:12px; align-items:center; padding:10px 14px; border:1px solid #d5e0ea; border-radius:11px; background:#f8fbfd; margin-bottom:8px; }
         .user-row:hover { background:#eef6ff; }
         .user-avatar { width:38px; height:38px; border-radius:50%; background:linear-gradient(130deg,#0e89d8,#1ba84a); color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; flex-shrink:0; }
         .role-badge { display:inline-block; padding:3px 9px; border-radius:6px; font-size:11px; font-weight:700; }
@@ -207,18 +207,17 @@
                         <div>
                             <span class="role-badge role-{{ $roleVal }}">{{ $roleLabel }}</span>
                         </div>
-                        <div>
+                        <div style="display:flex; gap:6px; align-items:center;">
                             <button type="button"
                                 class="btn-sm"
                                 style="background:#fff8e1; color:#92400e; border:1px solid #fde68a;"
                                 onclick="openMailModal({{ $u->id }}, '{{ addslashes($u->name) }}', '{{ addslashes($u->email) }}')"
-                            >📧 Wyślij mail</button>
-                        </div>
-                        <div>
+                            ><span>✉</span> Wyślij mail</button>
                             <button type="button"
                                 class="btn-sm btn-danger-sm"
+                                style="border:1px solid #fca5a5;"
                                 onclick="openRemoveModal({{ $u->id }}, '{{ addslashes($u->name) }}')"
-                            >Usuń dostęp</button>
+                            >✕ Usuń dostęp</button>
                         </div>
                     </div>
                 @endforeach

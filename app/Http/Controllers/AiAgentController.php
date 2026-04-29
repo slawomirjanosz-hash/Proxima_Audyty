@@ -105,10 +105,21 @@ class AiAgentController extends Controller
                 'line'      => $e->getLine(),
             ]);
 
+            $msg         = $e->getMessage();
+            $isRateLimit = str_contains(strtolower($msg), 'rate limit') || str_contains($msg, 'rate_limit');
+            $retryAfter  = null;
+            if ($isRateLimit && preg_match('/retry after (\d+) seconds?/i', $msg, $m)) {
+                $retryAfter = (int) $m[1];
+            }
+
             return response()->json([
-                'success' => false,
-                'error'   => 'Błąd połączenia z asystentem: ' . $e->getMessage(),
-            ], 500);
+                'success'      => false,
+                'rate_limited' => $isRateLimit,
+                'retry_after'  => $retryAfter ?? ($isRateLimit ? 30 : null),
+                'error'        => $isRateLimit
+                    ? 'Asystent jest chwilowo przeci\u0105\u017cony (limit API). Ponawianie za ' . ($retryAfter ?? 30) . ' sekund.'
+                    : 'B\u0142\u0105d po\u0142\u0105czenia z asystentem.',
+            ], $isRateLimit ? 429 : 500);
         }
     }
 
@@ -284,6 +295,35 @@ class AiAgentController extends Controller
         $filename = 'protokol-' . str($aiConversation->title)->slug() . '-' . $aiConversation->id . '.pdf';
 
         return $pdf->download($filename);
+    }
+
+    /**
+     * Podgląd protokołu inline (do wyświetlenia w przeglądarce/iframe).
+     */
+    public function streamPdf(AiConversation $aiConversation)
+    {
+        abort_unless($this->canAccessConversation($aiConversation), 403);
+
+        if (empty($aiConversation->protocol_data)) {
+            return redirect()->route('ai.protocol', $aiConversation)
+                ->with('error', 'Najpierw wygeneruj protokół.');
+        }
+
+        $context = $aiConversation->contextModel();
+        $company = null;
+        if ($context && method_exists($context, 'company')) {
+            $company = $context->company;
+        }
+
+        $pdf = Pdf::loadView('ai.protocol-pdf', [
+            'conversation' => $aiConversation,
+            'protocol'     => $aiConversation->protocol_data,
+            'company'      => $company,
+        ])->setPaper('a4');
+
+        $filename = 'protokol-' . str($aiConversation->title)->slug() . '-' . $aiConversation->id . '.pdf';
+
+        return $pdf->stream($filename);
     }
 
     /**

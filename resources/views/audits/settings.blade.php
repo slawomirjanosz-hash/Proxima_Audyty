@@ -81,6 +81,7 @@
                     @endif
                 </h1>
             </div>
+            <a href="{{ route('ai.index') }}" class="btn-secondary" style="text-decoration:none; padding:8px 14px; border-radius:9px; font-weight:700; font-size:13px; display:inline-flex; align-items:center; gap:6px;">🤖 Pokaż wszystkie rozmowy</a>
         </div>
 
         <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;">

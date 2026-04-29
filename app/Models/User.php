@@ -38,6 +38,7 @@ class User extends Authenticatable
         'position',
         'password',
         'role',
+        'also_auditor',
         'company_id',
         'tab_permissions',
     ];
@@ -63,6 +64,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
+            'also_auditor' => 'boolean',
             'tab_permissions' => 'array',
         ];
     }
@@ -161,7 +163,8 @@ class User extends Authenticatable
 
     public function isAuditor(): bool
     {
-        return $this->role === UserRole::Auditor;
+        return $this->role === UserRole::Auditor
+            || ($this->role === UserRole::Admin && (bool) $this->also_auditor);
     }
 
     public function isClient(): bool

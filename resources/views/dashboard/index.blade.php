@@ -155,6 +155,34 @@
         .st-inquiry  { background:#fef3c7; color:#92400e; }
         .st-chat     { background:#e0f2fe; color:#0369a1; }
         .co-empty { text-align:center; padding:24px; color:#9ab4c5; font-size:13px; }
+        /* ── AI token stats ───────────────────────────────────────── */
+        .ai-summary-bar {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap:10px;
+            margin-top:14px;
+            padding:14px 16px;
+            background:linear-gradient(135deg,#f0f4ff 0%,#e8f5e9 100%);
+            border:1px solid #c7d8f5;
+            border-radius:14px;
+        }
+        .ai-stat { text-align:center; }
+        .ai-stat-val { font-size:18px; font-weight:800; color:#1a3a5c; line-height:1.2; }
+        .ai-stat-lbl { font-size:11px; color:#5a7390; margin-top:2px; }
+        .ai-token-badge {
+            display:inline-flex;
+            align-items:center;
+            gap:3px;
+            background:#eef2ff;
+            border:1px solid #c7d4f8;
+            color:#3a4dbf;
+            font-size:10px;
+            font-weight:700;
+            padding:2px 6px;
+            border-radius:5px;
+            white-space:nowrap;
+        }
+        .ai-token-badge.zero { background:#f5f5f5; border-color:#e0e0e0; color:#bbb; }
     </style>
 
     <section class="panel">
@@ -167,6 +195,37 @@
                 {{ $companies->count() }} {{ $companies->count() === 1 ? 'firma' : ($companies->count() < 5 ? 'firmy' : 'firm') }}
             </div>
         </div>
+
+        @if ($aiSummary['total'] > 0)
+        <div class="ai-summary-bar">
+            <div class="ai-stat">
+                <div class="ai-stat-val">{{ number_format($aiSummary['total']) }}</div>
+                <div class="ai-stat-lbl">🤖 Tokeny AI łącznie</div>
+            </div>
+            <div class="ai-stat">
+                <div class="ai-stat-val">{{ number_format($aiSummary['input']) }}</div>
+                <div class="ai-stat-lbl">⬆ Tokeny wejściowe</div>
+            </div>
+            <div class="ai-stat">
+                <div class="ai-stat-val">{{ number_format($aiSummary['output']) }}</div>
+                <div class="ai-stat-lbl">⬇ Tokeny wyjściowe</div>
+            </div>
+            <div class="ai-stat">
+                <div class="ai-stat-val">${{ number_format($aiSummary['cost_usd'], 4) }}</div>
+                <div class="ai-stat-lbl">💵 Koszt USD (szacunek)</div>
+            </div>
+            <div class="ai-stat">
+                <div class="ai-stat-val">{{ number_format($aiSummary['cost_pln'], 2) }} zł</div>
+                <div class="ai-stat-lbl">💰 Koszt PLN (~3,85 USD/PLN)</div>
+            </div>
+            <div class="ai-stat" style="align-self:center;">
+                <div style="font-size:10px; color:#8a9bbf; line-height:1.5;">
+                    Model: Claude Haiku 4.5<br>
+                    $0.80/1M in · $4.00/1M out
+                </div>
+            </div>
+        </div>
+        @endif
 
         @if ($orphanInquiries > 0)
             <div class="orphan-card">
@@ -275,6 +334,7 @@
                                     elseif ($unreadChat > 0)   $tileClass = 'has-unread-chat';
                                     else                       $tileClass = '';
                                     $coSearch = strtolower($company->name . ' ' . ($company->city ?? '') . ' ' . ($company->auditor?->name ?? '') . ' ' . ($company->client?->name ?? ''));
+                                    $compTokens = $tokensByCompany[$company->id] ?? null;
                                 @endphp
                                 <a href="{{ route('firma.show', $company) }}"
                                    class="company-tile {{ $tileClass }} co-tile-item"
@@ -303,6 +363,11 @@
                                         @endif
                                         @if ($auditCount > 0)
                                             <span>📋 {{ $auditCount }} {{ $auditCount === 1 ? 'audyt' : ($auditCount < 5 ? 'audyty' : 'audytów') }}</span>
+                                        @endif
+                                        @if ($compTokens && $compTokens['total'] > 0)
+                                            <span>
+                                                <span class="ai-token-badge">🤖 {{ number_format($compTokens['total']) }} tok · {{ number_format($compTokens['cost_pln'], 2) }} zł</span>
+                                            </span>
                                         @endif
                                     </div>
                                     @if ($acceptedCount > 0)
@@ -335,6 +400,7 @@
                                     <th class="sortable" data-col="3" onclick="sortCoTable(3)">Opiekun</th>
                                     <th class="sortable" data-col="4" onclick="sortCoTable(4)">Klient</th>
                                     <th class="sortable" data-col="5" onclick="sortCoTable(5)" style="text-align:center;">Audyty</th>
+                                    <th class="sortable" data-col="6" onclick="sortCoTable(6)" style="text-align:right;">Tokeny AI</th>
                                     <th>Akcja</th>
                                 </tr>
                             </thead>
@@ -347,6 +413,7 @@
                                         $auditCount    = $company->energyAudits->count();
                                         $statusPrio    = $acceptedCount > 0 ? 3 : ($inquiryCount > 0 ? 2 : ($unreadChat > 0 ? 1 : 0));
                                         $coSearch = strtolower($company->name . ' ' . ($company->city ?? '') . ' ' . ($company->auditor?->name ?? '') . ' ' . ($company->client?->name ?? ''));
+                                        $compTokens = $tokensByCompany[$company->id] ?? null;
                                     @endphp
                                     <tr class="co-row" data-search="{{ $coSearch }}">
                                         <td data-val="{{ $statusPrio }}">
@@ -365,6 +432,14 @@
                                         <td data-val="{{ $company->auditor?->name ?? '' }}">{{ $company->auditor?->name ?? '—' }}</td>
                                         <td data-val="{{ $company->client?->name ?? '' }}">{{ $company->client?->name ?? '—' }}</td>
                                         <td data-val="{{ $auditCount }}" style="text-align:center; color:{{ $auditCount > 0 ? '#0f2330' : '#c5d4df' }};">{{ $auditCount ?: '—' }}</td>
+                                        <td data-val="{{ $compTokens ? $compTokens['total'] : 0 }}" style="text-align:right;">
+                                            @if ($compTokens && $compTokens['total'] > 0)
+                                                <span class="ai-token-badge">{{ number_format($compTokens['total']) }}</span><br>
+                                                <span style="font-size:10px; color:#6b8294;">{{ number_format($compTokens['cost_pln'], 2) }} zł</span>
+                                            @else
+                                                <span class="ai-token-badge zero">—</span>
+                                            @endif
+                                        </td>
                                         <td><a href="{{ route('firma.show', $company) }}" class="co-row-link">Otwórz →</a></td>
                                     </tr>
                                 @endforeach

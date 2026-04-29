@@ -204,6 +204,54 @@
             scrollBottom();
         }
 
+        var _rlPending = false;
+        var _rlTimer   = null;
+
+        function showRateLimitCountdown(seconds, retryMessage) {
+            if (_rlTimer) clearInterval(_rlTimer);
+            var rem = seconds;
+            _rlPending = true;
+            sendBtn.disabled = true;
+            messageInput.disabled = true;
+            typingIndicator.textContent = 'Limit API \u2014 ponawianie za ' + rem + 's\u2026';
+            typingIndicator.classList.add('visible');
+            _rlTimer = setInterval(async function () {
+                rem--;
+                if (rem > 0) {
+                    typingIndicator.textContent = 'Limit API \u2014 ponawianie za ' + rem + 's\u2026';
+                    return;
+                }
+                clearInterval(_rlTimer); _rlTimer = null;
+                typingIndicator.textContent = 'Asystent AI \u2026';
+                messageInput.disabled = false;
+                try {
+                    const res = await fetch('/ai/' + conversationId + '/wiadomosc', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                        body: JSON.stringify({ message: retryMessage }),
+                    });
+                    const d = await res.json();
+                    typingIndicator.classList.remove('visible');
+                    if (d.success) {
+                        addMessage('assistant', d.response);
+                    } else if (d.rate_limited) {
+                        showRateLimitCountdown(d.retry_after || 30, retryMessage);
+                        return;
+                    } else {
+                        addMessage('assistant', '\u26a0\ufe0f ' + (d.error || 'Wyst\u0105pi\u0142 b\u0142\u0105d.'));
+                    }
+                } catch (e2) {
+                    typingIndicator.classList.remove('visible');
+                    addMessage('assistant', '\u26a0\ufe0f B\u0142\u0105d po\u0142\u0105czenia. Spr\u00f3buj ponownie.');
+                } finally {
+                    _rlPending = false;
+                    sendBtn.disabled = false;
+                    messageInput.disabled = false;
+                    messageInput.focus();
+                }
+            }, 1000);
+        }
+
         async function sendMessage() {
             if (selectedFile) { await sendFile(); return; }
 
@@ -234,15 +282,19 @@
 
                 if (data.success) {
                     addMessage('assistant', data.response);
+                } else if (data.rate_limited) {
+                    showRateLimitCountdown(data.retry_after || 30, text);
                 } else {
-                    addMessage('assistant', String.fromCodePoint(0x26A0,0xFE0F) + ' ' + (data.error || 'Wystapil blad.'));
+                    addMessage('assistant', '\u26a0\ufe0f ' + (data.error || 'Wyst\u0105pi\u0142 b\u0142\u0105d.'));
                 }
             } catch (e) {
                 typingIndicator.classList.remove('visible');
-                addMessage('assistant', String.fromCodePoint(0x26A0,0xFE0F) + ' Blad polaczenia. Sprawdz internet i sprobuj ponownie.');
+                addMessage('assistant', '\u26a0\ufe0f B\u0142\u0105d po\u0142\u0105czenia. Sprawd\u017a internet i spr\u00f3buj ponownie.');
             } finally {
-                sendBtn.disabled = false;
-                messageInput.focus();
+                if (!_rlPending) {
+                    sendBtn.disabled = false;
+                    messageInput.focus();
+                }
             }
         }
 

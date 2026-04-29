@@ -393,6 +393,59 @@
         }
     });
 
+    var _awRlPending = false;
+    var _awRlTimer   = null;
+
+    function awShowRateLimitCountdown(seconds, retryAnswer) {
+        if (_awRlTimer) clearInterval(_awRlTimer);
+        var rem = seconds;
+        _awRlPending = true;
+        sendBtn.disabled = true;
+        answerEl.disabled = true;
+        thinkingEl.textContent = 'Limit API \u2014 ponawianie za ' + rem + 's\u2026';
+        thinkingEl.classList.add('visible');
+        activeWrap.style.display = 'none';
+        _awRlTimer = setInterval(async function () {
+            rem--;
+            if (rem > 0) {
+                thinkingEl.textContent = 'Limit API \u2014 ponawianie za ' + rem + 's\u2026';
+                return;
+            }
+            clearInterval(_awRlTimer); _awRlTimer = null;
+            thinkingEl.textContent = 'Asystent AI \u2026';
+            answerEl.disabled = false;
+            try {
+                const res2 = await fetch(`/ai/${conversationId}/wiadomosc`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                    body: JSON.stringify({ message: retryAnswer }),
+                });
+                const d2 = await res2.json();
+                thinkingEl.classList.remove('visible');
+                if (d2.response) {
+                    activeText.textContent = d2.response;
+                    activeWrap.style.display = '';
+                    if (isCompletionMessage(d2.response)) showFinishButton();
+                } else if (d2.rate_limited) {
+                    awShowRateLimitCountdown(d2.retry_after || 30, retryAnswer);
+                    return;
+                } else {
+                    activeText.textContent = d2.error || 'B\u0142\u0105d asystenta. Spr\u00f3buj ponownie.';
+                    activeWrap.style.display = '';
+                }
+            } catch (err2) {
+                thinkingEl.classList.remove('visible');
+                activeText.textContent = 'B\u0142\u0105d po\u0142\u0105czenia. Spr\u00f3buj ponownie.';
+                activeWrap.style.display = '';
+            } finally {
+                _awRlPending = false;
+                sendBtn.disabled = false;
+                answerEl.disabled = false;
+                answerEl.focus();
+            }
+        }, 1000);
+    }
+
     async function sendAnswer() {
         const answer = answerEl.value.trim();
         if (!answer) return;
@@ -437,19 +490,23 @@
                 if (isCompletionMessage(data.response)) {
                     showFinishButton();
                 }
+            } else if (data.rate_limited) {
+                awShowRateLimitCountdown(data.retry_after || 30, answer);
             } else if (!data.success) {
-                activeText.textContent = data.error || 'Błąd asystenta. Odśwież stronę i spróbuj ponownie.';
+                activeText.textContent = data.error || 'B\u0142\u0105d asystenta. Od\u015bwie\u017c stron\u0119 i spr\u00f3buj ponownie.';
                 activeWrap.style.display = '';
             }
 
         } catch (err) {
             thinkingEl.classList.remove('visible');
-            activeText.textContent = 'Wystąpił błąd komunikacji z asystentem. Odśwież stronę i spróbuj ponownie.';
+            activeText.textContent = 'Wyst\u0105pi\u0142 b\u0142\u0105d komunikacji z asystentem. Od\u015bwie\u017c stron\u0119 i spr\u00f3buj ponownie.';
             activeWrap.style.display = '';
         } finally {
-            sendBtn.disabled = false;
-            answerEl.disabled = false;
-            answerEl.focus();
+            if (!_awRlPending) {
+                sendBtn.disabled = false;
+                answerEl.disabled = false;
+                answerEl.focus();
+            }
         }
     }
 

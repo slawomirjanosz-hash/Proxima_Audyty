@@ -131,14 +131,21 @@ class CompanyController extends Controller
         $company->assignedUsers()->syncWithoutDetaching([$user->id]);
 
         // Send welcome e-mail with login credentials
+        $mailError = null;
         try {
             Mail::to($user->email)->send(new WelcomeClientMail($user, $company, $plainPassword));
-        } catch (\Throwable) {
-            // Mail failure should not block the registration
+        } catch (\Throwable $e) {
+            report($e);
+            $mailError = $e->getMessage();
+        }
+
+        $statusMsg = 'Dane do logowania zostały utworzone i przypisane do firmy.';
+        if ($mailError) {
+            $statusMsg .= ' ⚠ Nie udało się wysłać e-maila: ' . $mailError;
         }
 
         return redirect()->route('firma.show', $company)
-            ->with('status', 'Dane do logowania zostaly utworzone i przypisane do firmy.');
+            ->with('status', $statusMsg);
     }
 
     public function showAudit(Company $company, EnergyAudit $audit): View
@@ -243,14 +250,21 @@ class CompanyController extends Controller
 
         $company->assignedUsers()->syncWithoutDetaching([$user->id]);
 
+        $mailError = null;
         try {
             Mail::to($user->email)->send(new WelcomeClientMail($user, $company, $plainPassword));
-        } catch (\Throwable) {
-            // Mail failure must not block user creation
+        } catch (\Throwable $e) {
+            report($e);
+            $mailError = $e->getMessage();
+        }
+
+        $statusMsg = 'Nowy użytkownik ' . $user->name . ' został utworzony i przypisany do firmy.';
+        if ($mailError) {
+            $statusMsg .= ' ⚠ Nie udało się wysłać e-maila: ' . $mailError;
         }
 
         return redirect()->route('firma.show', $company)
-            ->with('status', 'Nowy użytkownik ' . $user->name . ' został utworzony i przypisany do firmy.');
+            ->with('status', $statusMsg);
     }
 
     public function removeUser(Company $company, User $user): RedirectResponse

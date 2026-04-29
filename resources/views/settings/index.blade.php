@@ -159,6 +159,9 @@
                                     <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;background:#eaf2ff;color:#154f93;letter-spacing:.5px;text-transform:uppercase;">
                                         {{ $user->role->label() }}
                                     </span>
+                                    @if($user->role === \App\Enums\UserRole::Admin && $user->also_auditor)
+                                        <span style="font-size:11px;font-weight:700;padding:3px 7px;border-radius:6px;background:#d1fae5;color:#065f46;letter-spacing:.5px;text-transform:uppercase;margin-left:4px;">+ Audytor</span>
+                                    @endif
                                 </td>
                                 <td style="white-space:nowrap;">
                                     @if($canManage)
@@ -215,11 +218,15 @@
                                                     </div>
                                                     <div style="flex:1; min-width:90px;">
                                                         <label for="role-{{ $user->id }}" style="display:block; font-size:11px; font-weight:700; color:#4c6373; margin-bottom:3px;">{{ __('ui.settings.users.role_label') }}</label>
-                                                        <select id="role-{{ $user->id }}" name="role" style="width:100%;">
+                                                        <select id="role-{{ $user->id }}" name="role" style="width:100%;" onchange="toggleAlsoAuditor({{ $user->id }}, this.value)">
                                                             @foreach ([\App\Enums\UserRole::Admin, \App\Enums\UserRole::Auditor, \App\Enums\UserRole::Client] as $role)
                                                                 <option value="{{ $role->value }}" @selected($user->role === $role)>{{ $role->label() }}</option>
                                                             @endforeach
                                                         </select>
+                                                    </div>
+                                                    <div id="also-auditor-wrap-{{ $user->id }}" style="flex:0 0 auto; align-self:flex-end; padding-bottom:6px; display:{{ $user->role === \App\Enums\UserRole::Admin ? 'flex' : 'none' }}; align-items:center; gap:5px;">
+                                                        <input type="checkbox" id="also-auditor-{{ $user->id }}" name="also_auditor" value="1" @checked(old('also_auditor', $user->also_auditor))>
+                                                        <label for="also-auditor-{{ $user->id }}" style="font-size:11px; font-weight:700; color:#065f46; cursor:pointer; white-space:nowrap;">Pełni też rolę audytora</label>
                                                     </div>
                                                 </div>
 
@@ -739,6 +746,16 @@
     <script>
         function toggleAcc(id) {
             document.getElementById(id).classList.toggle('open');
+        }
+
+        function toggleAlsoAuditor(userId, roleValue) {
+            const wrap = document.getElementById('also-auditor-wrap-' + userId);
+            if (!wrap) return;
+            wrap.style.display = roleValue === 'admin' ? 'flex' : 'none';
+            if (roleValue !== 'admin') {
+                const cb = document.getElementById('also-auditor-' + userId);
+                if (cb) cb.checked = false;
+            }
         }
 
         function toggleUserEditor(userId) {

@@ -93,7 +93,13 @@ class SettingsController extends Controller
             ->orderBy('name')
             ->get();
         $companies = Company::with(['auditor', 'assignedUsers'])->orderBy('name')->get();
-        $auditors = User::whereIn('role', [UserRole::Auditor->value, UserRole::Admin->value])->orderBy('name')->get();
+        $auditors = User::where(function ($q) {
+            $q->where('role', UserRole::Auditor->value)
+              ->orWhere(function ($q2) {
+                  $q2->where('role', UserRole::Admin->value)
+                     ->where('also_auditor', true);
+              });
+        })->orderBy('name')->get();
         $admins = User::where('role', UserRole::Admin->value)->orderBy('name')->get();
         $clients = User::where('role', UserRole::Client)->orderBy('name')->get();
 
@@ -213,6 +219,7 @@ class SettingsController extends Controller
                 UserRole::Auditor->value,
                 UserRole::Client->value,
             ])],
+            'also_auditor' => ['nullable', 'boolean'],
             'tabs' => ['array'],
             'tabs.*' => ['nullable', 'boolean'],
         ]);
@@ -250,6 +257,9 @@ class SettingsController extends Controller
             'name' => $computedName,
             'email' => $validated['email'],
             'role' => $validated['role'],
+            'also_auditor' => $validated['role'] === UserRole::Admin->value
+                ? (bool) ($validated['also_auditor'] ?? false)
+                : false,
             'tab_permissions' => $permissions,
             'short_name' => $shortName,
         ];

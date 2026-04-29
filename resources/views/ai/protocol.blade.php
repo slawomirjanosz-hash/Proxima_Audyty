@@ -37,11 +37,11 @@
                     </button>
                 </form>
                 @if(!empty($protocol))
-                    <button type="button" onclick="openPdfModal('{{ route('ai.protocol.preview', $conversation) }}')"
+                    <button type="button" onclick="openPdfModal('{{ route('ai.protocol.stream', $conversation) }}')"
                        style="padding:7px 14px;border-radius:9px;font-size:13px;font-weight:600;background:#f0f4f8;color:#1d4f73;border:1px solid #c5d8ea;cursor:pointer;">
                         👁 Podgląd PDF
                     </button>
-                    <a href="{{ route('ai.protocol.pdf', $conversation) }}" class="btn-pdf">
+                    <a href="{{ route('ai.protocol.pdf', $conversation) }}" class="btn-pdf" target="_blank">
                         📥 Pobierz PDF
                     </a>
                 @endif

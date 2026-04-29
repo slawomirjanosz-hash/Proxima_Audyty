@@ -466,6 +466,7 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/{aiConversation}/rekomendacje', [AiAgentController::class, 'generateRecommendations'])->name('recommendations.generate');
         Route::get('/{aiConversation}/protokol', [AiAgentController::class, 'protocol'])->name('protocol');
         Route::get('/{aiConversation}/protokol/pdf', [AiAgentController::class, 'downloadPdf'])->name('protocol.pdf');
+        Route::get('/{aiConversation}/protokol/stream', [AiAgentController::class, 'streamPdf'])->name('protocol.stream');
         Route::get('/{aiConversation}/protokol/podglad', [AiAgentController::class, 'previewPdf'])->name('protocol.preview');
     });
 });
