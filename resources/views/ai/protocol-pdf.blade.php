@@ -1,8 +1,14 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
     <style>
+        /* ── PRINT PAGE SETUP ── */
+        @page {
+            size: A4 portrait;
+            margin: 22mm 18mm 28mm 22mm;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
@@ -10,6 +16,7 @@
             font-size: 9.5pt;
             color: #0f2330;
             background: #ffffff;
+            line-height: 1.5;
         }
 
         /* â”€â”€ HEADER â”€â”€ */
@@ -201,9 +208,7 @@
         .sig-label { font-size: 7.5pt; color: #6b8aa3; text-align: center; letter-spacing: 0.5px; }
 
         /* â”€â”€ FOOTER â”€â”€ */
-        .page-footer {
-            position: fixed;
-            bottom: 0;
+        .page-footer { position: fixed; bottom: -16mm;
             left: 0;
             right: 0;
             border-top: 1px solid #d5e0ea;
@@ -217,6 +222,19 @@
         }
         table.footer-tbl td.f-right { text-align: right; }
         table.footer-tbl td.f-center { text-align: center; color: #9ab4c5; }
+        /* -- PAGE BREAK RULES -- */
+        .section-title { page-break-after: avoid; }
+        table.data, table.client-data { page-break-inside: auto; }
+        table.data tr, table.client-data tr { page-break-inside: avoid; page-break-after: auto; }
+        .signature-block { page-break-inside: avoid; }
+        .remarks { page-break-inside: avoid; }
+    
+        /* -- PAGE BREAK RULES -- */
+        .section-title { page-break-after: avoid; }
+        table.data, table.client-data { page-break-inside: auto; }
+        table.data tr, table.client-data tr { page-break-inside: avoid; }
+        .signature-block { page-break-inside: avoid; }
+        .remarks { page-break-inside: avoid; }
     </style>
 </head>
 <body>

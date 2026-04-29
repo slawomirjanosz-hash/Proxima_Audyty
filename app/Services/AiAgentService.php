@@ -805,12 +805,17 @@ SCRIPT;
         // Zbuduj historię dla Prisma
         $history = $this->buildMessageHistory($conversation);
 
-        // Build system prompt — inject questionnaire answers for iso50001 context
+        // Build system prompt — inject questionnaire answers when available
         $contextType = $conversation->context_type ?? 'general';
         $systemPrompt = $this->getSystemPrompt($contextType);
-        if ($contextType === 'iso50001' && $conversation->context_id !== null) {
-            $auditWithQuestionnaire = \App\Models\Iso50001Audit::find($conversation->context_id)
-                ?? \App\Models\EnergyAudit::find($conversation->context_id);
+        if ($conversation->context_id !== null) {
+            $auditWithQuestionnaire = null;
+            if ($contextType === 'iso50001') {
+                $auditWithQuestionnaire = \App\Models\Iso50001Audit::find($conversation->context_id)
+                    ?? \App\Models\EnergyAudit::find($conversation->context_id);
+            } elseif (in_array($contextType, ['compressor_room', 'energy_audit', 'boiler_room', 'drying_room', 'buildings', 'technological_processes'], true)) {
+                $auditWithQuestionnaire = \App\Models\EnergyAudit::find($conversation->context_id);
+            }
             if ($auditWithQuestionnaire && ! empty($auditWithQuestionnaire->questionnaire_answers)) {
                 $systemPrompt .= $this->buildQuestionnaireContext($auditWithQuestionnaire);
             }
@@ -856,11 +861,16 @@ SCRIPT;
             'status'       => 'active',
         ]);
 
-        // Build system prompt — inject questionnaire answers for iso50001 context
+        // Build system prompt — inject questionnaire answers when available
         $systemPrompt = $this->getSystemPrompt($contextType);
-        if ($contextType === 'iso50001' && $contextId !== null) {
-            $auditWithQuestionnaire = \App\Models\Iso50001Audit::find($contextId)
-                ?? \App\Models\EnergyAudit::find($contextId);
+        if ($contextId !== null) {
+            $auditWithQuestionnaire = null;
+            if ($contextType === 'iso50001') {
+                $auditWithQuestionnaire = \App\Models\Iso50001Audit::find($contextId)
+                    ?? \App\Models\EnergyAudit::find($contextId);
+            } elseif (in_array($contextType, ['compressor_room', 'energy_audit', 'boiler_room', 'drying_room', 'buildings', 'technological_processes'], true)) {
+                $auditWithQuestionnaire = \App\Models\EnergyAudit::find($contextId);
+            }
             if ($auditWithQuestionnaire && ! empty($auditWithQuestionnaire->questionnaire_answers)) {
                 $systemPrompt .= $this->buildQuestionnaireContext($auditWithQuestionnaire);
             }
@@ -938,10 +948,68 @@ SCRIPT;
         $sections = [];
         $companyName = '';
 
+        // ── Etykiety dla ankiety sprężarkowni ─────────────────────────────────
+        $compressorLabels = [
+            'REQ-00-IMIE'  => 'Imię i nazwisko',
+            'REQ-00-STAN'  => 'Stanowisko',
+            'REQ-00-DZIAL' => 'Dział',
+            'REQ-00-ZAKLAD'=> 'Zakład / lokalizacja',
+            'CTX-01-BR'    => 'Branża',
+            'CTX-02-ZM'    => 'Liczba zmian',
+            'CTX-03-DNI'   => 'Dni robocze/rok',
+            'CTX-04-KRYT'  => 'Procesy krytyczne',
+            'CTX-05-PLAN'  => 'Plany inwestycyjne',
+            'E3-PCIS'      => 'Ciśnienie robocze [bar]',
+            'E3-PMIN'      => 'Min. ciśnienie u odbiorców [bar]',
+            'E3-SFC'       => 'Jednostkowy pobór mocy SFC [kW/(m³/min)]',
+            'E3-EE'        => 'Roczne zużycie energii [kWh/rok]',
+            'E3-KOST'      => 'Koszt energii [zł/kWh]',
+            'E3-LICZNIK'   => 'Podlicznik energii',
+            'E3-WYDAJ'     => 'Wydajność instalacji [Nm³/h]',
+            'E3-PIN'       => 'Ciśnienie zasysania [bar]',
+            'EZ-NAP'       => 'Napięcie zasilania',
+            'EZ-PMOC'      => 'Łączna moc zainstalowana [kW]',
+            'EZ-PMOW'      => 'Moc zamówiona [kW/kVA]',
+            'EZ-COS'       => 'Współczynnik mocy cosφ',
+            'EZ-KOSTZ'     => 'Roczny koszt energii [zł/rok]',
+            'EZ-TAR'       => 'Taryfa energetyczna',
+            'UZ-OSUSZ'     => 'Typ osuszacza',
+            'UZ-PROSY'     => 'Punkt rosy [°C]',
+            'UZ-ISO'       => 'Klasa czystości ISO 8573',
+            'UZ-EE'        => 'Zużycie energii przez osuszacze [kWh/rok]',
+            'UZ-ZBIOR'     => 'Pojemność zbiornika buforowego',
+            'UZ-PZBIOR'    => 'Ciśnienie w zbiorniku [bar]',
+            'UZ-INNE'      => 'Inne elementy uzdatniania',
+            'SD-DLG'       => 'Długość sieci dystrybucji [m]',
+            'SD-ROK'       => 'Wiek sieci / rok budowy',
+            'SD-MAT'       => 'Materiał rur',
+            'SD-LEAK'      => 'Test nieszczelności',
+            'SD-NIESZ'     => 'Poziom nieszczelności [%]',
+            'SD-MON'       => 'Monitoring ciśnienia w sieci',
+            'SD-UW'        => 'Problemy z siecią',
+            'OD-GLOWNI'    => 'Główni odbiorcy sprężonego powietrza',
+            'OD-ZAP'       => 'Całkowite zapotrzebowanie [Nm³/h]',
+            'OD-PROF'      => 'Profil obciążenia',
+            'OD-KLASY'     => 'Wymagane klasy czystości',
+            'EX-SEK'       => 'Sterowanie sekwencyjne',
+            'EX-BMS'       => 'BMS/SCADA',
+            'EX-BUDZ'      => 'Budżet modernizacji [PLN]',
+            'EX-ROI'       => 'Oczekiwany czas zwrotu',
+            'EX-CEL'       => 'Cel audytu',
+            'EX-UW'        => 'Dodatkowe uwagi',
+        ];
+
         // ── 1. Kwestionariusz wstępny (questionnaire_answers) ─────────────────
         $qAnswers = (array) ($audit->questionnaire_answers ?? []);
         if (!empty($qAnswers)) {
-            $questions = \App\Models\Iso50001QuestionnaireQuestion::query()
+            // Extract compressors table first
+            $compressors = [];
+            if (!empty($qAnswers['_compressors']) && is_array($qAnswers['_compressors'])) {
+                $compressors = $qAnswers['_compressors'];
+            }
+
+            // Try ISO questionnaire labels first, then compressor labels
+            $isoQuestions = \App\Models\Iso50001QuestionnaireQuestion::query()
                 ->active()
                 ->orderBy('sort_order')
                 ->get()
@@ -949,16 +1017,54 @@ SCRIPT;
 
             $lines = [];
             foreach ($qAnswers as $code => $value) {
+                if ($code === '_compressors') continue;
+                if (is_array($value)) continue;
                 $value = trim((string) $value);
                 if ($value === '') {
                     continue;
                 }
-                $questionText = $questions[$code]->question_text ?? $code;
-                $lines[] = "  [{$code}] {$questionText}: {$value}";
+                if (isset($isoQuestions[$code])) {
+                    $label = $isoQuestions[$code]->question_text;
+                } elseif (isset($compressorLabels[$code])) {
+                    $label = $compressorLabels[$code];
+                } else {
+                    $label = $code;
+                }
+                $lines[] = "  [{$code}] {$label}: {$value}";
             }
 
             if (!empty($lines)) {
-                $sections[] = "KWESTIONARIUSZ WSTĘPNY (wypełniony przez klienta przed rozmową):\n" . implode("\n", $lines);
+                $sections[] = "ANKIETA WSTĘPNA (wypełniona przez klienta przed rozmową):\n" . implode("\n", $lines);
+            }
+
+            // Compressors table
+            if (!empty($compressors)) {
+                $colLabels = [
+                    'nr_inw' => 'Nr inw.', 'lokalizacja' => 'Lokalizacja',
+                    'producent' => 'Producent', 'model' => 'Model', 'typ' => 'Typ',
+                    'moc_kw' => 'Moc [kW]', 'wydajnosc' => 'Wydajność [m³/min]',
+                    'pmax' => 'Pmax [bar]', 'rok' => 'Rok prod.',
+                    'klasa_ie' => 'Klasa IE', 'stan' => 'Stan tech.',
+                    'serwis' => 'Ostatni serwis', 'motogodz' => 'Motogodziny',
+                    'godz_dobe' => 'Godz./dobę', 'obciazenie' => 'Obciążenie [%]',
+                    'tryb' => 'Tryb pracy', 'sterowanie' => 'Sterowanie',
+                    'chlodzenie' => 'Chłodzenie', 'recyrk' => 'Recyrkulacja ciepła',
+                ];
+                $compLines = ["  INWENTARYZACJA SPRĘŻAREK:"];
+                foreach ($compressors as $i => $row) {
+                    $nr = $i + 1;
+                    $rowParts = [];
+                    foreach ($colLabels as $col => $label) {
+                        $v = trim((string) ($row[$col] ?? ''));
+                        if ($v !== '') $rowParts[] = "{$label}: {$v}";
+                    }
+                    if (!empty($rowParts)) {
+                        $compLines[] = "  Sprężarka #{$nr}: " . implode(', ', $rowParts);
+                    }
+                }
+                if (count($compLines) > 1) {
+                    $sections[] = implode("\n", $compLines);
+                }
             }
 
             $companyName = trim((string) ($qAnswers['A1'] ?? ''));

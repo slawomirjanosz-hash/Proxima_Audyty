@@ -1,0 +1,2139 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ENESA — Formularz audytu sprężarkowni · POUFNE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* === PALETA ENESA — INZYNIERSKIE ZIELENIE === */
+  --ink: #0f1f1a;
+  --ink-soft: #1f3530;
+  --ink-mute: #5a7068;
+  --paper: #f4f7f3;          /* lekka zielonkawa biel */
+  --paper-deep: #e7eee5;
+  --line: #cfd9c8;
+  
+  /* Główne zielenie */
+  --green-deep: #1a4d3a;     /* głęboka korporacyjna zieleń */
+  --green-primary: #2d6e4e;  /* główny akcent */
+  --green-mid: #4a8b6a;      /* średni */
+  --green-soft: #87b39b;     /* miękki */
+  --green-tint: #d4e2d1;     /* bardzo jasny */
+  --green-glow: #e8f0e3;     /* glow / hover */
+  
+  /* Akcenty wspomagające */
+  --gold: #b8923a;           /* dla podkreśleń, ostrzeżeń umiarkowanych */
+  --rose: #b8485a;           /* dla błędów / ostrzeżeń */
+  --rose-soft: #e8c5cb;
+  --blue: #3d6580;           /* dla EM */
+  --blue-soft: #c7d6e0;
+  --kon: #5a7878;            /* dla KON */
+  --kon-soft: #c7d6d6;
+  
+  /* Tagi kompetencji — semantyczne */
+  --tag-ur-bg: #e7eee5;
+  --tag-ur-fg: #1a4d3a;
+  --tag-em-bg: #d8e3ea;
+  --tag-em-fg: #2a4a60;
+  --tag-kon-bg: #d6e0e0;
+  --tag-kon-fg: #3d5858;
+  --tag-spec-bg: #f4e4c8;
+  --tag-spec-fg: #7d5a1a;
+  
+  --shadow-card: 0 1px 3px rgba(15, 31, 26, 0.06), 0 4px 12px rgba(15, 31, 26, 0.04);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Manrope', sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(circle at 20% 0%, rgba(45, 110, 78, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 80% 100%, rgba(26, 77, 58, 0.04) 0%, transparent 40%);
+  min-height: 100vh;
+}
+
+.serif { font-family: 'Fraunces', serif; font-feature-settings: 'ss01', 'ss02'; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+/* === WATERMARK === */
+.watermark {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: var(--rose);
+  color: white;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 16px;
+  letter-spacing: 0.08em;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* === HEADER === */
+.header {
+  border-bottom: 1px solid var(--line);
+  background: var(--paper);
+  position: sticky;
+  top: 30px;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  background: rgba(244, 247, 243, 0.94);
+}
+.header-inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 18px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.brand { display: flex; align-items: baseline; gap: 12px; }
+.brand-mark {
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  color: var(--green-deep);
+}
+.brand-mark::after {
+  content: '·';
+  margin-left: 12px;
+  color: var(--green-primary);
+}
+.brand-sub {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  font-weight: 500;
+}
+.session-meta {
+  display: flex;
+  gap: 24px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.session-meta strong { font-weight: 600; color: var(--ink); }
+
+/* === HERO === */
+.hero {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 48px 32px 24px;
+}
+.hero-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--green-primary);
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.hero-title {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: clamp(32px, 4.5vw, 48px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--green-deep);
+  margin-bottom: 18px;
+  max-width: 820px;
+}
+.hero-title em {
+  font-style: italic;
+  color: var(--green-primary);
+  font-weight: 400;
+}
+.hero-lead {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  max-width: 720px;
+}
+
+/* === PROGRESS === */
+.progress-strip {
+  max-width: 1320px;
+  margin: 24px auto 0;
+  padding: 0 32px;
+}
+.progress-card {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 22px 26px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 24px;
+  align-items: center;
+  box-shadow: var(--shadow-card);
+}
+.progress-info { display: flex; flex-direction: column; gap: 12px; }
+.progress-row { display: flex; align-items: baseline; gap: 12px; }
+.progress-num {
+  font-family: 'Fraunces', serif;
+  font-size: 36px;
+  font-weight: 500;
+  color: var(--green-deep);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.progress-num em {
+  color: var(--ink-mute);
+  font-style: normal;
+  font-size: 20px;
+  font-weight: 400;
+}
+.progress-label {
+  font-size: 12px;
+  color: var(--ink-mute);
+  letter-spacing: 0.04em;
+}
+.progress-track {
+  height: 4px;
+  background: var(--paper-deep);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 4px;
+  width: 360px;
+}
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--green-primary) 0%, var(--green-mid) 100%);
+  transition: width 0.6s ease;
+}
+.progress-stats { display: flex; gap: 28px; font-size: 13px; }
+.progress-stat { text-align: right; }
+.progress-stat-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink);
+  display: block;
+  line-height: 1;
+}
+.progress-stat-lbl {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-mute);
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+.progress-stat.green .progress-stat-num { color: var(--green-primary); }
+.progress-stat.gold .progress-stat-num { color: var(--gold); }
+.progress-stat.rose .progress-stat-num { color: var(--rose); }
+
+/* === LAYOUT — wezsze menu, szersza kolumna ankiety === */
+.layout {
+  max-width: 1320px;
+  margin: 28px auto;
+  padding: 0 32px 80px;
+  display: grid;
+  grid-template-columns: 180px 1fr;  /* zmienione z 240px na 180px */
+  gap: 32px;
+}
+
+/* === SIDENAV === */
+.sidenav {
+  position: sticky;
+  top: 110px;
+  align-self: start;
+  font-size: 13px;
+}
+.sidenav-title {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-bottom: 14px;
+  font-weight: 600;
+}
+.sidenav-list { list-style: none; }
+.sidenav-item {
+  padding: 9px 8px 9px 12px;
+  border-left: 2px solid var(--line);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sidenav-item:hover {
+  color: var(--green-deep);
+  border-left-color: var(--green-mid);
+  background: var(--green-glow);
+}
+.sidenav-item.active {
+  border-left-color: var(--green-primary);
+  color: var(--green-deep);
+  font-weight: 600;
+  background: var(--green-glow);
+}
+.sidenav-num {
+  font-size: 11px;
+  color: var(--ink-mute);
+  font-weight: 600;
+  min-width: 22px;
+}
+.sidenav-item.active .sidenav-num { color: var(--green-primary); }
+.sidenav-name { flex: 1; }
+.sidenav-count {
+  font-size: 10px;
+  color: var(--ink-mute);
+  font-weight: 500;
+  opacity: 0.6;
+}
+
+/* === LEGEND === */
+.legend {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.legend-title {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  margin-bottom: 8px;
+  color: var(--ink-soft);
+}
+.legend-tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 0.06em;
+  font-family: 'JetBrains Mono', monospace;
+  min-width: 36px;
+  text-align: center;
+}
+.legend-tag.ur { background: var(--tag-ur-bg); color: var(--tag-ur-fg); }
+.legend-tag.em { background: var(--tag-em-bg); color: var(--tag-em-fg); }
+.legend-tag.kon { background: var(--tag-kon-bg); color: var(--tag-kon-fg); }
+.legend-tag.spec { background: var(--tag-spec-bg); color: var(--tag-spec-fg); }
+
+/* === MAIN === */
+.main { display: flex; flex-direction: column; gap: 28px; min-width: 0; }
+
+.section {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+.section-head {
+  padding: 22px 28px 18px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  background: linear-gradient(180deg, var(--green-glow) 0%, white 100%);
+}
+.section-title-block { flex: 1; }
+.section-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--green-primary);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+.section-title {
+  font-family: 'Fraunces', serif;
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--green-deep);
+  margin-bottom: 6px;
+}
+.section-desc {
+  font-size: 13px;
+  color: var(--ink-mute);
+  line-height: 1.5;
+}
+.section-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--ink-mute);
+  white-space: nowrap;
+}
+.section-progress {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: var(--green-deep);
+  font-weight: 600;
+}
+
+.section-body { padding: 24px 28px; }
+
+/* === FIELDS — JEDNA KOLUMNA === */
+.field-list {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  max-width: 720px; /* czytelna szerokość pola, nie rozciąga się na cały ekran */
+}
+
+.field-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.field-id {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--ink-mute);
+  letter-spacing: 0.04em;
+}
+.field-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  flex: 1;
+  min-width: 100px;
+}
+.tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 0.06em;
+}
+.tag.ur { background: var(--tag-ur-bg); color: var(--tag-ur-fg); }
+.tag.em { background: var(--tag-em-bg); color: var(--tag-em-fg); }
+.tag.kon { background: var(--tag-kon-bg); color: var(--tag-kon-fg); }
+.tag.spec { background: var(--tag-spec-bg); color: var(--tag-spec-fg); }
+.tag.small { font-size: 9px; padding: 1px 5px; }
+
+.field-hint {
+  font-size: 12px;
+  color: var(--ink-mute);
+  font-style: italic;
+}
+.field-input {
+  width: 100%;
+  padding: 10px 13px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  background: white;
+  transition: all 0.2s;
+}
+.field-input:focus {
+  outline: none;
+  border-color: var(--green-primary);
+  box-shadow: 0 0 0 3px rgba(45, 110, 78, 0.12);
+}
+.field-input.filled {
+  background: linear-gradient(180deg, white 0%, var(--green-glow) 100%);
+  border-color: var(--green-soft);
+}
+.field-input.unsure {
+  background: linear-gradient(180deg, white 0%, rgba(184, 146, 58, 0.06) 100%);
+  border-color: rgba(184, 146, 58, 0.4);
+}
+.field-input.delegated {
+  background: linear-gradient(180deg, white 0%, rgba(61, 101, 128, 0.05) 100%);
+  border-color: var(--blue-soft);
+}
+textarea.field-input { resize: vertical; min-height: 80px; font-family: inherit; }
+
+.action-pills {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+}
+.pill {
+  padding: 5px 12px;
+  font-size: 11px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  color: var(--ink-mute);
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.pill:hover { border-color: var(--green-mid); color: var(--green-deep); }
+.pill.active[data-action="unsure"] {
+  background: var(--tag-spec-bg);
+  color: var(--tag-spec-fg);
+  border-color: var(--gold);
+  font-weight: 600;
+}
+.pill.active[data-action="delegate"] {
+  background: var(--blue-soft);
+  color: var(--blue);
+  border-color: var(--blue);
+  font-weight: 600;
+}
+
+/* === COMPRESSORS TABLE === */
+.ocr-banner {
+  margin-bottom: 18px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, var(--green-glow) 0%, var(--green-tint) 100%);
+  border: 1px solid var(--green-soft);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.ocr-icon {
+  width: 36px; height: 36px;
+  background: var(--green-primary);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: white;
+  font-family: 'Fraunces', serif;
+  font-size: 16px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.ocr-text { flex: 1; font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
+.ocr-text strong { color: var(--green-deep); }
+.ocr-button {
+  padding: 8px 16px;
+  background: var(--green-deep);
+  color: white;
+  border: none;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ocr-button:hover { background: var(--green-primary); }
+
+.compressors-wrap {
+  background: var(--paper-deep);
+  border-radius: 3px;
+  padding: 4px;
+  overflow-x: auto;
+  max-width: 100%;
+}
+.compressors-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12px;
+  background: white;
+  min-width: 1800px;
+}
+.compressors-table thead th {
+  padding: 10px 8px;
+  text-align: left;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  font-weight: 600;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+  background: var(--paper);
+}
+.compressors-table .subheader-row th {
+  padding: 4px 8px;
+  text-transform: none;
+  border-bottom: 2px solid var(--line);
+}
+.compressors-table tbody td {
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--paper-deep);
+  vertical-align: middle;
+}
+.compressors-table tbody tr:hover { background: var(--green-glow); }
+.compressors-table input,
+.compressors-table select {
+  width: 100%;
+  padding: 6px 7px;
+  font-family: inherit;
+  font-size: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 2px;
+  color: var(--ink);
+}
+.compressors-table input:hover,
+.compressors-table select:hover {
+  background: white;
+  border-color: var(--line);
+}
+.compressors-table input:focus,
+.compressors-table select:focus {
+  outline: none;
+  background: white;
+  border-color: var(--green-primary);
+}
+.row-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  color: var(--green-primary);
+  text-align: center;
+  width: 36px;
+}
+.row-add {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  border: 1px dashed var(--line);
+  border-radius: 3px;
+  color: var(--ink-mute);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 0.2s;
+}
+.row-add:hover {
+  border-color: var(--green-primary);
+  color: var(--green-primary);
+  background: var(--green-glow);
+}
+
+/* === SUBMIT PANEL === */
+.submit-panel {
+  margin-top: 36px;
+  background: var(--green-deep);
+  color: var(--paper);
+  border-radius: 4px;
+  padding: 36px 40px;
+  position: relative;
+  overflow: hidden;
+}
+.submit-panel::before {
+  content: '';
+  position: absolute;
+  top: -100px; right: -100px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(135, 179, 155, 0.25) 0%, transparent 70%);
+  pointer-events: none;
+}
+.submit-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--green-soft);
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.submit-title {
+  font-family: 'Fraunces', serif;
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin-bottom: 12px;
+  line-height: 1.15;
+}
+.submit-title em { font-style: italic; color: var(--green-soft); }
+.submit-lead {
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(244, 247, 243, 0.78);
+  max-width: 580px;
+  margin-bottom: 28px;
+}
+.submit-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  position: relative;
+}
+.btn {
+  padding: 13px 26px;
+  border: none;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.02em;
+}
+.btn-primary {
+  background: var(--green-mid);
+  color: white;
+}
+.btn-primary:hover {
+  background: var(--green-soft);
+  color: var(--green-deep);
+  transform: translateY(-1px);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--paper);
+  border: 1px solid rgba(244, 247, 243, 0.25);
+}
+.btn-ghost:hover { border-color: rgba(244, 247, 243, 0.5); }
+
+/* === FOOTER === */
+.footer {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 28px 32px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--ink-mute);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.footer-meta { font-family: 'JetBrains Mono', monospace; }
+.autosave { display: flex; align-items: center; gap: 8px; }
+.autosave-dot {
+  width: 6px; height: 6px;
+  background: var(--green-primary);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* === HELP BANNER === */
+.help-banner {
+  max-width: 1320px;
+  margin: 16px auto 0;
+  padding: 0 32px;
+}
+.help-banner-inner {
+  background: var(--green-glow);
+  border: 1px solid var(--green-soft);
+  border-radius: 4px;
+  padding: 14px 20px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.help-banner-inner strong { color: var(--green-deep); font-weight: 600; }
+.help-icon {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-size: 16px;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--green-primary);
+  border-radius: 50%;
+  color: white;
+}
+
+@media (max-width: 980px) {
+  .layout { grid-template-columns: 1fr; gap: 24px; }
+  .sidenav { position: static; }
+}
+</style>
+</head>
+<body>
+
+<!-- WATERMARK -->
+<div class="watermark">
+  POUFNE — WEWNĘTRZNY DOKUMENT PROJEKTOWY ENESA · Nie udostępniać poza zespołem projektu · w produkcji wymaga logowania na platformę
+</div>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-mark serif">ENESA</div>
+      <div class="brand-sub">Audit Platform · CA Module · v3.1</div>
+    </div>
+    <div class="session-meta">
+      <span>Sesja: <strong>#A-DEMO</strong></span>
+      <span>Klient: <strong>[wewn. test]</strong></span>
+      <span>Audytor: <strong>—</strong></span>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">ISO 11011 · Audyt Sprężarkowni · Faza 1 z 3</div>
+  <h1 class="hero-title serif">Wypełnij <em>co wiesz</em> — Audytor doprecyzuje resztę.</h1>
+  <p class="hero-lead">
+    Formularz ma 69 pól w 8 etapach + tabela sprężarek (28 pól na każdą sprężarkę). 
+    Wypełnij swoje. Pola, których nie znasz, zostaw puste lub kliknij „nie wiem" — trafią do osoby, 
+    która zna odpowiedź. Po wysłaniu Audytor ENESA przejrzy dane i dopyta tylko o niejasności i puste 
+    pola — szacowany czas konsultacji: 5–10 minut.
+  </p>
+</div>
+
+<!-- HELP BANNER -->
+<div class="help-banner">
+  <div class="help-banner-inner">
+    <span class="help-icon">i</span>
+    <div>
+      <strong>Wskazówka:</strong> Każde pole ma w nawiasie tag kompetencji [UR / EM / KON / SPEC] — 
+      pokazuje, kto zwykle zna odpowiedź. Pola [SPEC] (np. THD, leak detection) wymagają pomiaru 
+      specjalistycznego — zostaw puste, jeśli go nie macie. Lista pomiarów trafi do raportu jako 
+      rekomendacja poaudytowa.
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-strip">
+  <div class="progress-card">
+    <div class="progress-info">
+      <div class="progress-row">
+        <div class="progress-num serif" id="progress-counter">0<em>/209</em></div>
+        <div>
+          <div class="progress-label">Wypełnione · <span id="progress-pct">0</span>% kompletności</div>
+          <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="progress-stats">
+      <div class="progress-stat green">
+        <span class="progress-stat-num" id="stat-filled">0</span>
+        <div class="progress-stat-lbl">wypełnione</div>
+      </div>
+      <div class="progress-stat gold">
+        <span class="progress-stat-num" id="stat-unsure">0</span>
+        <div class="progress-stat-lbl">nie wiem</div>
+      </div>
+      <div class="progress-stat rose">
+        <span class="progress-stat-num" id="stat-empty">209</span>
+        <div class="progress-stat-lbl">puste</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <aside class="sidenav">
+    <div class="sidenav-title">Etapy audytu</div>
+    <ul class="sidenav-list">
+      <li class="sidenav-item" data-target="etap-0"><span class="sidenav-num mono">0</span><span class="sidenav-name">Respondent</span><span class="sidenav-count mono">4</span></li><li class="sidenav-item" data-target="etap-1"><span class="sidenav-num mono">1</span><span class="sidenav-name">Kontekst</span><span class="sidenav-count mono">5</span></li><li class="sidenav-item" data-target="etap-2"><span class="sidenav-num mono">2</span><span class="sidenav-name">Sprężarki</span><span class="sidenav-count mono">5×28</span></li><li class="sidenav-item" data-target="etap-3"><span class="sidenav-num mono">3</span><span class="sidenav-name">Sprężarkownia</span><span class="sidenav-count mono">7</span></li><li class="sidenav-item" data-target="etap-3-5"><span class="sidenav-num mono">3.5</span><span class="sidenav-name">Zasilanie</span><span class="sidenav-count mono">10</span></li><li class="sidenav-item" data-target="etap-4"><span class="sidenav-num mono">4</span><span class="sidenav-name">Uzdatnianie</span><span class="sidenav-count mono">9</span></li><li class="sidenav-item" data-target="etap-5"><span class="sidenav-num mono">5</span><span class="sidenav-name">Sieć</span><span class="sidenav-count mono">12</span></li><li class="sidenav-item" data-target="etap-6"><span class="sidenav-num mono">6</span><span class="sidenav-name">Odbiorcy</span><span class="sidenav-count mono">12</span></li><li class="sidenav-item" data-target="etap-7"><span class="sidenav-num mono">7</span><span class="sidenav-name">Eksploatacja</span><span class="sidenav-count mono">10</span></li>
+    </ul>
+
+    <div class="legend">
+      <div class="legend-title">Kompetencja</div>
+      <div class="legend-item"><span class="legend-tag ur">UR</span> Pracownik UR</div>
+      <div class="legend-item"><span class="legend-tag em">EM</span> Energy Manager</div>
+      <div class="legend-item"><span class="legend-tag kon">KON</span> Konsultant ENESA</div>
+      <div class="legend-item"><span class="legend-tag spec">SPEC</span> Pomiar specjalist.</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    
+    <section class="section" id="etap-0">
+      <div class="section-head">
+        <div class="section-title-block">
+          <div class="section-eyebrow">ETAP 0</div>
+          <h2 class="section-title serif">Identyfikacja respondenta</h2>
+          <p class="section-desc">Kto wypełnia formularz</p>
+        </div>
+        <div class="section-meta">
+          <div class="section-progress" data-etap="etap-0">0 / 4</div>
+          <div>postęp etapu</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="field-list">
+          
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">REQ-00-IMIE</span>
+          <span class="field-label">Imię i nazwisko</span>
+          <span class="tag ur">UR</span>
+        </div>
+        <input type="text" class="field-input" data-id="REQ-00-IMIE" placeholder=""/>
+        <span class="field-hint">Osoba wypełniająca tę sekcję</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">REQ-00-STAN</span>
+          <span class="field-label">Stanowisko</span>
+          <span class="tag ur">UR</span>
+        </div>
+        <input type="text" class="field-input" data-id="REQ-00-STAN" placeholder=""/>
+        <span class="field-hint">np. Mistrz sprężarkowni / Energy Manager</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">REQ-00-DZIAL</span>
+          <span class="field-label">Dział / wydział</span>
+          <span class="tag ur">UR</span>
+        </div>
+        <input type="text" class="field-input" data-id="REQ-00-DZIAL" placeholder=""/>
+        <span class="field-hint">Z którego działu</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">REQ-00-ZAKLAD</span>
+          <span class="field-label">Nazwa i lokalizacja zakładu</span>
+          <span class="tag ur">UR</span>
+        </div>
+        <input type="text" class="field-input" data-id="REQ-00-ZAKLAD" placeholder=""/>
+        <span class="field-hint">Pełna nazwa + miasto</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+        </div>
+      </div>
+    </section>
+    <section class="section" id="etap-1">
+      <div class="section-head">
+        <div class="section-title-block">
+          <div class="section-eyebrow">ETAP 1</div>
+          <h2 class="section-title serif">Kontekst zakładu</h2>
+          <p class="section-desc">Branża, tryb pracy, procesy krytyczne</p>
+        </div>
+        <div class="section-meta">
+          <div class="section-progress" data-etap="etap-1">0 / 5</div>
+          <div>postęp etapu</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="field-list">
+          
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CTX-01-BR</span>
+          <span class="field-label">Branża zakładu</span>
+          <span class="tag ur">UR/EM</span>
+        </div>
+        <select class="field-input" data-id="CTX-01-BR"><option value="">— wybierz —</option><option value="motoryzacyjna">motoryzacyjna</option><option value="metalowa">metalowa</option><option value="spożywcza">spożywcza</option><option value="farmaceutyczna">farmaceutyczna</option><option value="elektroniczna">elektroniczna</option><option value="lakiernicza">lakiernicza</option><option value="chemiczna">chemiczna</option><option value="drzewna">drzewna</option><option value="tekstylna">tekstylna</option><option value="tworzywa sztuczne">tworzywa sztuczne</option><option value="inna">inna</option><option value="__not_known__">nie wiem</option></select>
+        <span class="field-hint">Wpływa na wymaganą klasę jakości powietrza ISO 8573</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CTX-02-ZM</span>
+          <span class="field-label">Liczba zmian produkcyjnych</span>
+          <span class="tag ur">UR/EM</span>
+        </div>
+        <select class="field-input" data-id="CTX-02-ZM"><option value="">— wybierz —</option><option value="1 zmiana (8h)">1 zmiana (8h)</option><option value="2 zmiany (16h)">2 zmiany (16h)</option><option value="3 zmiany (24h)">3 zmiany (24h)</option><option value="ruch ciągły">ruch ciągły</option><option value="__not_known__">nie wiem</option></select>
+        <span class="field-hint">Wpływa na profil zapotrzebowania</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CTX-03-DNI</span>
+          <span class="field-label">Liczba dni pracy zakładu w roku</span>
+          <span class="tag em">EM</span>
+        </div>
+        <input type="text" class="field-input" data-id="CTX-03-DNI" placeholder="liczba"/>
+        <span class="field-hint">5×52=260 / 6×52=312 / 7×52=365</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CTX-04-KRYT</span>
+          <span class="field-label">Procesy krytyczne (które stoją przy braku CA)</span>
+          <span class="tag em">EM</span>
+        </div>
+        <input type="text" class="field-input" data-id="CTX-04-KRYT" placeholder=""/>
+        <span class="field-hint">np. lakiernia, spawalnia, prasa hydrauliczna</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CTX-05-PLAN</span>
+          <span class="field-label">Plany rozbudowy / inwestycyjne CA (24 miesiące)</span>
+          <span class="tag em">EM</span>
+        </div>
+        <input type="text" class="field-input" data-id="CTX-05-PLAN" placeholder=""/>
+        <span class="field-hint">Czy planujecie nowe sprężarki, modernizację, wzrost produkcji</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+        </div>
+      </div>
+    </section>
+    <section class="section" id="etap-2">
+      <div class="section-head">
+        <div class="section-title-block">
+          <div class="section-eyebrow">ETAP 2</div>
+          <h2 class="section-title serif">Sprężarki w sprężarkowni</h2>
+          <p class="section-desc">Każdy wiersz = jedna sprężarka. 28 pól na każdą. Tabliczki znamionowe można skanować — system rozpozna parametry.</p>
+        </div>
+        <div class="section-meta">
+          <div class="section-progress">5 wierszy</div>
+          <div>0 / 140 pól</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="ocr-banner">
+          <div class="ocr-icon serif">A</div>
+          <div class="ocr-text">
+            <strong>Skanuj tabliczki znamionowe.</strong> Zrób zdjęcie — system rozpozna parametry i wypełni 8 pól w 2 sekundy zamiast 8 osobnych pytań.
+          </div>
+          <button class="ocr-button" type="button">Skanuj tabliczkę</button>
+        </div>
+        <div class="compressors-wrap">
+          <table class="compressors-table">
+            <thead>
+              <tr><th>#</th><th title="CA-A1-NR">Nr inw.</th><th title="CA-A1-LOK">Lokalizacja</th><th title="CA-A2-PROD">Producent</th><th title="CA-A2-MODEL">Model</th><th title="CA-A2-TYP">Rodzaj</th><th title="CA-A2-MOC">Moc [kW]</th><th title="CA-A2-WYD">Wyd. [m³/min]</th><th title="CA-A2-PMAX">Pmax [bar]</th><th title="CA-A2-ROK">Rok</th><th title="CA-A2-IE">Klasa IE</th><th title="CA-A3-STAN">Stan</th><th title="CA-A3-SERWIS">Ostatni serwis</th><th title="CA-A3-MTH">Motogodziny</th><th title="CA-A3-AWARIE">Awarie 12m</th><th title="CA-A3-WIB">Wibr./hałas dB(A)</th><th title="CA-A3-UDT">UDT do</th><th title="CA-A4-GODZ">Godz./dobę</th><th title="CA-A4-DNI">Dni/tydz.</th><th title="CA-A4-OBC">Obciążenie [%]</th><th title="CA-A4-LOADIDLE">Load/Idle</th><th title="CA-A4-TRYB">Tryb</th><th title="CA-A5-STER">Sterowanie</th><th title="CA-A5-START">Start/h</th><th title="CA-A6-CHL">Chłodzenie</th><th title="CA-A6-WODA">Woda [m³/h]</th><th title="CA-A6-TPOM">Temp. pom. [°C]</th><th title="CA-A6-WENT">Wentylacja</th><th title="CA-A6-RECYR">Recyrkulacja ssania</th></tr>
+              <tr class="subheader-row"><th></th><th><span class="tag ur small">UR</span></th><th><span class="tag ur small">UR</span></th><th><span class="tag ur small">UR</span></th><th><span class="tag ur small">UR</span></th><th><span class="tag ur small">UR</span></th><th><span class="tag ur small">UR</span></th><th><span class="tag ur small">UR</span></th><th><span class="tag ur small">UR</span></th><th><span class="tag ur small">UR</span></th><th><span class="tag em small">EM</span></th><th><span class="tag ur small">UR</span></th><th><span class="tag em small">EM</span></th><th><span class="tag em small">EM</span></th><th><span class="tag em small">EM</span></th><th><span class="tag ur small">UR</span></th><th><span class="tag em small">EM</span></th><th><span class="tag ur small">UR</span></th><th><span class="tag ur small">UR</span></th><th><span class="tag ur small">UR/EM</span></th><th><span class="tag ur small">UR/EM</span></th><th><span class="tag ur small">UR</span></th><th><span class="tag ur small">UR</span></th><th><span class="tag em small">EM</span></th><th><span class="tag ur small">UR</span></th><th><span class="tag em small">EM</span></th><th><span class="tag ur small">UR</span></th><th><span class="tag ur small">UR</span></th><th><span class="tag ur small">UR</span></th></tr>
+            </thead>
+            <tbody><tr><td class="row-num mono">1</td><td><input type="text" data-id="CA-A1-NR-1"/></td><td><input type="text" data-id="CA-A1-LOK-1"/></td><td><select data-id="CA-A2-PROD-1"><option value=""></option><option>Atlas Copco</option><option>Kaeser</option><option>Boge</option><option>Ingersoll Rand</option><option>ABAC</option><option>Compair</option><option>Mark</option><option>inny</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A2-MODEL-1"/></td><td><select data-id="CA-A2-TYP-1"><option value=""></option><option>śrubowa</option><option>tłokowa</option><option>odśrodkowa</option><option>spiralna</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A2-MOC-1"/></td><td><input type="text" data-id="CA-A2-WYD-1"/></td><td><input type="text" data-id="CA-A2-PMAX-1"/></td><td><input type="text" data-id="CA-A2-ROK-1"/></td><td><select data-id="CA-A2-IE-1"><option value=""></option><option>IE1</option><option>IE2</option><option>IE3</option><option>IE4</option><option>IE5</option><option>nie wiem</option></select></td><td><select data-id="CA-A3-STAN-1"><option value=""></option><option>dobry</option><option>przeciętny</option><option>zły</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A3-SERWIS-1"/></td><td><input type="text" data-id="CA-A3-MTH-1"/></td><td><input type="text" data-id="CA-A3-AWARIE-1"/></td><td><input type="text" data-id="CA-A3-WIB-1"/></td><td><input type="text" data-id="CA-A3-UDT-1"/></td><td><input type="text" data-id="CA-A4-GODZ-1"/></td><td><select data-id="CA-A4-DNI-1"><option value=""></option><option>5</option><option>6</option><option>7</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A4-OBC-1"/></td><td><input type="text" data-id="CA-A4-LOADIDLE-1"/></td><td><select data-id="CA-A4-TRYB-1"><option value=""></option><option>ciągły</option><option>sekwencyjny</option><option>rezerwowy</option><option>szczytowy</option><option>nie wiem</option></select></td><td><select data-id="CA-A5-STER-1"><option value=""></option><option>on/off</option><option>VSD/VFD</option><option>kaskadowe</option><option>inne</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A5-START-1"/></td><td><select data-id="CA-A6-CHL-1"><option value=""></option><option>powietrzne</option><option>wodne</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A6-WODA-1"/></td><td><input type="text" data-id="CA-A6-TPOM-1"/></td><td><select data-id="CA-A6-WENT-1"><option value=""></option><option>mechaniczna</option><option>grawitacyjna</option><option>brak</option><option>nie wiem</option></select></td><td><select data-id="CA-A6-RECYR-1"><option value=""></option><option>tak</option><option>nie</option><option>nie wiem</option></select></td></tr><tr><td class="row-num mono">2</td><td><input type="text" data-id="CA-A1-NR-2"/></td><td><input type="text" data-id="CA-A1-LOK-2"/></td><td><select data-id="CA-A2-PROD-2"><option value=""></option><option>Atlas Copco</option><option>Kaeser</option><option>Boge</option><option>Ingersoll Rand</option><option>ABAC</option><option>Compair</option><option>Mark</option><option>inny</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A2-MODEL-2"/></td><td><select data-id="CA-A2-TYP-2"><option value=""></option><option>śrubowa</option><option>tłokowa</option><option>odśrodkowa</option><option>spiralna</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A2-MOC-2"/></td><td><input type="text" data-id="CA-A2-WYD-2"/></td><td><input type="text" data-id="CA-A2-PMAX-2"/></td><td><input type="text" data-id="CA-A2-ROK-2"/></td><td><select data-id="CA-A2-IE-2"><option value=""></option><option>IE1</option><option>IE2</option><option>IE3</option><option>IE4</option><option>IE5</option><option>nie wiem</option></select></td><td><select data-id="CA-A3-STAN-2"><option value=""></option><option>dobry</option><option>przeciętny</option><option>zły</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A3-SERWIS-2"/></td><td><input type="text" data-id="CA-A3-MTH-2"/></td><td><input type="text" data-id="CA-A3-AWARIE-2"/></td><td><input type="text" data-id="CA-A3-WIB-2"/></td><td><input type="text" data-id="CA-A3-UDT-2"/></td><td><input type="text" data-id="CA-A4-GODZ-2"/></td><td><select data-id="CA-A4-DNI-2"><option value=""></option><option>5</option><option>6</option><option>7</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A4-OBC-2"/></td><td><input type="text" data-id="CA-A4-LOADIDLE-2"/></td><td><select data-id="CA-A4-TRYB-2"><option value=""></option><option>ciągły</option><option>sekwencyjny</option><option>rezerwowy</option><option>szczytowy</option><option>nie wiem</option></select></td><td><select data-id="CA-A5-STER-2"><option value=""></option><option>on/off</option><option>VSD/VFD</option><option>kaskadowe</option><option>inne</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A5-START-2"/></td><td><select data-id="CA-A6-CHL-2"><option value=""></option><option>powietrzne</option><option>wodne</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A6-WODA-2"/></td><td><input type="text" data-id="CA-A6-TPOM-2"/></td><td><select data-id="CA-A6-WENT-2"><option value=""></option><option>mechaniczna</option><option>grawitacyjna</option><option>brak</option><option>nie wiem</option></select></td><td><select data-id="CA-A6-RECYR-2"><option value=""></option><option>tak</option><option>nie</option><option>nie wiem</option></select></td></tr><tr><td class="row-num mono">3</td><td><input type="text" data-id="CA-A1-NR-3"/></td><td><input type="text" data-id="CA-A1-LOK-3"/></td><td><select data-id="CA-A2-PROD-3"><option value=""></option><option>Atlas Copco</option><option>Kaeser</option><option>Boge</option><option>Ingersoll Rand</option><option>ABAC</option><option>Compair</option><option>Mark</option><option>inny</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A2-MODEL-3"/></td><td><select data-id="CA-A2-TYP-3"><option value=""></option><option>śrubowa</option><option>tłokowa</option><option>odśrodkowa</option><option>spiralna</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A2-MOC-3"/></td><td><input type="text" data-id="CA-A2-WYD-3"/></td><td><input type="text" data-id="CA-A2-PMAX-3"/></td><td><input type="text" data-id="CA-A2-ROK-3"/></td><td><select data-id="CA-A2-IE-3"><option value=""></option><option>IE1</option><option>IE2</option><option>IE3</option><option>IE4</option><option>IE5</option><option>nie wiem</option></select></td><td><select data-id="CA-A3-STAN-3"><option value=""></option><option>dobry</option><option>przeciętny</option><option>zły</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A3-SERWIS-3"/></td><td><input type="text" data-id="CA-A3-MTH-3"/></td><td><input type="text" data-id="CA-A3-AWARIE-3"/></td><td><input type="text" data-id="CA-A3-WIB-3"/></td><td><input type="text" data-id="CA-A3-UDT-3"/></td><td><input type="text" data-id="CA-A4-GODZ-3"/></td><td><select data-id="CA-A4-DNI-3"><option value=""></option><option>5</option><option>6</option><option>7</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A4-OBC-3"/></td><td><input type="text" data-id="CA-A4-LOADIDLE-3"/></td><td><select data-id="CA-A4-TRYB-3"><option value=""></option><option>ciągły</option><option>sekwencyjny</option><option>rezerwowy</option><option>szczytowy</option><option>nie wiem</option></select></td><td><select data-id="CA-A5-STER-3"><option value=""></option><option>on/off</option><option>VSD/VFD</option><option>kaskadowe</option><option>inne</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A5-START-3"/></td><td><select data-id="CA-A6-CHL-3"><option value=""></option><option>powietrzne</option><option>wodne</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A6-WODA-3"/></td><td><input type="text" data-id="CA-A6-TPOM-3"/></td><td><select data-id="CA-A6-WENT-3"><option value=""></option><option>mechaniczna</option><option>grawitacyjna</option><option>brak</option><option>nie wiem</option></select></td><td><select data-id="CA-A6-RECYR-3"><option value=""></option><option>tak</option><option>nie</option><option>nie wiem</option></select></td></tr><tr><td class="row-num mono">4</td><td><input type="text" data-id="CA-A1-NR-4"/></td><td><input type="text" data-id="CA-A1-LOK-4"/></td><td><select data-id="CA-A2-PROD-4"><option value=""></option><option>Atlas Copco</option><option>Kaeser</option><option>Boge</option><option>Ingersoll Rand</option><option>ABAC</option><option>Compair</option><option>Mark</option><option>inny</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A2-MODEL-4"/></td><td><select data-id="CA-A2-TYP-4"><option value=""></option><option>śrubowa</option><option>tłokowa</option><option>odśrodkowa</option><option>spiralna</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A2-MOC-4"/></td><td><input type="text" data-id="CA-A2-WYD-4"/></td><td><input type="text" data-id="CA-A2-PMAX-4"/></td><td><input type="text" data-id="CA-A2-ROK-4"/></td><td><select data-id="CA-A2-IE-4"><option value=""></option><option>IE1</option><option>IE2</option><option>IE3</option><option>IE4</option><option>IE5</option><option>nie wiem</option></select></td><td><select data-id="CA-A3-STAN-4"><option value=""></option><option>dobry</option><option>przeciętny</option><option>zły</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A3-SERWIS-4"/></td><td><input type="text" data-id="CA-A3-MTH-4"/></td><td><input type="text" data-id="CA-A3-AWARIE-4"/></td><td><input type="text" data-id="CA-A3-WIB-4"/></td><td><input type="text" data-id="CA-A3-UDT-4"/></td><td><input type="text" data-id="CA-A4-GODZ-4"/></td><td><select data-id="CA-A4-DNI-4"><option value=""></option><option>5</option><option>6</option><option>7</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A4-OBC-4"/></td><td><input type="text" data-id="CA-A4-LOADIDLE-4"/></td><td><select data-id="CA-A4-TRYB-4"><option value=""></option><option>ciągły</option><option>sekwencyjny</option><option>rezerwowy</option><option>szczytowy</option><option>nie wiem</option></select></td><td><select data-id="CA-A5-STER-4"><option value=""></option><option>on/off</option><option>VSD/VFD</option><option>kaskadowe</option><option>inne</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A5-START-4"/></td><td><select data-id="CA-A6-CHL-4"><option value=""></option><option>powietrzne</option><option>wodne</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A6-WODA-4"/></td><td><input type="text" data-id="CA-A6-TPOM-4"/></td><td><select data-id="CA-A6-WENT-4"><option value=""></option><option>mechaniczna</option><option>grawitacyjna</option><option>brak</option><option>nie wiem</option></select></td><td><select data-id="CA-A6-RECYR-4"><option value=""></option><option>tak</option><option>nie</option><option>nie wiem</option></select></td></tr><tr><td class="row-num mono">5</td><td><input type="text" data-id="CA-A1-NR-5"/></td><td><input type="text" data-id="CA-A1-LOK-5"/></td><td><select data-id="CA-A2-PROD-5"><option value=""></option><option>Atlas Copco</option><option>Kaeser</option><option>Boge</option><option>Ingersoll Rand</option><option>ABAC</option><option>Compair</option><option>Mark</option><option>inny</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A2-MODEL-5"/></td><td><select data-id="CA-A2-TYP-5"><option value=""></option><option>śrubowa</option><option>tłokowa</option><option>odśrodkowa</option><option>spiralna</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A2-MOC-5"/></td><td><input type="text" data-id="CA-A2-WYD-5"/></td><td><input type="text" data-id="CA-A2-PMAX-5"/></td><td><input type="text" data-id="CA-A2-ROK-5"/></td><td><select data-id="CA-A2-IE-5"><option value=""></option><option>IE1</option><option>IE2</option><option>IE3</option><option>IE4</option><option>IE5</option><option>nie wiem</option></select></td><td><select data-id="CA-A3-STAN-5"><option value=""></option><option>dobry</option><option>przeciętny</option><option>zły</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A3-SERWIS-5"/></td><td><input type="text" data-id="CA-A3-MTH-5"/></td><td><input type="text" data-id="CA-A3-AWARIE-5"/></td><td><input type="text" data-id="CA-A3-WIB-5"/></td><td><input type="text" data-id="CA-A3-UDT-5"/></td><td><input type="text" data-id="CA-A4-GODZ-5"/></td><td><select data-id="CA-A4-DNI-5"><option value=""></option><option>5</option><option>6</option><option>7</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A4-OBC-5"/></td><td><input type="text" data-id="CA-A4-LOADIDLE-5"/></td><td><select data-id="CA-A4-TRYB-5"><option value=""></option><option>ciągły</option><option>sekwencyjny</option><option>rezerwowy</option><option>szczytowy</option><option>nie wiem</option></select></td><td><select data-id="CA-A5-STER-5"><option value=""></option><option>on/off</option><option>VSD/VFD</option><option>kaskadowe</option><option>inne</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A5-START-5"/></td><td><select data-id="CA-A6-CHL-5"><option value=""></option><option>powietrzne</option><option>wodne</option><option>nie wiem</option></select></td><td><input type="text" data-id="CA-A6-WODA-5"/></td><td><input type="text" data-id="CA-A6-TPOM-5"/></td><td><select data-id="CA-A6-WENT-5"><option value=""></option><option>mechaniczna</option><option>grawitacyjna</option><option>brak</option><option>nie wiem</option></select></td><td><select data-id="CA-A6-RECYR-5"><option value=""></option><option>tak</option><option>nie</option><option>nie wiem</option></select></td></tr></tbody>
+          </table>
+        </div>
+        <button class="row-add" type="button">+ Dodaj kolejną sprężarkę</button>
+      </div>
+    </section>
+    <section class="section" id="etap-3">
+      <div class="section-head">
+        <div class="section-title-block">
+          <div class="section-eyebrow">ETAP 3</div>
+          <h2 class="section-title serif">Sprężarkownia jako system</h2>
+          <p class="section-desc">Parametry pracy systemu, sterowanie sekwencyjne, monitoring</p>
+        </div>
+        <div class="section-meta">
+          <div class="section-progress" data-etap="etap-3">0 / 7</div>
+          <div>postęp etapu</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="field-list">
+          
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-B1-SP</span>
+          <span class="field-label">Specific Power [kW/(m³/min)]</span>
+          <span class="tag kon">EM/KON</span>
+        </div>
+        <input type="text" class="field-input" data-id="CA-B1-SP" placeholder="liczba"/>
+        <span class="field-hint">Cel: <6,5 kW/(m³/min) — KPI ISO 11011</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-B1-PROB</span>
+          <span class="field-label">Ciśnienie robocze sieci [bar]</span>
+          <span class="tag ur">UR</span>
+        </div>
+        <input type="text" class="field-input" data-id="CA-B1-PROB" placeholder="liczba"/>
+        <span class="field-hint">Z manometru w sprężarkowni</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-B1-SEKW</span>
+          <span class="field-label">Sterowanie sekwencyjne</span>
+          <span class="tag em">EM</span>
+        </div>
+        <select class="field-input" data-id="CA-B1-SEKW"><option value="">— wybierz —</option><option value="tak — Atlas Copco ES">tak — Atlas Copco ES</option><option value="tak — Kaeser SAM">tak — Kaeser SAM</option><option value="tak — inny">tak — inny</option><option value="nie ma">nie ma</option><option value="__not_known__">nie wiem</option></select>
+        <span class="field-hint">Producent + model</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-B1-SCADA</span>
+          <span class="field-label">Monitoring BMS/SCADA</span>
+          <span class="tag em">EM</span>
+        </div>
+        <select class="field-input" data-id="CA-B1-SCADA"><option value="">— wybierz —</option><option value="tak — SIGMA Air Manager">tak — SIGMA Air Manager</option><option value="tak — SCADA ogólna">tak — SCADA ogólna</option><option value="tak — BMS">tak — BMS</option><option value="nie ma">nie ma</option><option value="__not_known__">nie wiem</option></select>
+        
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-B1-ZB</span>
+          <span class="field-label">Zbiornik buforowy</span>
+          <span class="tag ur">UR</span>
+        </div>
+        <select class="field-input" data-id="CA-B1-ZB"><option value="">— wybierz —</option><option value="tak">tak</option><option value="nie">nie</option><option value="kilka">kilka</option><option value="__not_known__">nie wiem</option></select>
+        
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-B1-POJ</span>
+          <span class="field-label">Pojemność zbiornika [m³]</span>
+          <span class="tag ur">UR</span>
+        </div>
+        <input type="text" class="field-input" data-id="CA-B1-POJ" placeholder="liczba"/>
+        <span class="field-hint">Geometryczna, z tabliczki</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-B1-NOC</span>
+          <span class="field-label">Sprężarka pracuje w nocy/weekend [h/tydzień]</span>
+          <span class="tag ur">UR/EM</span>
+        </div>
+        <input type="text" class="field-input" data-id="CA-B1-NOC" placeholder="liczba"/>
+        <span class="field-hint">KLUCZOWY wskaźnik nieszczelności</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+        </div>
+      </div>
+    </section>
+    <section class="section" id="etap-3-5">
+      <div class="section-head">
+        <div class="section-title-block">
+          <div class="section-eyebrow">ETAP 3.5</div>
+          <h2 class="section-title serif">Zasilanie elektryczne</h2>
+          <p class="section-desc">Transformatory, kompensacja, harmoniczne</p>
+        </div>
+        <div class="section-meta">
+          <div class="section-progress" data-etap="etap-3-5">0 / 10</div>
+          <div>postęp etapu</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="field-list">
+          
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">E1-NAP</span>
+          <span class="field-label">Napięcie zasilania sprężarek</span>
+          <span class="tag em">EM</span>
+        </div>
+        <select class="field-input" data-id="E1-NAP"><option value="">— wybierz —</option><option value="400 V">400 V</option><option value="690 V">690 V</option><option value="6 kV">6 kV</option><option value="10 kV">10 kV</option><option value="mieszane">mieszane</option><option value="__not_known__">nie wiem</option></select>
+        
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">E1-TRAFO</span>
+          <span class="field-label">Liczba i moc transformatorów [kVA]</span>
+          <span class="tag em">EM</span>
+        </div>
+        <input type="text" class="field-input" data-id="E1-TRAFO" placeholder=""/>
+        <span class="field-hint">np. 2× 3 MVA + 1× 1250 kVA</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">E1-ROK</span>
+          <span class="field-label">Rok instalacji transformatorów</span>
+          <span class="tag em">EM</span>
+        </div>
+        <input type="text" class="field-input" data-id="E1-ROK" placeholder="liczba"/>
+        <span class="field-hint">Najstarszy z transformatorów</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">E1-TYP</span>
+          <span class="field-label">Typ transformatora</span>
+          <span class="tag em">EM</span>
+        </div>
+        <select class="field-input" data-id="E1-TYP"><option value="">— wybierz —</option><option value="suchy">suchy</option><option value="olejowy">olejowy</option><option value="mieszane">mieszane</option><option value="__not_known__">nie wiem</option></select>
+        
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">E1-COSF</span>
+          <span class="field-label">Współczynnik mocy cos φ</span>
+          <span class="tag spec">EM/SPEC</span>
+        </div>
+        <input type="text" class="field-input" data-id="E1-COSF" placeholder="liczba"/>
+        <span class="field-hint">Z faktury lub pomiaru, typowo 0,85-0,98</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">E1-KOMP</span>
+          <span class="field-label">Kompensacja mocy biernej</span>
+          <span class="tag em">EM</span>
+        </div>
+        <select class="field-input" data-id="E1-KOMP"><option value="">— wybierz —</option><option value="centralna">centralna</option><option value="lokalna">lokalna</option><option value="hybryda">hybryda</option><option value="brak">brak</option><option value="__not_known__">nie wiem</option></select>
+        
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">E1-FILTRY</span>
+          <span class="field-label">Filtry harmoniczne</span>
+          <span class="tag em">EM</span>
+        </div>
+        <select class="field-input" data-id="E1-FILTRY"><option value="">— wybierz —</option><option value="tak — pasywne">tak — pasywne</option><option value="tak — aktywne">tak — aktywne</option><option value="nie">nie</option><option value="__not_known__">nie wiem</option></select>
+        
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">E1-THD</span>
+          <span class="field-label">THD [%]</span>
+          <span class="tag spec">SPEC</span>
+        </div>
+        <input type="text" class="field-input" data-id="E1-THD" placeholder="liczba"/>
+        <span class="field-hint">Wymaga analizatora sieci — pomiar specjalistyczny</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">E1-STRATY</span>
+          <span class="field-label">Straty na transformatorach [%]</span>
+          <span class="tag spec">SPEC</span>
+        </div>
+        <input type="text" class="field-input" data-id="E1-STRATY" placeholder="liczba"/>
+        <span class="field-hint">Typowo 3-4%, wymaga pomiaru</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">E1-EMC</span>
+          <span class="field-label">Filtr EMC w falowniku VSD</span>
+          <span class="tag em">EM</span>
+        </div>
+        <select class="field-input" data-id="E1-EMC"><option value="">— wybierz —</option><option value="tak">tak</option><option value="nie">nie</option><option value="brak VSD">brak VSD</option><option value="__not_known__">nie wiem</option></select>
+        
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+        </div>
+      </div>
+    </section>
+    <section class="section" id="etap-4">
+      <div class="section-head">
+        <div class="section-title-block">
+          <div class="section-eyebrow">ETAP 4</div>
+          <h2 class="section-title serif">Uzdatnianie powietrza</h2>
+          <p class="section-desc">Osuszacze, filtry, klasa jakości ISO 8573</p>
+        </div>
+        <div class="section-meta">
+          <div class="section-progress" data-etap="etap-4">0 / 9</div>
+          <div>postęp etapu</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="field-list">
+          
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-T1-OSU</span>
+          <span class="field-label">Osuszacz</span>
+          <span class="tag ur">UR</span>
+        </div>
+        <select class="field-input" data-id="CA-T1-OSU"><option value="">— wybierz —</option><option value="chłodniczy">chłodniczy</option><option value="adsorpcyjny">adsorpcyjny</option><option value="membranowy">membranowy</option><option value="brak">brak</option><option value="__not_known__">nie wiem</option></select>
+        <span class="field-hint">Typ osuszacza</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-T1-PR</span>
+          <span class="field-label">Punkt rosy [°C]</span>
+          <span class="tag em">EM</span>
+        </div>
+        <input type="text" class="field-input" data-id="CA-T1-PR" placeholder="liczba"/>
+        <span class="field-hint">Chłodniczy: +3 do +10. Adsorpcyjny: -20 do -70.</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-T1-ZUZ</span>
+          <span class="field-label">Zużycie energii osuszaczy [kWh/rok]</span>
+          <span class="tag em">EM</span>
+        </div>
+        <input type="text" class="field-input" data-id="CA-T1-ZUZ" placeholder="liczba"/>
+        <span class="field-hint">Z liczników lub szacunku</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-T1-PURGE</span>
+          <span class="field-label">Purge powietrza adsorpcyjnego [%]</span>
+          <span class="tag spec">EM/SPEC</span>
+        </div>
+        <input type="text" class="field-input" data-id="CA-T1-PURGE" placeholder="liczba"/>
+        <span class="field-hint">Typowo 10-20%, z dmuchawą zewn. 2-5%</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-T1-RED</span>
+          <span class="field-label">Redundancja osuszacza</span>
+          <span class="tag em">EM</span>
+        </div>
+        <select class="field-input" data-id="CA-T1-RED"><option value="">— wybierz —</option><option value="jeden">jeden</option><option value="dwa równolegle">dwa równolegle</option><option value="zapasowy">zapasowy</option><option value="brak">brak</option><option value="__not_known__">nie wiem</option></select>
+        
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-T1-FILTR</span>
+          <span class="field-label">Liczba stopni filtracji</span>
+          <span class="tag ur">UR/EM</span>
+        </div>
+        <input type="text" class="field-input" data-id="CA-T1-FILTR" placeholder="liczba"/>
+        <span class="field-hint">Typowo 2-3 stopnie</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-T1-DPF</span>
+          <span class="field-label">Spadek ciśnienia na filtrach [bar]</span>
+          <span class="tag spec">UR/EM/SPEC</span>
+        </div>
+        <input type="text" class="field-input" data-id="CA-T1-DPF" placeholder="liczba"/>
+        <span class="field-hint">Brudny filtr = 0,3-0,5 bar = 3% energii</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-T1-DPO</span>
+          <span class="field-label">Spadek ciśnienia na osuszaczu [bar]</span>
+          <span class="tag spec">UR/EM/SPEC</span>
+        </div>
+        <input type="text" class="field-input" data-id="CA-T1-DPO" placeholder="liczba"/>
+        
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-T1-ISO8573</span>
+          <span class="field-label">Wymagana klasa ISO 8573</span>
+          <span class="tag em">EM</span>
+        </div>
+        <select class="field-input" data-id="CA-T1-ISO8573"><option value="">— wybierz —</option><option value="1-2 (lakiernia/spożywcza/farma)">1-2 (lakiernia/spożywcza/farma)</option><option value="3-4 (typowy przemysł)">3-4 (typowy przemysł)</option><option value="5-6 (workshop)">5-6 (workshop)</option><option value="__not_known__">nie wiem</option></select>
+        <span class="field-hint">Klasa Solid/Water/Oil</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+        </div>
+      </div>
+    </section>
+    <section class="section" id="etap-5">
+      <div class="section-head">
+        <div class="section-title-block">
+          <div class="section-eyebrow">ETAP 5</div>
+          <h2 class="section-title serif">Sieć dystrybucji</h2>
+          <p class="section-desc">Topologia, materiał, spadek ciśnienia, kondensat</p>
+        </div>
+        <div class="section-meta">
+          <div class="section-progress" data-etap="etap-5">0 / 12</div>
+          <div>postęp etapu</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="field-list">
+          
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-N1-TOPO</span>
+          <span class="field-label">Topologia sieci</span>
+          <span class="tag ur">UR/EM</span>
+        </div>
+        <select class="field-input" data-id="CA-N1-TOPO"><option value="">— wybierz —</option><option value="pierścień zamknięty">pierścień zamknięty</option><option value="drzewo">drzewo</option><option value="ślepe odnogi">ślepe odnogi</option><option value="mieszane">mieszane</option><option value="__not_known__">nie wiem</option></select>
+        <span class="field-hint">Najefektywniejszy: pierścień</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-N1-MAT</span>
+          <span class="field-label">Materiał głównych rurociągów</span>
+          <span class="tag ur">UR/EM</span>
+        </div>
+        <select class="field-input" data-id="CA-N1-MAT"><option value="">— wybierz —</option><option value="stal czarna">stal czarna</option><option value="stal nierdzewna">stal nierdzewna</option><option value="aluminium">aluminium</option><option value="miedź">miedź</option><option value="PE/PCV">PE/PCV</option><option value="mieszane">mieszane</option><option value="__not_known__">nie wiem</option></select>
+        <span class="field-hint">Stal czarna rdzewieje</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-N1-DN</span>
+          <span class="field-label">Średnica głównego rurociągu (DN)</span>
+          <span class="tag em">EM</span>
+        </div>
+        <input type="text" class="field-input" data-id="CA-N1-DN" placeholder=""/>
+        <span class="field-hint">np. DN 100, DN 200</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-N1-DLUG</span>
+          <span class="field-label">Łączna długość sieci [m]</span>
+          <span class="tag em">EM</span>
+        </div>
+        <input type="text" class="field-input" data-id="CA-N1-DLUG" placeholder="liczba"/>
+        <span class="field-hint">Orientacyjnie</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-N1-STREFY</span>
+          <span class="field-label">Liczba stref/gałęzi</span>
+          <span class="tag em">EM</span>
+        </div>
+        <input type="text" class="field-input" data-id="CA-N1-STREFY" placeholder="liczba"/>
+        <span class="field-hint">Ile odbiorców końcowych grup</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-N1-ZAW</span>
+          <span class="field-label">Zawory odcinające między strefami</span>
+          <span class="tag ur">UR/EM</span>
+        </div>
+        <select class="field-input" data-id="CA-N1-ZAW"><option value="">— wybierz —</option><option value="tak — wszędzie">tak — wszędzie</option><option value="tak — częściowo">tak — częściowo</option><option value="nie">nie</option><option value="__not_known__">nie wiem</option></select>
+        <span class="field-hint">Możliwość izolacji nocą/weekend</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-N1-PODB</span>
+          <span class="field-label">Wymagane ciśnienie u krytycznego odbiorcy [bar]</span>
+          <span class="tag em">EM</span>
+        </div>
+        <input type="text" class="field-input" data-id="CA-N1-PODB" placeholder="liczba"/>
+        <span class="field-hint">Najwyżej obciążony</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-N1-SPADEK</span>
+          <span class="field-label">Spadek ciśnienia w sieci [bar]</span>
+          <span class="tag spec">EM/SPEC</span>
+        </div>
+        <input type="text" class="field-input" data-id="CA-N1-SPADEK" placeholder="liczba"/>
+        <span class="field-hint">Cel: <10% Ptłoczenia</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-N1-MON</span>
+          <span class="field-label">Monitoring ciśnienia w sieci</span>
+          <span class="tag ur">UR</span>
+        </div>
+        <select class="field-input" data-id="CA-N1-MON"><option value="">— wybierz —</option><option value="tak — w wielu punktach">tak — w wielu punktach</option><option value="tak — w jednym">tak — w jednym</option><option value="nie">nie</option><option value="__not_known__">nie wiem</option></select>
+        
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-N1-SPUST</span>
+          <span class="field-label">Typ spustów kondensatu</span>
+          <span class="tag ur">UR</span>
+        </div>
+        <select class="field-input" data-id="CA-N1-SPUST"><option value="">— wybierz —</option><option value="ręczne">ręczne</option><option value="czasowe (timer)">czasowe (timer)</option><option value="z czujnikiem poziomu">z czujnikiem poziomu</option><option value="no-loss elektroniczne">no-loss elektroniczne</option><option value="mieszane">mieszane</option><option value="__not_known__">nie wiem</option></select>
+        <span class="field-hint">Czasowy źle ustawiony = wyciek</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-N1-SEPAR</span>
+          <span class="field-label">Separator olej-woda</span>
+          <span class="tag ur">UR/EM</span>
+        </div>
+        <select class="field-input" data-id="CA-N1-SEPAR"><option value="">— wybierz —</option><option value="tak">tak</option><option value="nie (uwaga: wymóg prawny!)">nie (uwaga: wymóg prawny!)</option><option value="__not_known__">nie wiem</option></select>
+        <span class="field-hint">Wymóg ochrony środowiska</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-N1-WIEK</span>
+          <span class="field-label">Wiek sieci [lat]</span>
+          <span class="tag em">EM</span>
+        </div>
+        <input type="text" class="field-input" data-id="CA-N1-WIEK" placeholder="liczba"/>
+        <span class="field-hint">Od daty budowy/modernizacji</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+        </div>
+      </div>
+    </section>
+    <section class="section" id="etap-6">
+      <div class="section-head">
+        <div class="section-title-block">
+          <div class="section-eyebrow">ETAP 6</div>
+          <h2 class="section-title serif">Odbiorcy końcowi (Demand)</h2>
+          <p class="section-desc">Inwentaryzacja, niewłaściwe użycia, nieszczelności</p>
+        </div>
+        <div class="section-meta">
+          <div class="section-progress" data-etap="etap-6">0 / 12</div>
+          <div>postęp etapu</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="field-list">
+          
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-D1-INV</span>
+          <span class="field-label">Inwentaryzacja głównych odbiorców</span>
+          <span class="tag em">EM</span>
+        </div>
+        <textarea class="field-input" data-id="CA-D1-INV" rows="3" placeholder="Lista: maszyna - ciśnienie - zużycie. Min. 5 największych."></textarea>
+        <span class="field-hint">Lista: maszyna - ciśnienie - zużycie. Min. 5 największych.</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-D1-KRYT</span>
+          <span class="field-label">Krytyczny odbiorca (najwyższe ciśnienie)</span>
+          <span class="tag em">EM</span>
+        </div>
+        <input type="text" class="field-input" data-id="CA-D1-KRYT" placeholder=""/>
+        <span class="field-hint">Ten determinuje ciśnienie sieci</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-D1-PROFIL</span>
+          <span class="field-label">Profil zapotrzebowania</span>
+          <span class="tag em">EM</span>
+        </div>
+        <select class="field-input" data-id="CA-D1-PROFIL"><option value="">— wybierz —</option><option value="ciągły">ciągły</option><option value="skokowy/impulsowy">skokowy/impulsowy</option><option value="silnie zmienny">silnie zmienny</option><option value="__not_known__">nie wiem</option></select>
+        
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-D1-RED</span>
+          <span class="field-label">Lokalne reduktory ciśnienia</span>
+          <span class="tag ur">UR/EM</span>
+        </div>
+        <select class="field-input" data-id="CA-D1-RED"><option value="">— wybierz —</option><option value="tak — wszędzie">tak — wszędzie</option><option value="tak — częściowo">tak — częściowo</option><option value="nie">nie</option><option value="__not_known__">nie wiem</option></select>
+        
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-D2-CHL</span>
+          <span class="field-label">Misuse: chłodzenie sprężonym powietrzem</span>
+          <span class="tag ur">UR</span>
+        </div>
+        <select class="field-input" data-id="CA-D2-CHL"><option value="">— wybierz —</option><option value="tak">tak</option><option value="nie">nie</option><option value="__not_known__">nie wiem</option></select>
+        <span class="field-hint">Pracownicy/urządzenia/panele</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-D2-PRZED</span>
+          <span class="field-label">Misuse: przedmuch otwartą rurką</span>
+          <span class="tag ur">UR</span>
+        </div>
+        <select class="field-input" data-id="CA-D2-PRZED"><option value="">— wybierz —</option><option value="tak">tak</option><option value="nie">nie</option><option value="__not_known__">nie wiem</option></select>
+        <span class="field-hint">Czyszczenie zamiast szczotki</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-D2-MIES</span>
+          <span class="field-label">Misuse: mieszanie/napowietrzanie</span>
+          <span class="tag ur">UR</span>
+        </div>
+        <select class="field-input" data-id="CA-D2-MIES"><option value="">— wybierz —</option><option value="tak">tak</option><option value="nie">nie</option><option value="__not_known__">nie wiem</option></select>
+        <span class="field-hint">Zamiast mieszadeł</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-D2-PROZ</span>
+          <span class="field-label">Misuse: wytwarzanie próżni ejektorami</span>
+          <span class="tag ur">UR</span>
+        </div>
+        <select class="field-input" data-id="CA-D2-PROZ"><option value="">— wybierz —</option><option value="tak">tak</option><option value="nie">nie</option><option value="__not_known__">nie wiem</option></select>
+        <span class="field-hint">Zamiast pompy próżniowej</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-D2-TRANS</span>
+          <span class="field-label">Misuse: transport pneumatyczny</span>
+          <span class="tag ur">UR</span>
+        </div>
+        <select class="field-input" data-id="CA-D2-TRANS"><option value="">— wybierz —</option><option value="tak">tak</option><option value="nie">nie</option><option value="__not_known__">nie wiem</option></select>
+        <span class="field-hint">Zamiast dmuchaw niskociśnieniowych</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-D3-LEAK</span>
+          <span class="field-label">Test nieszczelności (24m)</span>
+          <span class="tag em">EM</span>
+        </div>
+        <select class="field-input" data-id="CA-D3-LEAK"><option value="">— wybierz —</option><option value="tak — wykonany">tak — wykonany</option><option value="nie">nie</option><option value="__not_known__">nie wiem</option></select>
+        
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-D3-LEAKPCT</span>
+          <span class="field-label">Wynik leak test [%]</span>
+          <span class="tag em">EM</span>
+        </div>
+        <input type="text" class="field-input" data-id="CA-D3-LEAKPCT" placeholder="liczba"/>
+        <span class="field-hint">Tylko jeśli wykonany. Typowo 5-30%.</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-D3-SLUCH</span>
+          <span class="field-label">Słyszalne nieszczelności (na ucho)</span>
+          <span class="tag ur">UR</span>
+        </div>
+        <select class="field-input" data-id="CA-D3-SLUCH"><option value="">— wybierz —</option><option value="tak — kilka miejsc">tak — kilka miejsc</option><option value="tak — pojedyncze">tak — pojedyncze</option><option value="nie">nie</option><option value="__not_known__">nie wiem</option></select>
+        <span class="field-hint">Subiektywne — proxy leaków</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+        </div>
+      </div>
+    </section>
+    <section class="section" id="etap-7">
+      <div class="section-head">
+        <div class="section-title-block">
+          <div class="section-eyebrow">ETAP 7</div>
+          <h2 class="section-title serif">Eksploatacja, koszty, konserwacja</h2>
+          <p class="section-desc">Odzysk ciepła, koszty, regulacje</p>
+        </div>
+        <div class="section-meta">
+          <div class="section-progress" data-etap="etap-7">0 / 10</div>
+          <div>postęp etapu</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="field-list">
+          
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-O1-OC</span>
+          <span class="field-label">Odzysk ciepła ze sprężarek</span>
+          <span class="tag ur">UR/EM</span>
+        </div>
+        <select class="field-input" data-id="CA-O1-OC"><option value="">— wybierz —</option><option value="tak — działa">tak — działa</option><option value="tak — częściowo">tak — częściowo</option><option value="nie">nie</option><option value="był, nie działa">był, nie działa</option><option value="__not_known__">nie wiem</option></select>
+        
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-O1-OCUSE</span>
+          <span class="field-label">Co odzyskuje (jeśli tak)</span>
+          <span class="tag ur">UR/EM</span>
+        </div>
+        <select class="field-input" data-id="CA-O1-OCUSE"><option value="">— wybierz —</option><option value="CWU">CWU</option><option value="ogrzewanie hali">ogrzewanie hali</option><option value="proces technologiczny">proces technologiczny</option><option value="stacja uzdatniania wody">stacja uzdatniania wody</option><option value="kilka odbiorców">kilka odbiorców</option><option value="nie dotyczy">nie dotyczy</option><option value="__not_known__">nie wiem</option></select>
+        
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-O1-OCPOT</span>
+          <span class="field-label">Potencjał odzysku (jeśli brak)</span>
+          <span class="tag ur">UR/EM</span>
+        </div>
+        <select class="field-input" data-id="CA-O1-OCPOT"><option value="">— wybierz —</option><option value="tak — odbiorca w pobliżu">tak — odbiorca w pobliżu</option><option value="być może">być może</option><option value="nie">nie</option><option value="__not_known__">nie wiem</option></select>
+        <span class="field-hint"><50m od sprężarkowni</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-O2-EE</span>
+          <span class="field-label">Roczne zużycie energii sprężarek [kWh/rok]</span>
+          <span class="tag em">EM</span>
+        </div>
+        <input type="text" class="field-input" data-id="CA-O2-EE" placeholder="liczba"/>
+        <span class="field-hint">NAJWAŻNIEJSZE pole. Z liczników lub Asix.</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-O2-CENA</span>
+          <span class="field-label">Średnia cena energii [zł/kWh]</span>
+          <span class="tag em">EM</span>
+        </div>
+        <input type="text" class="field-input" data-id="CA-O2-CENA" placeholder="liczba"/>
+        <span class="field-hint">Netto z faktury</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-O3-SERW</span>
+          <span class="field-label">Roczny koszt serwisu [zł/rok]</span>
+          <span class="tag em">EM</span>
+        </div>
+        <input type="text" class="field-input" data-id="CA-O3-SERW" placeholder="liczba"/>
+        <span class="field-hint">Części + robocizna + oleje + filtry</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-O3-PREV</span>
+          <span class="field-label">Konserwacja prewencyjna</span>
+          <span class="tag em">EM</span>
+        </div>
+        <select class="field-input" data-id="CA-O3-PREV"><option value="">— wybierz —</option><option value="tak — wg planu producenta">tak — wg planu producenta</option><option value="tak — własny plan">tak — własny plan</option><option value="doraźnie">doraźnie</option><option value="brak">brak</option><option value="__not_known__">nie wiem</option></select>
+        
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-O3-EM</span>
+          <span class="field-label">Dedykowany Energy Manager / mistrz</span>
+          <span class="tag em">EM</span>
+        </div>
+        <select class="field-input" data-id="CA-O3-EM"><option value="">— wybierz —</option><option value="pełen etat dla CA">pełen etat dla CA</option><option value="część etatu">część etatu</option><option value="brak">brak</option><option value="__not_known__">nie wiem</option></select>
+        
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-O4-BC</span>
+          <span class="field-label">Białe certyfikaty z CA (historia)</span>
+          <span class="tag em">EM</span>
+        </div>
+        <select class="field-input" data-id="CA-O4-BC"><option value="">— wybierz —</option><option value="tak — kiedyś otrzymane">tak — kiedyś otrzymane</option><option value="w trakcie">w trakcie</option><option value="nie">nie</option><option value="__not_known__">nie wiem</option></select>
+        
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-id mono">CA-O4-EED</span>
+          <span class="field-label">Obowiązek audytu EED (>250 prac. lub >50M€)</span>
+          <span class="tag em">EM</span>
+        </div>
+        <select class="field-input" data-id="CA-O4-EED"><option value="">— wybierz —</option><option value="tak — duże przedsiębiorstwo">tak — duże przedsiębiorstwo</option><option value="nie — MŚP">nie — MŚP</option><option value="__not_known__">nie wiem</option></select>
+        <span class="field-hint">Dyrektywa EED audyt co 4 lata</span>
+        <div class="action-pills">
+          <button class="pill" type="button" data-action="unsure">nie wiem</button>
+          <button class="pill" type="button" data-action="delegate">deleguj</button>
+        </div>
+      </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SUBMIT PANEL -->
+    <section class="submit-panel">
+      <div class="submit-eyebrow">FAZA 2 · KONSULTACJA AUDYTORA</div>
+      <h2 class="submit-title serif">
+        Skończyłeś? <em>Audytor sprawdzi i dopyta tylko o niejasne.</em>
+      </h2>
+      <p class="submit-lead">
+        Zamiast przechodzić przez 80 pytań po kolei, Audytor ENESA przejrzy Twoje dane i dopyta 
+        tylko tam, gdzie coś jest puste, niespójne lub wymaga doprecyzowania. Luki przekażesz 
+        Energy Managerowi lub firmie specjalistycznej w jednym kliku.
+      </p>
+      <div class="submit-actions">
+        <button class="btn btn-primary" type="button">Wyślij do Audytora →</button>
+        <button class="btn btn-ghost" type="button">Zapisz i dokończ później</button>
+        <button class="btn btn-ghost" type="button">Deleguj puste pola do Energy Managera</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-meta">ENESA · v3.1 · ISO 11011:2013 · 209 pól w 9 sekcjach</div>
+  <div class="autosave">
+    <span class="autosave-dot"></span>
+    Autozapis aktywny · ostatnio zapisano <span id="last-saved">12 sek temu</span>
+  </div>
+</footer>
+
+<script>
+const totalAll = 209;
+const fields = document.querySelectorAll('.field-input, .compressors-table input, .compressors-table select');
+
+function updateProgress() {
+  let filled = 0, unsure = 0, delegated = 0;
+  fields.forEach(f => {
+    const v = (f.value || '').trim();
+    if (v === '__not_known__' || v === 'nie wiem') {
+      unsure++;
+      f.classList.add('unsure');
+      f.classList.remove('filled', 'delegated');
+    } else if (v === 'deleguj do EM' || v === 'deleguj') {
+      delegated++;
+      f.classList.add('delegated');
+      f.classList.remove('filled', 'unsure');
+    } else if (v !== '') {
+      filled++;
+      f.classList.add('filled');
+      f.classList.remove('unsure', 'delegated');
+    } else {
+      f.classList.remove('filled', 'unsure', 'delegated');
+    }
+  });
+  const empty = totalAll - filled - unsure - delegated;
+  const pct = Math.round((filled / totalAll) * 100);
+  
+  document.getElementById('progress-counter').innerHTML = `${filled}<em>/${totalAll}</em>`;
+  document.getElementById('progress-pct').textContent = pct;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('stat-filled').textContent = filled;
+  document.getElementById('stat-unsure').textContent = unsure + delegated;
+  document.getElementById('stat-empty').textContent = empty;
+  
+  document.querySelectorAll('.section-progress[data-etap]').forEach(el => {
+    const etap = el.dataset.etap;
+    const section = document.getElementById(etap);
+    if (!section) return;
+    const sectionFields = section.querySelectorAll('.field-input');
+    let sFilled = 0;
+    sectionFields.forEach(f => {
+      const v = (f.value || '').trim();
+      if (v !== '' && v !== '__not_known__' && v !== 'nie wiem' && v !== 'deleguj do EM') sFilled++;
+    });
+    el.textContent = `${sFilled} / ${sectionFields.length}`;
+  });
+}
+
+fields.forEach(f => {
+  f.addEventListener('input', updateProgress);
+  f.addEventListener('change', updateProgress);
+});
+
+document.querySelectorAll('.pill').forEach(p => {
+  p.addEventListener('click', e => {
+    e.preventDefault();
+    const action = p.dataset.action;
+    const field = p.closest('.field');
+    const input = field.querySelector('.field-input');
+    
+    const wasActive = p.classList.contains('active');
+    field.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
+    
+    if (!wasActive) {
+      p.classList.add('active');
+      if (action === 'unsure') {
+        if (input.tagName === 'SELECT') {
+          input.value = '__not_known__';
+        } else {
+          input.value = 'nie wiem';
+        }
+      } else if (action === 'delegate') {
+        if (input.tagName === 'SELECT') {
+          input.value = '__not_known__';
+        } else {
+          input.value = 'deleguj do EM';
+        }
+      }
+    } else {
+      input.value = '';
+    }
+    updateProgress();
+  });
+});
+
+document.querySelectorAll('.sidenav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.sidenav-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+    const target = item.dataset.target;
+    const el = document.getElementById(target);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+let lastSavedAt = Date.now();
+setInterval(() => {
+  const sec = Math.floor((Date.now() - lastSavedAt) / 1000);
+  document.getElementById('last-saved').textContent = sec + ' sek temu';
+  if (sec > 30) lastSavedAt = Date.now();
+}, 1000);
+
+updateProgress();
+</script>
+</body>
+</html>

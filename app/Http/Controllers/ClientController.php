@@ -294,6 +294,12 @@ class ClientController extends Controller
                 ->with('status', 'Przed rozpoczęciem audytu wypełnij kwestionariusz wstępny.');
         }
 
+        // Redirect to questionnaire first for compressor room audits
+        if ($agentType === 'compressor_room' && ! $audit->questionnaire_completed) {
+            return redirect()->route('client.audit.compressor.questionnaire', $audit)
+                ->with('status', 'Przed rozpoczęciem rozmowy wypełnij ankietę sprężarkowni — podaj co wiesz, resztę zbierze asystent AI.');
+        }
+
         // Check if conversation already exists
         $existing = AiConversation::where([
             'user_id'      => $user->id,
@@ -399,6 +405,83 @@ class ClientController extends Controller
 
         return redirect()->route('client.audit.ai', $audit)
             ->with('status', 'Kwestionariusz zapisany. Możesz teraz rozpocząć rozmowę z asystentem AI.');
+    }
+
+    public function showCompressorQuestionnaire(EnergyAudit $audit): \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+    {
+        $user = auth()->user();
+        $clientCompanyId = $user->company_id
+            ?? Company::where('client_id', $user->id)->value('id');
+        abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
+        abort_unless($audit->agent_type === 'compressor_room', 404);
+
+        $answers = (array) ($audit->questionnaire_answers ?? []);
+        $company = Company::find($audit->company_id);
+
+        return view('client.compressor-questionnaire', [
+            'audit'   => $audit,
+            'answers' => $answers,
+            'company' => $company,
+            'user'    => $user,
+        ]);
+    }
+
+    public function saveCompressorQuestionnaire(Request $request, EnergyAudit $audit): \Illuminate\Http\RedirectResponse
+    {
+        $user = auth()->user();
+        $clientCompanyId = $user->company_id
+            ?? Company::where('client_id', $user->id)->value('id');
+        abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
+        abort_unless($audit->agent_type === 'compressor_room', 404);
+
+        $raw = $request->input('answers', []);
+        $sanitized = [];
+        foreach ($raw as $code => $value) {
+            $code = preg_replace('/[^A-Za-z0-9_\-\[\]]/', '', (string) $code);
+            if ($code !== '') {
+                if (is_array($value)) {
+                    $sanitized[$code] = array_map(fn($v) => strip_tags(trim((string) $v)), $value);
+                } else {
+                    $sanitized[$code] = strip_tags(trim((string) $value));
+                }
+            }
+        }
+
+        // Save compressors table separately
+        $compressors = $request->input('compressors', []);
+        $cleanCompressors = [];
+        foreach ($compressors as $row) {
+            if (!is_array($row)) continue;
+            $cleanRow = [];
+            foreach ($row as $k => $v) {
+                $k = preg_replace('/[^A-Za-z0-9_]/', '', (string) $k);
+                $cleanRow[$k] = strip_tags(trim((string) $v));
+            }
+            $cleanCompressors[] = $cleanRow;
+        }
+        if (!empty($cleanCompressors)) {
+            $sanitized['_compressors'] = $cleanCompressors;
+        }
+
+        if ($request->boolean('save_as_draft')) {
+            $audit->update(['questionnaire_answers' => $sanitized]);
+            return redirect()->route('client.audit.compressor.questionnaire', $audit)
+                ->with('draft_saved', true);
+        }
+
+        $nonEmpty = array_filter($sanitized, fn($v) => $v !== '' && $v !== [] && $v !== null);
+        if (count($nonEmpty) < 2) {
+            return redirect()->route('client.audit.compressor.questionnaire', $audit)
+                ->withErrors(['Wypełnij co najmniej kilka pól przed zapisaniem ankiety.']);
+        }
+
+        $audit->update([
+            'questionnaire_answers'   => $sanitized,
+            'questionnaire_completed' => true,
+        ]);
+
+        return redirect()->route('client.audit.ai', $audit)
+            ->with('status', 'Ankieta sprężarkowni zapisana. Asystent AI zapozna się z danymi i zada tylko pytania uzupełniające.');
     }
 
     public function auditWork(EnergyAudit $audit, AiConversation $conversation): \Illuminate\View\View

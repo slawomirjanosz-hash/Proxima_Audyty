@@ -309,6 +309,10 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('role:client')->name('client.audit.iso.questionnaire');
     Route::post('/moje-audyty/{audit}/kwestionariusz-iso', [ClientController::class, 'saveIsoQuestionnaire'])
         ->middleware('role:client')->name('client.audit.iso.questionnaire.save');
+    Route::get('/moje-audyty/{audit}/kwestionariusz-sprezarkowni', [ClientController::class, 'showCompressorQuestionnaire'])
+        ->middleware('role:client')->name('client.audit.compressor.questionnaire');
+    Route::post('/moje-audyty/{audit}/kwestionariusz-sprezarkowni', [ClientController::class, 'saveCompressorQuestionnaire'])
+        ->middleware('role:client')->name('client.audit.compressor.questionnaire.save');
     Route::get('/moje-audyty/{audit}/praca/{conversation}', [ClientController::class, 'auditWork'])
         ->middleware('role:client')->name('client.audit.work');
     Route::post('/moje-audyty/{audit}/praca/{conversation}/zakoncz', [ClientController::class, 'finishAuditAi'])
