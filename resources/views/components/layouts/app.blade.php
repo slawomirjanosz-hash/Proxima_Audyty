@@ -37,6 +37,10 @@
         .menu { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
         .menu a { display: block; text-decoration: none; color: #fff; font-weight: 600; padding: 11px 12px; border-radius: 10px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15); }
         .menu a:hover, .menu a.menu-active { background: rgba(255,255,255,.28); border-color: rgba(255,255,255,.4); }
+        .menu a.menu-alert { color: #fde047; border-color: rgba(253,224,71,.5); }
+        .menu a.menu-alert:hover, .menu a.menu-alert.menu-active { color: #fde047; }
+        .menu-alert-dot { display:inline-block; width:8px; height:8px; background:#fde047; border-radius:50%; margin-left:6px; vertical-align:middle; box-shadow:0 0 6px rgba(253,224,71,.8); animation:pulse-dot 1.6s ease-in-out infinite; }
+        @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
         .content { padding: 16px 22px 22px; display: flex; flex-direction: column; gap: 14px; }
         .topbar { background: var(--menu-grad-soft); color: #fff; border-radius: 14px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 12px 24px rgba(9, 70, 104, 0.16); }
         .login-btn { color: #fff; text-decoration: none; font-weight: 600; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.12); padding: 8px 12px; border-radius: 9px; }
@@ -83,6 +87,19 @@
         </div>
 
         @php($menuUser = auth()->user())
+        @php
+            $dashboardAlertCount = 0;
+            if ($menuUser && !$menuUser->isClient()) {
+                try {
+                    $dashboardAlertCount =
+                        \App\Models\ClientInquiry::where('status', 'new')->count()
+                        + \App\Models\ClientRegistration::where('status', 'pending')->count()
+                        + \App\Models\ClientChatMessage::where('is_from_admin', false)->where('read_at', null)->count();
+                } catch (\Throwable $e) {
+                    $dashboardAlertCount = 0;
+                }
+            }
+        @endphp
         <ul class="menu">
             @if(!$menuUser)
                 <li><a href="{{ route('home') }}" @class(['menu-active' => request()->routeIs('home')])>{{ __('ui.menu.home') }}</a></li>
@@ -99,7 +116,7 @@
                 @endif
 
                 @if(!$menuUser->isClient() && $menuUser->canAccessTab(\App\Models\User::TAB_AUDITS))
-                    <li><a href="{{ route('dashboard') }}" @class(['menu-active' => request()->routeIs('dashboard')])>{{ __('ui.menu.dashboard') }}</a></li>
+                    <li><a href="{{ route('dashboard') }}" @class(['menu-active' => request()->routeIs('dashboard'), 'menu-alert' => $dashboardAlertCount > 0])>{{ __('ui.menu.dashboard') }}@if($dashboardAlertCount > 0)<span class="menu-alert-dot" title="{{ $dashboardAlertCount }} nowych powiadomień"></span>@endif</a></li>
                     @php($inAuditsTypes = request()->routeIs('audits.types'))
                     @php($currentTab = request()->route('tab'))
                     <li>
