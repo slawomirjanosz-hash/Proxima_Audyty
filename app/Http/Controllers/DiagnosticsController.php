@@ -287,6 +287,21 @@ class DiagnosticsController extends Controller
                 'EnergyAudit::count()' => static fn () => EnergyAudit::count() . ' audytów w tabeli',
 
                 'energy_audits company_id nullable?' => static function () {
+                    $driver = DB::getDriverName();
+                    if ($driver === 'sqlite') {
+                        // SQLite: PRAGMA table_info
+                        $cols = DB::select("PRAGMA table_info('energy_audits')");
+                        $col  = collect($cols)->firstWhere('name', 'company_id');
+                        if (! $col) {
+                            throw new \RuntimeException('Kolumna company_id nie istnieje w energy_audits');
+                        }
+                        $nullable = (int) $col->notnull === 0;
+                        if (! $nullable) {
+                            throw new \RuntimeException('company_id NOT NULL – migracja nullable nie została wykonana');
+                        }
+                        return 'OK – company_id jest nullable (sqlite)';
+                    }
+                    // MySQL / PostgreSQL
                     $col = DB::selectOne(
                         "SELECT IS_NULLABLE, COLUMN_TYPE FROM information_schema.COLUMNS
                          WHERE TABLE_SCHEMA = DATABASE()
