@@ -139,16 +139,93 @@
         }
         .dontknow-btn:hover { background: #e4eef8; border-color: #9bbcd6; }
         .dontknow-active { background: #fdf3e7; border-color: #e0a954; color: #7d5000; }
+
+        /* Layout: sidenav + main — overflow fix */
+        .cq-outer { max-width: 100%; overflow-x: hidden; }
+        .cq-layout {
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            gap: 28px;
+            align-items: start;
+            max-width: 100%;
+        }
+        @media (max-width: 800px) {
+            .cq-layout { grid-template-columns: 1fr; }
+            .cq-sidenav { display: none; }
+        }
+
+        /* Sidenav */
+        .cq-sidenav {
+            position: sticky;
+            top: 80px;
+            align-self: start;
+            font-size: 13px;
+        }
+        .cq-sidenav-title {
+            font-size: 10.5px;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            color: #6b8aa3;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+        .cq-sidenav-list { list-style: none; padding: 0; margin: 0; }
+        .cq-sidenav-item {
+            padding: 8px 8px 8px 11px;
+            border-left: 2px solid #d2e3f1;
+            color: #4c6b82;
+            cursor: pointer;
+            transition: all .18s;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 12.5px;
+            margin-bottom: 1px;
+            border-radius: 0 6px 6px 0;
+        }
+        .cq-sidenav-item:hover { border-left-color: #0e89d8; background: #f0f7fc; color: #0e344e; }
+        .cq-sidenav-item.active { border-left-color: #1ba84a; background: #f0faf4; color: #0f3a20; font-weight: 700; }
+        .cq-sidenav-item.active .cq-sidenav-num { color: #1ba84a; }
+        .cq-sidenav-num { font-size: 10.5px; color: #6b8aa3; font-weight: 700; min-width: 24px; }
+        .cq-sidenav-name { flex: 1; }
+        .cq-sidenav-count { font-size: 10px; color: #9ab4c8; }
+        .cq-main { min-width: 0; }
+
+        /* Hero */
+        .cq-hero {
+            background: linear-gradient(135deg, #0f2c3e 0%, #0d4f70 55%, #0c6fa0 100%);
+            color: #fff;
+            border-radius: 14px;
+            padding: 28px 32px;
+            box-shadow: 0 10px 30px rgba(12,47,70,.22);
+        }
+        .hero-eyebrow {
+            font-size: 11px; font-weight: 700; letter-spacing: .14em;
+            text-transform: uppercase; color: rgba(255,255,255,.7); margin-bottom: 10px;
+        }
+        .hero-title {
+            font-size: 25px; font-weight: 800; line-height: 1.25;
+            margin: 0 0 12px; color: #fff;
+        }
+        .hero-title em { font-style: italic; color: #7dd3fc; }
+        .hero-lead {
+            font-size: 14px; color: rgba(255,255,255,.85);
+            max-width: 760px; line-height: 1.65; margin: 0;
+        }
     </style>
 
-    {{-- HEADER --}}
-    <div class="cq-header">
-        <div class="cq-badge">🏭 Audyt energetyczny — Sprężarkownia</div>
-        <h2>Ankieta wstępna sprężarkowni</h2>
-        <p>
-            Wypełnij formularz przed rozmową z asystentem AI — podaj tyle ile wiesz.
-            Pola możesz pominąć lub oznaczyć <strong>"Nie wiem"</strong>.
-            Asystent AI dopyta tylko o brakujące dane, nie zadając pytań o to co już podałeś.
+    {{-- OUTER WRAPPER --}}
+    <div class="cq-outer">
+
+    {{-- HERO (exact text from ENESA_Sprężarkownia.html) --}}
+    <div class="cq-hero">
+        <div class="hero-eyebrow">ISO 11011 · Audyt Sprężarkowni · Faza 1 z 3</div>
+        <h1 class="hero-title">Wypełnij <em>co wiesz</em> — Audytor doprecyzuje resztę.</h1>
+        <p class="hero-lead">
+            Formularz ma 69 pól w 8 etapach + tabela sprężarek (28 pól na każdą sprężarkę).
+            Wypełnij swoje. Pola, których nie znasz, zostaw puste lub kliknij „nie wiem" — trafią do osoby,
+            która zna odpowiedź. Po wysłaniu Audytor ENESA przejrzy dane i dopyta tylko o niejasności i puste
+            pola — szacowany czas konsultacji: 5–10 minut.
         </p>
     </div>
 
@@ -163,27 +240,49 @@
         @endif
     </div>
 
-    {{-- Progress --}}
-    <div class="cq-progress-wrap">
-        <span style="font-size:13px; color:#355c77; white-space:nowrap;">Wypełniono:</span>
-        <div class="cq-progress-bar">
-            <div class="cq-progress-fill" id="prog-fill" style="width:0%"></div>
-        </div>
-        <span id="prog-text" style="font-size:13px; color:#355c77; white-space:nowrap;">0%</span>
-    </div>
-
     {{-- Notifications --}}
     @if(session('draft_saved'))
-        <div class="cq-success">✓ Kopia robocza zapisana.</div>
+        <div class="cq-success" style="margin-top:10px;">✓ Kopia robocza zapisana.</div>
     @endif
     @if(session('status'))
-        <div class="cq-success">{{ session('status') }}</div>
+        <div class="cq-success" style="margin-top:10px;">{{ session('status') }}</div>
     @endif
     @if($errors->any())
-        <div class="cq-error">
+        <div class="cq-error" style="margin-top:10px;">
             @foreach($errors->all() as $err) <div>{{ $err }}</div> @endforeach
         </div>
     @endif
+
+    {{-- 2-column layout: sidenav + main content --}}
+    <div class="cq-layout" style="margin-top:20px;">
+
+        {{-- Left sidenav --}}
+        <aside class="cq-sidenav">
+            <div class="cq-sidenav-title">Etapy audytu</div>
+            <ul class="cq-sidenav-list">
+                <li class="cq-sidenav-item active" data-target="s0"><span class="cq-sidenav-num">0</span><span class="cq-sidenav-name">Respondent</span><span class="cq-sidenav-count">4</span></li>
+                <li class="cq-sidenav-item" data-target="s1"><span class="cq-sidenav-num">1</span><span class="cq-sidenav-name">Kontekst</span><span class="cq-sidenav-count">5</span></li>
+                <li class="cq-sidenav-item" data-target="s2"><span class="cq-sidenav-num">2</span><span class="cq-sidenav-name">Sprężarki</span><span class="cq-sidenav-count">5×28</span></li>
+                <li class="cq-sidenav-item" data-target="s3"><span class="cq-sidenav-num">3</span><span class="cq-sidenav-name">Sprężarkownia</span><span class="cq-sidenav-count">7</span></li>
+                <li class="cq-sidenav-item" data-target="s35"><span class="cq-sidenav-num">3.5</span><span class="cq-sidenav-name">Zasilanie</span><span class="cq-sidenav-count">10</span></li>
+                <li class="cq-sidenav-item" data-target="s4"><span class="cq-sidenav-num">4</span><span class="cq-sidenav-name">Uzdatnianie</span><span class="cq-sidenav-count">9</span></li>
+                <li class="cq-sidenav-item" data-target="s5"><span class="cq-sidenav-num">5</span><span class="cq-sidenav-name">Sieć</span><span class="cq-sidenav-count">12</span></li>
+                <li class="cq-sidenav-item" data-target="s6"><span class="cq-sidenav-num">6</span><span class="cq-sidenav-name">Odbiorcy</span><span class="cq-sidenav-count">12</span></li>
+                <li class="cq-sidenav-item" data-target="s7"><span class="cq-sidenav-num">7</span><span class="cq-sidenav-name">Eksploatacja</span><span class="cq-sidenav-count">10</span></li>
+            </ul>
+        </aside>
+
+        {{-- Right: progress + form --}}
+        <div class="cq-main">
+
+            {{-- Progress --}}
+            <div class="cq-progress-wrap">
+                <span style="font-size:13px; color:#355c77; white-space:nowrap;">Wypełniono:</span>
+                <div class="cq-progress-bar">
+                    <div class="cq-progress-fill" id="prog-fill" style="width:0%"></div>
+                </div>
+                <span id="prog-text" style="font-size:13px; color:#355c77; white-space:nowrap;">0%</span>
+            </div>
 
     <form method="POST" action="{{ route('client.audit.compressor.questionnaire.save', $audit) }}" id="cq-form">
         @csrf
@@ -764,6 +863,10 @@
 
     </form>
 
+        </div>{{-- /.cq-main --}}
+    </div>{{-- /.cq-layout --}}
+    </div>{{-- /.cq-outer --}}
+
     <script>
         function toggleSection(id) {
             const el = document.getElementById(id);
@@ -864,6 +967,38 @@
 
         document.getElementById('cq-form').addEventListener('input', updateProgress);
         updateProgress();
+
+        // Sidenav: click → scroll to section + expand it
+        document.querySelectorAll('.cq-sidenav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const targetId = item.dataset.target;
+                const section = document.getElementById(targetId);
+                if (!section) return;
+                // Expand section if collapsed
+                if (section.classList.contains('collapsed')) {
+                    section.classList.remove('collapsed');
+                }
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+
+        // Scroll-spy: highlight active sidenav item
+        const spySections = ['s0','s1','s2','s3','s35','s4','s5','s6','s7'];
+        function updateActiveNav() {
+            let current = spySections[0];
+            spySections.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    const rect = el.getBoundingClientRect();
+                    if (rect.top <= 140) current = id;
+                }
+            });
+            document.querySelectorAll('.cq-sidenav-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.target === current);
+            });
+        }
+        window.addEventListener('scroll', updateActiveNav, { passive: true });
+        updateActiveNav();
     </script>
 
 </x-layouts.app>

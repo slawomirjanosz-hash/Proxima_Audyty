@@ -531,8 +531,18 @@
                         <div>
                             <span class="status-pill {{ $statusClass }}">{{ $audit->statusLabel() }}</span>
                         </div>
-                        <div style="display:flex; gap:6px; align-items:center;">
+                        <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
                             <a href="{{ route('firma.audit', [$company, $audit]) }}" class="btn-sm btn-primary-sm">Wejdź →</a>
+                            @if($audit->agent_type === 'compressor_room')
+                                <a href="{{ route('client.audit.compressor.questionnaire', $audit) }}"
+                                   class="btn-sm"
+                                   style="background:#f0faf4; color:#0f6e2e; border:1px solid #a7d9b7; padding:5px 10px;"
+                                   title="Wejdź do ankiety sprężarkowni jako audytor">📋 Ankieta</a>
+                                <a href="{{ route('client.audit.ai', $audit) }}"
+                                   class="btn-sm"
+                                   style="background:#f0f5ff; color:#1e3a8a; border:1px solid #a5b4fc; padding:5px 10px;"
+                                   title="Uruchom asystenta AI dla tego audytu">🤖 AI</a>
+                            @endif
                             <form method="POST" action="{{ route('firma.destroyAudit', [$company, $audit]) }}" style="margin:0;" onsubmit="return confirm('Usunąć audyt &quot;{{ addslashes($audit->title) }}&quot;? Tej operacji nie można cofnąć.')">
                                 @csrf
                                 @method('DELETE')

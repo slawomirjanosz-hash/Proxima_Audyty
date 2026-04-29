@@ -304,19 +304,19 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/strefa-klienta/oferta/{offer}/pdf', [ClientController::class, 'downloadOfferPdf'])
         ->middleware('role:client')->name('client.offer.pdf');
     Route::get('/moje-audyty/{audit}/ai', [ClientController::class, 'startAuditAi'])
-        ->middleware('role:client')->name('client.audit.ai');
+        ->middleware('role:client,admin,auditor')->name('client.audit.ai');
     Route::get('/moje-audyty/{audit}/kwestionariusz-iso', [ClientController::class, 'showIsoQuestionnaire'])
         ->middleware('role:client')->name('client.audit.iso.questionnaire');
     Route::post('/moje-audyty/{audit}/kwestionariusz-iso', [ClientController::class, 'saveIsoQuestionnaire'])
         ->middleware('role:client')->name('client.audit.iso.questionnaire.save');
     Route::get('/moje-audyty/{audit}/kwestionariusz-sprezarkowni', [ClientController::class, 'showCompressorQuestionnaire'])
-        ->middleware('role:client')->name('client.audit.compressor.questionnaire');
+        ->middleware('role:client,admin,auditor')->name('client.audit.compressor.questionnaire');
     Route::post('/moje-audyty/{audit}/kwestionariusz-sprezarkowni', [ClientController::class, 'saveCompressorQuestionnaire'])
-        ->middleware('role:client')->name('client.audit.compressor.questionnaire.save');
+        ->middleware('role:client,admin,auditor')->name('client.audit.compressor.questionnaire.save');
     Route::get('/moje-audyty/{audit}/praca/{conversation}', [ClientController::class, 'auditWork'])
-        ->middleware('role:client')->name('client.audit.work');
+        ->middleware('role:client,admin,auditor')->name('client.audit.work');
     Route::post('/moje-audyty/{audit}/praca/{conversation}/zakoncz', [ClientController::class, 'finishAuditAi'])
-        ->middleware('role:client')->name('client.audit.finish');
+        ->middleware('role:client,admin,auditor')->name('client.audit.finish');
     Route::get('/moje-audyty/{audit}/edytuj', [ClientController::class, 'editAuditData'])
         ->middleware('role:client')->name('client.audit.edit');
     Route::post('/moje-audyty/{audit}/edytuj', [ClientController::class, 'updateAuditData'])

@@ -281,10 +281,13 @@ class ClientController extends Controller
 
         abort_unless($company !== null, 404);
 
-        // Verify client belongs to this company
-        $clientCompanyId = $user->company_id
-            ?? Company::where('client_id', $user->id)->value('id');
-        abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
+        $isStaff = in_array($user->role->value, ['admin', 'auditor', 'super_admin']);
+        if (!$isStaff) {
+            // Verify client belongs to this company
+            $clientCompanyId = $user->company_id
+                ?? Company::where('client_id', $user->id)->value('id');
+            abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
+        }
 
         $agentType = $audit->agent_type ?: 'general';
 
@@ -410,9 +413,12 @@ class ClientController extends Controller
     public function showCompressorQuestionnaire(EnergyAudit $audit): \Illuminate\View\View|\Illuminate\Http\RedirectResponse
     {
         $user = auth()->user();
-        $clientCompanyId = $user->company_id
-            ?? Company::where('client_id', $user->id)->value('id');
-        abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
+        $isStaff = in_array($user->role->value, ['admin', 'auditor', 'super_admin']);
+        if (!$isStaff) {
+            $clientCompanyId = $user->company_id
+                ?? Company::where('client_id', $user->id)->value('id');
+            abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
+        }
         abort_unless($audit->agent_type === 'compressor_room', 404);
 
         $answers = (array) ($audit->questionnaire_answers ?? []);
@@ -429,9 +435,12 @@ class ClientController extends Controller
     public function saveCompressorQuestionnaire(Request $request, EnergyAudit $audit): \Illuminate\Http\RedirectResponse
     {
         $user = auth()->user();
-        $clientCompanyId = $user->company_id
-            ?? Company::where('client_id', $user->id)->value('id');
-        abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
+        $isStaff = in_array($user->role->value, ['admin', 'auditor', 'super_admin']);
+        if (!$isStaff) {
+            $clientCompanyId = $user->company_id
+                ?? Company::where('client_id', $user->id)->value('id');
+            abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
+        }
         abort_unless($audit->agent_type === 'compressor_room', 404);
 
         $raw = $request->input('answers', []);
@@ -480,6 +489,12 @@ class ClientController extends Controller
             'questionnaire_completed' => true,
         ]);
 
+        $isStaff = in_array(auth()->user()->role->value, ['admin', 'auditor', 'super_admin']);
+        if ($isStaff) {
+            return redirect()->route('client.audit.ai', $audit)
+                ->with('status', 'Ankieta sprężarkowni zapisana przez audytora.');
+        }
+
         return redirect()->route('client.audit.ai', $audit)
             ->with('status', 'Ankieta sprężarkowni zapisana. Asystent AI zapozna się z danymi i zada tylko pytania uzupełniające.');
     }
@@ -488,13 +503,16 @@ class ClientController extends Controller
     {
         $user = auth()->user();
 
-        // Verify client owns this audit
-        $clientCompanyId = $user->company_id
-            ?? Company::where('client_id', $user->id)->value('id');
-        abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
-
-        // Verify conversation belongs to user and this audit
-        abort_unless((int) $conversation->user_id === $user->id, 403);
+        $isStaff = in_array($user->role->value, ['admin', 'auditor', 'super_admin']);
+        if (!$isStaff) {
+            // Verify client owns this audit
+            $clientCompanyId = $user->company_id
+                ?? Company::where('client_id', $user->id)->value('id');
+            abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
+            // Verify conversation belongs to this user
+            abort_unless((int) $conversation->user_id === $user->id, 403);
+        }
+        // Verify conversation belongs to this audit
         abort_unless((int) $conversation->context_id === $audit->id, 403);
 
         $messages = $conversation->messages()->orderBy('id')->get();
@@ -524,10 +542,13 @@ class ClientController extends Controller
     {
         $user = auth()->user();
 
-        $clientCompanyId = $user->company_id
-            ?? Company::where('client_id', $user->id)->value('id');
-        abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
-        abort_unless((int) $conversation->user_id === $user->id, 403);
+        $isStaff = in_array($user->role->value, ['admin', 'auditor', 'super_admin']);
+        if (!$isStaff) {
+            $clientCompanyId = $user->company_id
+                ?? Company::where('client_id', $user->id)->value('id');
+            abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
+            abort_unless((int) $conversation->user_id === $user->id, 403);
+        }
         abort_unless((int) $conversation->context_id === $audit->id, 403);
 
         try {
