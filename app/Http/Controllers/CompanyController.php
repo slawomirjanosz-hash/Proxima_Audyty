@@ -132,6 +132,7 @@ class CompanyController extends Controller
 
         // Send welcome e-mail with login credentials
         $mailError = null;
+        $mailerName = config('mail.default');
         try {
             Mail::to($user->email)->send(new WelcomeClientMail($user, $company, $plainPassword));
         } catch (\Throwable $e) {
@@ -142,6 +143,10 @@ class CompanyController extends Controller
         $statusMsg = 'Dane do logowania zostały utworzone i przypisane do firmy.';
         if ($mailError) {
             $statusMsg .= ' ⚠ Nie udało się wysłać e-maila: ' . $mailError;
+        } elseif ($mailerName === 'log') {
+            $statusMsg .= ' ⚠ UWAGA: MAIL_MAILER=log – e-mail zapisany do logów, NIE wysłany do ' . $user->email . '!';
+        } else {
+            $statusMsg .= ' ✉ E-mail wysłany na ' . $user->email . ' (mailer: ' . $mailerName . ').';
         }
 
         return redirect()->route('firma.show', $company)
@@ -250,7 +255,8 @@ class CompanyController extends Controller
 
         $company->assignedUsers()->syncWithoutDetaching([$user->id]);
 
-        $mailError = null;
+        $mailError  = null;
+        $mailerName = config('mail.default');
         try {
             Mail::to($user->email)->send(new WelcomeClientMail($user, $company, $plainPassword));
         } catch (\Throwable $e) {
@@ -261,6 +267,10 @@ class CompanyController extends Controller
         $statusMsg = 'Nowy użytkownik ' . $user->name . ' został utworzony i przypisany do firmy.';
         if ($mailError) {
             $statusMsg .= ' ⚠ Nie udało się wysłać e-maila: ' . $mailError;
+        } elseif ($mailerName === 'log') {
+            $statusMsg .= ' ⚠ UWAGA: MAIL_MAILER=log – e-mail zapisany do logów, NIE wysłany do ' . $user->email . '!';
+        } else {
+            $statusMsg .= ' ✉ E-mail wysłany na ' . $user->email . ' (mailer: ' . $mailerName . ').';
         }
 
         return redirect()->route('firma.show', $company)
@@ -283,9 +293,14 @@ class CompanyController extends Controller
 
         $user->update(['password' => $plainPassword]);
 
+        $mailerName = config('mail.default');
         try {
             Mail::to($user->email)->send(new WelcomeClientMail($user, $company, $plainPassword));
-            $msg = 'E-mail z nowymi danymi do logowania został wysłany do ' . $user->email . '.';
+            if ($mailerName === 'log') {
+                $msg = '⚠ UWAGA: MAIL_MAILER=log – e-mail zapisany do logów, NIE wysłany do ' . $user->email . '. Zmień zmienną MAIL_MAILER na smtp.';
+            } else {
+                $msg = '✉ E-mail z danymi logowania wysłany do ' . $user->email . ' (mailer: ' . $mailerName . ').';
+            }
         } catch (\Throwable $e) {
             $msg = 'Nie udało się wysłać e-maila (' . $e->getMessage() . '). Hasło zostało zresetowane.';
         }
