@@ -86,8 +86,8 @@
             </div>
         </div>
 
-        @php($menuUser = auth()->user())
         @php
+            $menuUser = auth()->user();
             $dashboardAlertCount = 0;
             if ($menuUser && !$menuUser->isClient()) {
                 try {
