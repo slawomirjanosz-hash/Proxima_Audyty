@@ -574,6 +574,8 @@
                                 class="audit-type-pick-card"
                                 data-id="{{ $type->id }}"
                                 data-name="{{ $type->name }}"
+                                data-category="{{ $type->category }}"
+                                data-agent-type="{{ $type->agent_type ?? '' }}"
                                 onclick="selectAuditTypeCard(this)"
                                 style="border:2px solid #d5e0ea; border-radius:12px; padding:12px 14px; background:#f8fbfd; cursor:pointer; text-align:left; transition:.15s;">
                                 <div style="font-size:13px; font-weight:800; color:#0f2330; margin-bottom:4px;">{{ $type->name }}</div>
@@ -600,7 +602,7 @@
                                 <label>Agent AI *</label>
                                 <select name="agent_type" id="assign-agent-type" required>
                                     <option value="">— wybierz agenta —</option>
-                                    <optgroup label="Audyty energetyczne">
+                                    <optgroup label="Audyty energetyczne" data-category="energy">
                                         <option value="general"                 {{ old('agent_type') === 'general'                 ? 'selected' : '' }}>Ogólnie</option>
                                         <option value="compressor_room"         {{ old('agent_type') === 'compressor_room'         ? 'selected' : '' }}>Sprężarkownia</option>
                                         <option value="boiler_room"             {{ old('agent_type') === 'boiler_room'             ? 'selected' : '' }}>Kotłownia</option>
@@ -608,10 +610,10 @@
                                         <option value="buildings"               {{ old('agent_type') === 'buildings'               ? 'selected' : '' }}>Budynki</option>
                                         <option value="technological_processes" {{ old('agent_type') === 'technological_processes' ? 'selected' : '' }}>Procesy technologiczne</option>
                                     </optgroup>
-                                    <optgroup label="ISO 50001">
+                                    <optgroup label="ISO 50001" data-category="iso">
                                         <option value="iso50001"                {{ old('agent_type') === 'iso50001'                ? 'selected' : '' }}>ISO 50001</option>
                                     </optgroup>
-                                    <optgroup label="Białe certyfikaty">
+                                    <optgroup label="Białe certyfikaty" data-category="white_cert">
                                         <option value="bc_general"                 {{ old('agent_type') === 'bc_general'                 ? 'selected' : '' }}>Ogólnie</option>
                                         <option value="bc_compressor_room"         {{ old('agent_type') === 'bc_compressor_room'         ? 'selected' : '' }}>Sprężarkownia</option>
                                         <option value="bc_boiler_room"             {{ old('agent_type') === 'bc_boiler_room'             ? 'selected' : '' }}>Kotłownia</option>
@@ -669,6 +671,24 @@
                 if (!titleInput.value) {
                     titleInput.value = btn.dataset.name + ' ' + new Date().getFullYear();
                 }
+
+                // Filter agent options by category & auto-select when only one valid option
+                const category  = btn.dataset.category  || '';
+                const agentType = btn.dataset.agentType || '';
+                const sel = document.getElementById('assign-agent-type');
+
+                // Show/hide optgroups based on category
+                sel.querySelectorAll('optgroup').forEach(function(grp) {
+                    grp.style.display = (category && grp.dataset.category !== category) ? 'none' : '';
+                });
+
+                // Auto-select the specific agent when agent_type is set
+                if (agentType) {
+                    sel.value = agentType;
+                } else {
+                    sel.value = '';
+                }
+
                 document.getElementById('assign-audit-form').style.display = '';
             }
             function clearAuditTypeSelection() {

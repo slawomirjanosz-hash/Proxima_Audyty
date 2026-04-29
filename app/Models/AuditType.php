@@ -13,6 +13,7 @@ class AuditType extends Model
     protected $fillable = [
         'name',
         'category',
+        'agent_type',
         'formulas',
         'variables',
     ];
