@@ -94,7 +94,8 @@
                     $dashboardAlertCount =
                         \App\Models\ClientInquiry::where('status', 'new')->count()
                         + \App\Models\ClientRegistration::where('status', 'pending')->count()
-                        + \App\Models\ClientChatMessage::where('is_from_admin', false)->where('read_at', null)->count();
+                        + \App\Models\ClientChatMessage::where('is_from_admin', false)->where('read_at', null)->count()
+                        + \App\Models\EnergyAudit::where('questionnaire_completed', true)->whereNull('questionnaire_reviewed_at')->count();
                 } catch (\Throwable $e) {
                     $dashboardAlertCount = 0;
                 }

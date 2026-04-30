@@ -97,6 +97,62 @@
             font-size: 16px; padding: 0 4px;
         }
 
+        /* ─── Nameplate scan ─────────────────────────────────── */
+        .btn-scan-nameplate {
+            margin-top: 8px; margin-left: 8px; padding: 6px 14px;
+            background: #fff7ed; border: 1px solid #f59e0b;
+            border-radius: 8px; cursor: pointer;
+            font-size: 13px; font-weight: 600; color: #92400e;
+        }
+        .btn-scan-nameplate:hover { background: #fef3c7; }
+        .scan-overlay {
+            display: none;
+            position: fixed; inset: 0; z-index: 2000;
+            background: rgba(10,30,50,.7);
+            align-items: center; justify-content: center;
+        }
+        .scan-overlay.visible { display: flex; }
+        .scan-modal {
+            background: #fff; border-radius: 18px;
+            padding: 28px 28px 24px;
+            width: min(480px, 94vw);
+            box-shadow: 0 20px 60px rgba(10,30,50,.35);
+            position: relative;
+        }
+        .scan-modal h3 { margin: 0 0 6px; font-size: 18px; font-weight: 800; color: #0e344e; }
+        .scan-modal p  { margin: 0 0 18px; font-size: 13px; color: #4c6373; line-height: 1.5; }
+        .scan-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+        .scan-btn {
+            flex: 1; min-width: 140px;
+            padding: 14px 16px; border-radius: 12px;
+            border: 2px solid #d5e0ea; background: #f7fbff; cursor: pointer;
+            font-size: 14px; font-weight: 700; color: #0e344e;
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+            transition: border-color .14s, background .14s;
+        }
+        .scan-btn:hover { border-color: #0e89d8; background: #e0f2fe; }
+        .scan-btn-icon { font-size: 30px; }
+        .scan-btn-label { font-size: 12px; color: #4c6373; font-weight: 400; }
+        .scan-close {
+            position: absolute; top: 14px; right: 16px;
+            background: none; border: none; cursor: pointer;
+            font-size: 22px; color: #6b8aa3; padding: 4px;
+        }
+        .scan-close:hover { color: #c03030; }
+        .scan-loading { display: none; text-align: center; padding: 20px; color: #0e89d8; font-weight: 600; }
+        .scan-loading.visible { display: block; }
+        .scan-err { display: none; margin-top: 10px; padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #b91c1c; font-size: 13px; }
+        .scan-err.visible { display: block; }
+        .scan-result { display: none; margin-top: 10px; border: 1px solid #bae6fd; border-radius: 10px; padding: 12px 14px; background: #f0f9ff; font-size: 13px; }
+        .scan-result.visible { display: block; }
+        .scan-result-title { font-weight: 800; color: #0e344e; margin-bottom: 8px; font-size: 14px; }
+        .scan-result table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+        .scan-result td { padding: 3px 6px; border-bottom: 1px solid #d5e0ea; }
+        .scan-result td:first-child { color: #4c6373; width: 44%; }
+        .scan-result td:last-child { font-weight: 600; color: #0e344e; }
+        .scan-apply-btn { margin-top: 12px; width: 100%; padding: 11px; background: #0e89d8; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 700; }
+        .scan-apply-btn:hover { background: #0a6faf; }
+
         /* Progress bar */
         .cq-progress-wrap {
             background: #fff; border: 1px solid #d2e3f1; border-radius: 12px;
@@ -504,6 +560,51 @@
                     </table>
                 </div>
                 <button type="button" class="btn-add-row" onclick="addRow()">+ Dodaj sprężarkę</button>
+                <button type="button" class="btn-scan-nameplate" onclick="openScanModal()">
+                    📷 Skanuj tabliczkę znamionową
+                </button>
+            </div>
+        </div>
+
+        {{-- NAMEPLATE SCAN OVERLAY --}}
+        <div class="scan-overlay" id="scan-overlay">
+            <div class="scan-modal" role="dialog" aria-label="Odczyt tabliczki">
+                <button class="scan-close" onclick="closeScanModal()" aria-label="Zamknij">&times;</button>
+                <h3>📷 Odczyt tabliczki znamionowej</h3>
+                <p>Zrób zdjęcie tabliczki sprężarki lub wybierz plik z galerii.<br>
+                   Asystent AI odczyta parametry i wypełni wiersz automatycznie.</p>
+
+                <div class="scan-btns">
+                    <button type="button" class="scan-btn" onclick="document.getElementById('scan-camera-input').click()">
+                        <span class="scan-btn-icon">📷</span>
+                        <span>Aparat</span>
+                        <span class="scan-btn-label">Zrób zdjęcie</span>
+                    </button>
+                    <button type="button" class="scan-btn" onclick="document.getElementById('scan-gallery-input').click()">
+                        <span class="scan-btn-icon">🖼️</span>
+                        <span>Galeria / plik</span>
+                        <span class="scan-btn-label">Wybierz z dysku</span>
+                    </button>
+                </div>
+
+                <input type="file" id="scan-camera-input" accept="image/*" capture="environment"
+                       style="display:none" onchange="scanFile(this)">
+                <input type="file" id="scan-gallery-input" accept="image/*"
+                       style="display:none" onchange="scanFile(this)">
+
+                <div class="scan-loading" id="scan-loading">
+                    <div style="font-size:32px; margin-bottom:8px;">&#x1F50D;</div>
+                    Asystent AI analizuje zdjęcie&hellip;
+                </div>
+                <div class="scan-err" id="scan-err"></div>
+
+                <div class="scan-result" id="scan-result">
+                    <div class="scan-result-title">✅ Odczytane dane:</div>
+                    <table id="scan-result-table"></table>
+                    <button type="button" class="scan-apply-btn" onclick="applyScanToRow()">
+                        ⬇ Wstaw do nowego wiersza tabeli
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -950,6 +1051,127 @@
             });
         }
 
+        // ─── Nameplate scanner ───────────────────────────────────────────────
+        let _scanData = null;
+
+        function openScanModal() {
+            _scanData = null;
+            document.getElementById('scan-loading').classList.remove('visible');
+            document.getElementById('scan-err').classList.remove('visible');
+            document.getElementById('scan-result').classList.remove('visible');
+            document.getElementById('scan-result-table').innerHTML = '';
+            document.getElementById('scan-overlay').classList.add('visible');
+        }
+        function closeScanModal() {
+            document.getElementById('scan-overlay').classList.remove('visible');
+            document.getElementById('scan-camera-input').value = '';
+            document.getElementById('scan-gallery-input').value = '';
+        }
+        document.getElementById('scan-overlay').addEventListener('click', function(e) {
+            if (e.target === this) closeScanModal();
+        });
+
+        async function scanFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+            input.value = '';
+
+            document.getElementById('scan-loading').classList.add('visible');
+            document.getElementById('scan-err').classList.remove('visible');
+            document.getElementById('scan-result').classList.remove('visible');
+
+            const fd = new FormData();
+            fd.append('file', file);
+            fd.append('_token', '{{ csrf_token() }}');
+
+            try {
+                const res  = await fetch('{{ route('client.audit.compressor.scan', $audit) }}', {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json' },
+                    body: fd,
+                });
+                const json = await res.json();
+                document.getElementById('scan-loading').classList.remove('visible');
+
+                if (!json.success || !json.data) {
+                    const errEl = document.getElementById('scan-err');
+                    errEl.textContent = json.error || 'Nie udało się odczytać tabliczki.';
+                    errEl.classList.add('visible');
+                    return;
+                }
+
+                _scanData = json.data;
+                const labels = {
+                    producent: 'Producent', model: 'Model', typ: 'Typ sprężarki',
+                    moc_kw: 'Moc [kW]', wydajnosc: 'Wydajność', pmax: 'Pmax [bar]',
+                    rok: 'Rok produkcji', klasa_ie: 'Klasa IE', nr_seryjny: 'Nr seryjny',
+                    napiecie: 'Napięcie', prad: 'Prąd', predkosc: 'Prędkość obrotowa',
+                    opis: 'Opis odczytu',
+                };
+                const tbl = document.getElementById('scan-result-table');
+                tbl.innerHTML = '';
+                for (const [k, label] of Object.entries(labels)) {
+                    const v = json.data[k];
+                    if (v && String(v) !== 'null') {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = '<td>' + label + '</td><td>' + String(v).replace(/</g, '&lt;') + '</td>';
+                        tbl.appendChild(tr);
+                    }
+                }
+                document.getElementById('scan-result').classList.add('visible');
+
+            } catch(err) {
+                document.getElementById('scan-loading').classList.remove('visible');
+                const errEl = document.getElementById('scan-err');
+                errEl.textContent = 'Błąd połączenia. Spróbuj ponownie.';
+                errEl.classList.add('visible');
+            }
+        }
+
+        function applyScanToRow() {
+            if (!_scanData) return;
+            addRow();
+            const tbody = document.getElementById('compressors-body');
+            const row   = tbody.lastElementChild;
+            if (!row) { closeScanModal(); return; }
+
+            function fill(fieldName, value) {
+                if (!value || String(value) === 'null') return;
+                const el = row.querySelector('[name$="[' + fieldName + ']"]');
+                if (!el) return;
+                if (el.tagName === 'SELECT') {
+                    const opts = [...el.options];
+                    const lower = String(value).toLowerCase();
+                    const exact = opts.find(o => o.value.toLowerCase() === lower);
+                    if (exact) { el.value = exact.value; return; }
+                    const partial = opts.find(o =>
+                        o.value !== '' && lower.includes(o.value.toLowerCase().slice(0, 5))
+                    );
+                    if (partial) { el.value = partial.value; return; }
+                    const inny = opts.find(o => o.value === 'inny');
+                    if (inny) el.value = 'inny';
+                } else {
+                    el.value = value;
+                }
+            }
+
+            fill('producent', _scanData.producent);
+            fill('model',     _scanData.model);
+            fill('typ',       _scanData.typ);
+            fill('moc_kw',    _scanData.moc_kw);
+            fill('wydajnosc', _scanData.wydajnosc);
+            fill('pmax',      _scanData.pmax);
+            fill('rok',       _scanData.rok);
+            fill('klasa_ie',  _scanData.klasa_ie);
+
+            closeScanModal();
+            updateProgress();
+            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            row.style.transition = 'background .5s';
+            row.style.background = '#fef9c3';
+            setTimeout(() => { row.style.background = ''; }, 2200);
+        }
+
         // Progress tracking
         function updateProgress() {
             const inputs = document.querySelectorAll('#cq-form input:not([type=hidden]), #cq-form select, #cq-form textarea');
@@ -1000,5 +1222,7 @@
         window.addEventListener('scroll', updateActiveNav, { passive: true });
         updateActiveNav();
     </script>
+
+    <x-client-chat-float :chatMessages="$chatMessages" :companyId="$audit->company_id" />
 
 </x-layouts.app>

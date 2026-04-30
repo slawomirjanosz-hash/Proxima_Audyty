@@ -179,6 +179,78 @@
         .aw-btn-send:hover:not(:disabled) { background: #0a6faf; }
         .aw-btn-send:disabled { opacity: .55; cursor: not-allowed; }
 
+        /* ── Attach / camera buttons ── */
+        .aw-attach-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .aw-attach-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid #c8dce9;
+            background: #f0f7fc;
+            color: #0e344e;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .14s, border-color .14s;
+        }
+        .aw-attach-btn:hover { background: #dbeef9; border-color: #0e89d8; }
+        .aw-attach-btn:disabled { opacity: .5; cursor: not-allowed; }
+        .aw-attach-hint {
+            font-size: 11.5px;
+            color: #8aa3b5;
+            margin-left: auto;
+        }
+        /* File preview strip */
+        .aw-file-preview {
+            display: none;
+            margin-top: 8px;
+            padding: 8px 10px;
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 9px;
+            align-items: center;
+            gap: 10px;
+        }
+        .aw-file-preview.visible { display: flex; }
+        .aw-file-thumb {
+            width: 52px;
+            height: 52px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #bae6fd;
+            flex-shrink: 0;
+        }
+        .aw-file-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 6px;
+            background: #e0f2fe;
+            border: 1px solid #bae6fd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        .aw-file-info { flex: 1; min-width: 0; }
+        .aw-file-name { font-size: 12.5px; font-weight: 700; color: #0e344e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .aw-file-size { font-size: 11px; color: #4c6373; }
+        .aw-file-remove {
+            background: none; border: none; cursor: pointer;
+            font-size: 16px; color: #6b8aa3; padding: 2px 6px;
+            border-radius: 6px; transition: color .12s;
+            flex-shrink: 0;
+        }
+        .aw-file-remove:hover { color: #e11d48; }
+
         /* ── Thinking indicator ── */
         .aw-thinking {
             display: none;
@@ -342,6 +414,31 @@
                     placeholder="Wpisz swoją odpowiedź..."
                     rows="4"
                 ></textarea>
+
+                {{-- Attach / camera row --}}
+                <div class="aw-attach-row">
+                    <button type="button" class="aw-attach-btn" id="aw-cam-btn" onclick="document.getElementById('aw-file-camera').click()" title="Zrób zdjęcie lub wybierz z galerii">
+                        📷 Zdjęcie / aparat
+                    </button>
+                    <button type="button" class="aw-attach-btn" id="aw-file-btn" onclick="document.getElementById('aw-file-gallery').click()" title="Dołącz plik z dysku">
+                        📎 Dołącz plik
+                    </button>
+                    <span class="aw-attach-hint">jpg, png, pdf, csv · maks. 10 MB</span>
+                    {{-- Hidden inputs --}}
+                    <input type="file" id="aw-file-camera" accept="image/*" capture="environment" style="display:none" onchange="awFileSelected(this)">
+                    <input type="file" id="aw-file-gallery" accept="image/*,application/pdf,text/csv,text/plain" style="display:none" onchange="awFileSelected(this)">
+                </div>
+
+                {{-- File preview --}}
+                <div class="aw-file-preview" id="aw-file-preview">
+                    <div id="aw-file-preview-icon"></div>
+                    <div class="aw-file-info">
+                        <div class="aw-file-name" id="aw-file-name"></div>
+                        <div class="aw-file-size" id="aw-file-size"></div>
+                    </div>
+                    <button type="button" class="aw-file-remove" onclick="awClearFile()" title="Usuń załącznik">✕</button>
+                </div>
+
                 <div class="aw-input-actions">
                     <button type="button" id="aw-send-btn" class="aw-btn-send" onclick="sendAnswer()">
                         Wyślij odpowiedź
@@ -375,6 +472,52 @@
     const thinkingEl  = document.getElementById('aw-thinking');
     const inputSection = document.getElementById('aw-input-section');
     const finishWrap  = document.getElementById('aw-finish-wrap');
+
+    // ── File attachment state ──────────────────────────────────────────────
+    let _awFile = null;   // currently selected File object
+
+    function awFileSelected(input) {
+        const file = input.files[0];
+        if (!file) return;
+        _awFile = file;
+
+        const preview  = document.getElementById('aw-file-preview');
+        const nameEl   = document.getElementById('aw-file-name');
+        const sizeEl   = document.getElementById('aw-file-size');
+        const iconWrap = document.getElementById('aw-file-preview-icon');
+
+        nameEl.textContent = file.name;
+        sizeEl.textContent = (file.size / 1024 < 1000)
+            ? Math.round(file.size / 1024) + ' KB'
+            : (file.size / 1048576).toFixed(1) + ' MB';
+
+        // Show image thumbnail or generic icon
+        iconWrap.innerHTML = '';
+        if (file.type.startsWith('image/')) {
+            const img = document.createElement('img');
+            img.className = 'aw-file-thumb';
+            img.alt = file.name;
+            const reader = new FileReader();
+            reader.onload = e => { img.src = e.target.result; };
+            reader.readAsDataURL(file);
+            iconWrap.appendChild(img);
+        } else {
+            const div = document.createElement('div');
+            div.className = 'aw-file-icon';
+            div.textContent = file.type === 'application/pdf' ? '📄' : '📊';
+            iconWrap.appendChild(div);
+        }
+
+        preview.classList.add('visible');
+        // Reset the input so same file can be re-selected
+        input.value = '';
+    }
+
+    function awClearFile() {
+        _awFile = null;
+        document.getElementById('aw-file-preview').classList.remove('visible');
+        document.getElementById('aw-file-preview-icon').innerHTML = '';
+    }
 
     // Phrases that signal the AI has finished collecting data
     const COMPLETION_PHRASES = [
@@ -464,6 +607,12 @@
     }
 
     async function sendAnswer() {
+        // If a file is attached, send via file endpoint instead
+        if (_awFile) {
+            await sendFile();
+            return;
+        }
+
         const answer = answerEl.value.trim();
         if (!answer) return;
 
@@ -527,6 +676,64 @@
         }
     }
 
+    async function sendFile() {
+        const file    = _awFile;
+        const note    = answerEl.value.trim();
+        const question = activeText.textContent.trim();
+
+        sendBtn.disabled = true;
+        document.getElementById('aw-cam-btn').disabled  = true;
+        document.getElementById('aw-file-btn').disabled = true;
+
+        // Show in history immediately
+        const displayText = note
+            ? note + ' [📎 ' + file.name + ']'
+            : '📎 ' + file.name;
+        if (question) appendPairToHistory(question, displayText);
+
+        activeWrap.style.display = 'none';
+        thinkingEl.textContent = 'Asystent AI analizuje plik…';
+        thinkingEl.classList.add('visible');
+        answerEl.value = '';
+        awClearFile();
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('message', note);
+            formData.append('_token', csrfToken);
+
+            const res  = await fetch(`/ai/${conversationId}/plik`, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                body: formData,
+            });
+            const data = await res.json();
+
+            thinkingEl.classList.remove('visible');
+            thinkingEl.textContent = 'System analizuje Twoją odpowiedź...';
+
+            if (data.response) {
+                activeText.textContent = data.response;
+                activeWrap.style.display = '';
+                if (isCompletionMessage(data.response)) showFinishButton();
+            } else {
+                activeText.textContent = data.error || 'Błąd analizy pliku. Spróbuj ponownie.';
+                activeWrap.style.display = '';
+            }
+        } catch (err) {
+            thinkingEl.classList.remove('visible');
+            thinkingEl.textContent = 'System analizuje Twoją odpowiedź...';
+            activeText.textContent = 'Błąd połączenia. Spróbuj ponownie.';
+            activeWrap.style.display = '';
+        } finally {
+            sendBtn.disabled = false;
+            document.getElementById('aw-cam-btn').disabled  = false;
+            document.getElementById('aw-file-btn').disabled = false;
+            answerEl.focus();
+        }
+    }
+
     function appendPairToHistory(question, answer) {
         const pair = document.createElement('div');
         pair.className = 'aw-pair';
@@ -551,5 +758,7 @@
             .replace(/\n/g, '<br>');
     }
     </script>
+
+    <x-client-chat-float :chatMessages="$chatMessages" :companyId="$audit->company_id" />
 
 </x-layouts.app>

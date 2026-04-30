@@ -234,4 +234,6 @@
             document.getElementById('status-input').value = key;
         }
     </script>
+
+    <x-admin-chat-float :chatMessages="$chatMessages" :company="$company" />
 </x-layouts.app>

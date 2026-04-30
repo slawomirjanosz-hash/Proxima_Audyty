@@ -254,6 +254,11 @@ class ClientController extends Controller
 
         $inquiry->update(['status' => 'offer_accepted']);
 
+        // Mark the linked offer as accepted
+        if ($inquiry->offer_id) {
+            \App\Models\Offer::where('id', $inquiry->offer_id)->update(['status' => 'accepted']);
+        }
+
         return back()->with('inquiry_status', 'Zaakceptowałeś ofertę. Nasz zespół wkrótce przydzieli Ci odpowiedni audyt.');
     }
 
@@ -421,14 +426,39 @@ class ClientController extends Controller
         }
         abort_unless($audit->agent_type === 'compressor_room', 404);
 
+        // Mark questionnaire as reviewed by staff so the nav alert goes away
+        if ($isStaff && $audit->questionnaire_completed && is_null($audit->questionnaire_reviewed_at)) {
+            $audit->update(['questionnaire_reviewed_at' => now()]);
+        }
+
         $answers = (array) ($audit->questionnaire_answers ?? []);
         $company = Company::find($audit->company_id);
 
+        // Auto-fill empty fields with values inferred from company data
+        if ($company) {
+            $suggested = $this->inferQuestionnaireDefaults($company, $user);
+            foreach ($suggested as $key => $value) {
+                if (!isset($answers[$key]) || $answers[$key] === '' || $answers[$key] === null) {
+                    $answers[$key] = $value;
+                }
+            }
+        }
+
+        // Load chat messages for the floating widget (clients only)
+        $chatMessages = collect();
+        if (!$isStaff && $audit->company_id) {
+            $chatMessages = ClientChatMessage::where('company_id', $audit->company_id)
+                ->with('user')
+                ->oldest()
+                ->get();
+        }
+
         return view('client.compressor-questionnaire', [
-            'audit'   => $audit,
-            'answers' => $answers,
-            'company' => $company,
-            'user'    => $user,
+            'audit'        => $audit,
+            'answers'      => $answers,
+            'company'      => $company,
+            'user'         => $user,
+            'chatMessages' => $chatMessages,
         ]);
     }
 
@@ -484,12 +514,15 @@ class ClientController extends Controller
                 ->withErrors(['Wypełnij co najmniej kilka pól przed zapisaniem ankiety.']);
         }
 
+        // If a client (re-)submits, clear the reviewed flag so auditor gets re-notified
+        $reviewedAt = $isStaff ? ($audit->questionnaire_reviewed_at ?? now()) : null;
+
         $audit->update([
-            'questionnaire_answers'   => $sanitized,
-            'questionnaire_completed' => true,
+            'questionnaire_answers'     => $sanitized,
+            'questionnaire_completed'   => true,
+            'questionnaire_reviewed_at' => $reviewedAt,
         ]);
 
-        $isStaff = in_array(auth()->user()->role->value, ['admin', 'auditor', 'super_admin']);
         if ($isStaff) {
             return redirect()->route('client.audit.ai', $audit)
                 ->with('status', 'Ankieta sprężarkowni zapisana przez audytora.');
@@ -517,6 +550,15 @@ class ClientController extends Controller
 
         $messages = $conversation->messages()->orderBy('id')->get();
 
+        // Load chat messages for the floating widget (clients only)
+        $chatMessages = collect();
+        if (!$isStaff && $audit->company_id) {
+            $chatMessages = ClientChatMessage::where('company_id', $audit->company_id)
+                ->with('user')
+                ->oldest()
+                ->get();
+        }
+
         $agentLabels = [
             'general'                 => 'Ogólnie',
             'compressor_room'         => 'Sprężarkownia',
@@ -535,7 +577,7 @@ class ClientController extends Controller
 
         $agentLabel = $agentLabels[$conversation->context_type] ?? $conversation->context_type;
 
-        return view('client.audit-work', compact('audit', 'conversation', 'messages', 'agentLabel'));
+        return view('client.audit-work', compact('audit', 'conversation', 'messages', 'agentLabel', 'chatMessages'));
     }
 
     public function finishAuditAi(EnergyAudit $audit, AiConversation $conversation): RedirectResponse
@@ -619,5 +661,185 @@ class ClientController extends Controller
 
         return redirect()->route('client.audit.edit', $audit)
             ->with('status', 'Dane zostały zapisane. Asystent AI przeanalizował dane i dodał rekomendacje na dole strony.');
+    }
+
+    /**
+     * Scan a compressor nameplate image and return extracted fields as JSON.
+     */
+    public function scanCompressorNameplate(Request $request, EnergyAudit $audit): JsonResponse
+    {
+        $user    = $request->user();
+        $isStaff = in_array($user->role->value, ['admin', 'auditor', 'super_admin']);
+        if (!$isStaff) {
+            $clientCompanyId = $user->company_id
+                ?? Company::where('client_id', $user->id)->value('id');
+            abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
+        }
+
+        $request->validate([
+            'file' => ['required', 'file', 'max:10240', 'mimes:jpeg,jpg,png,gif,webp'],
+        ]);
+
+        $file     = $request->file('file');
+        $mimeType = $file->getMimeType() ?? 'image/jpeg';
+        $base64   = base64_encode(file_get_contents($file->getRealPath()));
+
+        $prompt = <<<EOT
+Przeanalizuj to zdjęcie tabliczki znamionowej sprężarki powietrza.
+Wyodrębnij wszystkie dostępne dane techniczne i zwróć je WYŁĄCZNIE jako obiekt JSON.
+Nie dodawaj żadnego tekstu przed ani po — tylko czysty JSON.
+
+Format (użyj null gdy danego pola brak na tabliczce):
+{
+  "producent": "nazwa producenta",
+  "model": "model lub typ urządzenia",
+  "typ": "Śrubowa|Tłokowa|Odśrodkowa|Spiralna (scroll)|null",
+  "moc_kw": "moc w kW (sama liczba, np. 75)",
+  "wydajnosc": "wydajność np. 12.5 m³/min lub Nm³/h",
+  "pmax": "max ciśnienie w bar (sama liczba, np. 13)",
+  "rok": "rok produkcji (sama liczba, np. 2018)",
+  "klasa_ie": "IE1|IE2|IE3|IE4|IE5|null",
+  "nr_seryjny": "numer seryjny",
+  "napiecie": "napięcie np. 400V",
+  "prad": "prąd np. 135A",
+  "predkosc": "prędkość obrotowa np. 2950 rpm",
+  "opis": "krótki opis tego co odczytano z tabliczki (1-2 zdania po polsku)"
+}
+EOT;
+
+        try {
+            $imageContent = \Prism\Prism\ValueObjects\Media\Image::fromBase64($base64, $mimeType);
+
+            $response = \Prism\Prism\Facades\Prism::text()
+                ->using(\Prism\Prism\Enums\Provider::Anthropic, 'claude-haiku-4-5-20251001')
+                ->withSystemPrompt('Jesteś ekspertem od odczytu tabliczek znamionowych urządzeń przemysłowych. Odpowiadasz WYŁĄCZNIE poprawnym JSON bez markdown, bez komentarzy, bez tekstu poza nawiasami {}.')
+                ->withMessages([
+                    new \Prism\Prism\ValueObjects\Messages\UserMessage($prompt, [$imageContent]),
+                ])
+                ->generate();
+
+            $text = trim($response->text);
+            // Strip possible markdown code fences
+            $text = (string) preg_replace('/^```(?:json)?\s*/i', '', $text);
+            $text = (string) preg_replace('/\s*```$/m', '', $text);
+
+            $data = json_decode($text, true);
+            if (!is_array($data)) {
+                return response()->json(['success' => false, 'error' => 'Nie udało się odczytać danych z tabliczki — spróbuj wyraźniejszego zdjęcia.'], 422);
+            }
+
+            return response()->json(['success' => true, 'data' => $data]);
+
+        } catch (\Throwable $e) {
+            report($e);
+            return response()->json(['success' => false, 'error' => 'Błąd analizy zdjęcia: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Infer reasonable questionnaire defaults from company data.
+     * Only fills keys that are empty in the existing answers array.
+     */
+    private function inferQuestionnaireDefaults(Company $company, \App\Models\User $user): array
+    {
+        $defaults = [];
+
+        // ── REQ-00-ZAKLAD: full plant address ──────────────────────────────
+        $locationParts = array_filter([
+            $company->name,
+            $company->street,
+            trim(($company->postal_code ?? '') . ' ' . ($company->city ?? '')),
+        ]);
+        if (!empty($locationParts)) {
+            $defaults['REQ-00-ZAKLAD'] = implode(', ', $locationParts);
+        } elseif ($company->city) {
+            $defaults['REQ-00-ZAKLAD'] = $company->city;
+        }
+
+        // ── CTX-01-BR: industry detected from company name / description ───
+        $searchText = mb_strtolower(
+            ($company->name ?? '') . ' ' . ($company->short_name ?? '') . ' ' . ($company->description ?? '')
+        );
+        $industry = $this->detectIndustry($searchText);
+        if ($industry) {
+            $defaults['CTX-01-BR'] = $industry;
+        }
+
+        // ── EZ-NAP: default voltage (400V 3-phase is universal in Polish industry) ─
+        $defaults['EZ-NAP'] = '400V / 3-fazowe';
+
+        return $defaults;
+    }
+
+    /**
+     * Detect likely industry from a lowercased company name/description.
+     */
+    private function detectIndustry(string $text): ?string
+    {
+        $map = [
+            'Motoryzacyjna' => [
+                'stellantis','toyota','volkswagen','audi','bmw','mercedes','fiat','ford',
+                'opel','renault','peugeot','citroën','citroen','seat','skoda','volvo',
+                'scania','man ','daf ','iveco','automotiv','motoryzac','automotive',
+                'stellant','magna ','faurecia','valeo ','continental','bosal','brembo',
+            ],
+            'Spożywcza' => [
+                'nestle','danone','unilever','kraft','heinz','cargill','bakoma','mlekpol',
+                'mlekovita','animex','indykpol','sokołów','sokolow','drosed','piekarni',
+                'cukrowi','browar','winiar','spożyw','żywność','zywnosc','mleczar',
+                'przetwor spożyw','zakłady mięsne','zakłady mleczar',
+            ],
+            'Chemiczna / Petrochemiczna' => [
+                'basf','dow chemical','bayer','azoty','orlen','lotos','shell',
+                'petrochemi','chemiczn','chemik','polimer','kauczuk','farb','lakier',
+                'gumow','synthos','ciech ','pulawy','anwil ',
+            ],
+            'Farmaceutyczna' => [
+                'pfizer','novartis','roche','polpharma','adamed','polfar','jelfa',
+                'bioton','pharma','farmaceu','medic','sanitas',
+            ],
+            'Elektroniczna / Elektryczna' => [
+                'siemens','philips','bosch','samsung','intel','dell','nvidia',
+                'elektronicz','elektryczn','transformator','kondensator','pcb ',
+                'semiconductor','półprzewod','electrolux','whirlpool','abb ',
+            ],
+            'Metalowa / Hutnicza' => [
+                'arcelor','kghm','huta ','stalown','stal ','metalo','hutniczn',
+                'odlewni','kuźni','kuzni','blachar','alumini','cynk ','miedzi',
+                'nikiel','impexmetal','stalprodukt','boryszew',
+            ],
+            'Papiernicza / Celulozowa' => [
+                'mondi','smurfit','ds smith','papier','celuloz','karton','tektur','opakow',
+            ],
+            'Tekstylna' => [
+                'textil','tekstyl','włókien','wlokien','tkanin','szwalnia','odzież','odziez',
+            ],
+            'Drzewna / Meblarska' => [
+                'ikea ','forte ','mebl','drewn','stolar','tartac','parkiet','kronospan',
+            ],
+            'Budowlana / Materiały budowlane' => [
+                'lafarge','cemex','heidelberg','budowlan','cement','beton','cegł',
+                'cegl','dachów','izolac','styropian','knauf','rigips',
+            ],
+            'Energetyka / Utilities' => [
+                'enea ','pge ','tauron','energa','innogy','elektrown',
+                'elektrociepł','elektrocieplow','ciepłown','cieplown','gazown',
+                'wodociąg','wodociag',
+            ],
+            'Logistyka / Magazynowanie' => [
+                'amazon','dhl ','dpd ','fedex','ups ','logistics','logistyk',
+                'magazyn','spedyc','transport',
+            ],
+        ];
+
+        foreach ($map as $industry => $keywords) {
+            foreach ($keywords as $kw) {
+                if (mb_strpos($text, $kw) !== false) {
+                    return $industry;
+                }
+            }
+        }
+
+        return null;
     }
 }

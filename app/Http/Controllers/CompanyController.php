@@ -56,7 +56,7 @@ class CompanyController extends Controller
             ->get(['id', 'offer_number', 'offer_title', 'total_price']);
 
         $companyOffers = Offer::where('company_id', $company->id)
-            ->whereIn('status', ['inprogress', 'portfolio'])
+            ->whereIn('status', ['inprogress', 'sent', 'accepted', 'portfolio'])
             ->with('creator')
             ->latest()
             ->get();
@@ -94,6 +94,11 @@ class CompanyController extends Controller
             'status'        => 'wysłany',
             'data_payload'  => [],
         ]);
+
+        // Close any offer_accepted inquiries for this company — audit has been assigned
+        \App\Models\ClientInquiry::where('company_id', $company->id)
+            ->where('status', 'offer_accepted')
+            ->update(['status' => 'closed']);
 
         return redirect()->route('firma.show', $company)
             ->with('status', 'Audyt został przydzielony firmie.');
@@ -163,7 +168,12 @@ class CompanyController extends Controller
             ->latest()
             ->first();
 
-        return view('firma.audit', compact('company', 'audit', 'conversation'));
+        $chatMessages = ClientChatMessage::where('company_id', $company->id)
+            ->with('user')
+            ->oldest()
+            ->get();
+
+        return view('firma.audit', compact('company', 'audit', 'conversation', 'chatMessages'));
     }
 
     public function updateStatus(Request $request, Company $company, EnergyAudit $audit): RedirectResponse

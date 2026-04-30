@@ -53,13 +53,15 @@ class EnergyAudit extends Model
         'auditor_id',
         'questionnaire_answers',
         'questionnaire_completed',
+        'questionnaire_reviewed_at',
     ];
 
     protected $casts = [
-        'completed_at'            => 'datetime',
-        'data_payload'            => 'array',
-        'questionnaire_answers'   => 'array',
-        'questionnaire_completed' => 'boolean',
+        'completed_at'              => 'datetime',
+        'data_payload'              => 'array',
+        'questionnaire_answers'     => 'array',
+        'questionnaire_completed'   => 'boolean',
+        'questionnaire_reviewed_at' => 'datetime',
     ];
 
     public function auditType(): BelongsTo

@@ -165,7 +165,7 @@
         }
 
         .hero-logo {
-            width: min(420px, 70vw);
+            width: min(210px, 35vw);
             max-width: 100%;
             margin-bottom: 8px;
             margin-left: 0;
@@ -188,7 +188,7 @@
 
         .hero-heading-main {
             margin: 0;
-            font-size: clamp(30px, 4.5vw, 56px);
+            font-size: clamp(22px, 3vw, 38px);
             line-height: 1.08;
             font-weight: 800;
             background: linear-gradient(90deg, #1ba84a 0%, #0c5f28 100%);
@@ -200,7 +200,7 @@
 
         .hero-heading-sub {
             margin: 0;
-            font-size: clamp(24px, 3.2vw, 38px);
+            font-size: clamp(18px, 2.2vw, 28px);
             line-height: 1.12;
             font-weight: 700;
             background: linear-gradient(90deg, #20b14f 0%, #0c5f28 100%);
@@ -339,7 +339,7 @@
             .shell { grid-template-columns: 1fr; }
             .content { padding: 12px; }
             .hero { min-height: auto; padding: 24px; }
-            .hero-logo { width: min(360px, 100%); }
+            .hero-logo { width: min(180px, 100%); }
             .offer-grid { grid-template-columns: 1fr 1fr; }
             .offer-grid-bottom { grid-template-columns: 1fr; }
         }
@@ -457,7 +457,8 @@
         <main class="content">
             <header class="topbar">
                 <strong>{{ __('ui.company') }}</strong>
-                <div style="display:flex; align-items:center; gap:18px;">
+                <div style="display:flex; align-items:center; gap:14px;">
+                    <img src="/logo.png" alt="ENESA" style="height:32px; width:auto; object-fit:contain; border-radius:8px;" onerror="this.style.display='none'">
                     @auth
                         <x-online-users-info />
                     @endauth

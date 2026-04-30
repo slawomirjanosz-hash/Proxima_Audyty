@@ -22,6 +22,21 @@
             border-color: #7dd3fc;
             background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
         }
+        .company-tile.chat-incoming {
+            animation: tile-chat-flash 1.2s ease-in-out 3;
+            border-color: #0e89d8;
+        }
+        @keyframes tile-chat-flash {
+            0%,100% { box-shadow: 0 4px 16px rgba(14,55,85,.05); border-color:#7dd3fc; }
+            50%      { box-shadow: 0 0 0 4px rgba(14,137,216,.35), 0 4px 24px rgba(14,137,216,.3); border-color:#0e89d8; }
+        }
+        .co-row.chat-incoming-row td {
+            animation: row-chat-flash 1.2s ease-in-out 3;
+        }
+        @keyframes row-chat-flash {
+            0%,100% { background: transparent; }
+            50%      { background: #dbeafe; }
+        }
         .company-tile.has-offer-accepted {
             border-color:#16a34a;
             box-shadow:0 4px 20px rgba(22,163,74,.18);
@@ -301,9 +316,8 @@
                         <span id="co-count-badge" style="background:#e0f2fe; border:1px solid #bae6fd; color:#0369a1; font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px;">
                             {{ $companies->count() }} {{ $companies->count() === 1 ? 'firma' : ($companies->count() < 5 ? 'firmy' : 'firm') }}
                         </span>
-                        @if($totalUnread > 0)
-                            <span style="background:#fef3c7; border:1px solid #fbbf24; color:#92400e; font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px;">💬 {{ $totalUnread }} nieprzeczytanych</span>
-                        @endif
+                        <span id="dash-chat-unread-total"
+                              style="background:#fef3c7; border:1px solid #fbbf24; color:#92400e; font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px; {{ $totalUnread > 0 ? '' : 'display:none;' }}">💬 {{ $totalUnread }} nieprzeczytanych</span>
                         <span class="dash-chevron">▼</span>
                     </div>
                 </div>
@@ -339,7 +353,9 @@
                                 <a href="{{ route('firma.show', $company) }}"
                                    class="company-tile {{ $tileClass }} co-tile-item"
                                    style="text-decoration:none; color:inherit;"
-                                   data-search="{{ $coSearch }}">
+                                   data-search="{{ $coSearch }}"
+                                   data-company-id="{{ $company->id }}"
+                                   data-unread="{{ $unreadChat }}">
                                     <div class="tile-header">
                                         <span class="tile-name">{{ $company->name }}</span>
                                         @if ($acceptedCount > 0)
@@ -359,7 +375,9 @@
                                             <span>🔐 Klient: {{ $company->client->name }}</span>
                                         @endif
                                         @if ($unreadChat > 0)
-                                            <span style="color:#0369a1; font-weight:700;">💬 {{ $unreadChat }} {{ $unreadChat === 1 ? 'nowa wiadomość' : ($unreadChat < 5 ? 'nowe wiadomości' : 'nowych wiadomości') }}</span>
+                                            <span style="color:#0369a1; font-weight:700;" data-unread-label>💬 {{ $unreadChat }} {{ $unreadChat === 1 ? 'nowa wiadomość' : ($unreadChat < 5 ? 'nowe wiadomości' : 'nowych wiadomości') }}</span>
+                                        @else
+                                            <span style="color:#0369a1; font-weight:700; display:none;" data-unread-label></span>
                                         @endif
                                         @if ($auditCount > 0)
                                             <span>📋 {{ $auditCount }} {{ $auditCount === 1 ? 'audyt' : ($auditCount < 5 ? 'audyty' : 'audytów') }}</span>
@@ -415,7 +433,7 @@
                                         $coSearch = strtolower($company->name . ' ' . ($company->city ?? '') . ' ' . ($company->auditor?->name ?? '') . ' ' . ($company->client?->name ?? ''));
                                         $compTokens = $tokensByCompany[$company->id] ?? null;
                                     @endphp
-                                    <tr class="co-row" data-search="{{ $coSearch }}">
+                                    <tr class="co-row" data-search="{{ $coSearch }}" data-company-id="{{ $company->id }}" data-unread="{{ $unreadChat }}">
                                         <td data-val="{{ $statusPrio }}">
                                             @if ($acceptedCount > 0)
                                                 <span class="co-status-badge st-accepted">✅ Przydziel audyt</span>
@@ -540,6 +558,108 @@ function sortCoTable(col) {
 document.addEventListener('DOMContentLoaded', function() {
     setCoView(coCurrentView);
 });
+
+// ── Real-time chat notifications ──────────────────────────────
+(function () {
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+
+    // Seed known counts from server-rendered data
+    const _knownCounts = {};
+    document.querySelectorAll('[data-company-id]').forEach(function (el) {
+        const id = el.dataset.companyId;
+        if (id && !_knownCounts[id]) {
+            _knownCounts[id] = parseInt(el.dataset.unread || '0', 10);
+        }
+    });
+
+    let _origTitle = document.title;
+    let _titleInterval = null;
+
+    function flashTitle(msg) {
+        let on = true;
+        clearInterval(_titleInterval);
+        _titleInterval = setInterval(function () {
+            document.title = on ? msg : _origTitle;
+            on = !on;
+        }, 900);
+        setTimeout(function () {
+            clearInterval(_titleInterval);
+            document.title = _origTitle;
+        }, 12000);
+    }
+
+    function pollDashboardChat() {
+        fetch('{{ route('dashboard.chat.unread') }}', {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf },
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            const byCompany = data.by_company || {};
+            let anyNew = false;
+
+            // Detect new messages per company
+            const allIds = new Set([
+                ...Object.keys(_knownCounts),
+                ...Object.keys(byCompany),
+            ]);
+            allIds.forEach(function (id) {
+                const newCount = parseInt(byCompany[id] || 0, 10);
+                const oldCount = _knownCounts[id] || 0;
+
+                if (newCount > oldCount) {
+                    anyNew = true;
+
+                    // Flash tile
+                    const tile = document.querySelector('.co-tile-item[data-company-id="' + id + '"]');
+                    if (tile) {
+                        tile.classList.add('has-unread-chat', 'chat-incoming');
+                        tile.dataset.unread = String(newCount);
+                        // Update unread label inside tile
+                        const unreadSpan = tile.querySelector('[data-unread-label]');
+                        if (unreadSpan) {
+                            unreadSpan.textContent = '💬 ' + newCount + ' ' + (newCount === 1 ? 'nowa wiadomość' : (newCount < 5 ? 'nowe wiadomości' : 'nowych wiadomości'));
+                            unreadSpan.style.display = '';
+                        }
+                        tile.addEventListener('animationend', function () {
+                            tile.classList.remove('chat-incoming');
+                        }, { once: true });
+                    }
+
+                    // Flash table row
+                    const row = document.querySelector('.co-row[data-company-id="' + id + '"]');
+                    if (row) {
+                        row.classList.add('chat-incoming-row');
+                        row.dataset.unread = String(newCount);
+                        row.addEventListener('animationend', function () {
+                            row.classList.remove('chat-incoming-row');
+                        }, { once: true });
+                    }
+                }
+
+                _knownCounts[id] = newCount;
+            });
+
+            // Update total badge
+            const total = parseInt(data.total || 0, 10);
+            const badge = document.getElementById('dash-chat-unread-total');
+            if (badge) {
+                if (total > 0) {
+                    badge.textContent = '💬 ' + total + ' nieprzeczytanych';
+                    badge.style.display = '';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+
+            if (anyNew) {
+                flashTitle('💬 Nowa wiadomość!');
+            }
+        })
+        .catch(function () {});
+    }
+
+    setInterval(pollDashboardChat, 8000);
+})();
 </script>
 </x-layouts.app>
 

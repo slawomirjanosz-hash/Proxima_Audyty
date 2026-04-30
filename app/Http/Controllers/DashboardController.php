@@ -6,6 +6,7 @@ use App\Models\ClientChatMessage;
 use App\Models\ClientInquiry;
 use App\Models\ClientRegistration;
 use App\Models\Company;
+use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -116,6 +117,20 @@ class DashboardController extends Controller
             'unreadChatByCompany'     => $unreadChatByCompany,
             'tokensByCompany'         => $tokensByCompany,
             'aiSummary'               => $aiSummary,
+        ]);
+    }
+
+    public function unreadChat(): JsonResponse
+    {
+        $byCompany = ClientChatMessage::where('is_from_admin', false)
+            ->whereNull('read_at')
+            ->selectRaw('company_id, count(*) as cnt')
+            ->groupBy('company_id')
+            ->pluck('cnt', 'company_id');
+
+        return response()->json([
+            'by_company' => $byCompany,
+            'total'      => $byCompany->sum(),
         ]);
     }
 }

@@ -45,6 +45,7 @@ class ClientInquiry extends Model
             'offer_accepted' => 'Oferta zaakceptowana',
             'accepted'       => 'Przyjęte',
             'rejected'       => 'Odrzucone',
+            'closed'         => 'Zamknięte',
             default          => ucfirst($this->status),
         };
     }
@@ -57,6 +58,7 @@ class ClientInquiry extends Model
             'offer_accepted' => '#065f46',
             'accepted'       => '#1f6a3c',
             'rejected'       => '#9f1f1f',
+            'closed'         => '#6b7280',
             default          => '#4c6373',
         };
     }
@@ -69,6 +71,7 @@ class ClientInquiry extends Model
             'offer_accepted' => '#d1fae5',
             'accepted'       => '#e6f8ed',
             'rejected'       => '#fff0f0',
+            'closed'         => '#f3f4f6',
             default          => '#f7fafc',
         };
     }

@@ -89,6 +89,9 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->middleware('role:admin,auditor')
         ->name('dashboard');
+    Route::get('/dashboard/chat-unread', [DashboardController::class, 'unreadChat'])
+        ->middleware('role:admin,auditor')
+        ->name('dashboard.chat.unread');
     Route::get('/audyty', [AuditsController::class, 'index'])
         ->middleware('role:admin,auditor')
         ->name('audits.index');
@@ -313,6 +316,8 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('role:client,admin,auditor')->name('client.audit.compressor.questionnaire');
     Route::post('/moje-audyty/{audit}/kwestionariusz-sprezarkowni', [ClientController::class, 'saveCompressorQuestionnaire'])
         ->middleware('role:client,admin,auditor')->name('client.audit.compressor.questionnaire.save');
+    Route::post('/moje-audyty/{audit}/skan-tabliczki', [ClientController::class, 'scanCompressorNameplate'])
+        ->middleware('role:client,admin,auditor')->name('client.audit.compressor.scan');
     Route::get('/moje-audyty/{audit}/praca/{conversation}', [ClientController::class, 'auditWork'])
         ->middleware('role:client,admin,auditor')->name('client.audit.work');
     Route::post('/moje-audyty/{audit}/praca/{conversation}/zakoncz', [ClientController::class, 'finishAuditAi'])

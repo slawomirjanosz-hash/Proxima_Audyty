@@ -186,12 +186,21 @@ class OffersController extends Controller
         ClientInquiry::where('offer_id', $offer->id)
             ->update(['status' => 'in_review']);
 
+        // Mark the offer itself as sent
+        $offer->update(['status' => 'sent']);
+
         return back()->with('status', 'Oferta wysłana do klienta na adres ' . $email . '.');
     }
 
     public function generatePdf(Offer $offer)
     {
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('offers.print', compact('offer'));
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('offers.print', compact('offer'))
+            ->setOptions([
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled'      => false,
+                'defaultFont'          => 'DejaVu Sans',
+                'defaultPaperSize'     => 'a4',
+            ]);
         return $pdf->download('oferta-' . ($offer->offer_number ?: $offer->id) . '.pdf');
     }
 

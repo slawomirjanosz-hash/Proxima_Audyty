@@ -20,6 +20,10 @@
         .audit-row:hover { background:#eef6ff; }
         .audit-row-title { font-weight:700; color:#0f2330; font-size:14px; }
         .audit-row-meta { font-size:12px; color:#4c6373; }
+        .status-inprogress { background:#e0f2fe; color:#0369a1; }
+        .status-sent     { background:#fef3c7; color:#92400e; }
+        .status-accepted { background:#d1fae5; color:#065f46; }
+        .status-portfolio { background:#f3f4f6; color:#374151; }
         .status-pill { display:inline-block; font-size:11px; font-weight:700; padding:3px 10px; border-radius:6px; }
         .status-wysłany { background:#dbeafe; color:#1e40af; }
         .status-rozpoczęty { background:#d1fae5; color:#065f46; }
@@ -311,12 +315,12 @@
 
         {{-- ── Inquiries ── --}}
         @if($inquiries->isNotEmpty())
-        <?php $hasAccepted = $inquiries->whereIn('status', ['new','in_review','offer_accepted'])->isNotEmpty(); ?>
+        <?php $hasAccepted = $inquiries->whereIn('status', ['new','offer_accepted'])->isNotEmpty(); ?>
         <div class="section-box" id="sec-inquiries" style="border-color:#fbbf24;">
             <button type="button" class="section-box-toggle" onclick="toggleSection('sec-inquiries')" style="border-left:4px solid #fbbf24;">
                 <h2>📬 Zapytania klientów</h2>
                 <div class="toggle-right">
-                    @php($pendingInquiries = $inquiries->whereIn('status', ['new','in_review','offer_accepted'])->count())
+                    @php($pendingInquiries = $inquiries->whereIn('status', ['new','offer_accepted'])->count())
                     @if($pendingInquiries > 0)
                         <span class="sec-badge sec-badge-warn">{{ $pendingInquiries }} {{ $pendingInquiries === 1 ? 'do obsługi' : 'do obsługi' }}</span>
                     @else
@@ -347,7 +351,7 @@
                     </div>
 
                     <div class="inquiry-actions">
-                        @if(in_array($inquiry->status, ['new', 'in_review']))
+                        @if($inquiry->status === 'new')
                             <form method="POST" action="{{ route('inquiry.accept', $inquiry) }}" style="display:inline">
                                 @csrf @method('PATCH')
                                 <button type="submit" class="btn-sm btn-primary-sm">✅ Przyjęto</button>
@@ -356,6 +360,12 @@
                                 @csrf @method('PATCH')
                                 <button type="submit" class="btn-sm btn-danger-sm" onclick="return confirm('Odrzucić to zapytanie?')">✗ Odrzuć</button>
                             </form>
+                        @endif
+
+                        @if($inquiry->status === 'in_review')
+                            <div style="padding:7px 12px; background:#fef3c7; border:1px solid #fcd34d; border-radius:8px; color:#92400e; font-size:13px;">
+                                📤 Oferta wysłana — oczekiwanie na odpowiedź klienta
+                            </div>
                         @endif
 
                         @if($inquiry->status === 'offer_accepted')
@@ -438,12 +448,16 @@
                 </div>
                 <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
                     <span class="status-pill {{ 'status-'.$co->status }}" style="font-size:11px; font-weight:700; padding:3px 10px; border-radius:6px;">
-                        {{ $co->status === 'inprogress' ? 'W toku' : 'Portfolio' }}
+                        {{ $co->status === 'inprogress' ? 'W toku' : ($co->status === 'sent' ? 'Wysłana' : ($co->status === 'accepted' ? 'Zaakceptowana' : 'Portfolio')) }}
                     </span>
                     <a href="{{ route('offers.edit', $co) }}" class="btn-sm btn-secondary-sm">✏ Edytuj</a>
                     <form method="POST" action="{{ route('offers.sendToClient', $co) }}" style="display:inline">
                         @csrf
-                        <button type="submit" class="btn-sm" style="background:#1ba84a; color:#fff;" onclick="return confirm('Wysłać tę ofertę do klienta?')">📤 Wyślij do klienta</button>
+                        @if(in_array($co->status, ['sent', 'accepted']))
+                            <button type="submit" class="btn-sm" style="background:#c8d8e6; color:#4c6373; border:1px solid #b0c4d6;" onclick="return confirm('Oferta już wysłana. Wysłać ponownie?')">📤 Wyślij ponownie</button>
+                        @else
+                            <button type="submit" class="btn-sm" style="background:#1ba84a; color:#fff;" onclick="return confirm('Wysłać tę ofertę do klienta?')">📤 Wyślij do klienta</button>
+                        @endif
                     </form>
                 </div>
             </div>
@@ -907,5 +921,7 @@
         });
     });
     </script>
+
+    <x-admin-chat-float :chatMessages="$chatMessages" :company="$company" />
 </x-layouts.app>
 

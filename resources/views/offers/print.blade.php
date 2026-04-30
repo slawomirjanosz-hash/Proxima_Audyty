@@ -2,10 +2,12 @@
 <html lang="pl">
 <head>
     <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Oferta {{ $offer->offer_number }}</title>
     <style>
+        @charset "UTF-8";
         * { box-sizing: border-box; }
-        body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 11pt; color: #0f2330; margin: 0; padding: 24px; }
+        body { font-family: 'DejaVu Sans', DejaVu Sans, Arial, sans-serif; font-size: 11pt; color: #0f2330; margin: 0; padding: 24px; }
         h1 { font-size: 20pt; margin: 0 0 4px; color: #0f2330; }
         .subtitle { color: #4c6373; font-size: 10pt; margin-bottom: 24px; }
         .header { border-bottom: 2px solid #0e89d8; padding-bottom: 12px; margin-bottom: 20px; }
