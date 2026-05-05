@@ -7,6 +7,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\OffersController;
 use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\EnergyAuditMasterController;
 use App\Http\Controllers\CrmController;
 use App\Http\Controllers\CrmCustomerTypeController;
 use App\Http\Controllers\CrmStageController;
@@ -330,6 +331,17 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/strefa-klienta/zapytanie', [ClientController::class, 'storeInquiry'])
         ->middleware('role:client')
         ->name('client.inquiry.store');
+
+    // ── Audyt Master (Energetyczny całego zakładu) ───────────────────────
+    Route::get('/strefa-klienta/audyt-energetyczny', [EnergyAuditMasterController::class, 'show'])
+        ->middleware('role:client,admin,auditor')
+        ->name('client.audit.master');
+    Route::post('/strefa-klienta/audyt-energetyczny/zapisz', [EnergyAuditMasterController::class, 'save'])
+        ->middleware('role:client,admin,auditor')
+        ->name('client.energy-audit-master.save');
+    Route::get('/strefa-klienta/audyt-energetyczny/dane', [EnergyAuditMasterController::class, 'getDataForAudit'])
+        ->middleware('role:client,admin,auditor')
+        ->name('client.energy-audit-master.data');
     Route::get('/iso50001', [Iso50001AuditController::class, 'index'])
         ->name('iso50001.index');
     Route::post('/iso50001', [Iso50001AuditController::class, 'store'])
@@ -449,6 +461,9 @@ Route::middleware('auth')->group(function (): void {
     Route::delete('/firmy/{company}/audyt/{audit}', [CompanyController::class, 'destroyAudit'])
         ->middleware('role:admin,auditor')
         ->name('firma.destroyAudit');
+    Route::patch('/firmy/{company}/audyt/{audit}/zatwierdz', [CompanyController::class, 'approveAudit'])
+        ->middleware('role:admin,auditor')
+        ->name('firma.approveAudit');
     Route::get('/firmy/{company}/audyt/{audit}/raport', [CompanyController::class, 'report'])
         ->middleware('role:admin,auditor')
         ->name('firma.report');

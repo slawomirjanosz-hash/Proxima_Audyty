@@ -6,6 +6,9 @@ use App\Models\ClientChatMessage;
 use App\Models\ClientInquiry;
 use App\Models\ClientRegistration;
 use App\Models\Company;
+use App\Models\EnergyAudit;
+use App\Models\User;
+use App\Enums\UserRole;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 
@@ -117,6 +120,14 @@ class DashboardController extends Controller
             'unreadChatByCompany'     => $unreadChatByCompany,
             'tokensByCompany'         => $tokensByCompany,
             'aiSummary'               => $aiSummary,
+            'pendingAudits'           => EnergyAudit::where('status', 'oczekujący')
+                                            ->with(['company', 'auditType'])
+                                            ->latest()
+                                            ->get(),
+            'auditors'                => User::whereIn('role', [UserRole::SuperAdmin->value, UserRole::Admin->value, UserRole::Auditor->value])
+                                            ->orderBy('name')
+                                            ->get(),
+            'auditTypes'              => \App\Models\AuditType::with('sections')->orderBy('name')->get(),
         ]);
     }
 

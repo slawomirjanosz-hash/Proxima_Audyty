@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\CrmTaskAssignedMail;
 use App\Models\CrmActivity;
 use App\Support\CompanyNameNormalizer;
 use App\Models\CrmCompany;
@@ -16,6 +17,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class CrmController extends Controller
@@ -527,6 +529,15 @@ class CrmController extends Controller
             'title' => $task->title,
         ], (int) $task->id);
 
+        // Notify the assignee (skip if assigning to yourself)
+        if ($task->assigned_to && $task->assigned_to !== $request->user()->id) {
+            $assignee = User::find($task->assigned_to);
+            if ($assignee && $assignee->email) {
+                $task->load(['company', 'deal']);
+                Mail::to($assignee->email)->send(new CrmTaskAssignedMail($task, $assignee));
+            }
+        }
+
         return redirect()->route('crm.index')->with('status', 'Zadanie zostało dodane.');
     }
 
@@ -556,6 +567,7 @@ class CrmController extends Controller
             $validated['completed_at'] = now();
         }
 
+        $oldAssignedTo = $task->assigned_to;
         $before = $task->getOriginal();
         $task->update($validated);
         $changes = [];
@@ -569,6 +581,16 @@ class CrmController extends Controller
                 'title' => $task->title,
                 'changes' => $changes,
             ], (int) $task->id);
+        }
+
+        // Notify the new assignee if the assignment changed (and it's not the person making the change)
+        $newAssignedTo = $task->assigned_to;
+        if ($newAssignedTo && $newAssignedTo !== $oldAssignedTo && $newAssignedTo !== $request->user()->id) {
+            $assignee = User::find($newAssignedTo);
+            if ($assignee && $assignee->email) {
+                $task->load(['company', 'deal']);
+                Mail::to($assignee->email)->send(new CrmTaskAssignedMail($task, $assignee));
+            }
         }
 
         return redirect()->route('crm.index')->with('status', 'Zadanie zostało zaktualizowane.');

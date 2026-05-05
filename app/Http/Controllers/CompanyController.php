@@ -61,9 +61,15 @@ class CompanyController extends Controller
             ->latest()
             ->get();
 
+        $pendingAudits = $company->energyAudits()
+            ->where('status', 'oczekujący')
+            ->with('auditType')
+            ->get();
+
         return view('firma.show', compact(
             'company', 'auditTypes', 'auditors', 'availableUsers',
-            'inquiries', 'chatMessages', 'portfolioOffers', 'companyOffers'
+            'inquiries', 'chatMessages', 'portfolioOffers', 'companyOffers',
+            'pendingAudits'
         ));
     }
 
@@ -206,6 +212,39 @@ class CompanyController extends Controller
 
         return redirect()->route('firma.show', $company)
             ->with('status', 'Audyt został usunięty.');
+    }
+
+    public function approveAudit(Request $request, Company $company, EnergyAudit $audit): RedirectResponse
+    {
+        abort_unless((int) $audit->company_id === $company->id, 404);
+        abort_unless($audit->status === 'oczekujący', 422, 'Audyt nie oczekuje na zatwierdzenie.');
+
+        $agentTypes = [
+            'general', 'compressor_room', 'boiler_room', 'drying_room', 'buildings', 'technological_processes',
+            'iso50001',
+            'bc_general', 'bc_compressor_room', 'bc_boiler_room', 'bc_drying_room', 'bc_buildings', 'bc_technological_processes',
+        ];
+
+        $validated = $request->validate([
+            'title'      => ['required', 'string', 'max:255'],
+            'auditor_id' => ['nullable', 'exists:users,id'],
+            'agent_type' => ['required', 'string', 'in:' . implode(',', $agentTypes)],
+        ]);
+
+        $audit->update([
+            'title'      => $validated['title'],
+            'auditor_id' => $validated['auditor_id'] ?? null,
+            'agent_type' => $validated['agent_type'],
+            'status'     => 'wysłany',
+        ]);
+
+        // Close any offer_accepted inquiries for this company
+        ClientInquiry::where('company_id', $company->id)
+            ->where('status', 'offer_accepted')
+            ->update(['status' => 'closed']);
+
+        return redirect()->route('dashboard')
+            ->with('status', 'Audyt „' . $audit->title . '" został zatwierdzony i przydzielony firmie ' . $company->name . '.');
     }
 
     public function report(Company $company, EnergyAudit $audit): View

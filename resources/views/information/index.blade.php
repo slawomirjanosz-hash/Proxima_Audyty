@@ -1008,7 +1008,7 @@
         const EC_GAS_PLN_PER_GJ = {{ $gasPricePln['ok'] ? (float) $gasPricePln['priceGjPln'] : 'null' }};
 
         const ecFactors = { gj:1, kwh:1/0.0036, mwh:1/3.6, toe:1/41.868 };
-        const ecDecimals = { gj:5, kwh:2, mwh:5, toe:2 };
+        const ecDecimals = { gj:3, kwh:3, mwh:3, toe:3 };
 
         function ecConvert(from, rawVal) {
             const val = parseFloat(rawVal);

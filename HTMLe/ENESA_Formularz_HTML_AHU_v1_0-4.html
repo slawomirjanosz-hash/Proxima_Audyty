@@ -1,0 +1,3564 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ENESA · AHU Form (Wentylacja) · v1.0 · scope</title>
+<style>
+/* === ENESA palette - identyczna jak w Master HTML === */
+:root {
+  --green-deep: #1A4D3A;
+  --green-primary: #2E7D5C;
+  --green-light: #A4C2A8;
+  --green-bg: #E7EEE5;
+  --paper: #F5EFE0;
+  --paper-deep: #EBE3D0;
+  --paper-paper: #FAF5E8;
+  --gold: #A87F2A;
+  --rose: #B8485A;
+  --rose-light: #FFE0E0;
+  --ok: #2E7D5C;
+  --ok-light: #A8D5BA;
+  --warning: #FFD580;
+  --readonly: #FFE9C7;
+  --readonly-deep: #F5D88E;
+  --ink: #1A1612;
+  --ink-soft: #3D352C;
+  --ink-mute: #76695A;
+  --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--sans);
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.5;
+  font-size: 14px;
+  display: flex;
+  min-height: 100vh;
+  position: relative;
+}
+
+body::before {
+  content: 'POUFNE';
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotate(-30deg);
+  font-family: var(--serif);
+  font-size: 220px;
+  font-weight: 700;
+  color: var(--paper-deep);
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 0;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.serif { font-family: var(--serif); }
+.mono { font-family: var(--mono); }
+
+/* === Sidenav 220px === */
+.sidenav {
+  width: 220px;
+  background: var(--green-deep);
+  color: var(--paper);
+  padding: 24px 0;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+}
+.sidenav-brand {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  margin-bottom: 16px;
+}
+.sidenav-logo {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--paper);
+  letter-spacing: 0.5px;
+}
+.sidenav-sub {
+  font-size: 11px;
+  color: var(--green-light);
+  margin-top: 4px;
+  font-style: italic;
+}
+.sidenav-scope-badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 8px;
+  background: var(--gold);
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border-radius: 3px;
+  font-family: var(--mono);
+  text-transform: uppercase;
+}
+.sidenav-list { list-style: none; }
+.sidenav-item {
+  padding: 9px 18px 9px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--paper);
+  border-left: 3px solid transparent;
+  transition: all 0.15s ease;
+}
+.sidenav-item:hover {
+  background: rgba(255,255,255,0.08);
+  border-left-color: var(--gold);
+}
+.sidenav-item.active {
+  background: rgba(255,255,255,0.12);
+  border-left-color: var(--gold);
+  font-weight: 600;
+}
+.sidenav-num {
+  font-size: 11px;
+  background: rgba(255,255,255,0.15);
+  padding: 2px 6px;
+  border-radius: 3px;
+  min-width: 28px;
+  text-align: center;
+  font-family: var(--mono);
+  flex-shrink: 0;
+}
+.sidenav-name { flex: 1; font-size: 12.5px; }
+.sidenav-count {
+  font-size: 10.5px;
+  color: var(--green-light);
+  font-family: var(--mono);
+  flex-shrink: 0;
+}
+
+/* Master integration status */
+.master-status {
+  margin: 16px 16px 8px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.08);
+  border-left: 3px solid var(--gold);
+  border-radius: 0 4px 4px 0;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.master-status-label {
+  color: var(--green-light);
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+  font-weight: 600;
+}
+.master-status-value {
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.master-status-value.connected { color: var(--ok-light); }
+.master-status-value.disconnected { color: var(--readonly-deep); }
+
+/* === Main content === */
+.main {
+  flex: 1;
+  margin-left: 220px;
+  padding: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.header {
+  background: var(--paper-paper);
+  padding: 32px 48px 24px;
+  border-bottom: 1px solid var(--paper-deep);
+  position: sticky; top: 0; z-index: 5;
+  backdrop-filter: blur(8px);
+  background: rgba(245, 239, 224, 0.92);
+}
+.header-eyebrow {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.header-title {
+  font-family: var(--serif);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--green-deep);
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+.header-sub {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-top: 6px;
+  font-style: italic;
+}
+.header-meta {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--paper-deep);
+  flex-wrap: wrap;
+}
+.header-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.header-meta-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  letter-spacing: 1px;
+}
+.header-meta-val {
+  font-size: 13px;
+  color: var(--green-deep);
+  font-weight: 600;
+}
+
+/* === Section === */
+.section {
+  padding: 32px 48px 48px;
+  scroll-margin-top: 130px;
+}
+.section + .section {
+  border-top: 1px dashed var(--paper-deep);
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--green-deep);
+}
+.section-eyebrow {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.section-title {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--green-deep);
+  letter-spacing: -0.2px;
+  line-height: 1.2;
+}
+.section-desc {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-top: 6px;
+  max-width: 720px;
+}
+.section-meta { text-align: right; flex-shrink: 0; }
+.section-progress {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--green-primary);
+  background: var(--green-bg);
+  padding: 6px 12px;
+  border-radius: 4px;
+}
+
+.section-body { padding: 4px 0; }
+
+/* === Group / sub-section === */
+.group {
+  margin-top: 28px;
+  background: var(--paper-paper);
+  border: 1px solid var(--paper-deep);
+  border-radius: 6px;
+  padding: 20px 24px;
+}
+.group-title {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--green-deep);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.group-title::before {
+  content: '▼';
+  font-size: 10px;
+  color: var(--gold);
+}
+.group-desc {
+  font-size: 12px;
+  color: var(--ink-mute);
+  font-style: italic;
+  margin-bottom: 16px;
+}
+.group-info {
+  background: var(--green-bg);
+  border-left: 3px solid var(--green-primary);
+  padding: 12px 16px;
+  margin: 16px 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  border-radius: 0 4px 4px 0;
+}
+.group-info ul { margin-left: 20px; margin-top: 6px; }
+.group-info li { margin-bottom: 4px; }
+.group-info strong { color: var(--green-deep); }
+
+/* === Group header — scope read-only marker === */
+.group.readonly-group {
+  background: linear-gradient(to right, rgba(255, 233, 199, 0.4), var(--paper-paper));
+  border-color: var(--readonly-deep);
+}
+.group.readonly-group .group-title::before { content: '🔒'; font-size: 12px; }
+
+/* === Field row === */
+.field {
+  display: grid;
+  grid-template-columns: 240px 1fr 280px 70px;
+  gap: 16px;
+  align-items: start;
+  padding: 12px 0;
+  border-bottom: 1px dashed var(--paper-deep);
+}
+.field:last-child { border-bottom: none; }
+
+.field-label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.field-q {
+  font-size: 13px;
+  color: var(--ink);
+  font-weight: 500;
+  line-height: 1.3;
+}
+.field-id {
+  font-size: 10px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+}
+.field-input-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.field-input,
+.field-select,
+.field-textarea {
+  font-family: var(--sans);
+  font-size: 13px;
+  padding: 9px 12px;
+  border: 1px solid var(--paper-deep);
+  border-radius: 4px;
+  background: white;
+  color: var(--ink);
+  width: 100%;
+  transition: all 0.15s ease;
+}
+.field-input:focus,
+.field-select:focus,
+.field-textarea:focus {
+  outline: none;
+  border-color: var(--green-primary);
+  box-shadow: 0 0 0 3px rgba(46, 125, 92, 0.12);
+}
+.field-input.filled,
+.field-select.filled,
+.field-textarea.filled {
+  background: var(--green-bg);
+  border-color: var(--green-primary);
+}
+.field-textarea { min-height: 80px; resize: vertical; line-height: 1.4; }
+
+/* === READ-ONLY z Master (pomarańczowe) === */
+.field-readonly {
+  background: var(--readonly) !important;
+  border-color: var(--readonly-deep) !important;
+  color: var(--ink-soft) !important;
+  cursor: not-allowed;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.field-readonly:focus { box-shadow: 0 0 0 3px rgba(168, 127, 42, 0.15) !important; }
+.readonly-marker {
+  display: inline-block;
+  font-size: 10px;
+  color: var(--gold);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 3px;
+  padding: 1px 6px;
+  background: rgba(168, 127, 42, 0.12);
+  border-radius: 2px;
+  font-family: var(--mono);
+  text-transform: uppercase;
+}
+
+.field-hint {
+  font-size: 11.5px;
+  color: var(--ink-mute);
+  font-style: italic;
+  line-height: 1.4;
+}
+.field-unit {
+  font-size: 11.5px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  text-align: right;
+  padding-top: 11px;
+}
+
+/* === Tag (KTO) === */
+.tag {
+  display: inline-block;
+  padding: 2px 7px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  border-radius: 3px;
+  font-family: var(--mono);
+  vertical-align: middle;
+}
+.tag.kon { background: var(--green-deep); color: var(--paper); }
+.tag.em { background: var(--gold); color: var(--paper); }
+.tag.ur { background: var(--ink-soft); color: var(--paper); }
+.tag.top { background: var(--rose); color: white; }
+.tag.spec { background: var(--green-primary); color: white; }
+.tag.kier { background: var(--ink-mute); color: white; }
+.tag.auto { background: var(--paper-deep); color: var(--ink-soft); }
+.tag.small { font-size: 9px; padding: 1px 5px; margin-right: 3px; }
+
+.kto-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 11px;
+}
+
+/* === Devices table (transponowana) === */
+.devices-wrap {
+  overflow-x: auto;
+  margin-top: 20px;
+  border: 1px solid var(--paper-deep);
+  border-radius: 6px;
+  background: white;
+}
+.devices-table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 12.5px;
+}
+.devices-table th,
+.devices-table td {
+  padding: 8px 10px;
+  border: 1px solid var(--paper-deep);
+  text-align: left;
+  vertical-align: middle;
+}
+.devices-table thead th {
+  background: var(--green-deep);
+  color: var(--paper);
+  font-weight: 600;
+  text-align: center;
+  font-size: 11.5px;
+  letter-spacing: 0.3px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.devices-table .th-question {
+  background: var(--green-deep);
+  text-align: left;
+  min-width: 240px;
+  position: sticky;
+  left: 0;
+  z-index: 3;
+}
+.devices-table .th-comp {
+  min-width: 70px;
+  text-align: center;
+}
+.devices-table .th-instance {
+  min-width: 130px;
+  text-align: center;
+  font-size: 11px;
+}
+.devices-table .td-question {
+  background: var(--paper-paper);
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  border-right: 2px solid var(--paper-deep);
+}
+.devices-table .td-question .q-label {
+  font-size: 12.5px;
+  color: var(--ink);
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+.devices-table .td-question .q-id {
+  font-size: 9.5px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+}
+.devices-table .td-question .q-hint {
+  font-size: 10.5px;
+  color: var(--ink-mute);
+  font-style: italic;
+  margin-top: 3px;
+  line-height: 1.3;
+}
+.devices-table .td-comp {
+  text-align: center;
+  background: var(--paper-paper);
+}
+.devices-table .td-input {
+  text-align: center;
+  padding: 4px;
+}
+.cell-input {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-family: var(--sans);
+  border: 1px solid var(--paper-deep);
+  border-radius: 3px;
+  background: white;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+.cell-input:focus {
+  outline: none;
+  border-color: var(--green-primary);
+  background: var(--green-bg);
+}
+.cell-input.filled {
+  background: var(--green-bg);
+  border-color: var(--green-primary);
+}
+.cell-input.readonly {
+  background: var(--readonly) !important;
+  border-color: var(--readonly-deep) !important;
+  color: var(--ink-soft);
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: not-allowed;
+}
+
+.devices-table tr.row-section-header td {
+  background: var(--paper-deep);
+  font-weight: 600;
+  color: var(--green-deep);
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: sticky;
+  left: 0;
+}
+.devices-table tr.row-readonly-section td {
+  background: linear-gradient(to right, rgba(255, 233, 199, 0.6), var(--paper-deep));
+  color: var(--gold);
+}
+
+.row-add {
+  margin-top: 12px;
+  padding: 10px 16px;
+  background: white;
+  color: var(--green-primary);
+  border: 1px dashed var(--green-primary);
+  border-radius: 4px;
+  font-family: var(--sans);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-weight: 500;
+}
+.row-add:hover {
+  background: var(--green-bg);
+  border-style: solid;
+}
+
+/* === Status indicator === */
+.status-ok { color: var(--ok); font-weight: 600; }
+.status-error { color: var(--rose); font-weight: 600; }
+.status-warning { color: var(--gold); font-weight: 600; }
+
+.save-indicator {
+  position: fixed;
+  top: 16px;
+  right: 24px;
+  background: var(--green-deep);
+  color: var(--paper);
+  padding: 8px 14px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 100;
+  pointer-events: none;
+}
+.save-indicator.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.save-indicator::before {
+  content: '✓ ';
+  color: var(--ok-light);
+  font-weight: 700;
+}
+
+/* === Flag KPI (czerwone flagi) === */
+.flag-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 240px 100px;
+  gap: 12px;
+  padding: 8px 14px;
+  margin: 5px 0;
+  border-radius: 4px;
+  background: white;
+  border: 1px solid var(--paper-deep);
+  align-items: center;
+  font-size: 12px;
+}
+.flag-row.flag-on {
+  background: var(--rose-light);
+  border-color: var(--rose);
+  font-weight: 500;
+}
+.flag-row.flag-off {
+  background: var(--green-bg);
+  border-color: var(--ok-light);
+}
+.flag-id { font-family: var(--mono); font-size: 10px; color: var(--ink-mute); }
+.flag-name { color: var(--ink); }
+.flag-rule { font-size: 11px; color: var(--ink-mute); font-style: italic; }
+.flag-status { font-weight: 700; text-align: center; }
+.flag-status.on { color: var(--rose); }
+.flag-status.off { color: var(--ok); }
+
+/* === Responsive === */
+@media (max-width: 1024px) {
+  .sidenav { width: 60px; padding: 16px 0; }
+  .sidenav-brand .sidenav-logo { font-size: 16px; }
+  .sidenav-brand .sidenav-sub { display: none; }
+  .sidenav-name, .sidenav-count { display: none; }
+  .sidenav-item { justify-content: center; padding: 12px; }
+  .master-status { display: none; }
+  .main { margin-left: 60px; }
+  .header, .section { padding-left: 24px; padding-right: 24px; }
+  .field { grid-template-columns: 1fr; gap: 6px; }
+  .field-unit { text-align: left; padding-top: 0; }
+}
+</style>
+</head>
+<body>
+
+<div class="save-indicator" id="save-indicator">Zapisano lokalnie</div>
+
+<!-- ====== SIDENAV ====== -->
+<nav class="sidenav">
+  <div class="sidenav-brand">
+    <div class="sidenav-logo serif">ENESA</div>
+    <div class="sidenav-sub">AHU Form · v1.0</div>
+    <div class="sidenav-scope-badge">SCOPE 1 · WENTYLACJA</div>
+  </div>
+  
+  <div class="master-status">
+    <div class="master-status-label">Master Form</div>
+    <div class="master-status-value" id="master-status-text">Sprawdzanie...</div>
+  </div>
+  
+  <ul class="sidenav-list">
+    <li class="sidenav-item active" data-target="etap-0"><span class="sidenav-num mono">E0</span><span class="sidenav-name">Zespół</span><span class="sidenav-count mono" data-count-for="etap-0">0/40</span></li>
+    <li class="sidenav-item" data-target="etap-1"><span class="sidenav-num mono">E1</span><span class="sidenav-name">Kontekst</span><span class="sidenav-count mono" data-count-for="etap-1">0/2</span></li>
+    <li class="sidenav-item" data-target="etap-2"><span class="sidenav-num mono">E2</span><span class="sidenav-name">Typy AHU</span><span class="sidenav-count mono" data-count-for="etap-2">0/84</span></li>
+    <li class="sidenav-item" data-target="etap-3"><span class="sidenav-num mono">E3</span><span class="sidenav-name">Macierz</span><span class="sidenav-count mono" data-count-for="etap-3">0/15</span></li>
+    <li class="sidenav-item" data-target="etap-4"><span class="sidenav-num mono">E4</span><span class="sidenav-name">Hale</span><span class="sidenav-count mono" data-count-for="etap-4">0/100</span></li>
+    <li class="sidenav-item" data-target="etap-5"><span class="sidenav-num mono">E5</span><span class="sidenav-name">Wydziały</span><span class="sidenav-count mono" data-count-for="etap-5">0/5</span></li>
+    <li class="sidenav-item" data-target="etap-6"><span class="sidenav-num mono">E6</span><span class="sidenav-name">System / BMS</span><span class="sidenav-count mono" data-count-for="etap-6">0/16</span></li>
+    <li class="sidenav-item" data-target="etap-7"><span class="sidenav-num mono">E7</span><span class="sidenav-name">Eksploatacja</span><span class="sidenav-count mono" data-count-for="etap-7">0/13</span></li>
+    <li class="sidenav-item" data-target="etap-8"><span class="sidenav-num mono">E8</span><span class="sidenav-name">KPI · Flagi</span><span class="sidenav-count mono" data-count-for="etap-8" id="sidenav-flag-count">0/14</span></li>
+  </ul>
+</nav>
+
+<!-- ====== MAIN CONTENT ====== -->
+<main class="main">
+
+  <!-- ====== HEADER ====== -->
+  <header class="header">
+    <div class="header-eyebrow">FORMULARZ AUDYT SCOPE 1 · WENTYLACJA (AHU/HVAC) · v1.0</div>
+    <h1 class="header-title serif">Audyt central wentylacyjnych — scope formularz</h1>
+    <div class="header-sub">PN-EN 16798-17 · ISO 50002 · Rozp. UE 1253/2014 · Czyta dane globalne z Master Form</div>
+    <div class="header-meta">
+      <div class="header-meta-item">
+        <div class="header-meta-label">Norma</div>
+        <div class="header-meta-val">PN-EN 16798-17 · ISO 50002</div>
+      </div>
+      <div class="header-meta-item">
+        <div class="header-meta-label">Architektura</div>
+        <div class="header-meta-val">Master + Scope (czyta z Master)</div>
+      </div>
+      <div class="header-meta-item">
+        <div class="header-meta-label">Wypełnia</div>
+        <div class="header-meta-val">KIER UR + specjaliści delegowani</div>
+      </div>
+      <div class="header-meta-item">
+        <div class="header-meta-label">Zakład</div>
+        <div class="header-meta-val" id="header-zaklad-name">[czyta z Master.E0]</div>
+      </div>
+      <div class="header-meta-item">
+        <div class="header-meta-label">Status</div>
+        <div class="header-meta-val" id="overall-progress">Wczytywanie...</div>
+      </div>
+    </div>
+  </header>
+
+    <!-- ============================================================ -->
+  <!-- ETAP 0 · ZESPÓŁ AUDYTOWY AHU                                  -->
+  <!-- ============================================================ -->
+  <section class="section" id="etap-0">
+    <div class="section-head">
+      <div>
+        <div class="section-eyebrow">ETAP 0</div>
+        <h2 class="section-title serif">Zespół audytowy AHU</h2>
+        <p class="section-desc">Lokalny zespół scope AHU — KIER UR + specjaliści delegowani z Master.E0 · 5 osób × 8 atrybutów · czas: 3-5 min</p>
+      </div>
+      <div class="section-meta">
+        <div class="section-progress" data-etap="etap-0">0 / 40</div>
+        <div style="font-size: 11px; color: var(--ink-mute); margin-top: 4px;">postęp etapu</div>
+      </div>
+    </div>
+
+    <div class="section-body">
+
+      <div class="group-info">
+        <strong>Zespół AHU:</strong>
+        <ul>
+          <li>Główny respondent (TAK) zwykle = <strong>KIER UR</strong> (Kierownik Utrzymania Ruchu)</li>
+          <li>Pozostali = specjaliści delegowani: specjalista BMS, mechanik wentylacji, technolog</li>
+          <li>Imiona + kontakty można skopiować z <strong>Master.E0</strong> (zespół główny audytu)</li>
+        </ul>
+      </div>
+
+      <div class="group">
+        <div class="group-title">Zespół audytowy klienta — 5 osób (rozszerzalne)</div>
+        <div class="group-desc">Główny respondent (TAK) = osoba koordynująca scope AHU po stronie klienta</div>
+
+        <div class="devices-wrap">
+          <table class="devices-table" id="team-table">
+            <thead>
+              <tr>
+                <th class="th-question">ATRYBUT</th>
+                <th class="th-comp">KTO</th>
+                <th class="th-instance">Osoba 1</th>
+                <th class="th-instance">Osoba 2</th>
+                <th class="th-instance">Osoba 3</th>
+                <th class="th-instance">Osoba 4</th>
+                <th class="th-instance">Osoba 5</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="td-question"><div class="q-label">Imię i nazwisko</div><div class="q-id mono">AHU-REQ-IMIE</div></td>
+                <td class="td-comp"><span class="tag kon small">KON</span></td>
+                <td class="td-input"><input type="text" class="cell-input" data-id="AHU-REQ-IMIE-U1"></td>
+                <td class="td-input"><input type="text" class="cell-input" data-id="AHU-REQ-IMIE-U2"></td>
+                <td class="td-input"><input type="text" class="cell-input" data-id="AHU-REQ-IMIE-U3"></td>
+                <td class="td-input"><input type="text" class="cell-input" data-id="AHU-REQ-IMIE-U4"></td>
+                <td class="td-input"><input type="text" class="cell-input" data-id="AHU-REQ-IMIE-U5"></td>
+              </tr>
+              <tr>
+                <td class="td-question"><div class="q-label">Stanowisko</div><div class="q-id mono">AHU-REQ-STAN</div></td>
+                <td class="td-comp"><span class="tag kon small">KON</span></td>
+                <td class="td-input"><input type="text" class="cell-input" data-id="AHU-REQ-STAN-U1"></td>
+                <td class="td-input"><input type="text" class="cell-input" data-id="AHU-REQ-STAN-U2"></td>
+                <td class="td-input"><input type="text" class="cell-input" data-id="AHU-REQ-STAN-U3"></td>
+                <td class="td-input"><input type="text" class="cell-input" data-id="AHU-REQ-STAN-U4"></td>
+                <td class="td-input"><input type="text" class="cell-input" data-id="AHU-REQ-STAN-U5"></td>
+              </tr>
+              <tr>
+                <td class="td-question"><div class="q-label">Dział / komórka</div><div class="q-id mono">AHU-REQ-DZIAL</div></td>
+                <td class="td-comp"><span class="tag kon small">KON</span></td>
+                <td class="td-input"><input type="text" class="cell-input" data-id="AHU-REQ-DZIAL-U1"></td>
+                <td class="td-input"><input type="text" class="cell-input" data-id="AHU-REQ-DZIAL-U2"></td>
+                <td class="td-input"><input type="text" class="cell-input" data-id="AHU-REQ-DZIAL-U3"></td>
+                <td class="td-input"><input type="text" class="cell-input" data-id="AHU-REQ-DZIAL-U4"></td>
+                <td class="td-input"><input type="text" class="cell-input" data-id="AHU-REQ-DZIAL-U5"></td>
+              </tr>
+              <tr>
+                <td class="td-question"><div class="q-label">Rola w audycie AHU</div><div class="q-id mono">AHU-REQ-ROLA</div></td>
+                <td class="td-comp"><span class="tag kon small">KON</span></td>
+                <td class="td-input"><select class="cell-input" data-id="AHU-REQ-ROLA-U1"><option value="">—</option><option>UR</option><option>EM</option><option>KON</option><option>SPEC</option><option>KIER</option><option>INNE</option></select></td>
+                <td class="td-input"><select class="cell-input" data-id="AHU-REQ-ROLA-U2"><option value="">—</option><option>UR</option><option>EM</option><option>KON</option><option>SPEC</option><option>KIER</option><option>INNE</option></select></td>
+                <td class="td-input"><select class="cell-input" data-id="AHU-REQ-ROLA-U3"><option value="">—</option><option>UR</option><option>EM</option><option>KON</option><option>SPEC</option><option>KIER</option><option>INNE</option></select></td>
+                <td class="td-input"><select class="cell-input" data-id="AHU-REQ-ROLA-U4"><option value="">—</option><option>UR</option><option>EM</option><option>KON</option><option>SPEC</option><option>KIER</option><option>INNE</option></select></td>
+                <td class="td-input"><select class="cell-input" data-id="AHU-REQ-ROLA-U5"><option value="">—</option><option>UR</option><option>EM</option><option>KON</option><option>SPEC</option><option>KIER</option><option>INNE</option></select></td>
+              </tr>
+              <tr>
+                <td class="td-question"><div class="q-label">Email</div><div class="q-id mono">AHU-REQ-MAIL</div></td>
+                <td class="td-comp"><span class="tag kon small">KON</span></td>
+                <td class="td-input"><input type="email" class="cell-input" data-id="AHU-REQ-MAIL-U1"></td>
+                <td class="td-input"><input type="email" class="cell-input" data-id="AHU-REQ-MAIL-U2"></td>
+                <td class="td-input"><input type="email" class="cell-input" data-id="AHU-REQ-MAIL-U3"></td>
+                <td class="td-input"><input type="email" class="cell-input" data-id="AHU-REQ-MAIL-U4"></td>
+                <td class="td-input"><input type="email" class="cell-input" data-id="AHU-REQ-MAIL-U5"></td>
+              </tr>
+              <tr>
+                <td class="td-question"><div class="q-label">Telefon</div><div class="q-id mono">AHU-REQ-TEL</div></td>
+                <td class="td-comp"><span class="tag kon small">KON</span></td>
+                <td class="td-input"><input type="tel" class="cell-input" data-id="AHU-REQ-TEL-U1"></td>
+                <td class="td-input"><input type="tel" class="cell-input" data-id="AHU-REQ-TEL-U2"></td>
+                <td class="td-input"><input type="tel" class="cell-input" data-id="AHU-REQ-TEL-U3"></td>
+                <td class="td-input"><input type="tel" class="cell-input" data-id="AHU-REQ-TEL-U4"></td>
+                <td class="td-input"><input type="tel" class="cell-input" data-id="AHU-REQ-TEL-U5"></td>
+              </tr>
+              <tr>
+                <td class="td-question"><div class="q-label">Data dołączenia</div><div class="q-id mono">AHU-REQ-DATA</div></td>
+                <td class="td-comp"><span class="tag kon small">KON</span></td>
+                <td class="td-input"><input type="date" class="cell-input" data-id="AHU-REQ-DATA-U1"></td>
+                <td class="td-input"><input type="date" class="cell-input" data-id="AHU-REQ-DATA-U2"></td>
+                <td class="td-input"><input type="date" class="cell-input" data-id="AHU-REQ-DATA-U3"></td>
+                <td class="td-input"><input type="date" class="cell-input" data-id="AHU-REQ-DATA-U4"></td>
+                <td class="td-input"><input type="date" class="cell-input" data-id="AHU-REQ-DATA-U5"></td>
+              </tr>
+              <tr>
+                <td class="td-question"><div class="q-label">Główny respondent (TAK/NIE)</div><div class="q-id mono">AHU-REQ-MAIN</div></td>
+                <td class="td-comp"><span class="tag kon small">KON</span></td>
+                <td class="td-input"><select class="cell-input" data-id="AHU-REQ-MAIN-U1"><option value="">—</option><option>TAK</option><option>NIE</option></select></td>
+                <td class="td-input"><select class="cell-input" data-id="AHU-REQ-MAIN-U2"><option value="">—</option><option>TAK</option><option>NIE</option></select></td>
+                <td class="td-input"><select class="cell-input" data-id="AHU-REQ-MAIN-U3"><option value="">—</option><option>TAK</option><option>NIE</option></select></td>
+                <td class="td-input"><select class="cell-input" data-id="AHU-REQ-MAIN-U4"><option value="">—</option><option>TAK</option><option>NIE</option></select></td>
+                <td class="td-input"><select class="cell-input" data-id="AHU-REQ-MAIN-U5"><option value="">—</option><option>TAK</option><option>NIE</option></select></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <button class="row-add" type="button" id="add-team-btn">+ Dodaj kolejnego uczestnika (Osoba 6, 7...)</button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- ETAP 1 · KONTEKST AHU (10 RO z Master + 2 AHU-specific)      -->
+  <!-- ============================================================ -->
+  <section class="section" id="etap-1">
+    <div class="section-head">
+      <div>
+        <div class="section-eyebrow">ETAP 1</div>
+        <h2 class="section-title serif">Kontekst AHU</h2>
+        <p class="section-desc">10 pól READ-ONLY z Master + 2 pola AHU-specific (SCOPE 2 link do LH) · czas: 1 min weryfikacja</p>
+      </div>
+      <div class="section-meta">
+        <div class="section-progress" data-etap="etap-1">0 / 2</div>
+        <div style="font-size: 11px; color: var(--ink-mute); margin-top: 4px;">postęp AHU-specific</div>
+      </div>
+    </div>
+
+    <div class="section-body">
+
+      <div class="group readonly-group">
+        <div class="group-title">Dane globalne z Master (read-only — auto-aktualizacja)</div>
+        <div class="group-desc">
+          <span class="readonly-marker">🔒 RO z Master</span>
+          Wartości pomarańczowe = czytane automatycznie z HTML Master Form (jeśli wypełniony) lub placeholdery.
+          Aby zmienić — popraw w Master, nie tutaj.
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Typ obiektu (PKD/branża)</div>
+            <div class="field-id mono">CTX-V1-TYP</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="text" class="field-input field-readonly" data-id="CTX-V1-TYP" data-master-source="ZAK-V1-BRANZA" readonly placeholder="[czyta z Master.E2-V1-BRANZA]">
+            <div class="field-hint">Z Master.E2_Zaklad — branża wiodąca</div>
+          </div>
+          <div class="kto-cell"><span class="tag em">EM</span><span class="tag auto">AUTO</span></div>
+          <div class="field-unit">—</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Branża wiodąca</div>
+            <div class="field-id mono">CTX-V2-BR</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="text" class="field-input field-readonly" data-id="CTX-V2-BR" data-master-source="ZAK-V1-BRANZA" readonly placeholder="[czyta z Master.E2-V1-BRANZA]">
+            <div class="field-hint">Z Master.E2_Zaklad — pole ZAK-V1-BRANZA</div>
+          </div>
+          <div class="kto-cell"><span class="tag em">EM</span><span class="tag auto">AUTO</span></div>
+          <div class="field-unit">—</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Tryb pracy / liczba zmian</div>
+            <div class="field-id mono">CTX-V3-ZM</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="text" class="field-input field-readonly" data-id="CTX-V3-ZM" data-master-source="PRO-V8-TRYB-PRACY" readonly placeholder="[czyta z Master.E3-V8-TRYB-PRACY]">
+            <div class="field-hint">Z Master.E3_Procesy — PRO-V8-TRYB-PRACY</div>
+          </div>
+          <div class="kto-cell"><span class="tag em">EM</span><span class="tag auto">AUTO</span></div>
+          <div class="field-unit">—</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Liczba dni pracy w roku</div>
+            <div class="field-id mono">CTX-V4-DNI</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="text" class="field-input field-readonly" data-id="CTX-V4-DNI" data-master-source="PRO-V9-DNI-ROK" readonly placeholder="[czyta z Master.E3-V9-DNI-ROK]">
+            <div class="field-hint">Z Master.E3_Procesy — PRO-V9-DNI-ROK</div>
+          </div>
+          <div class="kto-cell"><span class="tag em">EM</span><span class="tag auto">AUTO</span></div>
+          <div class="field-unit">dni/rok</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Opis procesu produkcyjnego</div>
+            <div class="field-id mono">CTX-V5-PROC</div>
+          </div>
+          <div class="field-input-wrap">
+            <textarea class="field-textarea field-readonly" data-id="CTX-V5-PROC" data-master-source="PRO-V1-NARRACJA" readonly placeholder="[czyta z Master.E3-V1-NARRACJA]" style="min-height: 60px"></textarea>
+            <div class="field-hint">Z Master.E3_Procesy — PRO-V1-NARRACJA</div>
+          </div>
+          <div class="kto-cell"><span class="tag em">EM</span><span class="tag kier">KIER</span><span class="tag auto">AUTO</span></div>
+          <div class="field-unit">—</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Klasa BAC budynków</div>
+            <div class="field-id mono">CTX-V6-BAC</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="text" class="field-input field-readonly" data-id="CTX-V6-BAC" data-master-source="ZAK-V8-BAC" readonly placeholder="[czyta z Master.E2-V8-BAC]">
+            <div class="field-hint">Z Master.E2_Zaklad — ZAK-V8-BAC</div>
+          </div>
+          <div class="kto-cell"><span class="tag kon">KON</span><span class="tag auto">AUTO</span></div>
+          <div class="field-unit">—</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Strefa klimatyczna PL</div>
+            <div class="field-id mono">CTX-V7-LOK</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="text" class="field-input field-readonly" data-id="CTX-V7-LOK" data-master-source="ZAK-V4-KLIMAT" readonly placeholder="[czyta z Master.E2-V4-KLIMAT]">
+            <div class="field-hint">Z Master.E2_Zaklad — ZAK-V4-KLIMAT</div>
+          </div>
+          <div class="kto-cell"><span class="tag kon">KON</span><span class="tag auto">AUTO</span></div>
+          <div class="field-unit">I-V</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Plany inwestycyjne (modernizacje)</div>
+            <div class="field-id mono">CTX-V8-PLAN</div>
+          </div>
+          <div class="field-input-wrap">
+            <textarea class="field-textarea field-readonly" data-id="CTX-V8-PLAN" data-master-source="HIS-V1-MODERN-LIST" readonly placeholder="[czyta z Master.E12-V1-MODERN-LIST]" style="min-height: 60px"></textarea>
+            <div class="field-hint">Z Master.E12_Historia — HIS-V1-MODERN-LIST</div>
+          </div>
+          <div class="kto-cell"><span class="tag em">EM</span><span class="tag auto">AUTO</span></div>
+          <div class="field-unit">—</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Liczba wydziałów w zakładzie</div>
+            <div class="field-id mono">CTX-V9-WYDZ-N</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="text" class="field-input field-readonly" data-id="CTX-V9-WYDZ-N" data-master-source="_meta_n_wydz" readonly placeholder="[liczba z Master.E4_Wydzialy]">
+            <div class="field-hint">Auto: liczone z Master.E4_Wydzialy</div>
+          </div>
+          <div class="kto-cell"><span class="tag kon">KON</span><span class="tag auto">AUTO</span></div>
+          <div class="field-unit">szt</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Lista wydziałów (nazwy)</div>
+            <div class="field-id mono">CTX-V10-WYDZ-LIST</div>
+          </div>
+          <div class="field-input-wrap">
+            <textarea class="field-textarea field-readonly" data-id="CTX-V10-WYDZ-LIST" data-master-source="_meta_wydz_list" readonly placeholder="[lista z Master.E4_Wydzialy]" style="min-height: 50px"></textarea>
+            <div class="field-hint">Auto: konkatenacja nazw wydziałów z Master.E4</div>
+          </div>
+          <div class="kto-cell"><span class="tag em">EM</span><span class="tag auto">AUTO</span></div>
+          <div class="field-unit">—</div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-title">AHU-specific — link do scope LH</div>
+        <div class="group-desc">Pola które klient wpisuje (cross-scope informacja, nie ma w Master)</div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Czy w zakładzie jest Local Heating?</div>
+            <div class="field-id mono">CTX-V11-SCOPE2</div>
+          </div>
+          <div class="field-input-wrap">
+            <select class="field-select" data-id="CTX-V11-SCOPE2">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>nie wiem</option>
+            </select>
+            <div class="field-hint">TAK = istnieje LH (kurtyny, AGW, promienniki) → wpisz typy w V12. Spinka cross-scope dla EnPI bilansu cieplnego.</div>
+          </div>
+          <div class="kto-cell"><span class="tag em">EM</span></div>
+          <div class="field-unit">—</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Jeśli TAK — typy LH w zakładzie</div>
+            <div class="field-id mono">CTX-V12-SCOPE2-LIST</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="text" class="field-input" data-id="CTX-V12-SCOPE2-LIST" placeholder='np. "kurtyny, AGW, promienniki gazowe"'>
+            <div class="field-hint">Lista oddzielona przecinkami: kurtyny, AGW (aerotermy), promienniki gazowe, promienniki elektryczne, nagrzewnice</div>
+          </div>
+          <div class="kto-cell"><span class="tag em">EM</span></div>
+          <div class="field-unit">—</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- ETAP 2 · TYPY AHU — katalog techniczny (TRANSPONOWANA)       -->
+  <!-- ============================================================ -->
+  <section class="section" id="etap-2">
+    <div class="section-head">
+      <div>
+        <div class="section-eyebrow">ETAP 2</div>
+        <h2 class="section-title serif">Typy AHU — katalog techniczny</h2>
+        <p class="section-desc">Każda KOLUMNA = jeden typ centrali wentylacyjnej · 28 pól × N typów · czas: ~10 min/typ · zgodnie z PN-EN 13779 / Rozp. UE 1253/2014</p>
+      </div>
+      <div class="section-meta">
+        <div class="section-progress" data-etap="etap-2">0 / 0</div>
+        <div style="font-size: 11px; color: var(--ink-mute); margin-top: 4px;">postęp etapu</div>
+      </div>
+    </div>
+
+    <div class="section-body">
+
+      <div class="group-info">
+        <strong>Co to jest „typ AHU":</strong>
+        <ul>
+          <li>Centrala wentylacyjna o określonej charakterystyce (producent, model, parametry).</li>
+          <li>Może być <strong>1 typ × wiele sztuk</strong> w różnych halach (np. AHU-VTS-30 — 5 sztuk w hali G1 + 3 w G2).</li>
+          <li>Lokalizacja sztuk per hala — w macierzy <strong>E3</strong> (typy × hale = liczba sztuk).</li>
+          <li>Typy często rozróżnia: producent, model, wydajność (m³/h), sprawność odzysku.</li>
+        </ul>
+      </div>
+
+      <div class="devices-wrap">
+        <table class="devices-table" id="typy-table">
+          <thead>
+            <tr>
+              <th class="th-question">Pytanie</th>
+              <th class="th-comp">KTO</th>
+              <th class="th-instance">Typ 1</th>
+              <th class="th-instance">Typ 2</th>
+              <th class="th-instance">Typ 3</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="row-section-header"><td colspan="5">▼ Identyfikacja typu</td></tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Numer/oznaczenie typu</div>
+                <div class="q-id mono">AHU-V1-NUMER</div>
+                <div class="q-hint">Numer porządkowy 1-15 (referencja w E3)</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span></td>
+              <td class="td-input"><input type="number" class="cell-input typ-num-input" data-id="AHU-V1-NUMER-T1" value="1" min="1"></td>
+              <td class="td-input"><input type="number" class="cell-input typ-num-input" data-id="AHU-V1-NUMER-T2" value="2" min="1"></td>
+              <td class="td-input"><input type="number" class="cell-input typ-num-input" data-id="AHU-V1-NUMER-T3" value="3" min="1"></td>
+            </tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Nazwa typu / oznaczenie</div>
+                <div class="q-id mono">AHU-V2-NAZWA</div>
+                <div class="q-hint">np. „AHU-VTS30 nawiewny"</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span></td>
+              <td class="td-input"><input type="text" class="cell-input typ-name-input" data-id="AHU-V2-NAZWA-T1" placeholder="VTS-30 NW"></td>
+              <td class="td-input"><input type="text" class="cell-input typ-name-input" data-id="AHU-V2-NAZWA-T2" placeholder="VTS-15 NW-WW"></td>
+              <td class="td-input"><input type="text" class="cell-input typ-name-input" data-id="AHU-V2-NAZWA-T3" placeholder="Frapol Onyx"></td>
+            </tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Producent</div>
+                <div class="q-id mono">AHU-V3-PROD</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span></td>
+              <td class="td-input"><input type="text" class="cell-input" data-id="AHU-V3-PROD-T1" placeholder="VTS Polska"></td>
+              <td class="td-input"><input type="text" class="cell-input" data-id="AHU-V3-PROD-T2" placeholder="VTS Polska"></td>
+              <td class="td-input"><input type="text" class="cell-input" data-id="AHU-V3-PROD-T3" placeholder="Frapol"></td>
+            </tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Model / kod</div>
+                <div class="q-id mono">AHU-V4-MODEL</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span></td>
+              <td class="td-input"><input type="text" class="cell-input" data-id="AHU-V4-MODEL-T1"></td>
+              <td class="td-input"><input type="text" class="cell-input" data-id="AHU-V4-MODEL-T2"></td>
+              <td class="td-input"><input type="text" class="cell-input" data-id="AHU-V4-MODEL-T3"></td>
+            </tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Rok produkcji / instalacji</div>
+                <div class="q-id mono">AHU-V5-ROK</div>
+                <div class="q-hint">Krytyczne dla flag — &gt;15 lat = wymiana</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span></td>
+              <td class="td-input"><input type="number" class="cell-input typ-rok-input" data-id="AHU-V5-ROK-T1" min="1990" max="2050" placeholder="2010"></td>
+              <td class="td-input"><input type="number" class="cell-input typ-rok-input" data-id="AHU-V5-ROK-T2" min="1990" max="2050" placeholder="2018"></td>
+              <td class="td-input"><input type="number" class="cell-input typ-rok-input" data-id="AHU-V5-ROK-T3" min="1990" max="2050" placeholder="2022"></td>
+            </tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Funkcja / przeznaczenie</div>
+                <div class="q-id mono">AHU-V6-FUNKCJA</div>
+                <div class="q-hint">Ogrzewanie / Chłodzenie / Mieszane / Wyciąg / LEV</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span><span class="tag em small">EM</span></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V6-FUNKCJA-T1"><option value="">—</option><option>Ogrzewanie</option><option>Chłodzenie</option><option>Klimatyzacja (mieszane)</option><option>Wyciąg ogólny</option><option>LEV/BHP (lokalna wyciąg)</option><option>Inny</option></select></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V6-FUNKCJA-T2"><option value="">—</option><option>Ogrzewanie</option><option>Chłodzenie</option><option>Klimatyzacja (mieszane)</option><option>Wyciąg ogólny</option><option>LEV/BHP (lokalna wyciąg)</option><option>Inny</option></select></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V6-FUNKCJA-T3"><option value="">—</option><option>Ogrzewanie</option><option>Chłodzenie</option><option>Klimatyzacja (mieszane)</option><option>Wyciąg ogólny</option><option>LEV/BHP (lokalna wyciąg)</option><option>Inny</option></select></td>
+            </tr>
+
+            <tr class="row-section-header"><td colspan="5">▼ Parametry przepływowe</td></tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Wydajność nawiewu</div>
+                <div class="q-id mono">AHU-V7-Q-NAW</div>
+                <div class="q-hint">Z tabliczki znamionowej / DTR</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V7-Q-NAW-T1" placeholder="m³/h"></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V7-Q-NAW-T2" placeholder="m³/h"></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V7-Q-NAW-T3" placeholder="m³/h"></td>
+            </tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Wydajność wywiewu</div>
+                <div class="q-id mono">AHU-V8-Q-WYW</div>
+                <div class="q-hint">Często = nawiew, ale różne wartości w hali z bilansem podciśnieniowym</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V8-Q-WYW-T1" placeholder="m³/h"></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V8-Q-WYW-T2" placeholder="m³/h"></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V8-Q-WYW-T3" placeholder="m³/h"></td>
+            </tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Spręż dyspozycyjny</div>
+                <div class="q-id mono">AHU-V9-DP</div>
+                <div class="q-hint">Spręż dyspozycyjny zewnętrzny (bez filtrów)</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V9-DP-T1" placeholder="Pa"></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V9-DP-T2" placeholder="Pa"></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V9-DP-T3" placeholder="Pa"></td>
+            </tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Moc silnika nawiewnika</div>
+                <div class="q-id mono">AHU-V10-P-NAW</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V10-P-NAW-T1" placeholder="kW" step="0.1"></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V10-P-NAW-T2" placeholder="kW" step="0.1"></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V10-P-NAW-T3" placeholder="kW" step="0.1"></td>
+            </tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Moc silnika wywiewnika</div>
+                <div class="q-id mono">AHU-V11-P-WYW</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V11-P-WYW-T1" placeholder="kW" step="0.1"></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V11-P-WYW-T2" placeholder="kW" step="0.1"></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V11-P-WYW-T3" placeholder="kW" step="0.1"></td>
+            </tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">SFP — Specific Fan Power</div>
+                <div class="q-id mono">AHU-V12-SFP</div>
+                <div class="q-hint">P_fan / Q [kW/(m³/s)]. Klasa: SFP1 ≤0.5, SFP2 ≤1.0, SFP3 ≤1.5, SFP4 ≤2.0, SFP5 ≤3.0, SFP6 ≤4.5, SFP7 &gt;4.5</div>
+              </td>
+              <td class="td-comp"><span class="tag kon small">KON</span></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V12-SFP-T1" step="0.01" placeholder="kW/(m³/s)"></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V12-SFP-T2" step="0.01" placeholder="kW/(m³/s)"></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V12-SFP-T3" step="0.01" placeholder="kW/(m³/s)"></td>
+            </tr>
+
+            <tr class="row-section-header"><td colspan="5">▼ Odzysk ciepła</td></tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Typ odzysku ciepła</div>
+                <div class="q-id mono">AHU-V13-ODZ-TYP</div>
+                <div class="q-hint">Wymóg ErP 2016: η ≥ 73% dla nowych AHU</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V13-ODZ-TYP-T1"><option value="">—</option><option>Krzyżowy</option><option>Obrotowy</option><option>Glikolowy</option><option>Heat-pipe</option><option>Brak</option><option>Inny</option></select></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V13-ODZ-TYP-T2"><option value="">—</option><option>Krzyżowy</option><option>Obrotowy</option><option>Glikolowy</option><option>Heat-pipe</option><option>Brak</option><option>Inny</option></select></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V13-ODZ-TYP-T3"><option value="">—</option><option>Krzyżowy</option><option>Obrotowy</option><option>Glikolowy</option><option>Heat-pipe</option><option>Brak</option><option>Inny</option></select></td>
+            </tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Sprawność odzysku</div>
+                <div class="q-id mono">AHU-V14-ODZ-ETA</div>
+                <div class="q-hint">η = (T_naw - T_zewn) / (T_wyw - T_zewn). Próg: ≥73%.</div>
+              </td>
+              <td class="td-comp"><span class="tag kon small">KON</span></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V14-ODZ-ETA-T1" placeholder="%" step="0.1" max="100"></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V14-ODZ-ETA-T2" placeholder="%" step="0.1" max="100"></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V14-ODZ-ETA-T3" placeholder="%" step="0.1" max="100"></td>
+            </tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">By-pass odzysku</div>
+                <div class="q-id mono">AHU-V15-BYPASS</div>
+                <div class="q-hint">Auto-bypass, summer-bypass — zapobiega przegrzewaniu</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V15-BYPASS-T1"><option value="">—</option><option>TAK auto</option><option>TAK ręczny</option><option>NIE</option><option>nie wiem</option></select></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V15-BYPASS-T2"><option value="">—</option><option>TAK auto</option><option>TAK ręczny</option><option>NIE</option><option>nie wiem</option></select></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V15-BYPASS-T3"><option value="">—</option><option>TAK auto</option><option>TAK ręczny</option><option>NIE</option><option>nie wiem</option></select></td>
+            </tr>
+
+            <tr class="row-section-header"><td colspan="5">▼ Sterowanie i regulacja</td></tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Regulacja silników (VFD)</div>
+                <div class="q-id mono">AHU-V16-VFD</div>
+                <div class="q-hint">Falownik / VFD — kluczowe dla VAV-DCV</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V16-VFD-T1"><option value="">—</option><option>VFD obie</option><option>VFD nawiew</option><option>VFD wywiew</option><option>Brak (stała prędkość)</option><option>nie wiem</option></select></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V16-VFD-T2"><option value="">—</option><option>VFD obie</option><option>VFD nawiew</option><option>VFD wywiew</option><option>Brak (stała prędkość)</option><option>nie wiem</option></select></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V16-VFD-T3"><option value="">—</option><option>VFD obie</option><option>VFD nawiew</option><option>VFD wywiew</option><option>Brak (stała prędkość)</option><option>nie wiem</option></select></td>
+            </tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Tryb regulacji</div>
+                <div class="q-id mono">AHU-V17-CTRL</div>
+                <div class="q-hint">CAV (stały) / VAV (zmienny) / DCV (popytowy z CO2)</div>
+              </td>
+              <td class="td-comp"><span class="tag spec small">SPEC</span></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V17-CTRL-T1"><option value="">—</option><option>CAV (stały)</option><option>VAV (zmienny)</option><option>DCV (popytowy)</option><option>Mieszany</option></select></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V17-CTRL-T2"><option value="">—</option><option>CAV (stały)</option><option>VAV (zmienny)</option><option>DCV (popytowy)</option><option>Mieszany</option></select></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V17-CTRL-T3"><option value="">—</option><option>CAV (stały)</option><option>VAV (zmienny)</option><option>DCV (popytowy)</option><option>Mieszany</option></select></td>
+            </tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Czujnik CO2</div>
+                <div class="q-id mono">AHU-V18-CO2</div>
+                <div class="q-hint">Wymóg dla DCV. Jeśli brak — DCV niemożliwy.</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V18-CO2-T1"><option value="">—</option><option>TAK</option><option>NIE</option><option>nie wiem</option></select></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V18-CO2-T2"><option value="">—</option><option>TAK</option><option>NIE</option><option>nie wiem</option></select></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V18-CO2-T3"><option value="">—</option><option>TAK</option><option>NIE</option><option>nie wiem</option></select></td>
+            </tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Harmonogram pracy</div>
+                <div class="q-id mono">AHU-V19-HARM</div>
+                <div class="q-hint">24/7 / w/g zmian / w/g obecności / sezonowy</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span><span class="tag em small">EM</span></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V19-HARM-T1"><option value="">—</option><option>24/7 stały</option><option>w/g zmian</option><option>w/g obecności</option><option>sezonowy</option><option>nie znany</option></select></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V19-HARM-T2"><option value="">—</option><option>24/7 stały</option><option>w/g zmian</option><option>w/g obecności</option><option>sezonowy</option><option>nie znany</option></select></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V19-HARM-T3"><option value="">—</option><option>24/7 stały</option><option>w/g zmian</option><option>w/g obecności</option><option>sezonowy</option><option>nie znany</option></select></td>
+            </tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Godziny pracy rocznie</div>
+                <div class="q-id mono">AHU-V20-HRS</div>
+                <div class="q-hint">np. 24/7 = 8760 h/rok, 1 zmiana 250 dni × 8h = 2000 h/rok</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V20-HRS-T1" placeholder="h/rok"></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V20-HRS-T2" placeholder="h/rok"></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V20-HRS-T3" placeholder="h/rok"></td>
+            </tr>
+
+            <tr class="row-section-header"><td colspan="5">▼ Stan techniczny i serwis</td></tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Stan filtrów</div>
+                <div class="q-id mono">AHU-V21-FILTRY</div>
+                <div class="q-hint">Wpływ na SFP — zatkane filtry zwiększają zużycie</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V21-FILTRY-T1"><option value="">—</option><option>nowe (&lt;3 mies)</option><option>dobre (3-12 mies)</option><option>do wymiany (1-2 lata)</option><option>zatkane (&gt;2 lata)</option><option>nie wiem</option></select></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V21-FILTRY-T2"><option value="">—</option><option>nowe (&lt;3 mies)</option><option>dobre (3-12 mies)</option><option>do wymiany (1-2 lata)</option><option>zatkane (&gt;2 lata)</option><option>nie wiem</option></select></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V21-FILTRY-T3"><option value="">—</option><option>nowe (&lt;3 mies)</option><option>dobre (3-12 mies)</option><option>do wymiany (1-2 lata)</option><option>zatkane (&gt;2 lata)</option><option>nie wiem</option></select></td>
+            </tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Klasa filtrów</div>
+                <div class="q-id mono">AHU-V22-FILTR-KL</div>
+                <div class="q-hint">ISO 16890: ePM10 / ePM2.5 / ePM1 lub stara EN 779: G3-G4 / M5-M6 / F7-F9</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span></td>
+              <td class="td-input"><input type="text" class="cell-input" data-id="AHU-V22-FILTR-KL-T1" placeholder="np. F7"></td>
+              <td class="td-input"><input type="text" class="cell-input" data-id="AHU-V22-FILTR-KL-T2" placeholder="np. F7"></td>
+              <td class="td-input"><input type="text" class="cell-input" data-id="AHU-V22-FILTR-KL-T3" placeholder="np. ePM1"></td>
+            </tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Spadek ciśnienia na filtrach</div>
+                <div class="q-id mono">AHU-V23-DP-FILTR</div>
+                <div class="q-hint">Aktualny vs nominalny. &gt;200 Pa = zatkane.</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V23-DP-FILTR-T1" placeholder="Pa"></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V23-DP-FILTR-T2" placeholder="Pa"></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V23-DP-FILTR-T3" placeholder="Pa"></td>
+            </tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Stan techniczny ogólny</div>
+                <div class="q-id mono">AHU-V24-STAN</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V24-STAN-T1"><option value="">—</option><option>bardzo dobry</option><option>dobry</option><option>akceptowalny</option><option>słaby</option><option>do wymiany</option></select></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V24-STAN-T2"><option value="">—</option><option>bardzo dobry</option><option>dobry</option><option>akceptowalny</option><option>słaby</option><option>do wymiany</option></select></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V24-STAN-T3"><option value="">—</option><option>bardzo dobry</option><option>dobry</option><option>akceptowalny</option><option>słaby</option><option>do wymiany</option></select></td>
+            </tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Ostatni serwis (data)</div>
+                <div class="q-id mono">AHU-V25-SERW</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span></td>
+              <td class="td-input"><input type="date" class="cell-input" data-id="AHU-V25-SERW-T1"></td>
+              <td class="td-input"><input type="date" class="cell-input" data-id="AHU-V25-SERW-T2"></td>
+              <td class="td-input"><input type="date" class="cell-input" data-id="AHU-V25-SERW-T3"></td>
+            </tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Częstotliwość serwisu</div>
+                <div class="q-id mono">AHU-V26-SERW-FREQ</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V26-SERW-FREQ-T1"><option value="">—</option><option>kwartalnie</option><option>półrocznie</option><option>rocznie</option><option>nieregularnie</option><option>na awarię</option></select></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V26-SERW-FREQ-T2"><option value="">—</option><option>kwartalnie</option><option>półrocznie</option><option>rocznie</option><option>nieregularnie</option><option>na awarię</option></select></td>
+              <td class="td-input"><select class="cell-input" data-id="AHU-V26-SERW-FREQ-T3"><option value="">—</option><option>kwartalnie</option><option>półrocznie</option><option>rocznie</option><option>nieregularnie</option><option>na awarię</option></select></td>
+            </tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Liczba godzin pracy całkowita</div>
+                <div class="q-id mono">AHU-V27-MTH</div>
+                <div class="q-hint">Z licznika BMS / oszacowane. Wpływ na decyzję o wymianie.</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V27-MTH-T1" placeholder="h"></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V27-MTH-T2" placeholder="h"></td>
+              <td class="td-input"><input type="number" class="cell-input" data-id="AHU-V27-MTH-T3" placeholder="h"></td>
+            </tr>
+
+            <tr>
+              <td class="td-question">
+                <div class="q-label">Komentarz / specyfika</div>
+                <div class="q-id mono">AHU-V28-KOMENTARZ</div>
+              </td>
+              <td class="td-comp"><span class="tag ur small">UR</span><span class="tag em small">EM</span></td>
+              <td class="td-input"><input type="text" class="cell-input" data-id="AHU-V28-KOMENTARZ-T1"></td>
+              <td class="td-input"><input type="text" class="cell-input" data-id="AHU-V28-KOMENTARZ-T2"></td>
+              <td class="td-input"><input type="text" class="cell-input" data-id="AHU-V28-KOMENTARZ-T3"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <button class="row-add" type="button" id="add-typ-btn">+ Dodaj kolejny typ AHU (Typ 4, 5...)</button>
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- ETAP 3 · MACIERZ Typy × Hale (liczba sztuk per hala)         -->
+  <!-- ============================================================ -->
+  <section class="section" id="etap-3">
+    <div class="section-head">
+      <div>
+        <div class="section-eyebrow">ETAP 3</div>
+        <h2 class="section-title serif">Macierz Typy × Hale — liczba sztuk</h2>
+        <p class="section-desc">WIERSZE = typy AHU (z E2), KOLUMNY = hale (z Master.E5) · w komórce: liczba sztuk · NOWE — alokacja fizyczna AHU</p>
+      </div>
+      <div class="section-meta">
+        <div class="section-progress" data-etap="etap-3">0 / 0</div>
+        <div style="font-size: 11px; color: var(--ink-mute); margin-top: 4px;">postęp etapu</div>
+      </div>
+    </div>
+
+    <div class="section-body">
+
+      <div class="group-info">
+        <strong>Jak działa macierz Typy × Hale:</strong>
+        <ul>
+          <li>Każdy <strong>typ AHU</strong> (z E2) może być w wielu sztukach w wielu halach.</li>
+          <li>Przykład: <em>Typ 1 (VTS-30) — 5 szt w hali G1, 3 szt w G2 = łącznie 8 sztuk</em>.</li>
+          <li>Σ wiersza = łączna liczba sztuk danego typu w zakładzie.</li>
+          <li>Σ kolumny = łączna liczba AHU w danej hali.</li>
+          <li>Hale czytane z <strong>Master.E5</strong> (read-only) — nie można dodać hali tutaj, tylko w Master.</li>
+          <li>Macierz <strong>aktualizuje się automatycznie</strong> gdy dodasz typ (E2) lub halę (Master.E5).</li>
+        </ul>
+      </div>
+
+      <div class="devices-wrap" id="macierz-typy-wrap">
+        <table class="devices-table" id="macierz-typy-table">
+          <thead>
+            <tr id="mt-header-row">
+              <th class="th-question" style="min-width: 200px">↓ Typy / Hale →</th>
+              <!-- Kolumny hal + Σ generowane dynamicznie -->
+            </tr>
+          </thead>
+          <tbody id="mt-body">
+            <!-- Wiersze typów generowane dynamicznie -->
+          </tbody>
+          <tfoot id="mt-foot">
+            <!-- Σ kolumn (informacyjny) -->
+          </tfoot>
+        </table>
+      </div>
+
+      <div style="margin-top: 12px; font-size: 12px; color: var(--ink-mute); font-style: italic;">
+        ★ Hale w nagłówkach kolumn — czytane z Master.E5_Hale. Liczby sztuk = klient wpisuje. Σ wiersza = łączna liczba sztuk danego typu w zakładzie.
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- ETAP 4 · HALE — Strategia C (RO z Master + AHU-specific)     -->
+  <!-- ============================================================ -->
+  <section class="section" id="etap-4">
+    <div class="section-head">
+      <div>
+        <div class="section-eyebrow">ETAP 4</div>
+        <h2 class="section-title serif">Hale — bilans wentylacyjny per hala</h2>
+        <p class="section-desc">7 wierszy READ-ONLY z Master.E5 + ~20 wierszy AHU-specific (bilans masowy, kurtyny, harmonogramy) · Strategia C</p>
+      </div>
+      <div class="section-meta">
+        <div class="section-progress" data-etap="etap-4">0 / 0</div>
+        <div style="font-size: 11px; color: var(--ink-mute); margin-top: 4px;">postęp etapu</div>
+      </div>
+    </div>
+
+    <div class="section-body">
+
+      <div class="group-info">
+        <strong>Strategia C — co czytamy z Master, co wpisujemy tutaj:</strong>
+        <ul>
+          <li>🔒 <strong>READ-ONLY z Master.E5</strong> (pomarańczowe wiersze): numer, nazwa, powierzchnia, kubatura, wysokość, typ hali, izolacja</li>
+          <li>✏️ <strong>AHU-specific</strong> (klient wpisuje): bilans masowy nawiew/wywiew/LEV, infiltracja przez bramy, harmonogramy AHU, charakterystyka kurtyn powietrznych, problemy</li>
+          <li>Kolumny = hale z Master.E5 — auto-skalowanie gdy klient doda halę w Master</li>
+        </ul>
+      </div>
+
+      <div class="devices-wrap" id="hale-ahu-wrap">
+        <table class="devices-table" id="hale-ahu-table">
+          <thead>
+            <tr id="hale-ahu-header-row">
+              <th class="th-question" style="min-width: 240px">Pytanie</th>
+              <th class="th-comp">KTO</th>
+              <!-- Kolumny hal generowane dynamicznie -->
+            </tr>
+          </thead>
+          <tbody id="hale-ahu-body">
+            <!-- Wiersze: 7 RO z Master + ~20 AHU-specific generowanych dynamicznie -->
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top: 12px; font-size: 12px; color: var(--ink-mute); font-style: italic;">
+        ★ Kolumny (hale) czytane z Master.E5. Wiersze RO = automatycznie wypełnione z Master. AHU-specific wiersze = klient wpisuje.
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- ETAP 5 · WYDZIAŁY — read-only widok Master.E4 + AHU-specific -->
+  <!-- ============================================================ -->
+  <section class="section" id="etap-5">
+    <div class="section-head">
+      <div>
+        <div class="section-eyebrow">ETAP 5</div>
+        <h2 class="section-title serif">Wydziały — read-only widok</h2>
+        <p class="section-desc">6 pól READ-ONLY z Master.E4 + 1 pole AHU-specific (zużycie EE wentylacji per wydział)</p>
+      </div>
+      <div class="section-meta">
+        <div class="section-progress" data-etap="etap-5">0 / 0</div>
+        <div style="font-size: 11px; color: var(--ink-mute); margin-top: 4px;">postęp AHU-specific</div>
+      </div>
+    </div>
+
+    <div class="section-body">
+
+      <div class="group-info">
+        <strong>Wydziały — co tutaj jest:</strong>
+        <ul>
+          <li>🔒 Wszystkie dane wydziałów (nazwa, kierownik, zatrudnienie, m², SEU) — z <strong>Master.E4</strong></li>
+          <li>✏️ <strong>Roczne zużycie EE wentylacji</strong> per wydział — AHU-specific (klient wpisuje)</li>
+          <li>Aby zmienić nazwę / kierownika / SEU — popraw w Master.E4, NIE tutaj</li>
+        </ul>
+      </div>
+
+      <div class="devices-wrap" id="wydz-ahu-wrap">
+        <table class="devices-table" id="wydz-ahu-table">
+          <thead>
+            <tr id="wydz-ahu-header-row">
+              <th class="th-question" style="min-width: 220px">Pytanie</th>
+              <th class="th-comp">KTO</th>
+              <!-- Kolumny wydziałów generowane dynamicznie -->
+            </tr>
+          </thead>
+          <tbody id="wydz-ahu-body">
+            <!-- 6 wierszy RO + 1 AHU-specific -->
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- ETAP 6 · SYSTEM / BMS / VAV-DCV (16 pól)                     -->
+  <!-- ============================================================ -->
+  <section class="section" id="etap-6">
+    <div class="section-head">
+      <div>
+        <div class="section-eyebrow">ETAP 6</div>
+        <h2 class="section-title serif">System sterowania — BMS / VAV-DCV</h2>
+        <p class="section-desc">Architektura sterowania, BMS, presostaty, monitoring · 16 pól · czas: 15-20 min</p>
+      </div>
+      <div class="section-meta">
+        <div class="section-progress" data-etap="etap-6">0 / 16</div>
+        <div style="font-size: 11px; color: var(--ink-mute); margin-top: 4px;">postęp etapu</div>
+      </div>
+    </div>
+
+    <div class="section-body">
+
+      <div class="group">
+        <div class="group-title">Building Management System (BMS)</div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Czy jest BMS w zakładzie?</div>
+            <div class="field-id mono">SYS-V1-BMS</div>
+          </div>
+          <div class="field-input-wrap">
+            <select class="field-select" data-id="SYS-V1-BMS">
+              <option value="">— wybierz —</option>
+              <option>TAK — pełen (sterowanie + monitoring)</option>
+              <option>TAK — częściowy (tylko sterowanie)</option>
+              <option>TAK — tylko monitoring</option>
+              <option>NIE — sterowanie lokalne</option>
+              <option>nie wiem</option>
+            </select>
+            <div class="field-hint">Powiązane z klasą BAC w Master.E2</div>
+          </div>
+          <div class="kto-cell"><span class="tag spec">SPEC</span></div>
+          <div class="field-unit">—</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Producent / system BMS</div>
+            <div class="field-id mono">SYS-V2-BMS-PROD</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="text" class="field-input" data-id="SYS-V2-BMS-PROD" placeholder="np. Siemens Desigo, Honeywell, Schneider EcoStruxure">
+            <div class="field-hint">Producent + nazwa platformy</div>
+          </div>
+          <div class="kto-cell"><span class="tag spec">SPEC</span></div>
+          <div class="field-unit">—</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Rok instalacji BMS</div>
+            <div class="field-id mono">SYS-V3-BMS-ROK</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="number" class="field-input" data-id="SYS-V3-BMS-ROK" placeholder="np. 2018" min="1990" max="2050">
+            <div class="field-hint">Wpływ na możliwości aktualizacji / integracji</div>
+          </div>
+          <div class="kto-cell"><span class="tag ur">UR</span></div>
+          <div class="field-unit">rok</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Liczba AHU podłączonych do BMS</div>
+            <div class="field-id mono">SYS-V4-AHU-N-BMS</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="number" class="field-input" data-id="SYS-V4-AHU-N-BMS" placeholder="np. 8 z 12 = 67%">
+            <div class="field-hint">Ile AHU jest faktycznie sterowane przez BMS (vs. wszystkie)</div>
+          </div>
+          <div class="kto-cell"><span class="tag ur">UR</span></div>
+          <div class="field-unit">szt</div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-title">Sterowanie i regulacja</div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Tryby pracy zdefiniowane w BMS</div>
+            <div class="field-id mono">SYS-V5-TRYBY</div>
+          </div>
+          <div class="field-input-wrap">
+            <textarea class="field-textarea" data-id="SYS-V5-TRYBY" placeholder='np. "Praca normalna, Tryb nocny obniżony, Weekendowy, Setback (zima)"'></textarea>
+            <div class="field-hint">Profile pracy AHU per godzina/dzień/sezon</div>
+          </div>
+          <div class="kto-cell"><span class="tag spec">SPEC</span></div>
+          <div class="field-unit">—</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Regulacja CO2 (DCV)</div>
+            <div class="field-id mono">SYS-V6-CO2-CTRL</div>
+          </div>
+          <div class="field-input-wrap">
+            <select class="field-select" data-id="SYS-V6-CO2-CTRL">
+              <option value="">— wybierz —</option>
+              <option>TAK — wszystkie strefy</option>
+              <option>TAK — wybrane strefy (np. biura)</option>
+              <option>NIE — brak czujników CO2</option>
+              <option>NIE — czujniki są ale nie sterują</option>
+              <option>nie wiem</option>
+            </select>
+            <div class="field-hint">Demand Controlled Ventilation — sterowanie wydajnością na podstawie CO2</div>
+          </div>
+          <div class="kto-cell"><span class="tag spec">SPEC</span></div>
+          <div class="field-unit">—</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Setpoint CO2 (próg)</div>
+            <div class="field-id mono">SYS-V7-CO2-SP</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="number" class="field-input" data-id="SYS-V7-CO2-SP" placeholder="800-1000" min="400" max="2000">
+            <div class="field-hint">Standard: 1000 ppm dla biur, 1500 dla hali produkcyjnych. Niższy = więcej wentylacji.</div>
+          </div>
+          <div class="kto-cell"><span class="tag spec">SPEC</span></div>
+          <div class="field-unit">ppm</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Regulacja temperaturowa AHU</div>
+            <div class="field-id mono">SYS-V8-T-CTRL</div>
+          </div>
+          <div class="field-input-wrap">
+            <select class="field-select" data-id="SYS-V8-T-CTRL">
+              <option value="">— wybierz —</option>
+              <option>Sterowanie wg T_naw (constant supply)</option>
+              <option>Sterowanie wg T_pow (constant return)</option>
+              <option>Sterowanie wg T_zewn (kompensacja)</option>
+              <option>Optymalizowane (multi-variable)</option>
+              <option>Brak (ręczne)</option>
+              <option>nie wiem</option>
+            </select>
+            <div class="field-hint">Strategia regulacji temperatury</div>
+          </div>
+          <div class="kto-cell"><span class="tag spec">SPEC</span></div>
+          <div class="field-unit">—</div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-title">Monitoring i pomiary</div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Czy jest sub-metering EE per AHU?</div>
+            <div class="field-id mono">SYS-V9-METERING</div>
+          </div>
+          <div class="field-input-wrap">
+            <select class="field-select" data-id="SYS-V9-METERING">
+              <option value="">— wybierz —</option>
+              <option>TAK — wszystkie AHU</option>
+              <option>TAK — wybrane (główne SEU)</option>
+              <option>NIE — tylko ogólny licznik</option>
+              <option>nie wiem</option>
+            </select>
+            <div class="field-hint">Krytyczne dla rozliczeń EnPI per AHU</div>
+          </div>
+          <div class="kto-cell"><span class="tag em">EM</span></div>
+          <div class="field-unit">—</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Presostaty na filtrach</div>
+            <div class="field-id mono">SYS-V10-PRESOSTATY</div>
+          </div>
+          <div class="field-input-wrap">
+            <select class="field-select" data-id="SYS-V10-PRESOSTATY">
+              <option value="">— wybierz —</option>
+              <option>TAK — wszystkie AHU</option>
+              <option>TAK — wybrane</option>
+              <option>NIE</option>
+              <option>nie wiem</option>
+            </select>
+            <div class="field-hint">Sygnalizacja zatkanych filtrów. Bez nich filtry wymieniane okazyjnie = strata sprawności.</div>
+          </div>
+          <div class="kto-cell"><span class="tag ur">UR</span></div>
+          <div class="field-unit">—</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Pomiar wydajności (przepływomierze)</div>
+            <div class="field-id mono">SYS-V11-FLOW</div>
+          </div>
+          <div class="field-input-wrap">
+            <select class="field-select" data-id="SYS-V11-FLOW">
+              <option value="">— wybierz —</option>
+              <option>TAK — flowmetry kanałowe</option>
+              <option>TAK — pomiar pośredni (Δp)</option>
+              <option>NIE</option>
+              <option>nie wiem</option>
+            </select>
+            <div class="field-hint">Bez pomiaru wydajności trudno sprawdzić czy VAV/DCV działa poprawnie</div>
+          </div>
+          <div class="kto-cell"><span class="tag spec">SPEC</span></div>
+          <div class="field-unit">—</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Trendy / archiwum BMS (długość)</div>
+            <div class="field-id mono">SYS-V12-TRENDY</div>
+          </div>
+          <div class="field-input-wrap">
+            <select class="field-select" data-id="SYS-V12-TRENDY">
+              <option value="">— wybierz —</option>
+              <option>&gt;3 lata</option>
+              <option>1-3 lata</option>
+              <option>&lt;1 rok</option>
+              <option>brak archiwum</option>
+              <option>nie wiem</option>
+            </select>
+            <div class="field-hint">Historyczne dane krytyczne dla baseline EnPI</div>
+          </div>
+          <div class="kto-cell"><span class="tag spec">SPEC</span></div>
+          <div class="field-unit">—</div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-title">Integracja i alarmy</div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Alarmy konfigurowane w BMS</div>
+            <div class="field-id mono">SYS-V13-ALARMS</div>
+          </div>
+          <div class="field-input-wrap">
+            <textarea class="field-textarea" data-id="SYS-V13-ALARMS" placeholder='np. "Zatkany filtr (Δp), Awaria wentylatora, T poza zakresem, CO2 > 1500"'></textarea>
+            <div class="field-hint">Lista skonfigurowanych alarmów</div>
+          </div>
+          <div class="kto-cell"><span class="tag spec">SPEC</span></div>
+          <div class="field-unit">—</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Integracja z systemem produkcyjnym (MES/SCADA)</div>
+            <div class="field-id mono">SYS-V14-MES</div>
+          </div>
+          <div class="field-input-wrap">
+            <select class="field-select" data-id="SYS-V14-MES">
+              <option value="">— wybierz —</option>
+              <option>TAK — pełna (AHU steruje wg planu produkcji)</option>
+              <option>TAK — częściowa (tylko monitoring)</option>
+              <option>NIE</option>
+              <option>nie wiem</option>
+            </select>
+            <div class="field-hint">Sterowanie wg harmonogramu produkcji = duże oszczędności</div>
+          </div>
+          <div class="kto-cell"><span class="tag spec">SPEC</span></div>
+          <div class="field-unit">—</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Dostęp zdalny do BMS</div>
+            <div class="field-id mono">SYS-V15-REMOTE</div>
+          </div>
+          <div class="field-input-wrap">
+            <select class="field-select" data-id="SYS-V15-REMOTE">
+              <option value="">— wybierz —</option>
+              <option>TAK — VPN dla serwisu</option>
+              <option>TAK — chmura (cloud BMS)</option>
+              <option>NIE — tylko on-site</option>
+              <option>nie wiem</option>
+            </select>
+            <div class="field-hint">Możliwość zdalnej diagnozy i serwisu</div>
+          </div>
+          <div class="kto-cell"><span class="tag spec">SPEC</span></div>
+          <div class="field-unit">—</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Komentarz / specyfika BMS</div>
+            <div class="field-id mono">SYS-V16-KOMENTARZ</div>
+          </div>
+          <div class="field-input-wrap">
+            <textarea class="field-textarea" data-id="SYS-V16-KOMENTARZ" placeholder="Specyfika, problemy, plany rozbudowy"></textarea>
+            <div class="field-hint">Cokolwiek istotnego o systemie sterowania</div>
+          </div>
+          <div class="kto-cell"><span class="tag spec">SPEC</span><span class="tag em">EM</span></div>
+          <div class="field-unit">—</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- ETAP 7 · EKSPLOATACJA — 4 RO z Master + 8 AHU-spec + auto    -->
+  <!-- ============================================================ -->
+  <section class="section" id="etap-7">
+    <div class="section-head">
+      <div>
+        <div class="section-eyebrow">ETAP 7</div>
+        <h2 class="section-title serif">Eksploatacja — zużycia, ceny, koszty</h2>
+        <p class="section-desc">9 pól AHU-specific (zużycia, serwis, plany) + 4 RO z Master.E7 (ceny) + auto-koszt</p>
+      </div>
+      <div class="section-meta">
+        <div class="section-progress" data-etap="etap-7">0 / 9</div>
+        <div style="font-size: 11px; color: var(--ink-mute); margin-top: 4px;">postęp AHU-specific</div>
+      </div>
+    </div>
+
+    <div class="section-body">
+
+      <div class="group">
+        <div class="group-title">Zużycia roczne wentylacji (AHU-specific)</div>
+        <div class="group-desc">Σ zużyć tylko AHU (nie cały zakład). Dane z sub-meteringu BMS lub oszacowane.</div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Σ roczne zużycie EE (AHU)</div>
+            <div class="field-id mono">EKS-V1-EE</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="number" class="field-input" data-id="EKS-V1-EE" placeholder="np. 850" step="0.1">
+            <div class="field-hint">Σ zużycia EE wszystkich AHU. Krytyczne dla EnPI.</div>
+          </div>
+          <div class="kto-cell"><span class="tag em">EM</span></div>
+          <div class="field-unit">MWh/rok</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Σ roczne zużycie ciepła (AHU)</div>
+            <div class="field-id mono">EKS-V2-CIEP</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="number" class="field-input" data-id="EKS-V2-CIEP" placeholder="np. 2400" step="0.1">
+            <div class="field-hint">Σ zużycia ciepła do nagrzewania powietrza nawiewanego</div>
+          </div>
+          <div class="kto-cell"><span class="tag em">EM</span></div>
+          <div class="field-unit">MWh/rok</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Σ roczne zużycie chłodu (AHU)</div>
+            <div class="field-id mono">EKS-V3-CHL</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="number" class="field-input" data-id="EKS-V3-CHL" placeholder="np. 380" step="0.1">
+            <div class="field-hint">Σ zużycia chłodu (klimatyzacji). 0 jeśli nie ma chłodzenia.</div>
+          </div>
+          <div class="kto-cell"><span class="tag em">EM</span></div>
+          <div class="field-unit">MWh/rok</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Σ roczne zużycie wody (AHU)</div>
+            <div class="field-id mono">EKS-V4-WOD</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="number" class="field-input" data-id="EKS-V4-WOD" placeholder="np. 1500" step="0.1">
+            <div class="field-hint">Nawilżanie + adiabatyczne chłodzenie (jeśli używane)</div>
+          </div>
+          <div class="kto-cell"><span class="tag em">EM</span></div>
+          <div class="field-unit">m³/rok</div>
+        </div>
+      </div>
+
+      <div class="group readonly-group">
+        <div class="group-title">Ceny nośników (read-only z Master.E7)</div>
+        <div class="group-desc">
+          <span class="readonly-marker">🔒 RO z Master</span>
+          Ceny czytane automatycznie z Master.E7_Nosniki. Aby zmienić — popraw w Master.
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Średnia cena EE</div>
+            <div class="field-id mono">EKS-V5-CENA-EE</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="text" class="field-input field-readonly" data-id="EKS-V5-CENA-EE" data-master-source="NOS-EE-CENA-NETTO" readonly placeholder="[Master.E7-NOS-EE-CENA-NETTO]">
+            <div class="field-hint">🔒 z Master.E7. Jednostka: PLN/MWh (×1000 = PLN/kWh)</div>
+          </div>
+          <div class="kto-cell"><span class="tag kon">KON</span><span class="tag auto">AUTO</span></div>
+          <div class="field-unit">PLN/MWh</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Średnia cena ciepła</div>
+            <div class="field-id mono">EKS-V6-CENA-C</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="text" class="field-input field-readonly" data-id="EKS-V6-CENA-C" data-master-source="NOS-CIEPLO-CENA-NETTO" readonly placeholder="[Master.E7-NOS-CIEPLO-CENA-NETTO]">
+            <div class="field-hint">🔒 z Master.E7</div>
+          </div>
+          <div class="kto-cell"><span class="tag kon">KON</span><span class="tag auto">AUTO</span></div>
+          <div class="field-unit">PLN/GJ</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Cena chłodu (lokalne wytwarzanie)</div>
+            <div class="field-id mono">EKS-V7-CENA-CH</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="number" class="field-input" data-id="EKS-V7-CENA-CH" placeholder="np. 250" step="0.01">
+            <div class="field-hint">Chłód wytwarzany lokalnie (chiller). Klient wpisuje — nie ma w Master.</div>
+          </div>
+          <div class="kto-cell"><span class="tag em">EM</span></div>
+          <div class="field-unit">PLN/MWh</div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-title">Roczny koszt eksploatacji wentylacji</div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Roczny koszt eksploatacji wentylacji</div>
+            <div class="field-id mono">EKS-V8-KOSZT</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="text" class="field-input field-readonly" data-id="EKS-V8-KOSZT" readonly placeholder="auto-wyliczane">
+            <div class="field-hint">⚙ AUTO: V1×V5 + V2×3.6×V6 + V3×V7. Aktualizuje się przy zmianach.</div>
+          </div>
+          <div class="kto-cell"><span class="tag auto">AUTO</span></div>
+          <div class="field-unit">PLN/rok</div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-title">Serwis i plany inwestycyjne</div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Roczny koszt serwisu wentylacji</div>
+            <div class="field-id mono">EKS-V9-SERW</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="number" class="field-input" data-id="EKS-V9-SERW" placeholder="np. 45000" step="0.01">
+            <div class="field-hint">Serwis własny + zewnętrzny + części</div>
+          </div>
+          <div class="kto-cell"><span class="tag ur">UR</span><span class="tag em">EM</span></div>
+          <div class="field-unit">PLN/rok</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Czy odzysk ciepła jest wykorzystany?</div>
+            <div class="field-id mono">EKS-V10-OC</div>
+          </div>
+          <div class="field-input-wrap">
+            <select class="field-select" data-id="EKS-V10-OC">
+              <option value="">— wybierz —</option>
+              <option>TAK — wszystkie AHU</option>
+              <option>TAK — wybrane AHU</option>
+              <option>NIE — odzysk istnieje ale wyłączony</option>
+              <option>NIE — brak odzysku w AHU</option>
+            </select>
+            <div class="field-hint">Często odzysk istnieje ale jest wyłączony / niesprawny</div>
+          </div>
+          <div class="kto-cell"><span class="tag ur">UR</span></div>
+          <div class="field-unit">—</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Plany inwestycyjne wentylacji</div>
+            <div class="field-id mono">EKS-V11-PLAN</div>
+          </div>
+          <div class="field-input-wrap">
+            <textarea class="field-textarea" data-id="EKS-V11-PLAN" placeholder='np. "2025: wymiana 2 AHU w hali G1, 2026: dodanie odzysku, 2027: integracja BMS-MES"'></textarea>
+            <div class="field-hint">Krótko-/średnioterminowe plany modernizacji</div>
+          </div>
+          <div class="kto-cell"><span class="tag em">EM</span></div>
+          <div class="field-unit">—</div>
+        </div>
+      </div>
+
+      <div class="group readonly-group">
+        <div class="group-title">Energy Manager (read-only z Master.E11)</div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Dedykowany Energy Manager</div>
+            <div class="field-id mono">EKS-V12-EM</div>
+          </div>
+          <div class="field-input-wrap">
+            <textarea class="field-textarea field-readonly" data-id="EKS-V12-EM" data-master-source="KON-V12-EM-DEDIKACJA" readonly placeholder="[Master.E11-KON-V12-EM-DEDIKACJA]" style="min-height: 50px"></textarea>
+            <div class="field-hint">🔒 z Master.E11. Imię, dedykacja %.</div>
+          </div>
+          <div class="kto-cell"><span class="tag em">EM</span><span class="tag auto">AUTO</span></div>
+          <div class="field-unit">—</div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-title">Cross-scope link</div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Czy zakład ma scope CA (sprężone powietrze)?</div>
+            <div class="field-id mono">EKS-V13-CA-LINK</div>
+          </div>
+          <div class="field-input-wrap">
+            <select class="field-select" data-id="EKS-V13-CA-LINK">
+              <option value="">— wybierz —</option>
+              <option>TAK — będzie audytowany</option>
+              <option>TAK — nie będzie audytowany</option>
+              <option>NIE</option>
+              <option>nie wiem</option>
+            </select>
+            <div class="field-hint">Spinka cross-scope. AHU często łączy się z CA (np. odzysk ciepła ze sprężarek).</div>
+          </div>
+          <div class="kto-cell"><span class="tag em">EM</span></div>
+          <div class="field-unit">—</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- ETAP 8 · KPI + 14 czerwonych flag (auto-aktywacja regułami)  -->
+  <!-- ============================================================ -->
+  <section class="section" id="etap-8">
+    <div class="section-head">
+      <div>
+        <div class="section-eyebrow">ETAP 8</div>
+        <h2 class="section-title serif">KPI · 14 czerwonych flag wentylacji</h2>
+        <p class="section-desc">Wskaźniki efektywności + automatyczne flagi z regułami · podsumowanie audytu wentylacji</p>
+      </div>
+      <div class="section-meta">
+        <div class="section-progress" data-etap="etap-8">— / 14</div>
+        <div style="font-size: 11px; color: var(--ink-mute); margin-top: 4px;">aktywne flagi</div>
+      </div>
+    </div>
+
+    <div class="section-body">
+
+      <div class="group-info">
+        <strong>Jak działają flagi:</strong>
+        <ul>
+          <li>14 reguł sprawdzanych <strong>automatycznie</strong> na podstawie danych z E2-E7</li>
+          <li>Flaga 🔴 aktywna = problem energetyczny / techniczny do raportu</li>
+          <li>Flaga 🟢 nieaktywna = OK lub brak danych do oceny</li>
+          <li>Aktualizacja na żywo gdy klient wpisuje dane w innych etapach</li>
+        </ul>
+      </div>
+
+      <div class="group">
+        <div class="group-title">Wskaźniki KPI (auto-wyliczane z E2-E7)</div>
+
+        <div id="kpi-summary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 14px;">
+          <!-- KPI cards generowane dynamicznie -->
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-title">14 czerwonych flag (audytora wentylacji)</div>
+        <div class="group-desc">Reguły aktywują się gdy spełnione są warunki energetyczne / techniczne</div>
+
+        <div id="flagi-list" style="margin-top: 14px;">
+          <!-- 14 flag generowanych dynamicznie -->
+        </div>
+
+        <div style="margin-top: 16px; padding: 12px 16px; background: var(--paper-deep); border-radius: 4px; font-size: 12px; color: var(--ink-soft);">
+          <strong>Łącznie aktywnych flag:</strong>
+          <span id="flagi-active-count" style="font-weight: 700; color: var(--rose);">0</span>
+          z 14 ·
+          <strong>Status audytu:</strong>
+          <span id="audyt-status" style="font-weight: 700;">brak danych</span>
+        </div>
+      </div>
+
+      <!-- Końcowy banner -->
+      <div class="group" style="background: linear-gradient(135deg, var(--green-deep) 0%, var(--green-primary) 100%); color: white; margin-top: 32px; padding: 32px;">
+        <div style="font-family: var(--serif); font-size: 22px; font-weight: 600; margin-bottom: 8px;">
+          ▮ Koniec scope formularza AHU
+        </div>
+        <div style="font-size: 14px; line-height: 1.6; opacity: 0.95;">
+          Po wypełnieniu wszystkich etapów AHU jest gotowy do <strong>analizy audytora</strong>:
+          <ul style="margin: 12px 0 12px 24px; line-height: 1.8;">
+            <li><strong>Inwentaryzacja AHU</strong> — typy, lokalizacje, parametry techniczne</li>
+            <li><strong>Bilans wentylacyjny per hala</strong> — krotność wymian, problemy bilansu</li>
+            <li><strong>System sterowania</strong> — BMS, VAV-DCV, monitoring</li>
+            <li><strong>Eksploatacja</strong> — zużycia, koszty, plany</li>
+            <li><strong>14 czerwonych flag</strong> — zidentyfikowane problemy do raportu</li>
+          </ul>
+          Konsultant ENESA przegląda wyniki i przygotowuje rekomendacje + szacunek oszczędności.
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+
+
+</main>
+
+
+<script>
+// ============================================================
+// ENESA AHU Form - JavaScript (v1.0)
+// - Persistent storage przez localStorage
+// - Czytanie pól RO z Master Form (klucze master:*)
+// - Auto-save z debounce
+// - Postęp per etap + globalny
+// - Sidenav navigation
+// ============================================================
+
+const STORAGE_PREFIX = 'ahu:';
+const MASTER_PREFIX = 'master:';
+let saveTimer = null;
+let storageMode = 'localStorage';
+let memoryStore = {};
+
+// === Storage detection ===
+function detectStorage() {
+  try {
+    const testKey = '__enesa_test__';
+    localStorage.setItem(testKey, '1');
+    localStorage.removeItem(testKey);
+    storageMode = 'localStorage';
+    return true;
+  } catch (e) {
+    storageMode = 'memory';
+    return false;
+  }
+}
+
+// === Storage API ===
+const enesaStorage = {
+  set(key, value) {
+    if (storageMode === 'localStorage') {
+      try { localStorage.setItem(key, value); return true; }
+      catch (e) {
+        storageMode = 'memory';
+        memoryStore[key] = value;
+        return true;
+      }
+    } else {
+      memoryStore[key] = value;
+      return true;
+    }
+  },
+  get(key) {
+    if (storageMode === 'localStorage') {
+      try { return localStorage.getItem(key); } catch (e) { return null; }
+    } else {
+      return memoryStore[key] !== undefined ? memoryStore[key] : null;
+    }
+  },
+  delete(key) {
+    if (storageMode === 'localStorage') {
+      try { localStorage.removeItem(key); return true; } catch (e) { return false; }
+    } else {
+      delete memoryStore[key];
+      return true;
+    }
+  },
+  listKeys(prefix) {
+    if (storageMode === 'localStorage') {
+      const keys = [];
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith(prefix)) keys.push(k);
+        }
+      } catch (e) {}
+      return keys;
+    } else {
+      return Object.keys(memoryStore).filter(k => k.startsWith(prefix));
+    }
+  }
+};
+
+// === MASTER INTEGRATION — czytanie pól z HTML Master Form ===
+// Klucze master:* są pisane przez HTML Master Form do localStorage.
+// AHU czyta je read-only.
+
+function readMasterField(masterFieldId) {
+  // Specjalne klucze
+  if (masterFieldId === '_meta_n_wydz') {
+    return enesaStorage.get(MASTER_PREFIX + '_meta_n_wydz') || '';
+  }
+  if (masterFieldId === '_meta_wydz_list') {
+    // Konkatenacja nazw wydziałów z Master (WYD-V2-NAZWA-W1, W2, ...)
+    const n = parseInt(enesaStorage.get(MASTER_PREFIX + '_meta_n_wydz') || '5', 10);
+    const names = [];
+    for (let w = 1; w <= n; w++) {
+      const v = enesaStorage.get(MASTER_PREFIX + 'WYD-V2-NAZWA-W' + w);
+      if (v) names.push(v);
+    }
+    return names.join(', ');
+  }
+  // Standardowe pole
+  return enesaStorage.get(MASTER_PREFIX + masterFieldId);
+}
+
+function isMasterConnected() {
+  // Sprawdzamy czy w localStorage są jakiekolwiek klucze master:*
+  return enesaStorage.listKeys(MASTER_PREFIX).length > 0;
+}
+
+function refreshMasterFields() {
+  // Aktualizuje wszystkie pola data-master-source
+  document.querySelectorAll('[data-master-source]').forEach(el => {
+    const source = el.dataset.masterSource;
+    const value = readMasterField(source);
+    if (value !== null && value !== '') {
+      el.value = value;
+    } else {
+      el.value = '';  // pokaże placeholder
+    }
+  });
+  
+  // Status Master w sidenav
+  const masterText = document.getElementById('master-status-text');
+  if (masterText) {
+    if (isMasterConnected()) {
+      const nWydz = enesaStorage.get(MASTER_PREFIX + '_meta_n_wydz') || '?';
+      const nHal = enesaStorage.get(MASTER_PREFIX + '_meta_n_hal') || '?';
+      const klient = enesaStorage.get(MASTER_PREFIX + 'AUD-V1-NAZWA');
+      masterText.className = 'master-status-value connected';
+      masterText.innerHTML = '✓ podłączony<br>' + 
+        (klient ? '<span style="color: var(--paper); font-size: 10px">' + klient.substring(0, 22) + '</span><br>' : '') +
+        nWydz + ' wydz · ' + nHal + ' hal';
+    } else {
+      masterText.className = 'master-status-value disconnected';
+      masterText.innerHTML = '⚠ brak danych<br><span style="font-size: 10px">wypełnij Master Form</span>';
+    }
+  }
+  
+  // Header zakład
+  const headerZaklad = document.getElementById('header-zaklad-name');
+  if (headerZaklad) {
+    const klient = enesaStorage.get(MASTER_PREFIX + 'AUD-V1-NAZWA');
+    headerZaklad.textContent = klient || '[wypełnij Master.E0]';
+  }
+}
+
+// Helper: wszystkie pola formularza (poza read-only z Master)
+function getAllFields() {
+  return Array.from(document.querySelectorAll('[data-id]')).filter(el =>
+    (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA')
+    && !el.dataset.masterSource  // RO z Master nie liczymy
+  );
+}
+
+// === Wczytaj zapisane dane (AHU-specific) ===
+function loadSavedData() {
+  detectStorage();
+  
+  const keys = enesaStorage.listKeys(STORAGE_PREFIX);
+  let loadedCount = 0;
+  
+  for (const key of keys) {
+    const fieldId = key.replace(STORAGE_PREFIX, '');
+    const value = enesaStorage.get(key);
+    if (value !== null && value !== undefined && value !== '') {
+      const el = document.querySelector(`[data-id="${fieldId}"]`);
+      if (el && !el.dataset.masterSource) {
+        el.value = value;
+        el.classList.add('filled');
+        loadedCount++;
+      }
+    }
+  }
+  
+  if (loadedCount > 0) {
+    const mode = storageMode === 'localStorage' ? 'localStorage' : 'pamięć (sesja)';
+    showSaveIndicator(`Wczytano ${loadedCount} pól z ${mode}`);
+  } else if (storageMode === 'memory') {
+    showSaveIndicator('⚠ localStorage zablokowany — dane tylko w sesji');
+  }
+  
+  refreshMasterFields();
+  updateAllProgress();
+}
+
+function saveField(fieldId, value) {
+  if (value === '' || value === null || value === undefined) {
+    enesaStorage.delete(STORAGE_PREFIX + fieldId);
+  } else {
+    enesaStorage.set(STORAGE_PREFIX + fieldId, String(value));
+  }
+}
+
+function scheduleAutoSave() {
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    const fields = getAllFields();
+    let savedCount = 0;
+    for (const f of fields) {
+      const fieldId = f.dataset.id;
+      const value = f.value;
+      saveField(fieldId, value);
+      if (value !== '' && value !== null) savedCount++;
+    }
+    const mode = storageMode === 'localStorage' ? 'lokalnie' : 'w sesji';
+    showSaveIndicator(`Zapisano ${mode} (${savedCount} pól)`);
+  }, 800);
+}
+
+function showSaveIndicator(text) {
+  const el = document.getElementById('save-indicator');
+  if (!el) return;
+  el.textContent = text;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+function updateAllProgress() {
+  const sections = document.querySelectorAll('.section');
+  let totalFilled = 0;
+  let totalAll = 0;
+
+  sections.forEach(sec => {
+    const id = sec.id;
+    if (!id || !id.startsWith('etap-')) return;
+    
+    // Liczymy tylko pola NIE-RO (klient sam wypełnia)
+    const fields = sec.querySelectorAll('[data-id]:not([data-master-source])');
+    let filled = 0;
+    fields.forEach(f => {
+      const v = (f.value || '').trim();
+      if (v !== '' && v !== '— wybierz —') filled++;
+    });
+    const total = fields.length;
+    
+    totalFilled += filled;
+    totalAll += total;
+
+    const badge = sec.querySelector('.section-progress');
+    if (badge) badge.textContent = `${filled} / ${total}`;
+    
+    const sideCount = document.querySelector(`[data-count-for="${id}"]`);
+    if (sideCount) sideCount.textContent = `${filled}/${total}`;
+  });
+  
+  const globalEl = document.getElementById('overall-progress');
+  if (globalEl) {
+    const pct = totalAll > 0 ? Math.round(totalFilled / totalAll * 100) : 0;
+    globalEl.textContent = `${totalFilled} / ${totalAll} pól (${pct}%)`;
+  }
+}
+
+function onFieldInput(e) {
+  const f = e.target;
+  if (!f.dataset.id) return;
+  if (f.dataset.masterSource) return;  // RO nie zapisujemy
+  
+  if ((f.value || '').trim()) {
+    f.classList.add('filled');
+  } else {
+    f.classList.remove('filled');
+  }
+  
+  scheduleAutoSave();
+  updateAllProgress();
+  // Live refresh KPI i flag (kosztowne, ale natychmiast widoczne)
+  refreshKpiAndFlagi();
+}
+
+// === Sidenav navigation ===
+document.querySelectorAll('.sidenav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.sidenav-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+    const target = item.dataset.target;
+    const el = document.getElementById(target);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && entry.intersectionRatio > 0.3) {
+      const id = entry.target.id;
+      document.querySelectorAll('.sidenav-item').forEach(i => {
+        i.classList.toggle('active', i.dataset.target === id);
+      });
+    }
+  });
+}, { threshold: [0.3, 0.6] });
+
+document.querySelectorAll('.section').forEach(sec => observer.observe(sec));
+
+// === ADD TEAM MEMBER (E0) — analog do Master ===
+const addTeamBtn = document.getElementById('add-team-btn');
+if (addTeamBtn) {
+  addTeamBtn.addEventListener('click', () => {
+    const table = document.getElementById('team-table');
+    const headerRow = table.querySelector('thead tr');
+    const instanceHeaders = headerRow.querySelectorAll('.th-instance');
+    const newIdx = instanceHeaders.length + 1;
+    const oldSuffix = `-U${instanceHeaders.length}`;
+    const newSuffix = `-U${newIdx}`;
+    
+    const newTh = document.createElement('th');
+    newTh.className = 'th-instance';
+    newTh.textContent = `Osoba ${newIdx}`;
+    headerRow.appendChild(newTh);
+    
+    const bodyRows = table.querySelectorAll('tbody tr');
+    bodyRows.forEach(tr => {
+      const tds = tr.querySelectorAll('td.td-input');
+      if (tds.length === 0) return;
+      const lastTd = tds[tds.length - 1];
+      const newTd = lastTd.cloneNode(true);
+      newTd.querySelectorAll('[data-id]').forEach(el => {
+        const oldId = el.getAttribute('data-id');
+        if (oldId && oldId.endsWith(oldSuffix)) {
+          el.setAttribute('data-id', oldId.slice(0, -oldSuffix.length) + newSuffix);
+        }
+        el.value = '';
+        el.classList.remove('filled');
+      });
+      tr.appendChild(newTd);
+    });
+    
+    bindAllFields();
+    updateAllProgress();
+  });
+}
+
+// === Persistent state - liczba typów AHU ===
+const STATE_KEY_TYPY = STORAGE_PREFIX + '_meta_n_typy';
+
+function getNTypy() {
+  const v = enesaStorage.get(STATE_KEY_TYPY);
+  return v ? parseInt(v, 10) : 3;
+}
+function setNTypy(n) {
+  enesaStorage.set(STATE_KEY_TYPY, String(n));
+}
+
+// === MACIERZ Typy × Hale - dynamiczna budowa ===
+function rebuildMacierzTypyHale() {
+  const headerRow = document.getElementById('mt-header-row');
+  const body = document.getElementById('mt-body');
+  const foot = document.getElementById('mt-foot');
+  if (!headerRow || !body || !foot) return;
+  
+  const nTypy = getNTypy();
+  // Liczba hal z Master
+  const nHal = parseInt(enesaStorage.get(MASTER_PREFIX + '_meta_n_hal') || '5', 10);
+  
+  // Pobierz nazwy typów (z E2 inputów)
+  const typNames = [];
+  for (let t = 1; t <= nTypy; t++) {
+    const el = document.querySelector(`[data-id="AHU-V2-NAZWA-T${t}"]`);
+    const num = document.querySelector(`[data-id="AHU-V1-NUMER-T${t}"]`);
+    const name = el && el.value ? el.value : `Typ ${num && num.value ? num.value : t}`;
+    typNames.push(name);
+  }
+  
+  // Pobierz nazwy hal (z Master.E5)
+  const halNames = [];
+  for (let h = 1; h <= nHal; h++) {
+    const masterName = enesaStorage.get(MASTER_PREFIX + 'HAL-V2-NAZWA-H' + h);
+    const masterNum = enesaStorage.get(MASTER_PREFIX + 'HAL-V1-NUMER-H' + h);
+    const name = masterName || (masterNum ? `Hala ${masterNum}` : `Hala ${h}`);
+    halNames.push(name);
+  }
+  
+  // Zachowaj istniejące wartości
+  const existing = {};
+  body.querySelectorAll('input[data-mt-cell]').forEach(inp => {
+    existing[inp.dataset.id] = inp.value;
+  });
+  
+  // === Header: pytanie + hale + Σ ===
+  while (headerRow.children.length > 1) headerRow.removeChild(headerRow.lastChild);
+  
+  for (let h = 1; h <= nHal; h++) {
+    const th = document.createElement('th');
+    th.className = 'th-instance';
+    th.style.minWidth = '90px';
+    th.textContent = halNames[h-1];
+    th.title = '🔒 z Master.E5';
+    th.style.background = 'linear-gradient(to bottom, var(--green-deep) 70%, var(--gold) 100%)';
+    headerRow.appendChild(th);
+  }
+  // Σ wiersza
+  const thSum = document.createElement('th');
+  thSum.className = 'th-instance';
+  thSum.style.minWidth = '70px';
+  thSum.style.background = 'var(--gold)';
+  thSum.textContent = 'Σ sztuk';
+  headerRow.appendChild(thSum);
+  
+  // === Body: wiersze typów ===
+  body.innerHTML = '';
+  for (let t = 1; t <= nTypy; t++) {
+    const tr = document.createElement('tr');
+    
+    const tdT = document.createElement('td');
+    tdT.className = 'td-question';
+    tdT.innerHTML = `<div class="q-label">${typNames[t-1]}</div><div class="q-id mono">TYP-${t}</div>`;
+    tr.appendChild(tdT);
+    
+    for (let h = 1; h <= nHal; h++) {
+      const td = document.createElement('td');
+      td.className = 'td-input';
+      const inp = document.createElement('input');
+      inp.type = 'number';
+      inp.className = 'cell-input mt-cell-input';
+      inp.dataset.id = `MT-T${t}-H${h}`;
+      inp.dataset.mtCell = '1';
+      inp.dataset.row = String(t);
+      inp.dataset.col = String(h);
+      inp.min = '0';
+      inp.step = '1';
+      inp.placeholder = '0';
+      // Restore
+      if (existing[inp.dataset.id] !== undefined) {
+        inp.value = existing[inp.dataset.id];
+      } else {
+        const stored = enesaStorage.get(STORAGE_PREFIX + inp.dataset.id);
+        if (stored !== null) inp.value = stored;
+      }
+      if (inp.value && inp.value !== '0') inp.classList.add('filled');
+      td.appendChild(inp);
+      tr.appendChild(td);
+    }
+    
+    // Σ wiersza
+    const tdSum = document.createElement('td');
+    tdSum.className = 'td-input';
+    tdSum.style.fontWeight = '700';
+    tdSum.style.background = 'var(--paper-paper)';
+    tdSum.dataset.mtSumFor = String(t);
+    tdSum.textContent = '0';
+    tr.appendChild(tdSum);
+    
+    body.appendChild(tr);
+  }
+  
+  // === Foot: Σ kolumn ===
+  foot.innerHTML = '';
+  const trFoot = document.createElement('tr');
+  const tdLabel = document.createElement('td');
+  tdLabel.className = 'td-question';
+  tdLabel.style.fontWeight = '700';
+  tdLabel.style.background = 'var(--paper-deep)';
+  tdLabel.textContent = 'Σ AHU w hali';
+  trFoot.appendChild(tdLabel);
+  
+  for (let h = 1; h <= nHal; h++) {
+    const td = document.createElement('td');
+    td.className = 'td-input';
+    td.style.fontWeight = '700';
+    td.style.background = 'var(--paper-deep)';
+    td.dataset.mtColSumFor = String(h);
+    td.textContent = '0';
+    trFoot.appendChild(td);
+  }
+  // Grand total
+  const tdTotal = document.createElement('td');
+  tdTotal.className = 'td-input';
+  tdTotal.style.fontWeight = '700';
+  tdTotal.style.background = 'var(--gold)';
+  tdTotal.style.color = 'white';
+  tdTotal.id = 'mt-grand-total';
+  tdTotal.textContent = '0';
+  trFoot.appendChild(tdTotal);
+  
+  foot.appendChild(trFoot);
+  
+  // Bind nowe inputy
+  body.querySelectorAll('input.mt-cell-input').forEach(inp => {
+    inp.addEventListener('input', onMtInput);
+  });
+  
+  updateMtSums();
+}
+
+function onMtInput(e) {
+  const inp = e.target;
+  if (inp.value && inp.value !== '0') inp.classList.add('filled'); else inp.classList.remove('filled');
+  saveField(inp.dataset.id, inp.value);
+  scheduleAutoSave();
+  updateMtSums();
+  updateAllProgress();
+}
+
+function updateMtSums() {
+  const nTypy = getNTypy();
+  const nHal = parseInt(enesaStorage.get(MASTER_PREFIX + '_meta_n_hal') || '5', 10);
+  
+  // Σ wiersza
+  for (let t = 1; t <= nTypy; t++) {
+    let sum = 0;
+    for (let h = 1; h <= nHal; h++) {
+      const inp = document.querySelector(`input[data-id="MT-T${t}-H${h}"]`);
+      if (inp && inp.value) sum += parseInt(inp.value, 10) || 0;
+    }
+    const tdSum = document.querySelector(`td[data-mt-sum-for="${t}"]`);
+    if (tdSum) {
+      tdSum.textContent = String(sum);
+      tdSum.style.color = sum > 0 ? 'var(--green-deep)' : 'var(--ink-mute)';
+    }
+  }
+  
+  // Σ kolumn
+  let grand = 0;
+  for (let h = 1; h <= nHal; h++) {
+    let sum = 0;
+    for (let t = 1; t <= nTypy; t++) {
+      const inp = document.querySelector(`input[data-id="MT-T${t}-H${h}"]`);
+      if (inp && inp.value) sum += parseInt(inp.value, 10) || 0;
+    }
+    const td = document.querySelector(`td[data-mt-col-sum-for="${h}"]`);
+    if (td) td.textContent = String(sum);
+    grand += sum;
+  }
+  const grandEl = document.getElementById('mt-grand-total');
+  if (grandEl) grandEl.textContent = String(grand);
+}
+
+// Reagowanie na zmianę nazw typów → odbuduj nagłówki macierzy E3
+function onTypNameChange() {
+  rebuildMacierzTypyHale();
+}
+
+// === ADD TYP AHU (E2) — dynamiczne dodawanie kolumn ===
+const addTypBtn = document.getElementById('add-typ-btn');
+if (addTypBtn) {
+  addTypBtn.addEventListener('click', () => {
+    const table = document.getElementById('typy-table');
+    const headerRow = table.querySelector('thead tr');
+    const instanceHeaders = headerRow.querySelectorAll('.th-instance');
+    const newIdx = instanceHeaders.length + 1;
+    const oldSuffix = `-T${instanceHeaders.length}`;
+    const newSuffix = `-T${newIdx}`;
+    
+    const newTh = document.createElement('th');
+    newTh.className = 'th-instance';
+    newTh.textContent = `Typ ${newIdx}`;
+    headerRow.appendChild(newTh);
+    
+    const bodyRows = table.querySelectorAll('tbody tr');
+    bodyRows.forEach(tr => {
+      if (tr.classList.contains('row-section-header')) {
+        const td = tr.querySelector('td[colspan]');
+        if (td) td.setAttribute('colspan', String(newIdx + 2));
+        return;
+      }
+      const tds = tr.querySelectorAll('td.td-input');
+      if (tds.length === 0) return;
+      const lastTd = tds[tds.length - 1];
+      const newTd = lastTd.cloneNode(true);
+      newTd.querySelectorAll('[data-id]').forEach(el => {
+        const oldId = el.getAttribute('data-id');
+        if (oldId && oldId.endsWith(oldSuffix)) {
+          el.setAttribute('data-id', oldId.slice(0, -oldSuffix.length) + newSuffix);
+        }
+        el.value = '';
+        el.classList.remove('filled');
+      });
+      tr.appendChild(newTd);
+    });
+    
+    setNTypy(newIdx);
+    bindAllFields();
+    rebuildMacierzTypyHale();
+    updateAllProgress();
+    showSaveIndicator(`Dodano Typ ${newIdx}`);
+  });
+}
+
+// === E4 HALE — Strategia C (RO + AHU-specific) ===
+
+// Definicje wierszy E4 - 7 RO z Master + AHU-specific
+const E4_ROWS_RO = [
+  {id: 'HAL-V1-NUMER', q: 'Numer/oznaczenie hali', kto: 'EM', mSrc: 'HAL-V1-NUMER', hint: '🔒 z Master.E5'},
+  {id: 'HAL-V2-NAZWA', q: 'Nazwa hali', kto: 'EM', mSrc: 'HAL-V2-NAZWA', hint: '🔒 z Master.E5'},
+  {id: 'HAL-V3-TYP', q: 'Typ hali', kto: 'EM', mSrc: 'HAL-V3-TYP', hint: '🔒 z Master.E5'},
+  {id: 'HAL-V4-POW', q: 'Powierzchnia [m²]', kto: 'EM', mSrc: 'HAL-V4-POW', hint: '🔒 z Master.E5'},
+  {id: 'HAL-V5-KUB', q: 'Kubatura [m³]', kto: 'EM', mSrc: 'HAL-V5-KUB', hint: '🔒 z Master.E5'},
+  {id: 'HAL-V6-WYS', q: 'Wysokość [m]', kto: 'EM', mSrc: 'HAL-V6-WYS', hint: '🔒 z Master.E5'},
+  {id: 'HAL-V8-IZOLACJA', q: 'Jakość izolacji', kto: 'EM', mSrc: 'HAL-V8-IZOLACJA', hint: '🔒 z Master.E5'},
+];
+
+const E4_ROWS_AHU = [
+  // Sekcja: Bilans masowy
+  {section: 'Bilans masowy hali (NOWE — kluczowe dla audytu wentylacji)'},
+  {id: 'HAL-AHU-V1-Q-NAW', q: 'Σ wydajności nawiewu w hali', kto: 'UR', hint: 'Suma wydajności wszystkich AHU nawiewnych w tej hali', unit: 'm³/h', type: 'number'},
+  {id: 'HAL-AHU-V2-Q-WYW', q: 'Σ wydajności wywiewu w hali', kto: 'UR', hint: 'Suma wydajności wszystkich AHU wywiewnych w tej hali', unit: 'm³/h', type: 'number'},
+  {id: 'HAL-AHU-V3-Q-LEV', q: 'Σ wydajności LEV/BHP w hali', kto: 'UR', hint: 'Lokalne wyciągi (np. nad spawalnią). Często powodują problem bilansu.', unit: 'm³/h', type: 'number'},
+  {id: 'HAL-AHU-V4-Q-INFIL', q: 'Infiltracja przez bramy (oszacowane)', kto: 'KON', hint: 'Trudno mierzyć. Oszacowane na bazie liczby otwarć i czasu.', unit: 'm³/h', type: 'number'},
+  {id: 'HAL-AHU-V5-BILANS', q: 'Bilans = Nawiew - (Wywiew + LEV + Infil)', kto: 'KON', hint: 'Powinno być ~0 (lekko ujemne dla podciśnienia w lakierni). Mocno ujemne = problem.', unit: 'm³/h', type: 'number'},
+
+  // Sekcja: Wymiana powietrza
+  {section: 'Wymiana powietrza i krotność'},
+  {id: 'HAL-AHU-V6-N-WYM', q: 'Krotność wymian powietrza N', kto: 'KON', hint: 'N = Q_naw / V (kubatura). Hala produkcyjna: 2-6 1/h. Lakiernia: 10-25 1/h.', unit: '1/h', type: 'number'},
+  {id: 'HAL-AHU-V7-CO2-MAX', q: 'Stężenie CO2 maks. (jeśli mierzone)', kto: 'UR', hint: 'Próg jakości IAQ: 1000 ppm. Wyższe = za mało wentylacji.', unit: 'ppm', type: 'number'},
+  {id: 'HAL-AHU-V8-TEMP-LATO', q: 'Temperatura w hali latem', kto: 'UR', hint: 'Średnia w godzinach pracy w lipcu. Próg: 28°C dla pracowników.', unit: '°C', type: 'number'},
+  {id: 'HAL-AHU-V9-TEMP-ZIMA', q: 'Temperatura w hali zimą', kto: 'UR', hint: 'Średnia w godzinach pracy w styczniu. Próg PIP: 14°C lekka praca, 18°C cięższa.', unit: '°C', type: 'number'},
+
+  // Sekcja: Kurtyny i bramy
+  {section: 'Kurtyny powietrzne i bramy'},
+  {id: 'HAL-AHU-V10-KURTYNY-N', q: 'Liczba kurtyn powietrznych', kto: 'UR', hint: 'Bramy bez kurtyn = duża infiltracja zimą', unit: 'szt', type: 'number'},
+  {id: 'HAL-AHU-V11-KURTYNY-MOC', q: 'Σ moc kurtyn powietrznych', kto: 'UR', hint: 'Moc grzewcza wszystkich kurtyn', unit: 'kW', type: 'number'},
+  {id: 'HAL-AHU-V12-BRAMY-OTW', q: 'Średni czas otwarcia bram', kto: 'UR/KIER', hint: 'h/dzień - kluczowe dla strat ciepła zimą', unit: 'h/dzień', type: 'number'},
+  {id: 'HAL-AHU-V13-BRAMY-AUTO', q: 'Bramy z automatycznym zamykaniem', kto: 'UR', hint: 'TAK / NIE / częściowo', type: 'select', options: ['TAK', 'NIE', 'częściowo', 'nie wiem']},
+
+  // Sekcja: Harmonogramy AHU per hala
+  {section: 'Harmonogramy AHU per hala'},
+  {id: 'HAL-AHU-V14-HARM-DZIEN', q: 'Godziny pracy AHU w dzień roboczy', kto: 'UR', hint: 'Z BMS. np. 6:00-22:00 = 16h', unit: 'h/dzień', type: 'number'},
+  {id: 'HAL-AHU-V15-HARM-NOC', q: 'Czy AHU pracują nocą / w weekendy?', kto: 'UR', hint: 'Często niepotrzebnie. Częsta przyczyna marnotrawstwa.', type: 'select', options: ['TAK 100%', 'TAK obniżona wydajność', 'NIE', 'nie wiem']},
+  {id: 'HAL-AHU-V16-WEEKENDY', q: 'Praca w weekendy', kto: 'UR', hint: '—', type: 'select', options: ['TAK', 'NIE', 'czasem', 'nie wiem']},
+
+  // Sekcja: Problemy
+  {section: 'Problemy znane / komentarz'},
+  {id: 'HAL-AHU-V17-PROBLEMY', q: 'Znane problemy wentylacji w hali', kto: 'UR/EM', hint: 'np. „za zimno zimą", „zatrzymywanie pyłu w spawalni", „kondensat w lakierni"', type: 'textarea'},
+  {id: 'HAL-AHU-V18-MODERN-PLAN', q: 'Planowane modernizacje wentylacji', kto: 'EM', hint: 'np. „wymiana 2 AHU 2026", „dodanie odzysku ciepła"', type: 'textarea'},
+  {id: 'HAL-AHU-V19-LINK-DTR', q: 'Link do DTR/dokumentacji wentylacji', kto: 'UR', hint: 'URL lub referencja do E12 Master', type: 'text'},
+];
+
+function rebuildHaleAhu() {
+  const headerRow = document.getElementById('hale-ahu-header-row');
+  const body = document.getElementById('hale-ahu-body');
+  if (!headerRow || !body) return;
+  
+  const nHal = parseInt(enesaStorage.get(MASTER_PREFIX + '_meta_n_hal') || '5', 10);
+  
+  // Pobierz nazwy hal z Master
+  const halNames = [];
+  for (let h = 1; h <= nHal; h++) {
+    const masterName = enesaStorage.get(MASTER_PREFIX + 'HAL-V2-NAZWA-H' + h);
+    halNames.push(masterName || `Hala ${h}`);
+  }
+  
+  // Zachowaj istniejące wartości AHU-specific
+  const existing = {};
+  body.querySelectorAll('input[data-id], select[data-id], textarea[data-id]').forEach(el => {
+    if (!el.dataset.masterSource) {  // tylko AHU-specific
+      existing[el.dataset.id] = el.value;
+    }
+  });
+  
+  // === Header ===
+  while (headerRow.children.length > 2) headerRow.removeChild(headerRow.lastChild);
+  for (let h = 1; h <= nHal; h++) {
+    const th = document.createElement('th');
+    th.className = 'th-instance';
+    th.textContent = halNames[h-1];
+    th.title = '🔒 z Master.E5';
+    headerRow.appendChild(th);
+  }
+  
+  // === Body ===
+  body.innerHTML = '';
+  
+  // 1. Sekcja RO z Master
+  const trSecRO = document.createElement('tr');
+  trSecRO.className = 'row-section-header row-readonly-section';
+  const tdSecRO = document.createElement('td');
+  tdSecRO.colSpan = nHal + 2;
+  tdSecRO.innerHTML = '🔒 IDENTYFIKACJA HALI — read-only z Master.E5';
+  trSecRO.appendChild(tdSecRO);
+  body.appendChild(trSecRO);
+  
+  E4_ROWS_RO.forEach(row => {
+    const tr = document.createElement('tr');
+    
+    const tdQ = document.createElement('td');
+    tdQ.className = 'td-question';
+    tdQ.innerHTML = `<div class="q-label">${row.q}</div>
+                     <div class="q-id mono">${row.id}</div>
+                     <div class="q-hint">${row.hint}</div>`;
+    tr.appendChild(tdQ);
+    
+    const tdK = document.createElement('td');
+    tdK.className = 'td-comp';
+    tdK.innerHTML = `<span class="tag ${row.kto.toLowerCase()} small">${row.kto}</span><span class="tag auto small">AUTO</span>`;
+    tr.appendChild(tdK);
+    
+    for (let h = 1; h <= nHal; h++) {
+      const td = document.createElement('td');
+      td.className = 'td-input';
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.className = 'cell-input readonly';
+      inp.dataset.id = `${row.id}-H${h}-RO`;
+      inp.dataset.masterSource = `${row.id}-H${h}`;
+      inp.readOnly = true;
+      // Wczytaj z Master
+      const masterValue = enesaStorage.get(MASTER_PREFIX + row.id + '-H' + h);
+      if (masterValue) inp.value = masterValue;
+      else inp.placeholder = '[Master]';
+      td.appendChild(inp);
+      tr.appendChild(td);
+    }
+    body.appendChild(tr);
+  });
+  
+  // 2. Sekcje AHU-specific
+  E4_ROWS_AHU.forEach(row => {
+    if (row.section) {
+      // Nagłówek sekcji
+      const tr = document.createElement('tr');
+      tr.className = 'row-section-header';
+      const td = document.createElement('td');
+      td.colSpan = nHal + 2;
+      td.innerHTML = '▼ ' + row.section;
+      tr.appendChild(td);
+      body.appendChild(tr);
+      return;
+    }
+    
+    const tr = document.createElement('tr');
+    
+    const tdQ = document.createElement('td');
+    tdQ.className = 'td-question';
+    let qHtml = `<div class="q-label">${row.q}${row.unit ? ' [' + row.unit + ']' : ''}</div>
+                 <div class="q-id mono">${row.id}</div>`;
+    if (row.hint) qHtml += `<div class="q-hint">${row.hint}</div>`;
+    tdQ.innerHTML = qHtml;
+    tr.appendChild(tdQ);
+    
+    const tdK = document.createElement('td');
+    tdK.className = 'td-comp';
+    const ktoTags = row.kto.split('/').map(k => `<span class="tag ${k.toLowerCase()} small">${k}</span>`).join('');
+    tdK.innerHTML = ktoTags;
+    tr.appendChild(tdK);
+    
+    for (let h = 1; h <= nHal; h++) {
+      const td = document.createElement('td');
+      td.className = 'td-input';
+      const fieldId = `${row.id}-H${h}`;
+      
+      let el;
+      if (row.type === 'select' && row.options) {
+        el = document.createElement('select');
+        el.className = 'cell-input';
+        const optEmpty = document.createElement('option');
+        optEmpty.value = '';
+        optEmpty.textContent = '—';
+        el.appendChild(optEmpty);
+        row.options.forEach(opt => {
+          const o = document.createElement('option');
+          o.value = opt;
+          o.textContent = opt;
+          el.appendChild(o);
+        });
+      } else if (row.type === 'textarea') {
+        el = document.createElement('textarea');
+        el.className = 'cell-input';
+        el.style.minHeight = '50px';
+        el.style.fontSize = '11px';
+      } else {
+        el = document.createElement('input');
+        el.type = row.type || 'text';
+        el.className = 'cell-input';
+        if (row.type === 'number') el.step = '0.1';
+      }
+      el.dataset.id = fieldId;
+      
+      // Restore
+      if (existing[fieldId] !== undefined) {
+        el.value = existing[fieldId];
+      } else {
+        const stored = enesaStorage.get(STORAGE_PREFIX + fieldId);
+        if (stored !== null) el.value = stored;
+      }
+      if (el.value) el.classList.add('filled');
+      
+      td.appendChild(el);
+      tr.appendChild(td);
+    }
+    body.appendChild(tr);
+  });
+  
+  // Bind nowe inputy AHU-specific
+  body.querySelectorAll('input:not(.readonly), select, textarea').forEach(el => {
+    if (!el.dataset.masterSource) {
+      el.removeEventListener('input', onFieldInput);
+      el.addEventListener('input', onFieldInput);
+      el.removeEventListener('change', onFieldInput);
+      el.addEventListener('change', onFieldInput);
+    }
+  });
+}
+
+// === E5 WYDZIAŁY — RO widok Master.E4 + AHU-specific ===
+
+const E5_ROWS_RO = [
+  {id: 'WYD-V1-NUMER', q: 'Numer wydziału', kto: 'EM'},
+  {id: 'WYD-V2-NAZWA', q: 'Nazwa wydziału', kto: 'EM'},
+  {id: 'WYD-V3-KIEROWNIK', q: 'Kierownik / kontakt', kto: 'EM'},
+  {id: 'WYD-V4-ZATRUDNIENIE', q: 'Zatrudnienie [osób]', kto: 'EM'},
+  {id: 'WYD-V5-POW', q: 'Powierzchnia [m²]', kto: 'EM'},
+  {id: 'WYD-V7-SEU', q: 'Klasa SEU', kto: 'KON'},
+];
+
+function rebuildWydzAhu() {
+  const headerRow = document.getElementById('wydz-ahu-header-row');
+  const body = document.getElementById('wydz-ahu-body');
+  if (!headerRow || !body) return;
+  
+  const nWydz = parseInt(enesaStorage.get(MASTER_PREFIX + '_meta_n_wydz') || '5', 10);
+  
+  // Pobierz nazwy wydziałów z Master
+  const wydzNames = [];
+  for (let w = 1; w <= nWydz; w++) {
+    const masterName = enesaStorage.get(MASTER_PREFIX + 'WYD-V2-NAZWA-W' + w);
+    wydzNames.push(masterName || `Wydz. ${w}`);
+  }
+  
+  // Zachowaj wartości AHU-specific
+  const existing = {};
+  body.querySelectorAll('input[data-id]:not([data-master-source])').forEach(el => {
+    existing[el.dataset.id] = el.value;
+  });
+  
+  // Header
+  while (headerRow.children.length > 2) headerRow.removeChild(headerRow.lastChild);
+  for (let w = 1; w <= nWydz; w++) {
+    const th = document.createElement('th');
+    th.className = 'th-instance';
+    th.textContent = wydzNames[w-1];
+    th.title = '🔒 z Master.E4';
+    headerRow.appendChild(th);
+  }
+  
+  // Body
+  body.innerHTML = '';
+  
+  // Sekcja RO
+  const trSec = document.createElement('tr');
+  trSec.className = 'row-section-header row-readonly-section';
+  const tdSec = document.createElement('td');
+  tdSec.colSpan = nWydz + 2;
+  tdSec.innerHTML = '🔒 DANE WYDZIAŁU — read-only z Master.E4';
+  trSec.appendChild(tdSec);
+  body.appendChild(trSec);
+  
+  E5_ROWS_RO.forEach(row => {
+    const tr = document.createElement('tr');
+    
+    const tdQ = document.createElement('td');
+    tdQ.className = 'td-question';
+    tdQ.innerHTML = `<div class="q-label">${row.q}</div>
+                     <div class="q-id mono">${row.id}</div>
+                     <div class="q-hint">🔒 z Master.E4</div>`;
+    tr.appendChild(tdQ);
+    
+    const tdK = document.createElement('td');
+    tdK.className = 'td-comp';
+    tdK.innerHTML = `<span class="tag ${row.kto.toLowerCase()} small">${row.kto}</span><span class="tag auto small">AUTO</span>`;
+    tr.appendChild(tdK);
+    
+    for (let w = 1; w <= nWydz; w++) {
+      const td = document.createElement('td');
+      td.className = 'td-input';
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.className = 'cell-input readonly';
+      inp.dataset.id = `${row.id}-W${w}-RO`;
+      inp.dataset.masterSource = `${row.id}-W${w}`;
+      inp.readOnly = true;
+      const masterValue = enesaStorage.get(MASTER_PREFIX + row.id + '-W' + w);
+      if (masterValue) inp.value = masterValue;
+      else inp.placeholder = '[Master]';
+      td.appendChild(inp);
+      tr.appendChild(td);
+    }
+    body.appendChild(tr);
+  });
+  
+  // Sekcja AHU-specific
+  const trSecA = document.createElement('tr');
+  trSecA.className = 'row-section-header';
+  const tdSecA = document.createElement('td');
+  tdSecA.colSpan = nWydz + 2;
+  tdSecA.innerHTML = '▼ AHU-SPECIFIC — klient wpisuje';
+  trSecA.appendChild(tdSecA);
+  body.appendChild(trSecA);
+  
+  // V8 - Roczne zużycie EE wentylacji per wydział
+  const tr = document.createElement('tr');
+  const tdQ = document.createElement('td');
+  tdQ.className = 'td-question';
+  tdQ.innerHTML = `<div class="q-label">Roczne zużycie EE wentylacji [MWh/rok]</div>
+                   <div class="q-id mono">WYD-AHU-V1-EE</div>
+                   <div class="q-hint">Σ zużycia EE wszystkich AHU obsługujących wydział</div>`;
+  tr.appendChild(tdQ);
+  
+  const tdK = document.createElement('td');
+  tdK.className = 'td-comp';
+  tdK.innerHTML = '<span class="tag em small">EM</span>';
+  tr.appendChild(tdK);
+  
+  for (let w = 1; w <= nWydz; w++) {
+    const td = document.createElement('td');
+    td.className = 'td-input';
+    const inp = document.createElement('input');
+    inp.type = 'number';
+    inp.className = 'cell-input';
+    inp.dataset.id = `WYD-AHU-V1-EE-W${w}`;
+    inp.step = '0.1';
+    inp.placeholder = 'MWh/rok';
+    
+    if (existing[inp.dataset.id] !== undefined) {
+      inp.value = existing[inp.dataset.id];
+    } else {
+      const stored = enesaStorage.get(STORAGE_PREFIX + inp.dataset.id);
+      if (stored !== null) inp.value = stored;
+    }
+    if (inp.value) inp.classList.add('filled');
+    
+    td.appendChild(inp);
+    tr.appendChild(td);
+  }
+  body.appendChild(tr);
+  
+  // Bind
+  body.querySelectorAll('input:not(.readonly)').forEach(el => {
+    if (!el.dataset.masterSource) {
+      el.removeEventListener('input', onFieldInput);
+      el.addEventListener('input', onFieldInput);
+    }
+  });
+}
+
+// === E7 AUTO-KOSZT ===
+// EKS-V8-KOSZT = V1×V5 + V2×3.6×V6 + V3×V7
+// V1 = EE [MWh/rok], V5 = cena EE [PLN/MWh] z Master
+// V2 = ciepło [MWh/rok], V6 = cena ciepła [PLN/GJ] (×3.6 = MWh→GJ)
+// V3 = chłód [MWh/rok], V7 = cena chłodu [PLN/MWh]
+
+function autoCalcKoszt() {
+  const v1 = parseFloat((document.querySelector('[data-id="EKS-V1-EE"]') || {}).value) || 0;
+  const v2 = parseFloat((document.querySelector('[data-id="EKS-V2-CIEP"]') || {}).value) || 0;
+  const v3 = parseFloat((document.querySelector('[data-id="EKS-V3-CHL"]') || {}).value) || 0;
+  
+  // Ceny - czytane z Master przez data-master-source
+  const v5_el = document.querySelector('[data-id="EKS-V5-CENA-EE"]');
+  const v6_el = document.querySelector('[data-id="EKS-V6-CENA-C"]');
+  const v5 = parseFloat((v5_el || {}).value) || 0;
+  const v6 = parseFloat((v6_el || {}).value) || 0;
+  const v7 = parseFloat((document.querySelector('[data-id="EKS-V7-CENA-CH"]') || {}).value) || 0;
+  
+  // Koszt = V1×V5 + V2×3.6×V6 + V3×V7
+  const koszt = (v1 * v5) + (v2 * 3.6 * v6) + (v3 * v7);
+  
+  const target = document.querySelector('[data-id="EKS-V8-KOSZT"]');
+  if (target) {
+    if (koszt > 0) {
+      target.value = koszt.toFixed(0) + ' PLN/rok';
+      target.style.color = 'var(--green-deep)';
+      target.style.fontWeight = '700';
+    } else {
+      target.value = '';
+      target.placeholder = '[wpisz V1-V3 aby wyliczyć]';
+    }
+  }
+}
+
+// === E8 KPI SUMMARY — auto-wyliczane wskaźniki ===
+function buildKpiSummary() {
+  const container = document.getElementById('kpi-summary');
+  if (!container) return;
+  
+  const nTypy = getNTypy();
+  
+  // Wyliczamy KPI z dostępnych danych
+  const kpis = [];
+  
+  // KPI 1: Średnia SFP wszystkich typów
+  let sumSfp = 0, countSfp = 0;
+  for (let t = 1; t <= nTypy; t++) {
+    const v = parseFloat((document.querySelector(`[data-id="AHU-V12-SFP-T${t}"]`) || {}).value);
+    if (v > 0) { sumSfp += v; countSfp++; }
+  }
+  const avgSfp = countSfp > 0 ? sumSfp / countSfp : null;
+  let sfpClass = '—', sfpColor = 'var(--ink-mute)';
+  if (avgSfp !== null) {
+    if (avgSfp <= 0.5) { sfpClass = 'SFP1 (top)'; sfpColor = 'var(--ok)'; }
+    else if (avgSfp <= 1.0) { sfpClass = 'SFP2 (dobra)'; sfpColor = 'var(--ok)'; }
+    else if (avgSfp <= 1.5) { sfpClass = 'SFP3 (OK)'; sfpColor = 'var(--gold)'; }
+    else if (avgSfp <= 2.0) { sfpClass = 'SFP4 (średnia)'; sfpColor = 'var(--gold)'; }
+    else if (avgSfp <= 3.0) { sfpClass = 'SFP5 (słaba)'; sfpColor = 'var(--rose)'; }
+    else if (avgSfp <= 4.5) { sfpClass = 'SFP6 (zła)'; sfpColor = 'var(--rose)'; }
+    else { sfpClass = 'SFP7 (krytyczna)'; sfpColor = 'var(--rose)'; }
+  }
+  kpis.push({
+    label: 'Średnia SFP',
+    value: avgSfp !== null ? avgSfp.toFixed(2) : '—',
+    unit: 'kW/(m³/s)',
+    note: sfpClass,
+    color: sfpColor
+  });
+  
+  // KPI 2: Średnia sprawność odzysku
+  let sumEta = 0, countEta = 0;
+  for (let t = 1; t <= nTypy; t++) {
+    const v = parseFloat((document.querySelector(`[data-id="AHU-V14-ODZ-ETA-T${t}"]`) || {}).value);
+    if (v > 0) { sumEta += v; countEta++; }
+  }
+  const avgEta = countEta > 0 ? sumEta / countEta : null;
+  let etaColor = 'var(--ink-mute)';
+  if (avgEta !== null) {
+    if (avgEta >= 73) etaColor = 'var(--ok)';
+    else if (avgEta >= 60) etaColor = 'var(--gold)';
+    else etaColor = 'var(--rose)';
+  }
+  kpis.push({
+    label: 'Średnia η odzysku',
+    value: avgEta !== null ? avgEta.toFixed(1) : '—',
+    unit: '%',
+    note: avgEta !== null && avgEta >= 73 ? 'OK (≥73%)' : (avgEta !== null ? 'Poniżej ErP 2016' : ''),
+    color: etaColor
+  });
+  
+  // KPI 3: % AHU z VFD
+  let countVfd = 0, totalT = 0;
+  for (let t = 1; t <= nTypy; t++) {
+    const v = (document.querySelector(`[data-id="AHU-V16-VFD-T${t}"]`) || {}).value;
+    if (v) {
+      totalT++;
+      if (v.indexOf('VFD') === 0) countVfd++;
+    }
+  }
+  const pctVfd = totalT > 0 ? (countVfd / totalT * 100) : null;
+  kpis.push({
+    label: '% AHU z VFD',
+    value: pctVfd !== null ? pctVfd.toFixed(0) : '—',
+    unit: '%',
+    note: pctVfd !== null && pctVfd >= 80 ? 'OK' : 'Niski potencjał VAV',
+    color: pctVfd !== null && pctVfd >= 80 ? 'var(--ok)' : 'var(--rose)'
+  });
+  
+  // KPI 4: % AHU z BMS
+  const bmsN = parseFloat((document.querySelector('[data-id="SYS-V4-AHU-N-BMS"]') || {}).value) || 0;
+  // Σ AHU z macierzy E3
+  let totalAhu = 0;
+  const nHal = parseInt(enesaStorage.get(MASTER_PREFIX + '_meta_n_hal') || '5', 10);
+  for (let t = 1; t <= nTypy; t++) {
+    for (let h = 1; h <= nHal; h++) {
+      const v = parseInt((document.querySelector(`[data-id="MT-T${t}-H${h}"]`) || {}).value, 10);
+      if (v > 0) totalAhu += v;
+    }
+  }
+  const pctBms = totalAhu > 0 ? (bmsN / totalAhu * 100) : null;
+  kpis.push({
+    label: '% AHU pod BMS',
+    value: pctBms !== null ? pctBms.toFixed(0) : '—',
+    unit: '%',
+    note: totalAhu > 0 ? `${bmsN}/${totalAhu} szt` : 'wpisz E3',
+    color: pctBms !== null && pctBms >= 80 ? 'var(--ok)' : 'var(--rose)'
+  });
+  
+  // KPI 5: kWh/m² wentylacji - intensywność
+  const eeMWh = parseFloat((document.querySelector('[data-id="EKS-V1-EE"]') || {}).value) || 0;
+  // Σ powierzchni hal z Master
+  let totalPow = 0;
+  for (let h = 1; h <= nHal; h++) {
+    const p = parseFloat(enesaStorage.get(MASTER_PREFIX + 'HAL-V4-POW-H' + h)) || 0;
+    totalPow += p;
+  }
+  const kwhPerM2 = (totalPow > 0 && eeMWh > 0) ? (eeMWh * 1000 / totalPow) : null;
+  kpis.push({
+    label: 'kWh/m² wentylacja',
+    value: kwhPerM2 !== null ? kwhPerM2.toFixed(1) : '—',
+    unit: 'kWh/m²',
+    note: kwhPerM2 !== null && kwhPerM2 < 30 ? 'OK niska' : (kwhPerM2 !== null && kwhPerM2 > 50 ? 'Wysoka' : ''),
+    color: kwhPerM2 !== null && kwhPerM2 < 30 ? 'var(--ok)' : (kwhPerM2 !== null && kwhPerM2 > 50 ? 'var(--rose)' : 'var(--gold)')
+  });
+  
+  // KPI 6: Σ AHU w zakładzie
+  kpis.push({
+    label: 'Σ AHU w zakładzie',
+    value: totalAhu > 0 ? String(totalAhu) : '—',
+    unit: 'szt',
+    note: nTypy + ' typów',
+    color: 'var(--green-deep)'
+  });
+  
+  // Render
+  container.innerHTML = '';
+  kpis.forEach(k => {
+    const card = document.createElement('div');
+    card.style.cssText = 'background: white; border: 1px solid var(--paper-deep); border-radius: 6px; padding: 14px;';
+    card.innerHTML = `
+      <div style="font-size: 11px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px">${k.label}</div>
+      <div style="font-size: 24px; font-weight: 700; color: ${k.color}; font-family: var(--serif); line-height: 1">
+        ${k.value}<span style="font-size: 13px; font-weight: 400; color: var(--ink-mute); margin-left: 4px">${k.unit}</span>
+      </div>
+      <div style="font-size: 11px; color: ${k.color}; margin-top: 6px; font-style: italic;">${k.note}</div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+// === E8 14 CZERWONYCH FLAG ===
+// Każda flaga: id, nazwa, reguła sprawdzana w funkcji
+const FLAGI_DEFS = [
+  {id: 'F1', name: 'AHU starsze niż 15 lat', rule: 'AHU-V5-ROK <= (rok bieżący - 15)', desc: 'Wymiana centrali — pobór mocy, brak nowoczesnego odzysku'},
+  {id: 'F2', name: 'SFP > 2.5 kW/(m³/s)', rule: 'AHU-V12-SFP > 2.5', desc: 'Modernizacja silników na efektywne / VFD'},
+  {id: 'F3', name: 'η odzysku < 73%', rule: 'AHU-V14-ODZ-ETA < 73', desc: 'Modernizacja odzysku — wymóg ErP 2016'},
+  {id: 'F4', name: 'Brak by-pass odzysku', rule: 'AHU-V15-BYPASS = NIE', desc: 'Ryzyko przegrzewania latem — wymiana wymiennika'},
+  {id: 'F5', name: 'Brak VFD', rule: 'AHU-V16-VFD = Brak', desc: 'CAPEX VFD — duży potencjał oszczędności (30-50%)'},
+  {id: 'F6', name: 'Harmonogram 24/7 + nie 24h prod.', rule: 'AHU-V19-HARM = 24/7 + tryb pracy ≠ 24/7', desc: 'Setback nocny — duże oszczędności'},
+  {id: 'F7', name: 'Brak BMS', rule: 'SYS-V1-BMS = NIE', desc: 'Brak optymalizacji — instalacja BMS'},
+  {id: 'F8', name: 'Brak presostatów filtrów', rule: 'SYS-V10-PRESOSTATY = NIE', desc: 'Filtry pewnie zatkane — instalacja presostatów'},
+  {id: 'F9', name: 'Krotność N > 6 + hala nieprodukcyjna', rule: 'HAL-AHU-V6-N-WYM > 6 + typ ≠ Produkcja', desc: 'Over-ventilation — DCV / harmonogram'},
+  {id: 'F10', name: 'Bilans masowy mocno ujemny', rule: 'HAL-AHU-V5-BILANS < -2000 m³/h', desc: 'Infiltracja zimna powietrzem — uzupełnić nawiew'},
+  {id: 'F11', name: 'T zimą < 14°C', rule: 'HAL-AHU-V9-TEMP-ZIMA < 14', desc: 'Naruszenie PIP — rozporządzenie BHP'},
+  {id: 'F12', name: 'Bramy bez kurtyn', rule: 'HAL-V7-BRAMY > 0 + V10-KURTYNY-N = 0', desc: 'Straty ciepła — instalacja kurtyn powietrznych'},
+  {id: 'F13', name: 'Czujniki CO2 ale brak DCV', rule: 'AHU-V18-CO2 = TAK + AHU-V17-CTRL ≠ DCV', desc: 'Nieużyty potencjał — przełączenie na DCV'},
+  {id: 'F14', name: 'Brak sub-meteringu EE', rule: 'SYS-V9-METERING = NIE', desc: 'Brak EnPI per AHU — instalacja liczników'},
+];
+
+const ROK_BIEZ = new Date().getFullYear();
+
+function checkFlagi() {
+  const nTypy = getNTypy();
+  const nHal = parseInt(enesaStorage.get(MASTER_PREFIX + '_meta_n_hal') || '5', 10);
+  
+  const results = {};
+  
+  // F1: AHU starsze 15 lat (jakikolwiek typ)
+  let f1 = false;
+  for (let t = 1; t <= nTypy; t++) {
+    const rok = parseInt((document.querySelector(`[data-id="AHU-V5-ROK-T${t}"]`) || {}).value, 10);
+    if (rok && rok > 0 && (ROK_BIEZ - rok) > 15) f1 = true;
+  }
+  results.F1 = f1;
+  
+  // F2: SFP > 2.5
+  let f2 = false;
+  for (let t = 1; t <= nTypy; t++) {
+    const sfp = parseFloat((document.querySelector(`[data-id="AHU-V12-SFP-T${t}"]`) || {}).value);
+    if (sfp > 2.5) f2 = true;
+  }
+  results.F2 = f2;
+  
+  // F3: η < 73%
+  let f3 = false;
+  for (let t = 1; t <= nTypy; t++) {
+    const eta = parseFloat((document.querySelector(`[data-id="AHU-V14-ODZ-ETA-T${t}"]`) || {}).value);
+    if (eta > 0 && eta < 73) f3 = true;
+  }
+  results.F3 = f3;
+  
+  // F4: Brak by-pass
+  let f4 = false;
+  for (let t = 1; t <= nTypy; t++) {
+    const v = (document.querySelector(`[data-id="AHU-V15-BYPASS-T${t}"]`) || {}).value;
+    if (v === 'NIE') f4 = true;
+  }
+  results.F4 = f4;
+  
+  // F5: Brak VFD
+  let f5 = false;
+  for (let t = 1; t <= nTypy; t++) {
+    const v = (document.querySelector(`[data-id="AHU-V16-VFD-T${t}"]`) || {}).value;
+    if (v && v.indexOf('Brak') === 0) f5 = true;
+  }
+  results.F5 = f5;
+  
+  // F6: 24/7 + tryb pracy ≠ 24/7 (czytamy z Master)
+  let f6 = false;
+  const trybMaster = enesaStorage.get(MASTER_PREFIX + 'PRO-V8-TRYB-PRACY') || '';
+  for (let t = 1; t <= nTypy; t++) {
+    const harm = (document.querySelector(`[data-id="AHU-V19-HARM-T${t}"]`) || {}).value;
+    if (harm && harm.indexOf('24/7') === 0 && trybMaster && trybMaster.indexOf('24-7') === -1) f6 = true;
+  }
+  results.F6 = f6;
+  
+  // F7: Brak BMS
+  const bms = (document.querySelector('[data-id="SYS-V1-BMS"]') || {}).value;
+  results.F7 = bms && bms.indexOf('NIE') === 0;
+  
+  // F8: Brak presostatów
+  const pres = (document.querySelector('[data-id="SYS-V10-PRESOSTATY"]') || {}).value;
+  results.F8 = pres === 'NIE';
+  
+  // F9: krotność > 6 + hala nieprodukcyjna
+  let f9 = false;
+  for (let h = 1; h <= nHal; h++) {
+    const n = parseFloat((document.querySelector(`[data-id="HAL-AHU-V6-N-WYM-H${h}"]`) || {}).value);
+    const typ = enesaStorage.get(MASTER_PREFIX + 'HAL-V3-TYP-H' + h) || '';
+    if (n > 6 && typ && typ !== 'Produkcja') f9 = true;
+  }
+  results.F9 = f9;
+  
+  // F10: bilans < -2000
+  let f10 = false;
+  for (let h = 1; h <= nHal; h++) {
+    const b = parseFloat((document.querySelector(`[data-id="HAL-AHU-V5-BILANS-H${h}"]`) || {}).value);
+    if (b < -2000) f10 = true;
+  }
+  results.F10 = f10;
+  
+  // F11: T zimą < 14
+  let f11 = false;
+  for (let h = 1; h <= nHal; h++) {
+    const t = parseFloat((document.querySelector(`[data-id="HAL-AHU-V9-TEMP-ZIMA-H${h}"]`) || {}).value);
+    if (t > 0 && t < 14) f11 = true;
+  }
+  results.F11 = f11;
+  
+  // F12: bramy > 0 + kurtyn = 0
+  let f12 = false;
+  for (let h = 1; h <= nHal; h++) {
+    const bramy = parseFloat(enesaStorage.get(MASTER_PREFIX + 'HAL-V7-BRAMY-H' + h)) || 0;
+    const kurtyny = parseFloat((document.querySelector(`[data-id="HAL-AHU-V10-KURTYNY-N-H${h}"]`) || {}).value) || 0;
+    if (bramy > 0 && kurtyny === 0) f12 = true;
+  }
+  results.F12 = f12;
+  
+  // F13: CO2 = TAK + CTRL ≠ DCV
+  let f13 = false;
+  for (let t = 1; t <= nTypy; t++) {
+    const co2 = (document.querySelector(`[data-id="AHU-V18-CO2-T${t}"]`) || {}).value;
+    const ctrl = (document.querySelector(`[data-id="AHU-V17-CTRL-T${t}"]`) || {}).value;
+    if (co2 === 'TAK' && ctrl && ctrl.indexOf('DCV') === -1) f13 = true;
+  }
+  results.F13 = f13;
+  
+  // F14: Brak sub-meteringu
+  const meter = (document.querySelector('[data-id="SYS-V9-METERING"]') || {}).value;
+  results.F14 = meter === 'NIE — tylko ogólny licznik';
+  
+  return results;
+}
+
+function buildFlagi() {
+  const container = document.getElementById('flagi-list');
+  if (!container) return;
+  
+  const results = checkFlagi();
+  let activeCount = 0;
+  
+  container.innerHTML = '';
+  FLAGI_DEFS.forEach(f => {
+    const isOn = !!results[f.id];
+    if (isOn) activeCount++;
+    
+    const row = document.createElement('div');
+    row.className = 'flag-row ' + (isOn ? 'flag-on' : 'flag-off');
+    row.innerHTML = `
+      <div class="flag-id">${f.id}</div>
+      <div>
+        <div class="flag-name">${f.name}</div>
+        <div class="flag-rule">${f.desc}</div>
+      </div>
+      <div style="font-size: 11px; color: var(--ink-mute); font-style: italic">${f.rule}</div>
+      <div class="flag-status ${isOn ? 'on' : 'off'}">${isOn ? '🔴 AKTYWNA' : '🟢 OK'}</div>
+    `;
+    container.appendChild(row);
+  });
+  
+  // Aktualizuj counter w sekcji
+  const cnt = document.getElementById('flagi-active-count');
+  if (cnt) cnt.textContent = String(activeCount);
+  
+  // Sidenav counter
+  const sidenavFlagCount = document.getElementById('sidenav-flag-count');
+  if (sidenavFlagCount) sidenavFlagCount.textContent = `${activeCount}/14`;
+  
+  // Status audytu
+  const statusEl = document.getElementById('audyt-status');
+  if (statusEl) {
+    if (activeCount === 0) {
+      statusEl.textContent = 'brak danych lub OK';
+      statusEl.style.color = 'var(--ink-mute)';
+    } else if (activeCount <= 3) {
+      statusEl.textContent = '✓ Niski (≤3 flagi)';
+      statusEl.style.color = 'var(--ok)';
+    } else if (activeCount <= 7) {
+      statusEl.textContent = '⚠ Średni (4-7 flag)';
+      statusEl.style.color = 'var(--gold)';
+    } else {
+      statusEl.textContent = '⚠⚠ Wysoki (>7 flag)';
+      statusEl.style.color = 'var(--rose)';
+    }
+  }
+}
+
+function refreshKpiAndFlagi() {
+  if (typeof autoCalcKoszt === 'function') autoCalcKoszt();
+  if (typeof buildKpiSummary === 'function') buildKpiSummary();
+  if (typeof buildFlagi === 'function') buildFlagi();
+}
+
+// === Restore dynamic state ===
+function restoreDynamicAhu() {
+  // Przywróć liczbę typów (jeśli zapisano > 3)
+  const targetTypy = getNTypy();
+  const typTable = document.getElementById('typy-table');
+  if (typTable) {
+    const currentTypy = typTable.querySelectorAll('thead tr .th-instance').length;
+    for (let i = currentTypy; i < targetTypy; i++) {
+      document.getElementById('add-typ-btn')?.click();
+    }
+  }
+}
+
+function bindAllFields() {
+  document.querySelectorAll('[data-id]').forEach(el => {
+    if ((el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA')
+        && !el.dataset.masterSource) {
+      el.removeEventListener('input', onFieldInput);
+      el.addEventListener('input', onFieldInput);
+      el.removeEventListener('change', onFieldInput);
+      el.addEventListener('change', onFieldInput);
+    }
+  });
+  // Listener: zmiana nazwy/numeru typu → rebuildMacierzTypyHale nagłówków
+  document.querySelectorAll('.typ-name-input, .typ-num-input').forEach(el => {
+    el.removeEventListener('input', onTypNameChange);
+    el.addEventListener('input', onTypNameChange);
+  });
+}
+
+// === Periodic refresh of Master fields (klient mógł otworzyć Master w innej zakładce) ===
+setInterval(() => {
+  refreshMasterFields();
+  if (typeof rebuildMacierzTypyHale === 'function') rebuildMacierzTypyHale();
+  if (typeof rebuildHaleAhu === 'function') rebuildHaleAhu();
+  if (typeof rebuildWydzAhu === 'function') rebuildWydzAhu();
+  refreshKpiAndFlagi();
+}, 5000);
+
+// === INIT ===
+restoreDynamicAhu();      // odbuduj dynamiczne kolumny typów AHU
+bindAllFields();
+loadSavedData();
+refreshMasterFields();
+rebuildMacierzTypyHale(); // zbuduj macierz E3
+rebuildHaleAhu();         // zbuduj E4 hale (RO + AHU-specific)
+rebuildWydzAhu();         // zbuduj E5 wydziały (RO + 1 AHU-specific)
+refreshKpiAndFlagi();     // E7 auto-koszt + E8 KPI + 14 flag
+
+</script>
+
+</body>
+</html>

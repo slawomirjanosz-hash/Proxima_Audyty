@@ -12,6 +12,7 @@ class EnergyAudit extends Model
 
     // All valid statuses
     public const STATUSES = [
+        'oczekujący'           => 'Oczekujący na zatwierdzenie',
         'wysłany'              => 'Wysłany',
         'rozpoczęty'           => 'Rozpoczęty',
         'do_analizy'           => 'Do analizy',
@@ -28,7 +29,7 @@ class EnergyAudit extends Model
 
     // Statuses considered "active/in-progress" for the index tab
     public const ACTIVE_STATUSES = [
-        'new', 'in_progress', 'wysłany', 'rozpoczęty', 'do_analizy', 'zwrócony_do_poprawy', 'zaakceptowany',
+        'new', 'in_progress', 'oczekujący', 'wysłany', 'rozpoczęty', 'do_analizy', 'zwrócony_do_poprawy', 'zaakceptowany',
     ];
 
     // Statuses considered "done/finished" for the completed tab

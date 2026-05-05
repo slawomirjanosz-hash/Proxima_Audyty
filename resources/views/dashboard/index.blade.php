@@ -170,6 +170,11 @@
         .st-inquiry  { background:#fef3c7; color:#92400e; }
         .st-chat     { background:#e0f2fe; color:#0369a1; }
         .co-empty { text-align:center; padding:24px; color:#9ab4c5; font-size:13px; }
+        /* ── Per-company assign panel ─────────────────────────────── */
+        .co-tile-item { display:flex; flex-direction:column; }
+        .co-tile-item .company-tile { flex:1; }
+        .co-tile-assign-btn { border:none; border-top:1px solid #e8f1f8; background:transparent; padding:8px 14px; cursor:pointer; font-size:12px; font-weight:700; color:#0e89d8; display:flex; justify-content:space-between; align-items:center; width:100%; text-align:left; transition:background .15s; }
+        .co-tile-assign-btn:hover { background:#f0f8ff; }
         /* ── AI token stats ───────────────────────────────────────── */
         .ai-summary-bar {
             display:grid;
@@ -303,6 +308,190 @@
             </div>{{-- /dash-section --}}
         @endif
 
+        {{-- Audit assignment is per-company (inside each company tile) --}}
+        {{-- REMOVED global assign section --}}
+        <div style="display:none" id="dash-sec-assign-audit">
+            <div>
+                <h2>⚡ Przydziel nowy audyt
+                    @if($pendingAudits->isNotEmpty())
+                        <span style="background:#dcfce7; color:#15803d; border:1px solid #86efac; border-radius:20px; padding:2px 10px; font-size:12px; font-weight:700; margin-left:8px;">{{ $pendingAudits->count() }} oczekujących</span>
+                    @endif
+                </h2>
+                <span class="dash-chevron">▼</span>
+            </div>
+            <div class="dash-section-body">
+
+                {{-- Auto-pending audits from accepted offers --}}
+                @if($pendingAudits->isNotEmpty())
+                <div style="margin-bottom:18px;">
+                    <p style="font-size:13px; color:#4c6373; margin:0 0 12px;">Poniższe audyty zostały automatycznie utworzone po zaakceptowaniu ofert przez klientów. Zatwierdź nazwę i przydziel audytora.</p>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(340px, 1fr)); gap:14px;">
+                        @foreach($pendingAudits as $pa)
+                        <div style="background:#f0fff4; border:2px solid #86efac; border-radius:14px; padding:16px 18px;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+                                <div>
+                                    <a href="{{ route('firma.show', $pa->company) }}" style="font-size:14px; font-weight:800; color:#0f2330; text-decoration:none;">{{ $pa->company->name ?? '—' }}</a>
+                                    @if($pa->auditType)
+                                        <span style="display:inline-block; margin-left:6px; background:#dcfce7; color:#15803d; border-radius:20px; padding:2px 10px; font-size:11px; font-weight:700;">{{ $pa->auditType->name }}</span>
+                                    @endif
+                                </div>
+                                <span style="font-size:11px; color:#16a34a; font-weight:700; white-space:nowrap;">🕐 Oczekuje</span>
+                            </div>
+                            <form method="POST" action="{{ route('firma.approveAudit', [$pa->company, $pa]) }}">
+                                @csrf
+                                @method('PATCH')
+                                <div style="display:grid; gap:8px;">
+                                    <div>
+                                        <label style="font-size:11px; font-weight:700; color:#374151; display:block; margin-bottom:4px;">Nazwa audytu *</label>
+                                        <input type="text" name="title" value="{{ $pa->title }}" required
+                                            style="width:100%; border:1px solid #d1fae5; border-radius:8px; padding:7px 10px; font-size:13px; background:#fff; box-sizing:border-box;">
+                                    </div>
+                                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                                        <div>
+                                            <label style="font-size:11px; font-weight:700; color:#374151; display:block; margin-bottom:4px;">Agent AI *</label>
+                                            <select name="agent_type" required style="width:100%; border:1px solid #d1fae5; border-radius:8px; padding:7px 10px; font-size:12px; background:#fff; box-sizing:border-box;">
+                                                <optgroup label="Audyty energetyczne" data-category="energy">
+                                                    <option value="general"                 {{ $pa->agent_type === 'general'                 ? 'selected' : '' }}>Ogólnie</option>
+                                                    <option value="compressor_room"         {{ $pa->agent_type === 'compressor_room'         ? 'selected' : '' }}>Sprężarkownia</option>
+                                                    <option value="boiler_room"             {{ $pa->agent_type === 'boiler_room'             ? 'selected' : '' }}>Kotłownia</option>
+                                                    <option value="drying_room"             {{ $pa->agent_type === 'drying_room'             ? 'selected' : '' }}>Suszarnia</option>
+                                                    <option value="buildings"               {{ $pa->agent_type === 'buildings'               ? 'selected' : '' }}>Budynki</option>
+                                                    <option value="technological_processes" {{ $pa->agent_type === 'technological_processes' ? 'selected' : '' }}>Procesy technologiczne</option>
+                                                </optgroup>
+                                                <optgroup label="ISO 50001" data-category="iso">
+                                                    <option value="iso50001"                {{ $pa->agent_type === 'iso50001'                ? 'selected' : '' }}>ISO 50001</option>
+                                                </optgroup>
+                                                <optgroup label="Białe certyfikaty" data-category="white_cert">
+                                                    <option value="bc_general"                 {{ $pa->agent_type === 'bc_general'                 ? 'selected' : '' }}>Ogólnie (BC)</option>
+                                                    <option value="bc_compressor_room"         {{ $pa->agent_type === 'bc_compressor_room'         ? 'selected' : '' }}>Sprężarkownia (BC)</option>
+                                                    <option value="bc_boiler_room"             {{ $pa->agent_type === 'bc_boiler_room'             ? 'selected' : '' }}>Kotłownia (BC)</option>
+                                                    <option value="bc_drying_room"             {{ $pa->agent_type === 'bc_drying_room'             ? 'selected' : '' }}>Suszarnia (BC)</option>
+                                                    <option value="bc_buildings"               {{ $pa->agent_type === 'bc_buildings'               ? 'selected' : '' }}>Budynki (BC)</option>
+                                                    <option value="bc_technological_processes" {{ $pa->agent_type === 'bc_technological_processes' ? 'selected' : '' }}>Procesy technologiczne (BC)</option>
+                                                </optgroup>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label style="font-size:11px; font-weight:700; color:#374151; display:block; margin-bottom:4px;">Audytor</label>
+                                            <select name="auditor_id" style="width:100%; border:1px solid #d1fae5; border-radius:8px; padding:7px 10px; font-size:12px; background:#fff; box-sizing:border-box;">
+                                                <option value="">Brak przydziału</option>
+                                                @foreach($auditors as $auditor)
+                                                    <option value="{{ $auditor->id }}">{{ $auditor->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div style="display:flex; gap:8px; margin-top:2px;">
+                                        <button type="submit" style="flex:1; padding:8px 14px; background:linear-gradient(130deg,#22c55e,#16a34a); color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">✓ Zatwierdź audyt</button>
+                                        <button type="button" onclick="rejectPendingAudit({{ $pa->id }}, '{{ addslashes($pa->title) }}')" style="padding:8px 12px; background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">Odrzuć</button>
+                                        <form id="reject-form-{{ $pa->id }}" method="POST" action="{{ route('firma.destroyAudit', [$pa->company, $pa]) }}" style="display:none;">@csrf @method('DELETE')</form>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                <hr style="border:none; border-top:1px solid #e8f1f8; margin:0 0 18px;">
+                @else
+                <p style="font-size:13px; color:#8a9bac; margin:0 0 16px;">Brak audytów oczekujących na zatwierdzenie. Możesz dodać audyt ręcznie poniżej.</p>
+                @endif
+
+                {{-- Manual new audit assignment --}}
+                <div id="manual-assign-wrap" style="border:1px solid #d5e0ea; border-radius:12px; overflow:hidden;">
+                    <button type="button" id="manual-assign-toggle-btn" onclick="toggleManualAssign()"
+                        style="width:100%; border:none; background:#f8fbfd; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; text-align:left; transition:background .15s;">
+                        <span style="font-size:14px; font-weight:700; color:#1d3a50;">➕ Dodaj nowy audyt ręcznie</span>
+                        <span id="manual-assign-icon" style="font-size:22px; font-weight:300; color:#0e89d8; line-height:1;">+</span>
+                    </button>
+                    <div id="manual-assign-panel" style="display:none; padding:16px 18px; border-top:1px solid #e8f1f8;">
+                        <div style="margin-bottom:12px;">
+                            <label style="font-size:12px; font-weight:700; color:#374151; display:block; margin-bottom:6px;">Firma *</label>
+                            <select id="manual-assign-company" onchange="updateManualAssignAction(this)"
+                                style="width:100%; max-width:340px; border:1px solid #d5e0ea; border-radius:8px; padding:8px 12px; font-size:13px;">
+                                <option value="">— wybierz firmę —</option>
+                                @foreach($companies as $mc)
+                                    <option value="{{ $mc->id }}" data-url="{{ route('firma.storeAudit', $mc) }}">{{ $mc->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <p style="margin:0 0 12px; font-size:13px; color:#4c6373;">Wybierz rodzaj audytu — kliknij kartę, uzupełnij nazwę i kliknij Przydziel.</p>
+                        @if($auditTypes->isEmpty())
+                            <p style="color:#8a9bac; font-size:13px; font-style:italic; margin:0 0 12px;">Brak zdefiniowanych rodzajów audytów.</p>
+                        @else
+                            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:10px; margin-bottom:14px;" id="manual-audit-type-cards">
+                                @foreach($auditTypes as $type)
+                                <button type="button"
+                                    class="manual-audit-type-card"
+                                    data-id="{{ $type->id }}"
+                                    data-name="{{ $type->name }}"
+                                    data-category="{{ $type->category }}"
+                                    data-agent-type="{{ $type->agent_type ?? '' }}"
+                                    onclick="selectManualAuditTypeCard(this)"
+                                    style="border:2px solid #d5e0ea; border-radius:12px; padding:12px 14px; background:#f8fbfd; cursor:pointer; text-align:left; transition:.15s;">
+                                    <div style="font-size:13px; font-weight:800; color:#0f2330; margin-bottom:4px;">{{ $type->name }}</div>
+                                    <div style="font-size:11px; color:#6b8aa3;">{{ $type->sections->count() }} {{ $type->sections->count() === 1 ? 'sekcja' : ($type->sections->count() < 5 ? 'sekcje' : 'sekcji') }}</div>
+                                </button>
+                                @endforeach
+                            </div>
+                        @endif
+                        <form method="POST" action="" id="manual-assign-form" style="display:none;">
+                            @csrf
+                            <input type="hidden" name="audit_type_id" id="manual-audit-type-id">
+                            <div style="padding:12px 14px; border:2px solid #0e89d8; border-radius:12px; background:#f0f8ff; display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+                                <div style="font-size:13px; font-weight:700; color:#0f2330; flex:1 0 100%; margin-bottom:4px;">
+                                    Wybrany typ: <span id="manual-audit-type-name" style="color:#0e89d8;"></span>
+                                </div>
+                                <div style="flex:2; min-width:200px;">
+                                    <label style="font-size:11px; font-weight:700; color:#374151; display:block; margin-bottom:4px;">Nazwa audytu *</label>
+                                    <input type="text" name="title" id="manual-assign-title" required placeholder="np. Audyt energetyczny 2026"
+                                        style="width:100%; border:1px solid #c8d8e6; border-radius:8px; padding:7px 10px; font-size:13px; box-sizing:border-box;">
+                                </div>
+                                <div style="flex:1; min-width:180px;">
+                                    <label style="font-size:11px; font-weight:700; color:#374151; display:block; margin-bottom:4px;">Agent AI *</label>
+                                    <select name="agent_type" id="manual-assign-agent-type" required style="width:100%; border:1px solid #c8d8e6; border-radius:8px; padding:7px 10px; font-size:12px; box-sizing:border-box;">
+                                        <option value="">— wybierz agenta —</option>
+                                        <optgroup label="Audyty energetyczne" data-category="energy">
+                                            <option value="general">Ogólnie</option>
+                                            <option value="compressor_room">Sprężarkownia</option>
+                                            <option value="boiler_room">Kotłownia</option>
+                                            <option value="drying_room">Suszarnia</option>
+                                            <option value="buildings">Budynki</option>
+                                            <option value="technological_processes">Procesy technologiczne</option>
+                                        </optgroup>
+                                        <optgroup label="ISO 50001" data-category="iso">
+                                            <option value="iso50001">ISO 50001</option>
+                                        </optgroup>
+                                        <optgroup label="Białe certyfikaty" data-category="white_cert">
+                                            <option value="bc_general">Ogólnie (BC)</option>
+                                            <option value="bc_compressor_room">Sprężarkownia (BC)</option>
+                                            <option value="bc_boiler_room">Kotłownia (BC)</option>
+                                            <option value="bc_drying_room">Suszarnia (BC)</option>
+                                            <option value="bc_buildings">Budynki (BC)</option>
+                                            <option value="bc_technological_processes">Procesy technologiczne (BC)</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+                                <div style="flex:1; min-width:160px;">
+                                    <label style="font-size:11px; font-weight:700; color:#374151; display:block; margin-bottom:4px;">Audytor</label>
+                                    <select name="auditor_id" style="width:100%; border:1px solid #c8d8e6; border-radius:8px; padding:7px 10px; font-size:12px; box-sizing:border-box;">
+                                        <option value="">Brak</option>
+                                        @foreach($auditors as $auditor)
+                                            <option value="{{ $auditor->id }}">{{ $auditor->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div style="display:flex; gap:6px; align-self:flex-end;">
+                                    <button type="submit" style="padding:8px 16px; background:linear-gradient(130deg,#0e89d8,#0772b5); color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">Przydziel audyt</button>
+                                    <button type="button" onclick="clearManualAuditTypeSelection()" style="padding:8px 12px; background:#f8fbfd; border:1px solid #d5e0ea; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; color:#4c6373;">Zmień typ</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>{{-- /dash-sec-assign-audit --}}
+
         @if ($companies->isEmpty())
             <div style="padding:32px; text-align:center; color:#9ab4c5; border:1px dashed #d5e0ea; border-radius:12px; margin-top:14px; font-size:14px;">
                 Brak firm w systemie. Dodaj firmy w Ustawieniach.
@@ -350,58 +539,60 @@
                                     $coSearch = strtolower($company->name . ' ' . ($company->city ?? '') . ' ' . ($company->auditor?->name ?? '') . ' ' . ($company->client?->name ?? ''));
                                     $compTokens = $tokensByCompany[$company->id] ?? null;
                                 @endphp
-                                <a href="{{ route('firma.show', $company) }}"
-                                   class="company-tile {{ $tileClass }} co-tile-item"
-                                   style="text-decoration:none; color:inherit;"
-                                   data-search="{{ $coSearch }}"
-                                   data-company-id="{{ $company->id }}"
-                                   data-unread="{{ $unreadChat }}">
-                                    <div class="tile-header">
-                                        <span class="tile-name">{{ $company->name }}</span>
+                                <div class="co-tile-item"
+                                     data-search="{{ $coSearch }}"
+                                     data-company-id="{{ $company->id }}"
+                                     data-unread="{{ $unreadChat }}">
+                                    <a href="{{ route('firma.show', $company) }}"
+                                       class="company-tile {{ $tileClass }}"
+                                       style="text-decoration:none; color:inherit;">
+                                        <div class="tile-header">
+                                            <span class="tile-name">{{ $company->name }}</span>
+                                            @if ($acceptedCount > 0)
+                                                <span class="tile-badge-action" style="background:#d1fae5; border-color:#16a34a; color:#065f46;">✅ Przydziel audyt</span>
+                                            @elseif ($inquiryCount > 0)
+                                                <span class="tile-badge-action">⚡ Wymaga działania</span>
+                                            @endif
+                                        </div>
+                                        <div class="tile-meta">
+                                            @if ($company->city)
+                                                <span>📍 {{ $company->city }}</span>
+                                            @endif
+                                            @if ($company->auditor)
+                                                <span>👤 {{ $company->auditor->name }}</span>
+                                            @endif
+                                            @if ($company->client)
+                                                <span>🔐 Klient: {{ $company->client->name }}</span>
+                                            @endif
+                                            @if ($unreadChat > 0)
+                                                <span style="color:#0369a1; font-weight:700;" data-unread-label>💬 {{ $unreadChat }} {{ $unreadChat === 1 ? 'nowa wiadomość' : ($unreadChat < 5 ? 'nowe wiadomości' : 'nowych wiadomości') }}</span>
+                                            @else
+                                                <span style="color:#0369a1; font-weight:700; display:none;" data-unread-label></span>
+                                            @endif
+                                            @if ($auditCount > 0)
+                                                <span>📋 {{ $auditCount }} {{ $auditCount === 1 ? 'audyt' : ($auditCount < 5 ? 'audyty' : 'audytów') }}</span>
+                                            @endif
+                                            @if ($compTokens && $compTokens['total'] > 0)
+                                                <span>
+                                                    <span class="ai-token-badge">🤖 {{ number_format($compTokens['total']) }} tok · {{ number_format($compTokens['cost_pln'], 2) }} zł</span>
+                                                </span>
+                                            @endif
+                                        </div>
                                         @if ($acceptedCount > 0)
-                                            <span class="tile-badge-action" style="background:#d1fae5; border-color:#16a34a; color:#065f46;">✅ Przydziel audyt</span>
+                                            <div class="tile-inquiry-alert" style="background:#d1fae5; border-color:#16a34a; color:#065f46;">
+                                                ✅ Klient zaakceptował ofertę — przydziel audyt!
+                                            </div>
                                         @elseif ($inquiryCount > 0)
-                                            <span class="tile-badge-action">⚡ Wymaga działania</span>
+                                            <div class="tile-inquiry-alert">
+                                                📬 {{ $inquiryCount }} nowe {{ $inquiryCount === 1 ? 'zapytanie' : ($inquiryCount < 5 ? 'zapytania' : 'zapytań') }} oczekuje na decyzję
+                                            </div>
+                                        @elseif ($unreadChat > 0)
+                                            <div class="tile-inquiry-alert" style="background:#e0f2fe; border-color:#7dd3fc; color:#0369a1;">
+                                                💬 Klient wysłał {{ $unreadChat }} {{ $unreadChat === 1 ? 'wiadomość' : ($unreadChat < 5 ? 'wiadomości' : 'wiadomości') }} — kliknij by odpowiedzieć
+                                            </div>
                                         @endif
-                                    </div>
-                                    <div class="tile-meta">
-                                        @if ($company->city)
-                                            <span>📍 {{ $company->city }}</span>
-                                        @endif
-                                        @if ($company->auditor)
-                                            <span>👤 {{ $company->auditor->name }}</span>
-                                        @endif
-                                        @if ($company->client)
-                                            <span>🔐 Klient: {{ $company->client->name }}</span>
-                                        @endif
-                                        @if ($unreadChat > 0)
-                                            <span style="color:#0369a1; font-weight:700;" data-unread-label>💬 {{ $unreadChat }} {{ $unreadChat === 1 ? 'nowa wiadomość' : ($unreadChat < 5 ? 'nowe wiadomości' : 'nowych wiadomości') }}</span>
-                                        @else
-                                            <span style="color:#0369a1; font-weight:700; display:none;" data-unread-label></span>
-                                        @endif
-                                        @if ($auditCount > 0)
-                                            <span>📋 {{ $auditCount }} {{ $auditCount === 1 ? 'audyt' : ($auditCount < 5 ? 'audyty' : 'audytów') }}</span>
-                                        @endif
-                                        @if ($compTokens && $compTokens['total'] > 0)
-                                            <span>
-                                                <span class="ai-token-badge">🤖 {{ number_format($compTokens['total']) }} tok · {{ number_format($compTokens['cost_pln'], 2) }} zł</span>
-                                            </span>
-                                        @endif
-                                    </div>
-                                    @if ($acceptedCount > 0)
-                                        <div class="tile-inquiry-alert" style="background:#d1fae5; border-color:#16a34a; color:#065f46;">
-                                            ✅ Klient zaakceptował ofertę — przydziel audyt!
-                                        </div>
-                                    @elseif ($inquiryCount > 0)
-                                        <div class="tile-inquiry-alert">
-                                            📬 {{ $inquiryCount }} nowe {{ $inquiryCount === 1 ? 'zapytanie' : ($inquiryCount < 5 ? 'zapytania' : 'zapytań') }} oczekuje na decyzję
-                                        </div>
-                                    @elseif ($unreadChat > 0)
-                                        <div class="tile-inquiry-alert" style="background:#e0f2fe; border-color:#7dd3fc; color:#0369a1;">
-                                            💬 Klient wysłał {{ $unreadChat }} {{ $unreadChat === 1 ? 'wiadomość' : ($unreadChat < 5 ? 'wiadomości' : 'wiadomości') }} — kliknij by odpowiedzieć
-                                        </div>
-                                    @endif
-                                </a>
+                                    </a>
+                                </div>{{-- /co-tile-item --}}
                             @endforeach
                         </div>
                         <div id="co-tiles-empty" class="co-empty" style="display:none;">Brak wyników dla wpisanej frazy.</div>
@@ -610,19 +801,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     anyNew = true;
 
                     // Flash tile
-                    const tile = document.querySelector('.co-tile-item[data-company-id="' + id + '"]');
-                    if (tile) {
-                        tile.classList.add('has-unread-chat', 'chat-incoming');
-                        tile.dataset.unread = String(newCount);
+                    const tileWrap = document.querySelector('.co-tile-item[data-company-id="' + id + '"]');
+                    if (tileWrap) {
+                        const tileCard = tileWrap.querySelector('.company-tile');
+                        if (tileCard) {
+                            tileCard.classList.add('has-unread-chat', 'chat-incoming');
+                            tileCard.addEventListener('animationend', function () {
+                                tileCard.classList.remove('chat-incoming');
+                            }, { once: true });
+                        }
+                        tileWrap.dataset.unread = String(newCount);
                         // Update unread label inside tile
-                        const unreadSpan = tile.querySelector('[data-unread-label]');
+                        const unreadSpan = tileWrap.querySelector('[data-unread-label]');
                         if (unreadSpan) {
                             unreadSpan.textContent = '💬 ' + newCount + ' ' + (newCount === 1 ? 'nowa wiadomość' : (newCount < 5 ? 'nowe wiadomości' : 'nowych wiadomości'));
                             unreadSpan.style.display = '';
                         }
-                        tile.addEventListener('animationend', function () {
-                            tile.classList.remove('chat-incoming');
-                        }, { once: true });
                     }
 
                     // Flash table row
@@ -660,6 +854,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     setInterval(pollDashboardChat, 8000);
 })();
+
+// ── Per-company assign panel ──────────────────────────────────
+function rejectPendingAudit(id, title) {
+    if (confirm('Odrzucić i usunąć audyt „' + title + '"? Tej operacji nie można cofnąć.')) {
+        document.getElementById('reject-form-' + id).submit();
+    }
+}
 </script>
 </x-layouts.app>
 

@@ -120,7 +120,7 @@ class ClientController extends Controller
     {
         return collect([
             // ── Audyty energetyczne ──────────────────────────────
-            ['value' => 'agent:general',                  'id' => null, 'name' => 'Ogólnie',                'category' => 'energy'],
+            ['value' => 'agent:general',                  'id' => null, 'name' => 'Audyty Energetyczne całego zakładu', 'category' => 'energy'],
             ['value' => 'agent:compressor_room',          'id' => null, 'name' => 'Sprężarkownia',          'category' => 'energy'],
             ['value' => 'agent:boiler_room',              'id' => null, 'name' => 'Kotłownia',              'category' => 'energy'],
             ['value' => 'agent:drying_room',              'id' => null, 'name' => 'Suszarnia',              'category' => 'energy'],
@@ -257,6 +257,26 @@ class ClientController extends Controller
         // Mark the linked offer as accepted
         if ($inquiry->offer_id) {
             \App\Models\Offer::where('id', $inquiry->offer_id)->update(['status' => 'accepted']);
+        }
+
+        // Auto-create a draft audit awaiting admin approval
+        if ($inquiry->company_id) {
+            $auditType = $inquiry->audit_type_id
+                ? \App\Models\AuditType::find($inquiry->audit_type_id)
+                : null;
+
+            $title = ($auditType ? $auditType->name : ($inquiry->audit_type_name ?? 'Audyt'))
+                . ' – ' . now()->year;
+
+            \App\Models\EnergyAudit::create([
+                'title'         => $title,
+                'audit_type_id' => $auditType?->id,
+                'audit_type'    => $auditType?->name ?? ($inquiry->audit_type_name ?? ''),
+                'agent_type'    => $auditType?->agent_type ?? 'general',
+                'company_id'    => $inquiry->company_id,
+                'status'        => 'oczekujący',
+                'data_payload'  => [],
+            ]);
         }
 
         return back()->with('inquiry_status', 'Zaakceptowałeś ofertę. Nasz zespół wkrótce przydzieli Ci odpowiedni audyt.');
@@ -560,7 +580,7 @@ class ClientController extends Controller
         }
 
         $agentLabels = [
-            'general'                 => 'Ogólnie',
+            'general'                 => 'Audyty Energetyczne całego zakładu',
             'compressor_room'         => 'Sprężarkownia',
             'boiler_room'             => 'Kotłownia',
             'drying_room'             => 'Suszarnia',
