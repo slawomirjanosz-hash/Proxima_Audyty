@@ -23,7 +23,7 @@ class EnergyAuditMasterController extends Controller
         // Staff without company_id = preview/read-only mode (no DB record created)
         $previewMode = false;
         if ($isStaff && $request->filled('company_id')) {
-            $company = Company::findOrFail($request->integer('company_id'));
+            $company = Company::with('auditor')->findOrFail($request->integer('company_id'));
         } elseif ($isStaff && !$request->filled('company_id')) {
             $company     = null;
             $previewMode = true;
@@ -136,8 +136,8 @@ class EnergyAuditMasterController extends Controller
     private function resolveCompany($user): ?Company
     {
         if ($user->company_id) {
-            return Company::find($user->company_id);
+            return Company::with('auditor')->find($user->company_id);
         }
-        return Company::where('client_id', $user->id)->first();
+        return Company::with('auditor')->where('client_id', $user->id)->first();
     }
 }

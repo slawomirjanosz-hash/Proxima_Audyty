@@ -196,6 +196,8 @@
 .mf-id { font-size: 10px; color: #8aa3b5; font-family: monospace; }
 .mf-wrap { display: flex; flex-direction: column; gap: 3px; }
 .mf-hint { font-size: 11px; color: #8aa3b5; font-style: italic; }
+.mf-hq-btn { margin-top: 5px; padding: 4px 10px; font-size: 11px; font-weight: 700; color: #1d4f73; background: #e8f4fb; border: 1px solid #b8d8ee; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+.mf-hq-btn:hover { background: #d0eaf8; }
 .mf-unit { font-size: 11px; color: #6b8aa3; font-family: monospace; padding-top: 10px; text-align: right; }
 .mf-input, .mf-select, .mf-textarea {
     font-size: 13px;
@@ -608,6 +610,10 @@
                 <div class="mf-label"><div class="mf-q">{{ $label }}</div><div class="mf-id">{{ $fid }}</div></div>
                 <div class="mf-wrap">
                     <input type="{{ $type }}" class="mf-input {{ isset($formData[$fid]) && $formData[$fid] !== '' ? 'mf-filled' : '' }}" data-id="{{ $fid }}" placeholder="{{ $ph }}" value="{{ $formData[$fid] ?? '' }}">
+                    @if(in_array($fid, ['ZAK-V1-LOK-NAZWA','ZAK-V2-LOK-ADRES']) && $company)
+                    @php $hqVal = $fid === 'ZAK-V1-LOK-NAZWA' ? $company->name : trim(implode(', ', array_filter([$company->street ?? '', trim(($company->postal_code ?? '').' '.($company->city ?? ''))]))); @endphp
+                    <button type="button" class="mf-hq-btn" onclick="fillLikeHQ('{{ $fid }}', {{ json_encode($hqVal) }})">📍 Jak siedziba firmy</button>
+                    @endif
                     <div class="mf-hint">{{ $hint }}</div>
                 </div>
                 <div class="mf-unit"><span class="mtag mtag-{{ $who }}">{{ strtoupper($who) }}</span><br>{{ $unit }}</div>
@@ -1295,6 +1301,48 @@ const CSRF       = '{{ csrf_token() }}';
 const FORM_DATA  = @json($formData);
 const COMPANY_ID = {{ $company ? $company->id : 'null' }};
 const PREVIEW_MODE = {{ !empty($previewMode) && $previewMode ? 'true' : 'false' }};
+const COMPANY_DATA = @json($company ? [
+    'name'        => $company->name ?? '',
+    'nip'         => $company->nip ?? '',
+    'address'     => trim(implode(', ', array_filter([
+                        $company->street ?? '',
+                        trim(($company->postal_code ?? '') . ' ' . ($company->city ?? '')),
+                    ]))),
+    'city'        => $company->city ?? '',
+    'auditorName' => $company->auditor?->name ?? '',
+    'auditorEmail'=> $company->auditor?->email ?? '',
+] : null);
+
+// == Auto-fill company data (only into empty fields, skip if already saved) ==
+(function prefillCompanyData() {
+    if (PREVIEW_MODE || !COMPANY_DATA) return;
+    function setIfEmpty(dataId, value) {
+        if (!value) return;
+        var el = document.querySelector('[data-id="' + dataId + '"]');
+        if (!el || el.value !== '') return; // don't overwrite saved data
+        el.value = value;
+        el.classList.add('mf-filled');
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    setIfEmpty('AUD-V1-NAZWA', COMPANY_DATA.name);
+    setIfEmpty('AUD-V2-NIP',   COMPANY_DATA.nip);
+    setIfEmpty('AUD-V4-ADRES', COMPANY_DATA.address);
+    // Team — Osoba 1: auditor assigned to company
+    setIfEmpty('AUD-V13-IMIE-U1', COMPANY_DATA.auditorName);
+    setIfEmpty('AUD-V13-MAIL-U1', COMPANY_DATA.auditorEmail);
+    // Location defaults
+    setIfEmpty('ZAK-V1-LOK-NAZWA', COMPANY_DATA.name);
+    setIfEmpty('ZAK-V2-LOK-ADRES', COMPANY_DATA.address);
+})();
+
+// == 'Jak siedziba firmy' helper ==
+window.fillLikeHQ = function(fieldId, value) {
+    var el = document.querySelector('[data-id="' + fieldId + '"]');
+    if (!el || !value) return;
+    el.value = value;
+    el.classList.add('mf-filled');
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+};
 
 // == State ==
 let saveTimer   = null;
