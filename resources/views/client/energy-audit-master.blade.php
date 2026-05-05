@@ -1301,17 +1301,19 @@ const CSRF       = '{{ csrf_token() }}';
 const FORM_DATA  = @json($formData);
 const COMPANY_ID = {{ $company ? $company->id : 'null' }};
 const PREVIEW_MODE = {{ !empty($previewMode) && $previewMode ? 'true' : 'false' }};
-const COMPANY_DATA = @json($company ? [
-    'name'        => $company->name ?? '',
-    'nip'         => $company->nip ?? '',
-    'address'     => trim(implode(', ', array_filter([
-                        $company->street ?? '',
-                        trim(($company->postal_code ?? '') . ' ' . ($company->city ?? '')),
-                    ]))),
-    'city'        => $company->city ?? '',
-    'auditorName' => $company->auditor?->name ?? '',
-    'auditorEmail'=> $company->auditor?->email ?? '',
-] : null);
+@php
+$_companyData = $company ? [
+    'name'         => $company->name ?? '',
+    'nip'          => $company->nip ?? '',
+    'address'      => trim(implode(', ', array_filter([
+                          $company->street ?? '',
+                          trim(($company->postal_code ?? '') . ' ' . ($company->city ?? '')),
+                      ]))),
+    'auditorName'  => $company->auditor?->name ?? '',
+    'auditorEmail' => $company->auditor?->email ?? '',
+] : null;
+@endphp
+const COMPANY_DATA = @json($_companyData);
 
 // == Auto-fill company data (only into empty fields, skip if already saved) ==
 (function prefillCompanyData() {
