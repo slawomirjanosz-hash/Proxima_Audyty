@@ -308,8 +308,10 @@ class OffersController extends Controller
         $cleaned = array_map(function ($item) {
             foreach (['price', 'catalog_price', 'value'] as $field) {
                 if (isset($item[$field])) {
-                    // strip formatting: spaces, currency, replace comma decimal separator
-                    $raw = str_replace([' ', 'zł', '\u00a0'], '', (string) $item[$field]);
+                    // Strip all non-numeric characters except comma, period, and minus sign
+                    // This correctly handles Polish locale non-breaking spaces (\xc2\xa0)
+                    $raw = preg_replace('/[^\d,\.\-]/', '', (string) $item[$field]);
+                    // Replace comma decimal separator with period (Polish format: 55000,00)
                     $raw = str_replace(',', '.', $raw);
                     $item[$field] = (float) $raw;
                 }

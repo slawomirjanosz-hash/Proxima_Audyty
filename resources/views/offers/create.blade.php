@@ -317,6 +317,10 @@
 const quill = new Quill('#quill-editor', { theme: 'snow', placeholder: 'Opis oferty...' });
 document.getElementById('offer-form').addEventListener('submit', function() {
     document.getElementById('offer_description_input').value = quill.root.innerHTML;
+    // Normalize value-input fields: submit raw numeric values, not formatted display strings
+    document.querySelectorAll('.value-input').forEach(function(inp) {
+        if (inp.dataset.raw !== undefined) inp.value = inp.dataset.raw;
+    });
 });
 
 // ── Wypełnij dane klienta z CRM ──
