@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ClientChatMessage;
 use App\Models\Company;
 use App\Models\EnergyAuditMasterData;
 use Illuminate\Http\JsonResponse;
@@ -11,14 +12,26 @@ use Illuminate\View\View;
 class EnergyAuditMasterController extends Controller
 {
     /**
-     * Show master audit form for the logged-in client's company.
+     * Show master audit form.
+     * Admin/auditor can pass ?company_id=X to fill on behalf of a client.
      */
     public function show(Request $request): View
     {
         $user    = $request->user();
-        $company = $this->resolveCompany($user);
+        $isStaff = in_array($user->role->value ?? $user->role, ['admin', 'auditor', 'super_admin'], true);
 
-        $masterData = $company
+        // Staff without company_id = preview/read-only mode (no DB record created)
+        $previewMode = false;
+        if ($isStaff && $request->filled('company_id')) {
+            $company = Company::findOrFail($request->integer('company_id'));
+        } elseif ($isStaff && !$request->filled('company_id')) {
+            $company     = null;
+            $previewMode = true;
+        } else {
+            $company = $this->resolveCompany($user);
+        }
+
+        $masterData = (!$previewMode && $company)
             ? EnergyAuditMasterData::firstOrCreate(
                 ['company_id' => $company->id],
                 ['form_data' => [], 'completion_percent' => 0]
@@ -26,26 +39,41 @@ class EnergyAuditMasterController extends Controller
             : null;
 
         return view('client.energy-audit-master', [
-            'company'    => $company,
-            'masterData' => $masterData,
-            'formData'   => $masterData ? $masterData->getFormDataSafe() : [],
+            'company'      => $company,
+            'masterData'   => $masterData,
+            'formData'     => $masterData ? $masterData->getFormDataSafe() : [],
+            'isStaff'      => $isStaff,
+            'previewMode'  => $previewMode,
+            'chatMessages' => (!$previewMode && $company)
+                ? ClientChatMessage::where('company_id', $company->id)
+                    ->orderBy('created_at')
+                    ->get()
+                : collect(),
         ]);
     }
 
     /**
-     * AJAX auto-save: accepts JSON body { fields: { "FIELD-ID": "value", ... }, completion_percent: 42 }
+     * AJAX auto-save: accepts JSON body { fields: { "FIELD-ID": "value", ... }, completion_percent: 42, company_id: X (admin only) }
      */
     public function save(Request $request): JsonResponse
     {
-        $user = $request->user();
-        abort_unless($user->isClient() || in_array($user->role, ['admin', 'auditor'], true), 403);
+        $user    = $request->user();
+        $isStaff = in_array($user->role->value ?? $user->role, ['admin', 'auditor', 'super_admin'], true);
+        abort_unless($user->isClient() || $isStaff, 403);
 
         $request->validate([
             'fields'             => ['required', 'array'],
             'completion_percent' => ['nullable', 'integer', 'min:0', 'max:100'],
+            'company_id'         => ['nullable', 'integer', 'exists:companies,id'],
         ]);
 
-        $company = $this->resolveCompany($user);
+        // Staff can save for any company
+        if ($isStaff && $request->filled('company_id')) {
+            $company = Company::findOrFail($request->integer('company_id'));
+        } else {
+            $company = $this->resolveCompany($user);
+        }
+
         if (! $company) {
             return response()->json(['error' => 'Brak przypisanej firmy.'], 422);
         }

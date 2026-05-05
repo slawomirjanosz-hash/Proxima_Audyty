@@ -159,7 +159,7 @@ class AuditsController extends Controller
         // AI agents for the "energetyczne" tab
         $agentService = app(\App\Services\AiAgentService::class);
         $agentDefs = [
-            ['type' => 'general',                 'icon' => '💬', 'name' => 'Ogólnie',                   'description' => 'Ogólna rozmowa o audytach energetycznych i efektywności'],
+            ['type' => 'general',                 'icon' => '⚡', 'name' => 'Audyt energetyczny zakładu',        'description' => 'Ankieta Master — zbiera dane o całym zakładzie (procesy, nośniki, zużycia, hale) i zasila wszystkie dalsze audyty'],
             ['type' => 'compressor_room',          'icon' => '🔧', 'name' => 'Sprężarkownia',              'description' => 'Zbieranie danych do audytu sprężarkowni i instalacji sprężonego powietrza'],
             ['type' => 'boiler_room',             'icon' => '🔥', 'name' => 'Kotłownia',                  'description' => 'Zbieranie danych do audytu kotłowni — kotły, paliwo, sprawność, c.w.u.'],
             ['type' => 'drying_room',             'icon' => '🌡️', 'name' => 'Suszarnia',                  'description' => 'Zbieranie danych do audytu suszarni i procesów suszenia'],

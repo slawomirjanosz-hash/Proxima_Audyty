@@ -84,17 +84,17 @@ class ClientController extends Controller
         ]);
     }
 
-    public function storeInquiry(Request $request): RedirectResponse
+    public function storeInquiry(Request $request): \Illuminate\Http\Response|RedirectResponse|JsonResponse
     {
         $user = $request->user();
         $auditTypeOptions = $this->buildAuditTypeOptions()->keyBy('value');
 
         $validated = $request->validate([
-            'audit_type' => ['required', 'string', Rule::in($auditTypeOptions->keys()->all())],
-            'message'       => ['nullable', 'string', 'max:2000'],
+            'audit_type' => ['nullable', 'string', Rule::in(array_merge([''], $auditTypeOptions->keys()->all()))],
+            'message'       => ['required', 'string', 'max:2000'],
         ]);
 
-        $selectedType = $auditTypeOptions->get($validated['audit_type']);
+        $selectedType = $auditTypeOptions->get($validated['audit_type'] ?? '');
         $auditTypeId = $selectedType['id'] ?? null;
         $auditTypeName = (string) ($selectedType['name'] ?? '');
 
@@ -112,6 +112,10 @@ class ClientController extends Controller
             'message'         => $validated['message'] ?? null,
             'status'          => 'new',
         ]);
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true], 201);
+        }
 
         return back()->with('inquiry_status', 'Zapytanie zostało wysłane. Skontaktujemy się z Tobą wkrótce.');
     }

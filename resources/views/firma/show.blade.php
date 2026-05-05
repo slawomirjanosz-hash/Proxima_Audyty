@@ -651,83 +651,69 @@
             </div>
             @endif
 
-            {{-- Manual new audit --}}
+            {{-- Manual new audit — 2-step selector --}}
             <div>
-                <p style="font-size:13px; color:#4c6373; margin:0 0 12px;">Wybierz rodzaj audytu, uzupełnij nazwę i kliknij Przydziel.</p>
-                @if($auditTypes->isEmpty())
-                    <p style="color:#8a9bac; font-size:13px; font-style:italic; margin:0 0 12px;">Brak zdefiniowanych rodzajów audytów.</p>
-                @else
-                    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:8px; margin-bottom:12px;" id="audit-type-cards">
-                        @foreach($auditTypes as $type)
-                        <button type="button"
-                            class="audit-type-card"
-                            data-id="{{ $type->id }}"
-                            data-name="{{ $type->name }}"
-                            data-category="{{ $type->category }}"
-                            data-agent-type="{{ $type->agent_type ?? '' }}"
-                            onclick="selectAuditTypeCard(this)"
-                            style="border:2px solid #d5e0ea; border-radius:10px; padding:10px 12px; background:#f8fbfd; cursor:pointer; text-align:left; transition:.15s;">
-                            <div style="font-size:13px; font-weight:800; color:#0f2330; margin-bottom:3px;">{{ $type->name }}</div>
-                            <div style="font-size:11px; color:#6b8aa3;">{{ $type->sections->count() }} {{ $type->sections->count() === 1 ? 'sekcja' : ($type->sections->count() < 5 ? 'sekcje' : 'sekcji') }}</div>
+                <p style="font-size:13px; color:#4c6373; margin:0 0 14px;">Wybierz kategorię, następnie typ audytu, uzupełnij nazwę i kliknij Przydziel.</p>
+
+                {{-- Step 1: Category --}}
+                <div style="margin-bottom:14px;">
+                    <div style="font-size:11px; font-weight:700; color:#6b8aa3; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Krok 1 — Kategoria</div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button type="button" class="assign-cat-btn" data-cat="energy"
+                            onclick="selectAuditCat('energy')"
+                            style="padding:10px 18px; border-radius:10px; border:2px solid #d5e0ea; background:#f8fbfd; font-size:13px; font-weight:700; color:#1d4f73; cursor:pointer; transition:.15s; display:flex; align-items:center; gap:8px;">
+                            ⚡ Audyty energetyczne
                         </button>
-                        @endforeach
+                        <button type="button" class="assign-cat-btn" data-cat="bc"
+                            onclick="selectAuditCat('bc')"
+                            style="padding:10px 18px; border-radius:10px; border:2px solid #d5e0ea; background:#f8fbfd; font-size:13px; font-weight:700; color:#1d4f73; cursor:pointer; transition:.15s; display:flex; align-items:center; gap:8px;">
+                            📜 Białe certyfikaty
+                        </button>
+                        <button type="button" class="assign-cat-btn" data-cat="iso"
+                            onclick="selectAuditCat('iso')"
+                            style="padding:10px 18px; border-radius:10px; border:2px solid #d5e0ea; background:#f8fbfd; font-size:13px; font-weight:700; color:#1d4f73; cursor:pointer; transition:.15s; display:flex; align-items:center; gap:8px;">
+                            🏭 ISO 50001
+                        </button>
                     </div>
-                    @endif
-                    <form method="POST" action="{{ route('firma.storeAudit', $company) }}" id="store-audit-form" style="display:none;">
-                        @csrf
-                        <input type="hidden" name="audit_type_id" id="audit-type-id">
-                        <div style="padding:14px; border:2px solid #0e89d8; border-radius:12px; background:#f0f8ff; display:grid; gap:10px;">
-                            <div style="font-size:13px; font-weight:700; color:#0f2330;">
-                                Wybrany typ: <span id="audit-type-name" style="color:#0e89d8;"></span>
+                </div>
+
+                {{-- Step 2: Subtype (shown after category) --}}
+                <div id="assign-subtype-wrap" style="display:none; margin-bottom:14px;">
+                    <div style="font-size:11px; font-weight:700; color:#6b8aa3; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Krok 2 — Typ audytu</div>
+                    <div id="assign-subtype-btns" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
+                </div>
+
+                {{-- Step 3: Form (shown after subtype) --}}
+                <form method="POST" action="{{ route('firma.storeAudit', $company) }}" id="assign-audit-form" style="display:none;">
+                    @csrf
+                    <input type="hidden" name="agent_type" id="assign-agent-type">
+                    <div style="padding:14px; border:2px solid #0e89d8; border-radius:12px; background:#f0f8ff; display:grid; gap:10px;">
+                        <div style="font-size:13px; font-weight:700; color:#0f2330;">
+                            Wybrany: <span id="assign-type-label" style="color:#0e89d8;"></span>
+                        </div>
+                        <div style="display:grid; grid-template-columns:2fr 1fr; gap:10px;">
+                            <div>
+                                <label style="font-size:11px; font-weight:700; color:#374151; display:block; margin-bottom:4px;">Nazwa audytu *</label>
+                                <input type="text" name="title" id="assign-title" required placeholder="np. Audyt energetyczny 2026"
+                                    style="width:100%; border:1px solid #c8d8e6; border-radius:8px; padding:7px 10px; font-size:13px; background:#fff; box-sizing:border-box;">
                             </div>
-                            <div style="display:grid; grid-template-columns:2fr 1fr 1fr; gap:10px;">
-                                <div>
-                                    <label style="font-size:11px; font-weight:700; color:#374151; display:block; margin-bottom:4px;">Nazwa audytu *</label>
-                                    <input type="text" name="title" id="store-audit-title" required placeholder="np. Audyt energetyczny 2026"
-                                        style="width:100%; border:1px solid #c8d8e6; border-radius:8px; padding:7px 10px; font-size:13px; background:#fff; box-sizing:border-box;">
-                                </div>
-                                <div>
-                                    <label style="font-size:11px; font-weight:700; color:#374151; display:block; margin-bottom:4px;">Agent AI *</label>
-                                    <select name="agent_type" id="store-audit-agent" required style="width:100%; border:1px solid #c8d8e6; border-radius:8px; padding:7px 10px; font-size:12px; background:#fff; box-sizing:border-box;">
-                                        <option value="">— wybierz —</option>
-                                        <optgroup label="Audyty energetyczne" data-category="energy">
-                                            <option value="general">Audyt Energetyczny zakładu (Master)</option>
-                                            <option value="compressor_room">Sprężarkownia</option>
-                                            <option value="boiler_room">Kotłownia</option>
-                                            <option value="drying_room">Suszarnia</option>
-                                            <option value="buildings">Budynki</option>
-                                            <option value="technological_processes">Procesy technologiczne</option>
-                                        </optgroup>
-                                        <optgroup label="ISO 50001" data-category="iso">
-                                            <option value="iso50001">ISO 50001</option>
-                                        </optgroup>
-                                        <optgroup label="Białe certyfikaty" data-category="white_cert">
-                                            <option value="bc_general">BC Ogólnie</option>
-                                            <option value="bc_compressor_room">BC Sprężarkownia</option>
-                                            <option value="bc_boiler_room">BC Kotłownia</option>
-                                            <option value="bc_drying_room">BC Suszarnia</option>
-                                            <option value="bc_buildings">BC Budynki</option>
-                                            <option value="bc_technological_processes">BC Procesy technologiczne</option>
-                                        </optgroup>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label style="font-size:11px; font-weight:700; color:#374151; display:block; margin-bottom:4px;">Audytor</label>
-                                    <select name="auditor_id" style="width:100%; border:1px solid #c8d8e6; border-radius:8px; padding:7px 10px; font-size:12px; background:#fff; box-sizing:border-box;">
-                                        <option value="">Brak</option>
-                                        @foreach($auditors as $auditor)
-                                            <option value="{{ $auditor->id }}">{{ $auditor->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div style="display:flex; gap:8px;">
-                                <button type="submit" style="padding:9px 20px; background:linear-gradient(130deg,#0e89d8,#0772b5); color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">Przydziel audyt</button>
-                                <button type="button" onclick="clearAuditTypeCard()" style="padding:9px 14px; background:#f8fbfd; border:1px solid #d5e0ea; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; color:#4c6373;">Zmień typ</button>
+                            <div>
+                                <label style="font-size:11px; font-weight:700; color:#374151; display:block; margin-bottom:4px;">Audytor</label>
+                                <select name="auditor_id" style="width:100%; border:1px solid #c8d8e6; border-radius:8px; padding:7px 10px; font-size:12px; background:#fff; box-sizing:border-box;">
+                                    <option value="">Brak</option>
+                                    @foreach($auditors as $auditor)
+                                        <option value="{{ $auditor->id }}">{{ $auditor->name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
-                    </form>
-                </div>{{-- /manual new audit div --}}
+                        <div style="display:flex; gap:8px;">
+                            <button type="submit" style="padding:9px 20px; background:linear-gradient(130deg,#0e89d8,#0772b5); color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">Przydziel audyt</button>
+                            <button type="button" onclick="resetAuditAssign()" style="padding:9px 14px; background:#f8fbfd; border:1px solid #d5e0ea; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; color:#4c6373;">← Zmień</button>
+                        </div>
+                    </div>
+                </form>
+            </div>{{-- /manual new audit --}}
 
             </div>{{-- /section-box-body sec-assign-audit --}}
         </div>{{-- /section-box sec-assign-audit --}}
@@ -906,38 +892,108 @@
         document.getElementById('modal-remove').style.display = 'none';
     }
 
-    // ── Assign audit form ──────────────────────────────────────
-    function selectAuditTypeCard(btn) {
-        document.querySelectorAll('.audit-type-card').forEach(function(c) {
-            c.style.borderColor = '#d5e0ea';
-            c.style.background  = '#f8fbfd';
+    // ── Assign audit: 2-step category → subtype ────────────────
+    var AUDIT_SUBTYPES = {
+        energy: [
+            { value: 'general',                 label: '⚡ Audyt energetyczny zakładu' },
+            { value: 'compressor_room',          label: '🔧 Sprężarkownia' },
+            { value: 'boiler_room',              label: '🔥 Kotłownia' },
+            { value: 'drying_room',              label: '🌡️ Suszarnia' },
+            { value: 'buildings',                label: '🏢 Budynki' },
+            { value: 'technological_processes',  label: '⚙️ Procesy technologiczne' },
+        ],
+        bc: [
+            { value: 'bc_compressor_room',         label: '🔧 Sprężarkownia' },
+            { value: 'bc_boiler_room',             label: '🔥 Kotłownia' },
+            { value: 'bc_drying_room',             label: '🌡️ Suszarnia' },
+            { value: 'bc_buildings',               label: '🏢 Budynki' },
+            { value: 'bc_technological_processes', label: '⚙️ Procesy technologiczne' },
+        ],
+        iso: [],
+    };
+
+    var CAT_LABELS = {
+        energy: '⚡ Audyty energetyczne',
+        bc: '📜 Białe certyfikaty',
+        iso: '🏭 ISO 50001',
+    };
+
+    var selectedCat = null;
+
+    function selectAuditCat(cat) {
+        selectedCat = cat;
+        // Highlight selected category button
+        document.querySelectorAll('.assign-cat-btn').forEach(function(b) {
+            var active = b.dataset.cat === cat;
+            b.style.borderColor = active ? '#0e89d8' : '#d5e0ea';
+            b.style.background  = active ? '#e0f3ff' : '#f8fbfd';
+            b.style.color       = active ? '#0e89d8' : '#1d4f73';
+        });
+
+        // Reset form
+        document.getElementById('assign-audit-form').style.display = 'none';
+        document.getElementById('assign-agent-type').value = '';
+        document.getElementById('assign-title').value = '';
+
+        var subtypes = AUDIT_SUBTYPES[cat] || [];
+
+        if (subtypes.length === 0) {
+            // ISO: no subtype needed, go straight to form
+            document.getElementById('assign-subtype-wrap').style.display = 'none';
+            document.getElementById('assign-type-label').textContent = CAT_LABELS[cat];
+            document.getElementById('assign-agent-type').value = 'iso50001';
+            document.getElementById('assign-title').value = 'ISO 50001 ' + new Date().getFullYear();
+            document.getElementById('assign-audit-form').style.display = '';
+        } else {
+            // Show subtype buttons
+            var wrap = document.getElementById('assign-subtype-btns');
+            wrap.innerHTML = '';
+            subtypes.forEach(function(sub) {
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'assign-sub-btn';
+                btn.dataset.value = sub.value;
+                btn.dataset.label = sub.label;
+                btn.textContent = sub.label;
+                btn.style.cssText = 'padding:9px 16px; border-radius:10px; border:2px solid #d5e0ea; background:#f8fbfd; font-size:13px; font-weight:700; color:#1d4f73; cursor:pointer; transition:.15s;';
+                btn.onclick = function() { selectAuditSubtype(this); };
+                wrap.appendChild(btn);
+            });
+            document.getElementById('assign-subtype-wrap').style.display = '';
+        }
+    }
+
+    function selectAuditSubtype(btn) {
+        document.querySelectorAll('.assign-sub-btn').forEach(function(b) {
+            b.style.borderColor = '#d5e0ea';
+            b.style.background  = '#f8fbfd';
+            b.style.color       = '#1d4f73';
         });
         btn.style.borderColor = '#0e89d8';
         btn.style.background  = '#e0f3ff';
-        document.getElementById('audit-type-id').value         = btn.dataset.id;
-        document.getElementById('audit-type-name').textContent = btn.dataset.name;
-        var titleInput = document.getElementById('store-audit-title');
-        if (!titleInput.value) {
-            titleInput.value = btn.dataset.name + ' ' + new Date().getFullYear();
+        btn.style.color       = '#0e89d8';
+
+        document.getElementById('assign-agent-type').value     = btn.dataset.value;
+        document.getElementById('assign-type-label').textContent = btn.dataset.label;
+        var title = document.getElementById('assign-title');
+        if (!title.value) {
+            title.value = btn.dataset.label.replace(/^[\S\s]{2}\s/, '') + ' ' + new Date().getFullYear();
         }
-        var agentSel = document.getElementById('store-audit-agent');
-        if (agentSel) {
-            agentSel.querySelectorAll('optgroup').forEach(function(grp) {
-                grp.style.display = (btn.dataset.category && grp.dataset.category !== btn.dataset.category) ? 'none' : '';
-            });
-            if (btn.dataset.agentType) agentSel.value = btn.dataset.agentType;
-        }
-        document.getElementById('store-audit-form').style.display = '';
+        document.getElementById('assign-audit-form').style.display = '';
+        title.focus();
     }
 
-    function clearAuditTypeCard() {
-        document.querySelectorAll('.audit-type-card').forEach(function(c) {
-            c.style.borderColor = '#d5e0ea';
-            c.style.background  = '#f8fbfd';
+    function resetAuditAssign() {
+        selectedCat = null;
+        document.querySelectorAll('.assign-cat-btn').forEach(function(b) {
+            b.style.borderColor = '#d5e0ea';
+            b.style.background  = '#f8fbfd';
+            b.style.color       = '#1d4f73';
         });
-        document.getElementById('audit-type-id').value     = '';
-        document.getElementById('store-audit-title').value = '';
-        document.getElementById('store-audit-form').style.display = 'none';
+        document.getElementById('assign-subtype-wrap').style.display = 'none';
+        document.getElementById('assign-audit-form').style.display = 'none';
+        document.getElementById('assign-agent-type').value = '';
+        document.getElementById('assign-title').value = '';
     }
 
     function rejectAudit(id, title) {

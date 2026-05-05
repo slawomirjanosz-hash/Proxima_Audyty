@@ -41,7 +41,7 @@ if (!function_exists('offerNumeric')) {
         <div style="display:flex;gap:8px;">
             <a href="{{ route('offers.generatePdf', $offer) }}" class="o-btn" style="background:#dc2626;color:#fff;" target="_blank">PDF</a>
             <a href="{{ route('offers.generateWord', $offer) }}" class="o-btn" style="background:#7c3aed;color:#fff;">Word</a>
-            <a href="{{ route('offers.index') }}" class="o-btn o-btn-gray">← Wróć</a>
+            <a href="{{ $backUrl }}" class="o-btn o-btn-gray">← Wróć</a>
         </div>
     </div>
 

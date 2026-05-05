@@ -76,15 +76,21 @@ class OffersController extends Controller
                 ->update(['status' => 'accepted', 'offer_id' => $offer->id]);
         }
 
-        return redirect()->route('offers.index')
-            ->with('status', 'Oferta została zapisana.');
+        $backRoute = $offer->company_id
+            ? redirect()->route('firma.show', $offer->company_id)->with('status', 'Oferta została zapisana.')
+            : redirect()->route('offers.index')->with('status', 'Oferta została zapisana.');
+
+        return $backRoute;
     }
 
     public function edit(Offer $offer)
     {
         $crmDeals = CrmDeal::orderBy('name')->get();
         $crmCompanies = CrmCompany::orderBy('name')->get();
-        return view('offers.edit', compact('offer', 'crmDeals', 'crmCompanies'));
+        $backUrl = $offer->company_id
+            ? route('firma.show', $offer->company_id)
+            : route('offers.index');
+        return view('offers.edit', compact('offer', 'crmDeals', 'crmCompanies', 'backUrl'));
     }
 
     public function update(Request $request, Offer $offer)

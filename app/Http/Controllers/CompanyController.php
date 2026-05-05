@@ -83,12 +83,19 @@ class CompanyController extends Controller
 
         $validated = $request->validate([
             'title'         => ['required', 'string', 'max:255'],
-            'audit_type_id' => ['required', 'exists:audit_types,id'],
+            'audit_type_id' => ['nullable', 'exists:audit_types,id'],
             'auditor_id'    => ['nullable', 'exists:users,id'],
             'agent_type'    => ['required', 'string', 'in:' . implode(',', $agentTypes)],
         ]);
 
-        $auditType = AuditType::findOrFail((int) $validated['audit_type_id']);
+        // Auto-resolve audit_type from agent_type if not explicitly provided
+        if (!empty($validated['audit_type_id'])) {
+            $auditType = AuditType::findOrFail((int) $validated['audit_type_id']);
+        } else {
+            $auditType = AuditType::where('agent_type', $validated['agent_type'])->first()
+                ?? AuditType::first();
+            abort_unless($auditType !== null, 422, 'Brak skonfigurowanego typu audytu.');
+        }
 
         EnergyAudit::create([
             'title'         => $validated['title'],

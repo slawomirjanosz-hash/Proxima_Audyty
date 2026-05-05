@@ -43,20 +43,36 @@
 .master-save-status.saving { color: #d97706; }
 .master-save-status.error { color: #dc2626; }
 
-/* == Navigation tabs (sections) == */
+/* == Main 2-column layout == */
+.master-body {
+    display: grid;
+    grid-template-columns: 1fr 220px;
+    gap: 24px;
+    align-items: start;
+    margin-top: 12px;
+}
+.master-sections-wrap { min-width: 0; }
+.master-nav-col {
+    position: sticky;
+    top: 58px;
+    z-index: 40;
+}
+
+/* == Navigation sidebar (sections) == */
 .master-nav {
     display: flex;
-    gap: 2px;
-    overflow-x: auto;
-    padding: 0 0 8px;
-    flex-wrap: nowrap;
-    scrollbar-width: thin;
+    flex-direction: column;
+    gap: 3px;
+    background: #f8fbff;
+    border: 1px solid #d5e0ea;
+    border-radius: 12px;
+    padding: 10px 8px;
 }
 .master-nav-btn {
-    flex-shrink: 0;
-    padding: 7px 14px;
-    background: #f0f7ff;
-    border: 1px solid #d5e0ea;
+    width: 100%;
+    padding: 8px 12px;
+    background: #fff;
+    border: 1px solid #e0ecf5;
     border-radius: 8px;
     font-size: 12px;
     font-weight: 700;
@@ -66,11 +82,19 @@
     white-space: nowrap;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 6px;
+    text-align: left;
 }
 .master-nav-btn:hover { background: #dbeafe; border-color: #93c5fd; }
 .master-nav-btn.active { background: #0e89d8; color: #fff; border-color: #0e89d8; }
 .master-nav-btn .nav-count { font-size: 10px; opacity: .75; font-family: monospace; }
+@media (max-width: 860px) {
+    .master-body { grid-template-columns: 1fr; }
+    .master-nav-col { position: static; order: -1; }
+    .master-nav { flex-direction: row; flex-wrap: wrap; }
+    .master-nav-btn { width: auto; flex: 0 0 auto; }
+}
 
 /* == Section panels == */
 .master-section {
@@ -337,6 +361,27 @@
         <a href="{{ route('strefa-klienta') }}" style="text-decoration:none; padding:8px 14px; background:#e0ecf5; color:#1d4f73; font-weight:700; border-radius:10px; font-size:13px;">← Strefa klienta</a>
     </div>
 
+    @if(!empty($isStaff) && $isStaff)
+    {{-- Admin banner: preview mode or company info --}}
+    @if(!empty($previewMode) && $previewMode)
+    <div style="background:linear-gradient(135deg,#f8f9fa,#e9ecef); border:1px solid #ced4da; border-radius:12px; padding:12px 16px; margin-bottom:14px; font-size:13px; color:#495057; display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+        <span style="font-size:20px;">🔍</span>
+        <div style="flex:1;">
+            <strong>Tryb podglądu</strong> — widzisz strukturę ankiety bez przypisania do klienta. Zmiany nie są zapisywane.
+        </div>
+        <a href="{{ route('audits.settings') }}" style="padding:7px 14px; background:#6c757d; color:#fff; border-radius:8px; font-weight:700; font-size:12px; text-decoration:none;">← Wróć do ustawień</a>
+    </div>
+    @else
+    <div style="background:linear-gradient(135deg,#fff7ed,#fef3c7); border:1px solid #fcd34d; border-radius:12px; padding:12px 16px; margin-bottom:14px; font-size:13px; color:#92400e; display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+        <span style="font-size:20px;">🔐</span>
+        <div style="flex:1;">
+            <strong>Tryb administratora</strong> — wypełniasz ankietę w imieniu klienta.
+            @if($company) Firma: <strong>{{ $company->name }}</strong>. @endif
+        </div>
+    </div>
+    @endif
+    @endif
+
     @if(session('status'))
     <div style="background:#f0f9ff; border:1px solid #38bdf8; border-radius:12px; padding:12px 16px; margin-bottom:14px; font-size:13px; color:#0c4a6e; display:flex; align-items:center; gap:10px;">
         <span>ℹ️</span> {{ session('status') }}
@@ -347,18 +392,20 @@
     </div>
     @endif
 
-    {{-- Helper banner --}}
+    {{-- Helper banner (only for clients) --}}
+    @if(!$isStaff)
     <div class="master-helper-banner">
         <div class="master-helper-icon">💡</div>
         <div class="master-helper-text">
             <strong>Nie wiesz jak wypełnić którąś sekcję?</strong>
-            <span>Możesz napisać do nas na czacie lub przejść do pracy z agentem AI, który przeprowadzi Cię przez ankietę krok po kroku.</span>
+            <span>Możesz napisać do nas na czacie lub zlecić zapytanie o audyt agentowi AI.</span>
         </div>
         <div class="master-helper-actions">
-            <a href="{{ route('strefa-klienta') }}#chat" class="master-helper-btn master-helper-btn-chat">💬 Czat z doradcą</a>
-            <a href="{{ route('strefa-klienta') }}#zapytanie" class="master-helper-btn master-helper-btn-agent">🤖 Praca z agentem AI</a>
+            <button type="button" onclick="masterOpenModal('modal-master-chat')" class="master-helper-btn master-helper-btn-chat">💬 Czat z doradcą</button>
+            <button type="button" onclick="masterOpenModal('modal-master-inquiry')" class="master-helper-btn master-helper-btn-agent">🤖 Wyślij zapytanie</button>
         </div>
     </div>
+    @endif
 
     {{-- Sticky topbar: progress --}}
     <div class="master-topbar">
@@ -370,20 +417,9 @@
         <div class="master-save-status" id="master-save-status">Zmiany zapisują się automatycznie</div>
     </div>
 
-    {{-- Section navigation tabs --}}
-    <div class="master-nav" id="master-nav" style="margin-top:12px;">
-        <button class="master-nav-btn active" data-section="e0">E0 <span class="nav-count" id="nc-e0">0/20</span></button>
-        <button class="master-nav-btn" data-section="e1">E1 Zakres <span class="nav-count" id="nc-e1">0/9</span></button>
-        <button class="master-nav-btn" data-section="e2">E2 Zakład <span class="nav-count" id="nc-e2">0/12</span></button>
-        <button class="master-nav-btn" data-section="e3">E3 Procesy <span class="nav-count" id="nc-e3">0/10</span></button>
-        <button class="master-nav-btn" data-section="e4">E4 Wydziały <span class="nav-count" id="nc-e4">0/—</span></button>
-        <button class="master-nav-btn" data-section="e5">E5 Hale <span class="nav-count" id="nc-e5">0/—</span></button>
-        <button class="master-nav-btn" data-section="e6">E6 Macierz <span class="nav-count" id="nc-e6">0/—</span></button>
-        <button class="master-nav-btn" data-section="e7">E7 Nośniki <span class="nav-count" id="nc-e7">0/35</span></button>
-        <button class="master-nav-btn" data-section="e8">E8 Zużycia <span class="nav-count" id="nc-e8">0/—</span></button>
-        <button class="master-nav-btn" data-section="e9">E9 Zmienne <span class="nav-count" id="nc-e9">0/10</span></button>
-        <button class="master-nav-btn" data-section="e10">E10 EnMS <span class="nav-count" id="nc-e10">0/8</span></button>
-    </div>
+    {{-- Main 2-column layout: sections left, nav sidebar right --}}
+    <div class="master-body">
+    <div class="master-sections-wrap">
 
     {{-- ================================================================ --}}
     {{-- ETAP 0 · AUDYT — metadane                                        --}}
@@ -1227,15 +1263,39 @@
         @include('client.energy-audit-master-nav', ['current' => 'e10', 'prev' => 'e9', 'next' => null])
     </div>
 
+    </div>{{-- end .master-sections-wrap --}}
+
+    {{-- Right sidebar: section navigation --}}
+    <div class="master-nav-col">
+        <div style="font-size:11px; font-weight:700; color:#6b8aa3; text-transform:uppercase; letter-spacing:1px; padding:0 4px 8px; border-bottom:1px solid #e0ecf5; margin-bottom:8px;">Sekcje</div>
+        <div class="master-nav" id="master-nav">
+            <button class="master-nav-btn active" data-section="e0">E0 Metadane <span class="nav-count" id="nc-e0">0/20</span></button>
+            <button class="master-nav-btn" data-section="e1">E1 Zakres <span class="nav-count" id="nc-e1">0/9</span></button>
+            <button class="master-nav-btn" data-section="e2">E2 Zakład <span class="nav-count" id="nc-e2">0/12</span></button>
+            <button class="master-nav-btn" data-section="e3">E3 Procesy <span class="nav-count" id="nc-e3">0/10</span></button>
+            <button class="master-nav-btn" data-section="e4">E4 Wydziały <span class="nav-count" id="nc-e4">0/—</span></button>
+            <button class="master-nav-btn" data-section="e5">E5 Hale <span class="nav-count" id="nc-e5">0/—</span></button>
+            <button class="master-nav-btn" data-section="e6">E6 Macierz <span class="nav-count" id="nc-e6">0/—</span></button>
+            <button class="master-nav-btn" data-section="e7">E7 Nośniki <span class="nav-count" id="nc-e7">0/35</span></button>
+            <button class="master-nav-btn" data-section="e8">E8 Zużycia <span class="nav-count" id="nc-e8">0/—</span></button>
+            <button class="master-nav-btn" data-section="e9">E9 Zmienne <span class="nav-count" id="nc-e9">0/10</span></button>
+            <button class="master-nav-btn" data-section="e10">E10 EnMS <span class="nav-count" id="nc-e10">0/8</span></button>
+        </div>
+    </div>{{-- end .master-nav-col --}}
+
+    </div>{{-- end .master-body --}}
+
 </section>
 
 <script>
 (function() {
 'use strict';
 
-const SAVE_URL  = '{{ route("client.energy-audit-master.save") }}';
-const CSRF      = '{{ csrf_token() }}';
-const FORM_DATA = @json($formData);
+const SAVE_URL   = '{{ route("client.energy-audit-master.save") }}';
+const CSRF       = '{{ csrf_token() }}';
+const FORM_DATA  = @json($formData);
+const COMPANY_ID = {{ $company ? $company->id : 'null' }};
+const PREVIEW_MODE = {{ !empty($previewMode) && $previewMode ? 'true' : 'false' }};
 
 // == State ==
 let saveTimer   = null;
@@ -1325,6 +1385,7 @@ updateAllProgress();
 
 // == Auto-save ==
 function scheduleAutoSave() {
+    if (PREVIEW_MODE) return; // no save in preview/read-only mode
     clearTimeout(saveTimer);
     const statusEl = document.getElementById('master-save-status');
     if (statusEl) { statusEl.textContent = 'Zapisywanie...'; statusEl.className = 'master-save-status saving'; }
@@ -1339,7 +1400,7 @@ function doSave() {
     fetch(SAVE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
-        body: JSON.stringify({ fields: FORM_DATA, completion_percent: pct }),
+        body: JSON.stringify({ fields: FORM_DATA, completion_percent: pct, ...(COMPANY_ID ? { company_id: COMPANY_ID } : {}) }),
     })
     .then(r => r.json())
     .then(data => {
@@ -1597,6 +1658,235 @@ if (document.getElementById('sec-e8')?.classList.contains('active')) buildZuzyci
 
 // Initial macierz build if on e6
 if (document.getElementById('sec-e6')?.classList.contains('active')) rebuildMacierz();
+
+})();
+</script>
+
+{{-- ================================================================
+     MODAL — Czat z doradcą
+     ================================================================ --}}
+<div id="modal-master-chat" style="display:none; position:fixed; inset:0; z-index:9000; background:rgba(0,0,0,.45); align-items:flex-end; justify-content:flex-end; padding:24px;">
+    <div style="background:#fff; border-radius:16px; width:380px; max-width:calc(100vw - 32px); max-height:80vh; display:flex; flex-direction:column; box-shadow:0 8px 40px rgba(0,0,0,.22);">
+        {{-- header --}}
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid #e0ecf5; background:#0f2330; border-radius:16px 16px 0 0;">
+            <div style="color:#fff; font-weight:800; font-size:14px;">💬 Czat z doradcą ENESA</div>
+            <button type="button" onclick="masterCloseModal('modal-master-chat')" style="background:none; border:none; color:#8aa3b5; font-size:20px; cursor:pointer; line-height:1;">&times;</button>
+        </div>
+        {{-- messages --}}
+        <div id="master-chat-box" style="flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:8px; min-height:200px;">
+            @forelse($chatMessages ?? [] as $msg)
+            <div style="display:flex; flex-direction:column; align-items:{{ $msg->is_from_admin ? 'flex-end' : 'flex-start' }};" data-msg-id="{{ $msg->id }}">
+                <div style="max-width:80%; padding:8px 12px; border-radius:12px; font-size:13px; line-height:1.45; white-space:pre-wrap; word-break:break-word; {{ $msg->is_from_admin ? 'background:#0f2330; color:#fff; border-bottom-right-radius:3px;' : 'background:#f0f7ff; border:1px solid #d5e0ea; color:#1a2e3d; border-bottom-left-radius:3px;' }}">{{ $msg->message }}</div>
+                <div style="font-size:11px; color:#8aa3b5; margin-top:3px;">{{ $msg->is_from_admin ? 'ENESA' : 'Ty' }} &middot; {{ $msg->created_at->format('d.m.Y H:i') }}</div>
+            </div>
+            @empty
+            <div id="master-chat-empty" style="text-align:center; color:#9ab4c5; font-size:13px; padding:20px;">Brak wiadomości. Napisz do nas!</div>
+            @endforelse
+        </div>
+        {{-- input --}}
+        <div style="padding:12px 14px; border-top:1px solid #e0ecf5; display:flex; gap:8px; align-items:flex-end;">
+            <textarea id="master-chat-input" rows="2" placeholder="Napisz wiadomość..." style="flex:1; resize:none; border:1px solid #c8d8e6; border-radius:8px; padding:8px 10px; font-size:13px; font-family:inherit;"></textarea>
+            <button type="button" id="master-chat-send-btn" onclick="masterChatSend()" style="padding:9px 16px; background:#1ba84a; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap; align-self:flex-end;">Wyślij</button>
+        </div>
+    </div>
+</div>
+
+{{-- ================================================================
+     MODAL — Wyślij zapytanie
+     ================================================================ --}}
+<div id="modal-master-inquiry" style="display:none; position:fixed; inset:0; z-index:9000; background:rgba(0,0,0,.45); align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:16px; width:460px; max-width:calc(100vw - 32px); box-shadow:0 8px 40px rgba(0,0,0,.22); overflow:hidden;">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid #e0ecf5; background:#0e89d8;">
+            <div style="color:#fff; font-weight:800; font-size:14px;">🤖 Wyślij zapytanie o audyt</div>
+            <button type="button" onclick="masterCloseModal('modal-master-inquiry')" style="background:none; border:none; color:#bae6fd; font-size:20px; cursor:pointer; line-height:1;">&times;</button>
+        </div>
+        <div id="master-inquiry-success" style="display:none; padding:24px; text-align:center;">
+            <div style="font-size:32px; margin-bottom:8px;">✅</div>
+            <div style="font-weight:800; font-size:15px; color:#0f2330; margin-bottom:4px;">Zapytanie wysłane!</div>
+            <div style="font-size:13px; color:#4c6373; margin-bottom:16px;">Odpiszemy najszybciej jak to możliwe.</div>
+            <button type="button" onclick="masterCloseModal('modal-master-inquiry')" style="padding:9px 20px; background:#0e89d8; color:#fff; border:none; border-radius:8px; font-weight:700; cursor:pointer;">Zamknij</button>
+        </div>
+        <div id="master-inquiry-form-wrap" style="padding:18px 20px;">
+            <p style="font-size:13px; color:#4c6373; margin:0 0 14px;">Opisz z czym potrzebujesz pomocy lub wybierz rodzaj audytu, który Cię interesuje.</p>
+            <form id="master-inquiry-form">
+                @csrf
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:11px; font-weight:700; color:#374151; display:block; margin-bottom:5px;">Rodzaj audytu (opcjonalnie)</label>
+                    <select name="audit_type" id="master-inquiry-type" style="width:100%; border:1px solid #c8d8e6; border-radius:8px; padding:8px 10px; font-size:13px; background:#fff;">
+                        <option value="">— wybierz —</option>
+                        <optgroup label="Audyty energetyczne">
+                            <option value="agent:general">Audyt energetyczny zakładu</option>
+                            <option value="agent:compressor_room">Sprężarkownia</option>
+                            <option value="agent:boiler_room">Kotłownia</option>
+                            <option value="agent:drying_room">Suszarnia</option>
+                            <option value="agent:buildings">Budynki</option>
+                            <option value="agent:technological_processes">Procesy technologiczne</option>
+                        </optgroup>
+                        <optgroup label="ISO 50001">
+                            <option value="agent:iso50001">ISO 50001</option>
+                        </optgroup>
+                        <optgroup label="Białe certyfikaty">
+                            <option value="agent:bc_general">BC — ogólnie</option>
+                            <option value="agent:bc_compressor_room">BC Sprężarkownia</option>
+                            <option value="agent:bc_boiler_room">BC Kotłownia</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div style="margin-bottom:14px;">
+                    <label style="font-size:11px; font-weight:700; color:#374151; display:block; margin-bottom:5px;">Wiadomość *</label>
+                    <textarea name="message" id="master-inquiry-message" rows="4" required placeholder="Opisz swoje pytanie lub potrzeby..." style="width:100%; resize:vertical; border:1px solid #c8d8e6; border-radius:8px; padding:8px 10px; font-size:13px; font-family:inherit; box-sizing:border-box;"></textarea>
+                </div>
+                <div id="master-inquiry-error" style="display:none; color:#b91c1c; font-size:13px; margin-bottom:10px; padding:8px 12px; background:#fef2f2; border-radius:8px; border:1px solid #fca5a5;"></div>
+                <div style="display:flex; gap:10px; justify-content:flex-end;">
+                    <button type="button" onclick="masterCloseModal('modal-master-inquiry')" style="padding:9px 16px; background:#f0f4f8; border:1px solid #d5e0ea; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; color:#1d4f73;">Anuluj</button>
+                    <button type="submit" id="master-inquiry-submit" style="padding:9px 20px; background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">🤖 Wyślij zapytanie</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+var masterChatLastId = {{ ($chatMessages ?? collect())->last()?->id ?? 0 }};
+var masterChatPollTimer = null;
+var CSRF = '{{ csrf_token() }}';
+
+// == Modal open/close ==
+window.masterOpenModal = function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = 'flex';
+    if (id === 'modal-master-chat') {
+        var box = document.getElementById('master-chat-box');
+        if (box) box.scrollTop = box.scrollHeight;
+        document.getElementById('master-chat-input')?.focus();
+        startMasterChatPoll();
+    }
+};
+
+window.masterCloseModal = function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+    if (id === 'modal-master-chat') stopMasterChatPoll();
+};
+
+// Close on backdrop click
+['modal-master-chat','modal-master-inquiry'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('click', function(e) {
+        if (e.target === el) masterCloseModal(id);
+    });
+});
+
+// == Chat ==
+function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function appendMasterChatBubble(msg) {
+    var empty = document.getElementById('master-chat-empty');
+    if (empty) empty.remove();
+    var box = document.getElementById('master-chat-box');
+    var wrap = document.createElement('div');
+    var cls  = msg.is_from_admin ? 'flex-end' : 'flex-start';
+    var bg   = msg.is_from_admin
+        ? 'background:#0f2330;color:#fff;border-bottom-right-radius:3px;'
+        : 'background:#f0f7ff;border:1px solid #d5e0ea;color:#1a2e3d;border-bottom-left-radius:3px;';
+    wrap.style.cssText = 'display:flex;flex-direction:column;align-items:' + cls + ';';
+    wrap.dataset.msgId = msg.id;
+    var label = msg.is_from_admin ? 'ENESA' : 'Ty';
+    wrap.innerHTML =
+        '<div style="max-width:80%;padding:8px 12px;border-radius:12px;font-size:13px;line-height:1.45;white-space:pre-wrap;word-break:break-word;' + bg + '">' + escHtml(msg.message) + '</div>' +
+        '<div style="font-size:11px;color:#8aa3b5;margin-top:3px;">' + label + ' &middot; ' + escHtml(msg.created_at) + '</div>';
+    box.appendChild(wrap);
+    box.scrollTop = box.scrollHeight;
+}
+
+window.masterChatSend = function() {
+    var input = document.getElementById('master-chat-input');
+    var msg = input.value.trim();
+    if (!msg) return;
+    var btn = document.getElementById('master-chat-send-btn');
+    btn.disabled = true;
+    fetch('{{ route('client.chat.send.ajax') }}', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF,'Accept':'application/json'},
+        body: JSON.stringify({message: msg})
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+        if (data.id) {
+            appendMasterChatBubble(data);
+            masterChatLastId = Math.max(masterChatLastId, data.id);
+            input.value = '';
+        }
+    })
+    .catch(function(){})
+    .finally(function(){ btn.disabled = false; input.focus(); });
+};
+
+document.getElementById('master-chat-input')?.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); masterChatSend(); }
+});
+
+function startMasterChatPoll() {
+    stopMasterChatPoll();
+    masterChatPollTimer = setInterval(function() {
+        fetch('{{ route('client.chat.poll') }}?after=' + masterChatLastId, {
+            headers: {'Accept':'application/json','X-CSRF-TOKEN':CSRF}
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(data) {
+            if (!data.messages || !data.messages.length) return;
+            data.messages.forEach(function(msg) {
+                if (msg.id > masterChatLastId) {
+                    appendMasterChatBubble(msg);
+                    masterChatLastId = msg.id;
+                }
+            });
+        })
+        .catch(function(){});
+    }, 5000);
+}
+
+function stopMasterChatPoll() {
+    if (masterChatPollTimer) { clearInterval(masterChatPollTimer); masterChatPollTimer = null; }
+}
+
+// == Inquiry form ==
+document.getElementById('master-inquiry-form')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var msg  = document.getElementById('master-inquiry-message').value.trim();
+    var type = document.getElementById('master-inquiry-type').value;
+    var errEl = document.getElementById('master-inquiry-error');
+    var btn   = document.getElementById('master-inquiry-submit');
+    errEl.style.display = 'none';
+    if (!msg) { errEl.textContent = 'Wpisz wiadomość.'; errEl.style.display = 'block'; return; }
+    btn.disabled = true;
+    btn.textContent = 'Wysyłam...';
+    fetch('{{ route('client.inquiry.store') }}', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF,'Accept':'application/json'},
+        body: JSON.stringify({audit_type: type, message: msg})
+    })
+    .then(function(r) {
+        if (r.ok || r.status === 201 || r.status === 302) {
+            document.getElementById('master-inquiry-form-wrap').style.display = 'none';
+            document.getElementById('master-inquiry-success').style.display = 'block';
+        } else {
+            return r.json().then(function(d) {
+                errEl.textContent = d.message || 'Wystąpił błąd. Spróbuj ponownie.';
+                errEl.style.display = 'block';
+            });
+        }
+    })
+    .catch(function(){ errEl.textContent = 'Błąd połączenia.'; errEl.style.display = 'block'; })
+    .finally(function(){ btn.disabled = false; btn.textContent = '🤖 Wyślij zapytanie'; });
+});
 
 })();
 </script>
