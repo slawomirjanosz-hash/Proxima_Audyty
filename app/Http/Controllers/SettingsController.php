@@ -355,6 +355,8 @@ class SettingsController extends Controller
 
         $validated = $request->validate([
             'nip' => ['nullable', 'string', 'max:20'],
+            'regon' => ['nullable', 'string', 'max:14'],
+            'krs' => ['nullable', 'string', 'max:10'],
             'name' => ['required', 'string', 'max:255'],
             'short_name' => ['nullable', 'string', 'max:32'],
             'city' => ['nullable', 'string', 'max:255'],
@@ -383,6 +385,8 @@ class SettingsController extends Controller
             'auditor_id' => $validated['auditor_id'] ?? null,
             'phone' => $validated['phone'] ?? null,
             'email' => $validated['email'] ?? null,
+            'regon' => ! empty($validated['regon']) ? preg_replace('/\D+/', '', (string) $validated['regon']) : null,
+            'krs' => ! empty($validated['krs']) ? preg_replace('/\D+/', '', (string) $validated['krs']) : null,
         ];
 
         if ($request->hasFile('logo')) {
@@ -462,11 +466,13 @@ class SettingsController extends Controller
         return response()->json([
             'ok' => true,
             'data' => [
-                'nip' => $nip,
-                'name' => $name,
-                'street' => $street,
+                'nip'         => $nip,
+                'name'        => $name,
+                'street'      => $street,
                 'postal_code' => $postalCode,
-                'city' => $city,
+                'city'        => $city,
+                'regon'       => $subject['regon'] ?? null,
+                'krs'         => $subject['krs'] ?? null,
             ],
         ]);
     }
@@ -635,6 +641,8 @@ class SettingsController extends Controller
             'city' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
             'nip' => ['nullable', 'string', 'max:20'],
+            'regon' => ['nullable', 'string', 'max:14'],
+            'krs' => ['nullable', 'string', 'max:10'],
             'auditor_id' => ['nullable', 'exists:users,id'],
             'phone' => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:255'],
@@ -657,6 +665,8 @@ class SettingsController extends Controller
             'auditor_id' => $validated['auditor_id'] ?? null,
             'phone' => $validated['phone'] ?? null,
             'email' => $validated['email'] ?? null,
+            'regon' => ! empty($validated['regon']) ? preg_replace('/\D+/', '', (string) $validated['regon']) : null,
+            'krs' => ! empty($validated['krs']) ? preg_replace('/\D+/', '', (string) $validated['krs']) : null,
         ];
 
         if ($request->hasFile('logo')) {

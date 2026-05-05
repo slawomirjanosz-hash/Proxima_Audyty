@@ -37,6 +37,8 @@ class Company extends Model
         'name',
         'short_name',
         'nip',
+        'regon',
+        'krs',
         'city',
         'street',
         'postal_code',

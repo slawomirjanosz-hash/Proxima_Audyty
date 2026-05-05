@@ -233,6 +233,9 @@
     <div class="client-hero">
         <span class="client-tag">Strefa klienta</span>
         <h1>Witaj, <span>{{ auth()->user()->name }}</span></h1>
+        @if($company)
+            <p style="margin:2px 0 10px; font-size:15px; font-weight:700; color:rgba(255,255,255,.9);">{{ $company->name }}</p>
+        @endif
         <p>Twoja dedykowana przestrzeń ENESA — tutaj możesz wysłać zapytanie dotyczące wybranego rodzaju audytu lub skontaktować się z nami bezpośrednio.</p>
         <div class="client-meta">
             <div class="client-meta-item">

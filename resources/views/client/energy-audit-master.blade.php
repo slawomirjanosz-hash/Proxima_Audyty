@@ -1305,6 +1305,8 @@ const PREVIEW_MODE = {{ !empty($previewMode) && $previewMode ? 'true' : 'false' 
 $_companyData = $company ? [
     'name'         => $company->name ?? '',
     'nip'          => $company->nip ?? '',
+    'regon'        => $company->regon ?? '',
+    'krs'          => $company->krs ?? '',
     'address'      => trim(implode(', ', array_filter([
                           $company->street ?? '',
                           trim(($company->postal_code ?? '') . ' ' . ($company->city ?? '')),
@@ -1364,6 +1366,7 @@ const TEAM_MEMBERS = @json($_teamMembers);
     }
     setIfEmpty('AUD-V1-NAZWA', COMPANY_DATA.name);
     setIfEmpty('AUD-V2-NIP',   COMPANY_DATA.nip);
+    setIfEmpty('AUD-V3-REGON', COMPANY_DATA.regon);
     setIfEmpty('AUD-V4-ADRES', COMPANY_DATA.address);
     // Location defaults
     setIfEmpty('ZAK-V1-LOK-NAZWA', COMPANY_DATA.name);

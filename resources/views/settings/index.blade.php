@@ -289,6 +289,14 @@
                                 <label for="new-company-short-name" style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin-bottom:3px;">Skrót</label>
                                 <input id="new-company-short-name" type="text" name="short_name" value="{{ old('short_name') }}" maxlength="32" placeholder="auto" style="width:100%;">
                             </div>
+                            <div style="flex:1; min-width:100px;">
+                                <label for="new-company-regon" style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin-bottom:3px;">REGON</label>
+                                <input id="new-company-regon" type="text" name="regon" value="{{ old('regon') }}" maxlength="14" placeholder="9 lub 14 cyfr" style="width:100%;">
+                            </div>
+                            <div style="flex:1; min-width:90px;">
+                                <label for="new-company-krs" style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin-bottom:3px;">KRS</label>
+                                <input id="new-company-krs" type="text" name="krs" value="{{ old('krs') }}" maxlength="10" placeholder="10 cyfr" style="width:100%;">
+                            </div>
                         </div>
                         {{-- Rząd 2: Adres + Kontakt + Opiekun --}}
                         <div style="display:flex; gap:12px; margin-bottom:10px; flex-wrap:wrap;">
@@ -439,8 +447,8 @@
                                                     @csrf
                                                     @method('PATCH')
                                                     <input type="hidden" name="open_company_editor_id" value="{{ $company->id }}">
-                                                    {{-- Rząd 1: Nazwa + Skrót + NIP --}}
-                                                    <div style="display:flex; gap:12px; margin-bottom:10px;">
+                                                    {{-- Rząd 1: Nazwa + Skrót + NIP + REGON + KRS --}}
+                                                    <div style="display:flex; gap:12px; margin-bottom:10px; flex-wrap:wrap;">
                                                         <div style="flex:3; min-width:150px;">
                                                             <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin-bottom:3px;">Nazwa *</label>
                                                             <input type="text" name="name" value="{{ old('open_company_editor_id') == $company->id ? old('name', $company->name) : $company->name }}" required style="width:100%;">
@@ -452,6 +460,14 @@
                                                         <div style="flex:1.2; min-width:90px;">
                                                             <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin-bottom:3px;">NIP</label>
                                                             <input type="text" name="nip" value="{{ old('open_company_editor_id') == $company->id ? old('nip', $company->nip) : $company->nip }}" style="width:100%;">
+                                                        </div>
+                                                        <div style="flex:1; min-width:100px;">
+                                                            <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin-bottom:3px;">REGON</label>
+                                                            <input type="text" name="regon" maxlength="14" value="{{ old('open_company_editor_id') == $company->id ? old('regon', $company->regon) : $company->regon }}" style="width:100%;">
+                                                        </div>
+                                                        <div style="flex:1; min-width:90px;">
+                                                            <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin-bottom:3px;">KRS</label>
+                                                            <input type="text" name="krs" maxlength="10" value="{{ old('open_company_editor_id') == $company->id ? old('krs', $company->krs) : $company->krs }}" style="width:100%;">
                                                         </div>
                                                     </div>
                                                     {{-- Rząd 2: Adres + Kontakt + Opiekun --}}
@@ -929,6 +945,10 @@
                 postalInput.value = payload.data?.postal_code ?? '';
                 cityInput.value = payload.data?.city ?? '';
                 nipInput.value = payload.data?.nip ?? nip;
+                const regonInput = document.getElementById('new-company-regon');
+                const krsInput = document.getElementById('new-company-krs');
+                if (regonInput && payload.data?.regon) regonInput.value = payload.data.regon;
+                if (krsInput && payload.data?.krs) krsInput.value = payload.data.krs;
                 messageBox.textContent = '{{ __('ui.settings.clients.lookup.success') }}';
             } catch (error) {
                 messageBox.textContent = '{{ __('ui.settings.clients.lookup.error') }}';
