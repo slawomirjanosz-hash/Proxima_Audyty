@@ -39,6 +39,53 @@ class AiAgentController extends Controller
     }
 
     /**
+     * AJAX: znajdź lub utwórz rozmowę i zwróć JSON z historią.
+     * Używane przez modal inline na stronie klienta.
+     */
+    public function storeAjax(Request $request): JsonResponse
+    {
+        $request->validate([
+            'context_type' => ['nullable', 'string', 'in:general,energy_audit,iso50001,offer,compressor_room,boiler_room,drying_room,buildings,technological_processes,bc_general,bc_compressor_room,bc_boiler_room,bc_drying_room,bc_buildings,bc_technological_processes'],
+        ]);
+
+        $contextType = $request->input('context_type', 'general');
+
+        // Reuse existing active conversation of this type, or create new one
+        $conversation = AiConversation::where('user_id', auth()->id())
+            ->where('context_type', $contextType)
+            ->where('status', 'active')
+            ->latest()
+            ->first();
+
+        if (! $conversation) {
+            try {
+                $conversation = $this->agent->startConversation(
+                    userId: auth()->id(),
+                    contextType: $contextType,
+                );
+            } catch (\Throwable $e) {
+                report($e);
+                return response()->json(['error' => 'Nie udało się uruchomić rozmowy.'], 500);
+            }
+        }
+
+        $messages = $conversation->messages()
+            ->orderBy('created_at')
+            ->get()
+            ->map(fn($m) => [
+                'id'         => $m->id,
+                'role'       => $m->role,
+                'content'    => $m->content,
+                'created_at' => $m->created_at->format('d.m.Y H:i'),
+            ]);
+
+        return response()->json([
+            'conversation_id' => $conversation->id,
+            'messages'        => $messages,
+        ]);
+    }
+
+    /**
      * Startuje nową konwersację i przekierowuje do czatu.
      */
     public function store(Request $request)

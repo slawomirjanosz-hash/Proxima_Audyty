@@ -482,6 +482,7 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/', [AiAgentController::class, 'index'])->name('index');
         Route::get('/nowa', [AiAgentController::class, 'create'])->name('create');
         Route::post('/', [AiAgentController::class, 'store'])->name('store');
+        Route::post('/ajax', [AiAgentController::class, 'storeAjax'])->name('store.ajax');
         Route::get('/{aiConversation}', [AiAgentController::class, 'show'])->name('show');
         Route::post('/{aiConversation}/wiadomosc', [AiAgentController::class, 'sendMessage'])->name('message');
         Route::post('/{aiConversation}/plik', [AiAgentController::class, 'analyzeFile'])->name('file');
