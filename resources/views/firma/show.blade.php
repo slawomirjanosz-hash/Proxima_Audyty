@@ -547,7 +547,12 @@
                         </div>
                         <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
                             <a href="{{ route('firma.audit', [$company, $audit]) }}" class="btn-sm btn-primary-sm">Wejdź →</a>
-                            @if($audit->agent_type === 'compressor_room')
+                            @if($audit->agent_type === 'general')
+                                <a href="{{ route('client.audit.master') }}?company_id={{ $company->id }}"
+                                   class="btn-sm"
+                                   style="background:#f0faf4; color:#0f6e2e; border:1px solid #a7d9b7; padding:5px 10px;"
+                                   title="Otwórz ankietę Master audytu energetycznego dla tej firmy">📋 Ankieta Master</a>
+                            @elseif($audit->agent_type === 'compressor_room')
                                 <a href="{{ route('client.audit.compressor.questionnaire', $audit) }}"
                                    class="btn-sm"
                                    style="background:#f0faf4; color:#0f6e2e; border:1px solid #a7d9b7; padding:5px 10px;"

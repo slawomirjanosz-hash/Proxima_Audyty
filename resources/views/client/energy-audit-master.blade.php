@@ -360,7 +360,11 @@
                 @endif
             </p>
         </div>
-        <a href="{{ route('strefa-klienta') }}" style="text-decoration:none; padding:8px 14px; background:#e0ecf5; color:#1d4f73; font-weight:700; border-radius:10px; font-size:13px;">← Strefa klienta</a>
+        @if(!empty($isStaff) && $company)
+            <a href="{{ route('firma.show', $company) }}" style="text-decoration:none; padding:8px 14px; background:#e0ecf5; color:#1d4f73; font-weight:700; border-radius:10px; font-size:13px;">← Wróć do firmy</a>
+        @else
+            <a href="{{ route('strefa-klienta') }}" style="text-decoration:none; padding:8px 14px; background:#e0ecf5; color:#1d4f73; font-weight:700; border-radius:10px; font-size:13px;">← Strefa klienta</a>
+        @endif
     </div>
 
     @if(!empty($isStaff) && $isStaff)
