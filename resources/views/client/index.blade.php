@@ -611,6 +611,18 @@
                                                    style="padding:7px 14px; border-radius:8px; background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; font-size:12px; font-weight:700; text-decoration:none;">
                                                     📋 Wypełnij kwestionariusz
                                                 </a>
+                                            @elseif($audit->agent_type === 'general')
+                                                <a href="{{ route('client.audit.master') }}"
+                                                   style="padding:7px 14px; border-radius:8px; background:linear-gradient(130deg,#d97706,#0e89d8); color:#fff; font-size:12px; font-weight:700; text-decoration:none;">
+                                                    📋 Wypełnij ankietę Master
+                                                </a>
+                                                @php $masterDone = \App\Models\EnergyAuditMasterData::where('company_id', $audit->company_id)->where('completion_percent', '>=', 30)->exists(); @endphp
+                                                @if($masterDone)
+                                                <a href="{{ route('client.audit.ai', $audit) }}"
+                                                   style="padding:7px 14px; border-radius:8px; background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; font-size:12px; font-weight:700; text-decoration:none;">
+                                                    {{ $hasStarted ? '▶ Kontynuuj audyt' : '▶ Rozpocznij audyt' }}
+                                                </a>
+                                                @endif
                                             @else
                                                 <a href="{{ route('client.audit.ai', $audit) }}"
                                                    style="padding:7px 14px; border-radius:8px; background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; font-size:12px; font-weight:700; text-decoration:none;">

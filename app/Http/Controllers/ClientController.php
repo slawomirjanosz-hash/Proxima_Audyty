@@ -328,6 +328,17 @@ class ClientController extends Controller
                 ->with('status', 'Przed rozpoczęciem rozmowy wypełnij ankietę sprężarkowni — podaj co wiesz, resztę zbierze asystent AI.');
         }
 
+        // Redirect to Master Form first for general energy audits
+        if ($agentType === 'general') {
+            $masterDone = \App\Models\EnergyAuditMasterData::where('company_id', $audit->company_id)
+                ->where('completion_percent', '>=', 30)
+                ->exists();
+            if (! $masterDone) {
+                return redirect()->route('client.audit.master')
+                    ->with('status', 'Przed rozpoczęciem audytu wypełnij ankietę Master — dane będą wykorzystane w całym audycie.');
+            }
+        }
+
         // Check if conversation already exists
         $existing = AiConversation::where([
             'user_id'      => $user->id,

@@ -337,6 +337,16 @@
         <a href="{{ route('strefa-klienta') }}" style="text-decoration:none; padding:8px 14px; background:#e0ecf5; color:#1d4f73; font-weight:700; border-radius:10px; font-size:13px;">← Strefa klienta</a>
     </div>
 
+    @if(session('status'))
+    <div style="background:#f0f9ff; border:1px solid #38bdf8; border-radius:12px; padding:12px 16px; margin-bottom:14px; font-size:13px; color:#0c4a6e; display:flex; align-items:center; gap:10px;">
+        <span>ℹ️</span> {{ session('status') }}
+        @if($masterData && $masterData->completion_percent >= 30)
+        &nbsp;·&nbsp;
+        <a href="{{ route('strefa-klienta') }}" style="color:#0e89d8; font-weight:700; text-decoration:underline;">Wróć do strefy klienta i kontynuuj audyt →</a>
+        @endif
+    </div>
+    @endif
+
     {{-- Helper banner --}}
     <div class="master-helper-banner">
         <div class="master-helper-icon">💡</div>

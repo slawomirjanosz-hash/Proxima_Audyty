@@ -351,7 +351,7 @@
                                             <label style="font-size:11px; font-weight:700; color:#374151; display:block; margin-bottom:4px;">Agent AI *</label>
                                             <select name="agent_type" required style="width:100%; border:1px solid #d1fae5; border-radius:8px; padding:7px 10px; font-size:12px; background:#fff; box-sizing:border-box;">
                                                 <optgroup label="Audyty energetyczne" data-category="energy">
-                                                    <option value="general"                 {{ $pa->agent_type === 'general'                 ? 'selected' : '' }}>Ogólnie</option>
+                                                    <option value="general"                 {{ $pa->agent_type === 'general'                 ? 'selected' : '' }}>Audyt Energetyczny zakładu (Master)</option>
                                                     <option value="compressor_room"         {{ $pa->agent_type === 'compressor_room'         ? 'selected' : '' }}>Sprężarkownia</option>
                                                     <option value="boiler_room"             {{ $pa->agent_type === 'boiler_room'             ? 'selected' : '' }}>Kotłownia</option>
                                                     <option value="drying_room"             {{ $pa->agent_type === 'drying_room'             ? 'selected' : '' }}>Suszarnia</option>
