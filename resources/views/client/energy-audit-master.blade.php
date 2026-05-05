@@ -1312,8 +1312,44 @@ $_companyData = $company ? [
     'auditorName'  => $company->auditor?->name ?? '',
     'auditorEmail' => $company->auditor?->email ?? '',
 ] : null;
+
+// Build team members array: slot 1 = logged-in user, then assignedUsers, then auditor — max 5
+$_teamMembers = [];
+if ($company && isset($currentUser)) {
+    $seen = [];
+    // Slot 1: current user
+    $_teamMembers[] = [
+        'name'     => $currentUser->name ?? '',
+        'email'    => $currentUser->email ?? '',
+        'phone'    => $currentUser->phone ?? '',
+        'position' => $currentUser->position ?? '',
+    ];
+    $seen[$currentUser->id] = true;
+    // Then assigned users (e.g. other client users linked to company)
+    foreach (($company->assignedUsers ?? collect()) as $u) {
+        if (count($_teamMembers) >= 5) break;
+        if (isset($seen[$u->id])) continue;
+        $_teamMembers[] = [
+            'name'     => $u->name ?? '',
+            'email'    => $u->email ?? '',
+            'phone'    => $u->phone ?? '',
+            'position' => $u->position ?? '',
+        ];
+        $seen[$u->id] = true;
+    }
+    // Then auditor (if exists and not already listed)
+    if ($company->auditor && !isset($seen[$company->auditor->id]) && count($_teamMembers) < 5) {
+        $_teamMembers[] = [
+            'name'     => $company->auditor->name ?? '',
+            'email'    => $company->auditor->email ?? '',
+            'phone'    => $company->auditor->phone ?? '',
+            'position' => $company->auditor->position ?? '',
+        ];
+    }
+}
 @endphp
 const COMPANY_DATA = @json($_companyData);
+const TEAM_MEMBERS = @json($_teamMembers);
 
 // == Auto-fill company data (only into empty fields, skip if already saved) ==
 (function prefillCompanyData() {
@@ -1329,12 +1365,19 @@ const COMPANY_DATA = @json($_companyData);
     setIfEmpty('AUD-V1-NAZWA', COMPANY_DATA.name);
     setIfEmpty('AUD-V2-NIP',   COMPANY_DATA.nip);
     setIfEmpty('AUD-V4-ADRES', COMPANY_DATA.address);
-    // Team — Osoba 1: auditor assigned to company
-    setIfEmpty('AUD-V13-IMIE-U1', COMPANY_DATA.auditorName);
-    setIfEmpty('AUD-V13-MAIL-U1', COMPANY_DATA.auditorEmail);
     // Location defaults
     setIfEmpty('ZAK-V1-LOK-NAZWA', COMPANY_DATA.name);
     setIfEmpty('ZAK-V2-LOK-ADRES', COMPANY_DATA.address);
+    // Team members: fill each slot from TEAM_MEMBERS array
+    if (TEAM_MEMBERS && TEAM_MEMBERS.length) {
+        TEAM_MEMBERS.forEach(function(member, idx) {
+            var u = idx + 1; // U1, U2, ...
+            setIfEmpty('AUD-V13-IMIE-U' + u,  member.name);
+            setIfEmpty('AUD-V13-MAIL-U' + u,  member.email);
+            setIfEmpty('AUD-V13-TEL-U' + u,   member.phone);
+            setIfEmpty('AUD-V13-STAN-U' + u,  member.position);
+        });
+    }
 })();
 
 // == 'Jak siedziba firmy' helper ==
