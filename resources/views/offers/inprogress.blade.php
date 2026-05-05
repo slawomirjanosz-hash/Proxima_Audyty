@@ -1,7 +1,7 @@
 <x-layouts.app>
 <div class="panel">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-        <h2 style="margin:0;font-size:20px;">Oferty w toku</h2>
+        <h2 style="margin:0;font-size:20px;">Oferty w toku / Wysłane</h2>
         <div style="display:flex;gap:8px;">
             <a href="{{ route('offers.create') }}" style="padding:8px 16px;background:#1ba84a;color:#fff;border-radius:9px;text-decoration:none;font-weight:600;font-size:14px;">+ Nowa oferta</a>
             <a href="{{ route('offers.index') }}" style="padding:8px 16px;background:#e2e8f0;color:#0f2330;border-radius:9px;text-decoration:none;font-weight:600;font-size:14px;">← Wróć</a>
@@ -18,25 +18,31 @@
                         <th>Nr oferty</th>
                         <th>Nazwa</th>
                         <th>Data</th>
-                        <th>Klient</th>
-                        <th>Szansa CRM</th>
+                        <th>Klient / Firma</th>
+                        <th>Status</th>
                         <th style="text-align:right;">Cena końcowa</th>
                         <th style="text-align:center;">Akcje</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($offers as $offer)
+                    @php
+                        $statusLabel = match($offer->status) {
+                            'inprogress' => ['label' => 'W toku',      'bg' => '#fef3c7', 'color' => '#92400e'],
+                            'sent'       => ['label' => 'Wysłana',     'bg' => '#dbeafe', 'color' => '#1e40af'],
+                            'accepted'   => ['label' => 'Zaakceptowana','bg' => '#d1fae5', 'color' => '#065f46'],
+                            default      => ['label' => $offer->status, 'bg' => '#f3f4f6', 'color' => '#374151'],
+                        };
+                    @endphp
                     <tr>
                         <td style="font-weight:600;">{{ $offer->offer_number ?: '—' }}</td>
                         <td>{{ $offer->offer_title }}</td>
                         <td>{{ $offer->offer_date ? $offer->offer_date->format('d.m.Y') : '—' }}</td>
-                        <td>{{ $offer->customer_name ?: '—' }}</td>
                         <td>
-                            @if($offer->crmDeal)
-                                <a href="{{ route('crm.index') }}" style="color:#0e89d8;">{{ $offer->crmDeal->name }}</a>
-                            @else
-                                <span style="color:#9cb0c0;">—</span>
-                            @endif
+                            {{ $offer->company?->name ?: ($offer->customer_name ?: '—') }}
+                        </td>
+                        <td>
+                            <span style="display:inline-block;padding:2px 10px;border-radius:6px;font-size:12px;font-weight:700;background:{{ $statusLabel['bg'] }};color:{{ $statusLabel['color'] }};">{{ $statusLabel['label'] }}</span>
                         </td>
                         <td style="text-align:right;font-weight:600;">
                             {{ number_format($offer->total_price, 2, ',', ' ') }} zł

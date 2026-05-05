@@ -9,7 +9,7 @@
             ➕ Nową Ofertę
         </a>
         <a href="{{ route('offers.inprogress') }}" style="display:flex;align-items:center;gap:8px;padding:14px 22px;background:#d97706;color:#fff;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px;">
-            ⏳ W toku
+            ⏳ W toku / Wysłane
         </a>
         <a href="{{ route('offers.archived') }}" style="display:flex;align-items:center;gap:8px;padding:14px 22px;background:#718096;color:#fff;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px;">
             🗄️ Zarchiwizowane

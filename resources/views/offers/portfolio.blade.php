@@ -30,7 +30,7 @@
                         <td style="font-weight:600;">{{ $offer->offer_number ?: '—' }}</td>
                         <td>{{ $offer->offer_title }}</td>
                         <td>{{ $offer->offer_date ? $offer->offer_date->format('d.m.Y') : '—' }}</td>
-                        <td>{{ $offer->customer_name ?: '—' }}</td>
+                        <td>{{ $offer->company?->name ?: ($offer->customer_name ?: '—') }}</td>
                         <td>
                             @if($offer->crmDeal)
                                 <a href="{{ route('crm.index') }}" style="color:#0e89d8;">{{ $offer->crmDeal->name }}</a>

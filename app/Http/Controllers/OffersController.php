@@ -19,19 +19,19 @@ class OffersController extends Controller
 
     public function portfolio()
     {
-        $offers = Offer::where('status', 'portfolio')->with('crmDeal')->latest()->get();
+        $offers = Offer::where('status', 'portfolio')->with(['crmDeal', 'company'])->latest()->get();
         return view('offers.portfolio', compact('offers'));
     }
 
     public function inprogress()
     {
-        $offers = Offer::where('status', 'inprogress')->with('crmDeal')->latest()->get();
+        $offers = Offer::whereIn('status', ['inprogress', 'sent', 'accepted'])->with(['crmDeal', 'company'])->latest()->get();
         return view('offers.inprogress', compact('offers'));
     }
 
     public function archived()
     {
-        $offers = Offer::where('status', 'archived')->with('crmDeal')->latest()->get();
+        $offers = Offer::where('status', 'archived')->with(['crmDeal', 'company'])->latest()->get();
         return view('offers.archived', compact('offers'));
     }
 
