@@ -3,13 +3,13 @@
     <style>
         /* ─── Hero ─────────────────────────────────────────────── */
         .client-hero {
-            background: linear-gradient(135deg, #0f2330 0%, #0e4a6e 50%, #0b6e3d 100%);
-            border-radius: 16px;
+            background: linear-gradient(135deg, var(--green-deep) 0%, #255c45 60%, var(--green-primary) 100%);
+            border-radius: 8px;
             padding: 36px 40px;
-            color: #fff;
+            color: var(--paper);
             display: grid;
             gap: 10px;
-            box-shadow: 0 18px 50px rgba(14,55,85,.18);
+            box-shadow: 0 8px 32px rgba(26,77,58,.18);
             position: relative;
             overflow: hidden;
         }
@@ -27,27 +27,28 @@
             bottom: -40px; left: 30%;
             width: 200px; height: 200px;
             border-radius: 50%;
-            background: rgba(27,168,74,.1);
+            background: rgba(168,127,42,.12);
         }
         .client-tag {
             width: fit-content;
-            background: rgba(27,168,74,.22);
-            border: 1px solid rgba(27,168,74,.4);
-            color: #6ee7a4;
+            background: rgba(168,127,42,.22);
+            border: 1px solid rgba(212,168,75,.4);
+            color: var(--gold-light, #D4A84B);
             font-size: 10px;
-            font-weight: 800;
+            font-weight: 700;
             letter-spacing: 1.6px;
             text-transform: uppercase;
             padding: 4px 12px;
-            border-radius: 6px;
+            border-radius: 4px;
+            font-family: var(--mono);
         }
-        .client-hero h1 { margin: 0; font-size: clamp(22px, 3vw, 36px); font-weight: 800; line-height: 1.15; }
-        .client-hero h1 span { color: #6ee7a4; }
-        .client-hero p { margin: 0; font-size: 14px; color: rgba(255,255,255,.65); max-width: 560px; }
+        .client-hero h1 { margin: 0; font-size: clamp(22px, 3vw, 36px); font-weight: 600; line-height: 1.15; font-family: var(--serif); color: var(--paper) !important; }
+        .client-hero h1 span { color: #D4A84B; }
+        .client-hero p { margin: 0; font-size: 14px; color: rgba(245,239,224,.7); max-width: 560px; }
         .client-meta { display: flex; gap: 24px; margin-top: 8px; flex-wrap: wrap; }
         .client-meta-item { display: flex; flex-direction: column; gap: 2px; }
-        .client-meta-item .label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,.45); font-weight: 700; }
-        .client-meta-item .value { font-size: 14px; font-weight: 600; color: rgba(255,255,255,.9); }
+        .client-meta-item .label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: rgba(245,239,224,.5); font-weight: 700; font-family: var(--mono); }
+        .client-meta-item .value { font-size: 14px; font-weight: 600; color: rgba(245,239,224,.9); }
 
         /* ─── Two-column grid ───────────────────────────────────── */
         .client-zone-grid {
@@ -61,10 +62,9 @@
 
         /* ─── Collapsible section boxes ─────────────────────────── */
         .cs-box {
-            background: #fff;
-            border: 1px solid #d5e0ea;
-            border-radius: 16px;
-            box-shadow: 0 4px 16px rgba(14,55,85,.05);
+            background: var(--paper-soft);
+            border: 1px solid var(--paper-deep);
+            border-radius: 8px;
             margin-bottom: 16px;
             overflow: hidden;
         }
@@ -79,25 +79,21 @@
             cursor: pointer;
             text-align: left;
         }
-        .cs-toggle:hover { background: #f7fbff; }
-        .cs-toggle h3 { margin: 0; font-size: 15px; font-weight: 800; color: #0f2330; }
+        .cs-toggle:hover { background: var(--green-bg); }
+        .cs-toggle h3 { margin: 0; font-size: 15px; font-weight: 600; color: var(--green-deep); font-family: var(--serif); }
         .cs-body { display: none; padding: 0 18px 18px; }
         .cs-box.open .cs-body { display: block; }
         .cs-box.open .cs-chev { transform: rotate(180deg); }
-        .cs-chev { font-size: 12px; color: #6b8aa3; transition: transform .2s; flex-shrink: 0; }
+        .cs-chev { font-size: 12px; color: var(--ink-mute); transition: transform .2s; flex-shrink: 0; }
         .cs-head-row { display: flex; align-items: center; gap: 8px; }
 
         /* ─── Chat notification blink ───────────────────────────── */
         @keyframes cs-blink-yellow {
-            0%, 100% { background: #fff; border-color: #d5e0ea; }
-            50%       { background: #fffbe0; border-color: #f5c400; box-shadow: 0 0 0 3px #fef08a66; }
+            0%, 100% { background: var(--paper-soft); border-color: var(--paper-deep); }
+            50%       { background: #fffbe0; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(168,127,42,.2); }
         }
-        .cs-box--notify {
-            animation: cs-blink-yellow 1s ease-in-out infinite;
-        }
-        .cs-box--notify .cs-toggle h3::after {
-            content: ' 🔔';
-        }
+        .cs-box--notify { animation: cs-blink-yellow 1s ease-in-out infinite; }
+        .cs-box--notify .cs-toggle h3::after { content: ' 🔔'; }
 
         /* ─── Audit type 3-column radio grid ────────────────────── */
         .audit-type-grid {
@@ -108,123 +104,125 @@
         }
         @media (max-width: 700px) { .audit-type-grid { grid-template-columns: 1fr; } }
         .audit-col {
-            background: #f7fbff;
-            border: 1px solid #d5e0ea;
-            border-radius: 12px;
+            background: var(--paper-soft);
+            border: 1px solid var(--paper-deep);
+            border-radius: 6px;
             padding: 12px;
         }
         .audit-col-head {
             font-size: 11px;
-            font-weight: 800;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: .7px;
-            color: #0c3c5f;
+            color: var(--green-deep);
             margin: 0 0 10px;
             padding-bottom: 8px;
-            border-bottom: 2px solid #e0ecf5;
+            border-bottom: 2px solid var(--green-light);
             line-height: 1.3;
+            font-family: var(--mono);
         }
         .audit-rl {
             display: flex;
             align-items: center;
             gap: 8px;
             padding: 7px 10px;
-            border-radius: 8px;
+            border-radius: 5px;
             cursor: pointer;
             border: 2px solid transparent;
             margin-bottom: 4px;
             transition: background .12s;
             font-size: 13px;
             font-weight: 600;
-            color: #1e3a5f;
+            color: var(--green-deep);
         }
-        .audit-rl:hover { background: #e0f2fe; }
-        .audit-rl:has(input:checked) { background: #e0f2fe; border-color: #38bdf8; }
-        .audit-rl input { accent-color: #0e89d8; width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
+        .audit-rl:hover { background: var(--green-bg); }
+        .audit-rl:has(input:checked) { background: var(--green-bg); border-color: var(--green-primary); }
+        .audit-rl input { accent-color: var(--green-primary); width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
 
         /* ─── Inquiry list ───────────────────────────────────────── */
         .inquiry-list { display: grid; gap: 10px; }
         .inquiry-item {
-            border: 1px solid #d5e0ea; border-radius: 12px;
-            padding: 14px 16px; background: #fbfdff;
+            border: 1px solid var(--paper-deep); border-radius: 6px;
+            padding: 14px 16px; background: var(--paper-soft);
             display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap;
             justify-content: space-between;
         }
         .inquiry-body { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 200px; }
-        .inquiry-type { font-weight: 800; font-size: 15px; color: #10344c; }
-        .inquiry-msg  { font-size: 13px; color: #4c6373; white-space: pre-line; }
-        .inquiry-date { font-size: 12px; color: #8aa3b5; margin-top: 4px; }
+        .inquiry-type { font-weight: 600; font-size: 15px; color: var(--green-deep); font-family: var(--serif); }
+        .inquiry-msg  { font-size: 13px; color: var(--ink-mute); white-space: pre-line; }
+        .inquiry-date { font-size: 12px; color: var(--ink-mute); margin-top: 4px; font-family: var(--mono); }
         .inquiry-badge {
-            padding: 4px 10px; border-radius: 999px;
-            font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px;
-            white-space: nowrap;
+            padding: 4px 10px; border-radius: 4px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;
+            white-space: nowrap; font-family: var(--mono);
         }
         .count-badge {
-            background: #e0f2fe; color: #0369a1;
+            background: var(--green-bg); color: var(--green-deep);
             font-size: 11px; font-weight: 700;
-            padding: 3px 8px; border-radius: 6px;
+            padding: 3px 8px; border-radius: 4px;
         }
 
         /* ─── Chat ───────────────────────────────────────────────── */
         .chat-client-box {
-            background: #f8fbfd; border: 1px solid #d5e0ea; border-radius: 10px;
+            background: var(--paper-soft); border: 1px solid var(--paper-deep); border-radius: 6px;
             padding: 10px 12px; max-height: 300px; overflow-y: auto;
             display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;
         }
         .chat-bw { display: flex; flex-direction: column; }
         .chat-bw.admin { align-items: flex-end; }
         .chat-bw.client-me { align-items: flex-start; }
-        .chat-b { max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 13px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
-        .chat-b.admin  { background: #0f2330; color: #fff; border-bottom-right-radius: 3px; }
-        .chat-b.client-me { background: #fff; border: 1px solid #d5e0ea; color: #1a2e3d; border-bottom-left-radius: 3px; }
-        .chat-b-meta { font-size: 11px; color: #8aa3b5; margin-top: 3px; }
+        .chat-b { max-width: 80%; padding: 8px 12px; border-radius: 8px; font-size: 13px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
+        .chat-b.admin  { background: var(--green-deep); color: var(--paper); border-bottom-right-radius: 2px; }
+        .chat-b.client-me { background: white; border: 1px solid var(--paper-deep); color: var(--ink); border-bottom-left-radius: 2px; }
+        .chat-b-meta { font-size: 11px; color: var(--ink-mute); margin-top: 3px; font-family: var(--mono); }
 
         /* ─── Offer cards ────────────────────────────────────────── */
         .offer-preview-card {
-            margin-top: 10px; background: #f0f9ff; border: 1px solid #bae6fd;
-            border-radius: 12px; padding: 14px 16px;
+            margin-top: 10px; background: var(--green-bg); border: 1px solid var(--green-light);
+            border-radius: 6px; padding: 14px 16px;
         }
-        .offer-preview-card h4 { margin: 0 0 4px; font-size: 15px; font-weight: 800; color: #0c4a6e; }
-        .offer-preview-meta { font-size: 12px; color: #0369a1; margin-bottom: 10px; }
-        .offer-preview-desc { font-size: 13px; color: #374151; margin-bottom: 10px; white-space: pre-wrap; }
+        .offer-preview-card h4 { margin: 0 0 4px; font-size: 15px; font-weight: 600; color: var(--green-deep); font-family: var(--serif); }
+        .offer-preview-meta { font-size: 12px; color: var(--ink-mute); margin-bottom: 10px; font-family: var(--mono); }
+        .offer-preview-desc { font-size: 13px; color: var(--ink); margin-bottom: 10px; white-space: pre-wrap; }
         .offer-btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-        .offer-btn { padding: 8px 16px; border-radius: 9px; border: none; cursor: pointer; font-size: 13px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
-        .offer-btn-blue  { background: #0e89d8; color: #fff; }
-        .offer-btn-gray  { background: #e2e8f0; color: #1e3a5f; }
-        .offer-btn-green { background: #16a34a; color: #fff; }
-        .offer-sections-detail { margin-top: 10px; font-size: 13px; color: #374151; }
+        .offer-btn { padding: 8px 16px; border-radius: 5px; border: none; cursor: pointer; font-size: 13px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-family: var(--sans); }
+        .offer-btn-blue  { background: var(--green-primary); color: var(--paper); }
+        .offer-btn-blue:hover { background: var(--green-deep); }
+        .offer-btn-gray  { background: var(--paper-deep); color: var(--green-deep); }
+        .offer-btn-green { background: var(--green-primary); color: var(--paper); }
+        .offer-sections-detail { margin-top: 10px; font-size: 13px; color: var(--ink); }
         .offer-sections-detail table { width: 100%; border-collapse: collapse; margin-top: 6px; }
-        .offer-sections-detail th { font-size: 11px; text-transform: uppercase; letter-spacing: .4px; color: #4c6373; background: #e0f2fe; padding: 5px 6px; text-align: left; }
-        .offer-sections-detail td { padding: 4px 6px; border-bottom: 1px solid #dbe9f5; font-size: 12px; }
+        .offer-sections-detail th { font-size: 11px; text-transform: uppercase; letter-spacing: .4px; color: var(--ink-mute); background: var(--paper-deep); padding: 5px 6px; text-align: left; font-family: var(--mono); }
+        .offer-sections-detail td { padding: 4px 6px; border-bottom: 1px solid var(--paper-deep); font-size: 12px; }
 
         /* ─── Audit cards ────────────────────────────────────────── */
         .audit-client-card {
-            border: 1px solid #d5e0ea; border-radius: 12px; padding: 14px 16px;
-            background: #fbfdff; display: flex; align-items: center; gap: 12px;
+            border: 1px solid var(--paper-deep); border-radius: 6px; padding: 14px 16px;
+            background: var(--paper-soft); display: flex; align-items: center; gap: 12px;
             flex-wrap: wrap; justify-content: space-between;
         }
-        .audit-client-card.status-wyslany { border-left: 4px solid #2563eb; }
-        .audit-client-card.status-rozpoczety { border-left: 4px solid #059669; }
-        .audit-client-card.status-zaakceptowany { border-left: 4px solid #16a34a; }
-        .audit-client-card.status-zakonczony { border-left: 4px solid #6b7280; }
+        .audit-client-card.status-wyslany { border-left: 4px solid var(--gold); }
+        .audit-client-card.status-rozpoczety { border-left: 4px solid var(--green-primary); }
+        .audit-client-card.status-zaakceptowany { border-left: 4px solid var(--green-deep); }
+        .audit-client-card.status-zakonczony { border-left: 4px solid var(--ink-mute); }
 
         /* ─── Admin preview table ────────────────────────────────── */
         .preview-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .preview-table th, .preview-table td { padding: 9px 10px; font-size: 13px; border-bottom: 1px solid #edf2f7; text-align: left; }
-        .preview-table th { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: #4c6373; background: #f7fafc; }
+        .preview-table th, .preview-table td { padding: 9px 10px; font-size: 13px; border-bottom: 1px solid var(--paper-deep); text-align: left; }
+        .preview-table th { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--ink-mute); background: var(--paper-deep); font-family: var(--mono); }
         .preview-table tr:last-child td { border-bottom: none; }
 
         /* ─── Shared buttons ─────────────────────────────────────── */
         .btn-action {
             display: inline-flex; align-items: center; gap: 8px;
-            padding: 10px 18px; border-radius: 10px;
-            font-size: 14px; font-weight: 700; cursor: pointer;
-            border: none; text-decoration: none;
+            padding: 10px 18px; border-radius: 5px;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            border: none; text-decoration: none; font-family: var(--sans);
         }
-        .btn-action-blue  { background: #0e89d8; color: #fff; }
-        .btn-action-blue:hover { background: #0d7cc4; }
-        .btn-action-green { background: #1ba84a; color: #fff; }
-        .btn-action-green:hover { background: #188c3e; }
+        .btn-action-blue  { background: var(--green-primary); color: var(--paper); }
+        .btn-action-blue:hover { background: var(--green-deep); }
+        .btn-action-green { background: var(--green-primary); color: var(--paper); }
+        .btn-action-green:hover { background: var(--green-deep); }
 
         @media (max-width: 800px) { .client-hero { padding: 24px 20px; } }
     </style>
@@ -609,7 +607,16 @@
                                             </span>
                                         </div>
                                         <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                                            @if($audit->agent_type === 'iso50001' && !$audit->questionnaire_completed)
+                                            @if($audit->agent_type === 'compressor_room' || $audit->agent_type === 'bc_compressor_room')
+                                                <a href="{{ route('client.audit.compressor.questionnaire', $audit) }}"
+                                                   style="padding:7px 14px; border-radius:8px; background:linear-gradient(130deg,#2E7D5C,#1A4D3A); color:#fff; font-size:12px; font-weight:700; text-decoration:none;">
+                                                    📋 {{ $audit->questionnaire_completed ? 'Edytuj ankietę Kompresory' : 'Wypełnij ankietę Kompresory' }}
+                                                </a>
+                                                <a href="{{ route('client.audit.ai', $audit) }}"
+                                                   style="padding:7px 14px; border-radius:8px; background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; font-size:12px; font-weight:700; text-decoration:none;">
+                                                    {{ $hasStarted ? '▶ Kontynuuj audyt' : '▶ Rozpocznij audyt' }}
+                                                </a>
+                                            @elseif($audit->agent_type === 'iso50001' && !$audit->questionnaire_completed)
                                                 <a href="{{ route('client.audit.iso.questionnaire', $audit) }}"
                                                    style="padding:7px 14px; border-radius:8px; background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; font-size:12px; font-weight:700; text-decoration:none;">
                                                     📋 Wypełnij kwestionariusz

@@ -3,7 +3,7 @@
         <style>
             .audit-info-grid { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px; }
             .audit-info-card { border:1px solid #dbe8f3; border-radius:12px; background:#f9fcff; padding:10px; }
-            .audit-info-card strong { display:block; font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:#6b8aa3; margin-bottom:4px; }
+            .audit-info-card strong { display:block; font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--ink-mute); margin-bottom:4px; }
             .audit-section { border:1px solid #d7e5f0; border-left:5px solid #7fb4e1; border-radius:12px; padding:12px; background:#f8fbff; margin-top:12px; }
             .audit-section h4 { margin:0 0 8px; font-size:16px; color:#10344c; }
             .audit-data-table { width:100%; border-collapse:collapse; margin-top:10px; }
@@ -15,12 +15,12 @@
             .dependency-tree-overlay .dependency-path.dependency-path-active { stroke:#2f78af; stroke-width:2.3; opacity:1; }
             .audit-data-table tr.dependency-branch-active td:first-child { background:#eef6ff; }
             .audit-data-table tr.is-dependent-row td:first-child { position:relative; padding-left:calc(30px + (var(--dependency-depth, 1) - 1) * 16px); color:#264e6b; }
-            .audit-data-table tr.is-dependent-row td:first-child::before { content:attr(data-dependency-label); position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#1d4f73; font-weight:800; font-size:14px; line-height:1; letter-spacing:-1px; min-width:18px; text-align:center; }
+            .audit-data-table tr.is-dependent-row td:first-child::before { content:attr(data-dependency-label); position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--green-deep); font-weight:800; font-size:14px; line-height:1; letter-spacing:-1px; min-width:18px; text-align:center; }
             .audit-formulas { margin-top:12px; border:1px solid #d7e5f0; border-radius:12px; padding:10px; background:#f7fbff; }
             .formula-line { display:flex; gap:8px; align-items:baseline; font-size:13px; color:#2c4e67; padding:6px 0; border-bottom:1px solid #e0ecf5; }
             .formula-line:last-child { border-bottom:none; }
             .formula-label { font-weight:700; }
-            .btn-secondary { background:#dbe9f5; color:#1d4f73; }
+            .btn-secondary { background:#dbe9f5; color:var(--green-deep); }
             @media (max-width: 900px) {
                 .audit-info-grid { grid-template-columns:1fr; }
             }
@@ -102,7 +102,7 @@
                         <h4>{{ $sectionIndex + 1 }}. {{ $section->name }}</h4>
 
                         <?php if (!empty($sectionTasks)): ?>
-                            <div style="font-size:12px; color:#4c6373; margin-bottom:6px;"><strong>Zadania:</strong></div>
+                            <div style="font-size:12px; color:var(--ink-mute); margin-bottom:6px;"><strong>Zadania:</strong></div>
                             <ul style="margin:0 0 8px 18px; padding:0; display:grid; gap:4px; color:#355468;">
                                 <?php foreach ($sectionTasks as $task): ?>
                                     <li>
@@ -174,7 +174,7 @@
                         ?>
                         <?php if (!empty($sectionFormulas)): ?>
                             <div class="audit-formulas">
-                                <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#6b8aa3; margin-bottom:6px;">Wyniki obliczeń</div>
+                                <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--ink-mute); margin-bottom:6px;">Wyniki obliczeń</div>
                                 <?php foreach ($sectionFormulas as $formula): ?>
                                     <?php if (!empty($formula['label']) && !empty($formula['expression'])): ?>
                                         <div class="formula-line">

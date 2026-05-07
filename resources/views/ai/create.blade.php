@@ -11,10 +11,11 @@
         .type-btn input { display: none; }
         .type-btn .icon { font-size: 24px; margin-bottom: 6px; }
         .type-btn .label { font-size: 13px; font-weight: 600; }
-        .type-btn:has(input:checked) { border-color: #0e89d8; background: #eff8ff; }
-        .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border-radius: 9px; font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer; border: none; }
-        .btn-primary { background: linear-gradient(130deg, #1ba84a, #0e89d8); color: #fff; width: 100%; justify-content: center; }
-        .btn-back { background: #f0f5fa; color: #2a5070; border: 1px solid var(--line); margin-bottom: 16px; }
+        .type-btn:has(input:checked) { border-color: var(--green-primary); background: var(--green-bg); }
+        .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border-radius: 5px; font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer; border: none; font-family: var(--sans); }
+        .btn-primary { background: var(--green-primary); color: var(--paper); width: 100%; justify-content: center; }
+        .btn-primary:hover { background: var(--green-deep); }
+        .btn-back { background: var(--paper-soft); color: var(--green-deep); border: 1px solid var(--paper-deep); margin-bottom: 16px; }
     </style>
 
     <div style="padding: 16px">

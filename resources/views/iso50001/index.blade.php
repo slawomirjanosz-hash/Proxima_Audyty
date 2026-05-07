@@ -2,7 +2,7 @@
 
     <style>
         .iso-header {
-            background: linear-gradient(135deg, #163347 0%, #0e89d8 55%, #1ba84a 100%);
+            background: linear-gradient(135deg, #163347 0%, var(--green-primary) 55%, var(--green-primary) 100%);
             color: #fff;
             border-radius: 16px;
             padding: 26px;
@@ -27,7 +27,7 @@
             font-weight: 700;
             letter-spacing: .4px;
             text-transform: uppercase;
-            border: 1px solid #d5e0ea;
+            border: 1px solid var(--paper-deep);
             background: #f6fafc;
             color: #36536a;
         }
@@ -162,13 +162,13 @@
                         <td style="white-space:nowrap; display:flex; gap:6px;">
                             @if($isClient)
                                 @if(!$audit->questionnaire_completed)
-                                    <a href="{{ route('iso50001.questionnaire', $audit) }}" style="display:inline-block; background:#1ba84a; color:#fff; padding:6px 10px; border-radius:8px; text-decoration:none;">Kwestionariusz</a>
+                                    <a href="{{ route('iso50001.questionnaire', $audit) }}" style="display:inline-block; background:var(--green-primary); color:#fff; padding:6px 10px; border-radius:8px; text-decoration:none;">Kwestionariusz</a>
                                 @else
-                                    <a href="{{ route('iso50001.step', ['isoAudit' => $audit, 'step' => max(1, (int) $audit->current_step)]) }}" style="display:inline-block; background:#0e89d8; color:#fff; padding:6px 10px; border-radius:8px; text-decoration:none;">Kontynuuj</a>
+                                    <a href="{{ route('iso50001.step', ['isoAudit' => $audit, 'step' => max(1, (int) $audit->current_step)]) }}" style="display:inline-block; background:var(--green-primary); color:#fff; padding:6px 10px; border-radius:8px; text-decoration:none;">Kontynuuj</a>
                                 @endif
                                 <a href="{{ route('iso50001.review', $audit) }}" style="display:inline-block; background:#eff6fb; color:#174666; padding:6px 10px; border-radius:8px; text-decoration:none; border:1px solid #d3e4f1;">Podgląd</a>
                             @else
-                                <a href="{{ route('iso50001.review', $audit) }}" style="display:inline-block; background:#0e89d8; color:#fff; padding:6px 10px; border-radius:8px; text-decoration:none;">Kontrola</a>
+                                <a href="{{ route('iso50001.review', $audit) }}" style="display:inline-block; background:var(--green-primary); color:#fff; padding:6px 10px; border-radius:8px; text-decoration:none;">Kontrola</a>
                             @endif
                         </td>
                     </tr>

@@ -112,16 +112,16 @@
     </section>
 
     <div id="customer-type-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:50; align-items:center; justify-content:center;">
-        <div style="background:#fff; width:min(520px, 92vw); border-radius:14px; padding:16px; border:1px solid #d5e0ea;">
+        <div style="background:#fff; width:min(520px, 92vw); border-radius:14px; padding:16px; border:1px solid var(--paper-deep);">
             <h3 id="customer-type-modal-title" style="margin:0 0 10px;">Dodaj Typ Klienta</h3>
             <form id="customer-type-form" method="POST" action="{{ route('crm.customer-types.store') }}">
                 @csrf
                 <input type="hidden" id="customer-type-method" name="_method" value="">
-                <label style="display:block; margin:8px 0 4px; font-size:12px; font-weight:700; color:#4c6373;">Nazwa typu *</label>
+                <label style="display:block; margin:8px 0 4px; font-size:12px; font-weight:700; color:var(--ink-mute);">Nazwa typu *</label>
                 <input type="text" name="name" id="customer-type-name" required>
-                <label style="display:block; margin:8px 0 4px; font-size:12px; font-weight:700; color:#4c6373;">Slug *</label>
+                <label style="display:block; margin:8px 0 4px; font-size:12px; font-weight:700; color:var(--ink-mute);">Slug *</label>
                 <input type="text" name="slug" id="customer-type-slug" required>
-                <label style="display:block; margin:8px 0 4px; font-size:12px; font-weight:700; color:#4c6373;">Kolor (hex) *</label>
+                <label style="display:block; margin:8px 0 4px; font-size:12px; font-weight:700; color:var(--ink-mute);">Kolor (hex) *</label>
                 <input type="color" name="color" id="customer-type-color" required style="height:40px; padding:4px;">
                 <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
                     <button type="button" class="btn-secondary" onclick="closeCustomerTypeModal()">Anuluj</button>
@@ -132,19 +132,19 @@
     </div>
 
     <div id="stage-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:50; align-items:center; justify-content:center;">
-        <div style="background:#fff; width:min(560px, 92vw); border-radius:14px; padding:16px; border:1px solid #d5e0ea;">
+        <div style="background:#fff; width:min(560px, 92vw); border-radius:14px; padding:16px; border:1px solid var(--paper-deep);">
             <h3 id="stage-modal-title" style="margin:0 0 10px;">Dodaj Etap</h3>
             <form id="stage-form" method="POST" action="{{ route('crm.stage.add') }}">
                 @csrf
                 <input type="hidden" id="stage-method" name="_method" value="">
 
-                <label style="display:block; margin:8px 0 4px; font-size:12px; font-weight:700; color:#4c6373;">Nazwa etapu *</label>
+                <label style="display:block; margin:8px 0 4px; font-size:12px; font-weight:700; color:var(--ink-mute);">Nazwa etapu *</label>
                 <input type="text" name="name" id="stage-name" required>
-                <label style="display:block; margin:8px 0 4px; font-size:12px; font-weight:700; color:#4c6373;">Slug *</label>
+                <label style="display:block; margin:8px 0 4px; font-size:12px; font-weight:700; color:var(--ink-mute);">Slug *</label>
                 <input type="text" name="slug" id="stage-slug" required>
-                <label style="display:block; margin:8px 0 4px; font-size:12px; font-weight:700; color:#4c6373;">Kolor (hex) *</label>
+                <label style="display:block; margin:8px 0 4px; font-size:12px; font-weight:700; color:var(--ink-mute);">Kolor (hex) *</label>
                 <input type="color" name="color" id="stage-color" required style="height:40px; padding:4px;">
-                <label style="display:block; margin:8px 0 4px; font-size:12px; font-weight:700; color:#4c6373;">Kolejność *</label>
+                <label style="display:block; margin:8px 0 4px; font-size:12px; font-weight:700; color:var(--ink-mute);">Kolejność *</label>
                 <input type="number" name="order" id="stage-order" min="0" required>
 
                 <label style="display:block; margin:8px 0 4px;"><input type="checkbox" name="is_active" id="stage-is-active" value="1"> Aktywny</label>

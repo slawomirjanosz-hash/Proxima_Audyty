@@ -3,13 +3,13 @@
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
         <h2 style="margin:0;font-size:20px;">Portfolio ofert</h2>
         <div style="display:flex;gap:8px;">
-            <a href="{{ route('offers.create') }}" style="padding:8px 16px;background:#1ba84a;color:#fff;border-radius:9px;text-decoration:none;font-weight:600;font-size:14px;">+ Nowa oferta</a>
-            <a href="{{ route('offers.index') }}" style="padding:8px 16px;background:#e2e8f0;color:#0f2330;border-radius:9px;text-decoration:none;font-weight:600;font-size:14px;">← Wróć</a>
+            <a href="{{ route('offers.create') }}" style="padding:8px 16px;background:var(--green-primary);color:#fff;border-radius:9px;text-decoration:none;font-weight:600;font-size:14px;">+ Nowa oferta</a>
+            <a href="{{ route('offers.index') }}" style="padding:8px 16px;background:#e2e8f0;color:var(--ink);border-radius:9px;text-decoration:none;font-weight:600;font-size:14px;">← Wróć</a>
         </div>
     </div>
 
     @if($offers->isEmpty())
-        <p style="color:#4c6373;text-align:center;padding:32px 0;">Brak ofert w portfolio.</p>
+        <p style="color:var(--ink-mute);text-align:center;padding:32px 0;">Brak ofert w portfolio.</p>
     @else
         <div style="overflow-x:auto;">
             <table>
@@ -33,7 +33,7 @@
                         <td>{{ $offer->company?->name ?: ($offer->customer_name ?: '—') }}</td>
                         <td>
                             @if($offer->crmDeal)
-                                <a href="{{ route('crm.index') }}" style="color:#0e89d8;">{{ $offer->crmDeal->name }}</a>
+                                <a href="{{ route('crm.index') }}" style="color:var(--green-primary);">{{ $offer->crmDeal->name }}</a>
                             @else
                                 <span style="color:#9cb0c0;">—</span>
                             @endif
@@ -45,10 +45,10 @@
                             <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
                                 <a href="{{ route('offers.generateWord', $offer) }}" style="padding:5px 10px;background:#7c3aed;color:#fff;border-radius:7px;text-decoration:none;font-size:12px;font-weight:600;" title="Word">W</a>
                                 <a href="{{ route('offers.generatePdf', $offer) }}" style="padding:5px 10px;background:#dc2626;color:#fff;border-radius:7px;text-decoration:none;font-size:12px;font-weight:600;" title="PDF">PDF</a>
-                                <a href="{{ route('offers.edit', $offer) }}" style="padding:5px 10px;background:#0e89d8;color:#fff;border-radius:7px;text-decoration:none;font-size:12px;font-weight:600;">Edytuj</a>
+                                <a href="{{ route('offers.edit', $offer) }}" style="padding:5px 10px;background:var(--green-primary);color:#fff;border-radius:7px;text-decoration:none;font-size:12px;font-weight:600;">Edytuj</a>
                                 <form method="POST" action="{{ route('offers.copy', $offer) }}" style="display:inline;" onsubmit="return confirm('Skopiować ofertę?')">
                                     @csrf
-                                    <button type="submit" style="padding:5px 10px;background:#1ba84a;color:#fff;border-radius:7px;border:0;cursor:pointer;font-size:12px;font-weight:600;">Kopiuj</button>
+                                    <button type="submit" style="padding:5px 10px;background:var(--green-primary);color:#fff;border-radius:7px;border:0;cursor:pointer;font-size:12px;font-weight:600;">Kopiuj</button>
                                 </form>
                                 <form method="POST" action="{{ route('offers.archive', $offer) }}" style="display:inline;" onsubmit="return confirm('Przenieść do archiwum?')">
                                     @csrf

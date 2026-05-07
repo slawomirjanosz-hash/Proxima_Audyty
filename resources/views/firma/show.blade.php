@@ -2,81 +2,82 @@
     <style>
         .firma-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:4px; }
         .firma-meta-inline { display:flex; flex-wrap:wrap; gap:6px 16px; align-items:center; margin:6px 0 4px; }
-        .firma-meta-inline .meta-chip { display:inline-flex; align-items:center; gap:4px; font-size:13px; color:#4c6373; }
-        .firma-meta-inline .meta-chip strong { color:#0f2330; font-weight:600; }
-        .section-box { background:#fff; border:1px solid #d5e0ea; border-radius:14px; margin-top:10px; overflow:hidden; }
-        .section-box-toggle { width:100%; display:flex; justify-content:space-between; align-items:center; gap:8px; padding:14px 18px; background:#fafdff; border:none; cursor:pointer; text-align:left; }
-        .section-box-toggle:hover { background:#f0f7ff; }
-        .section-box-toggle h2 { margin:0; font-size:15px; font-weight:800; color:#0f2330; display:flex; align-items:center; gap:8px; }
+        .firma-meta-inline .meta-chip { display:inline-flex; align-items:center; gap:4px; font-size:13px; color:var(--ink-mute); }
+        .firma-meta-inline .meta-chip strong { color:var(--ink); font-weight:600; }
+        .section-box { background:var(--paper-soft); border:1px solid var(--paper-deep); border-radius:8px; margin-top:10px; overflow:hidden; }
+        .section-box-toggle { width:100%; display:flex; justify-content:space-between; align-items:center; gap:8px; padding:14px 18px; background:var(--paper-soft); border:none; cursor:pointer; text-align:left; font-family:var(--sans); }
+        .section-box-toggle:hover { background:var(--green-bg); }
+        .section-box-toggle h2 { margin:0; font-size:15px; font-weight:700; color:var(--green-deep); font-family:var(--serif); display:flex; align-items:center; gap:8px; }
         .section-box-toggle .toggle-right { display:flex; align-items:center; gap:8px; }
-        .section-box-toggle .chevron { font-size:13px; color:#6b8aa3; transition:transform .2s; }
+        .section-box-toggle .chevron { font-size:13px; color:var(--ink-mute); transition:transform .2s; }
         .section-box.open .chevron { transform:rotate(180deg); }
-        .section-box.open .section-box-toggle { background:#eef6ff; }
-        .section-box-body { display:none; padding:16px 18px; border-top:1px solid #e8f1f8; }
+        .section-box.open .section-box-toggle { background:var(--green-bg); }
+        .section-box-body { display:none; padding:16px 18px; border-top:1px solid var(--paper-deep); }
         .section-box.open .section-box-body { display:block; }
         .section-box-header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
-        .section-box-header h2 { margin:0; font-size:17px; font-weight:800; color:#0f2330; }
-        .audit-row { display:grid; grid-template-columns:2fr 1fr 1fr 140px auto; gap:12px; align-items:center; padding:12px 14px; border:1px solid #d5e0ea; border-radius:11px; background:#f8fbfd; margin-bottom:8px; }
-        .audit-row:hover { background:#eef6ff; }
-        .audit-row-title { font-weight:700; color:#0f2330; font-size:14px; }
-        .audit-row-meta { font-size:12px; color:#4c6373; }
+        .section-box-header h2 { margin:0; font-size:17px; font-weight:700; color:var(--green-deep); font-family:var(--serif); }
+        .audit-row { display:grid; grid-template-columns:2fr 1fr 1fr 140px auto; gap:12px; align-items:center; padding:12px 14px; border:1px solid var(--paper-deep); border-radius:6px; background:var(--paper-soft); margin-bottom:8px; }
+        .audit-row:hover { background:var(--green-bg); }
+        .audit-row-title { font-weight:700; color:var(--ink); font-size:14px; }
+        .audit-row-meta { font-size:12px; color:var(--ink-mute); }
         .status-inprogress { background:#e0f2fe; color:#0369a1; }
         .status-sent     { background:#fef3c7; color:#92400e; }
-        .status-accepted { background:#d1fae5; color:#065f46; }
+        .status-accepted { background:var(--green-bg); color:var(--green-deep); }
         .status-portfolio { background:#f3f4f6; color:#374151; }
-        .status-pill { display:inline-block; font-size:11px; font-weight:700; padding:3px 10px; border-radius:6px; }
+        .status-pill { display:inline-block; font-size:11px; font-weight:700; padding:3px 10px; border-radius:4px; font-family:var(--mono); }
         .status-wysłany { background:#dbeafe; color:#1e40af; }
-        .status-rozpoczęty { background:#d1fae5; color:#065f46; }
+        .status-rozpoczęty { background:var(--green-bg); color:var(--green-deep); }
         .status-do_analizy { background:#fef3c7; color:#92400e; }
         .status-zwrócony_do_poprawy { background:#fee2e2; color:#991b1b; }
-        .status-zaakceptowany { background:#d1fae5; color:#065f46; }
-        .status-zakończony { background:#e5e7eb; color:#374151; }
+        .status-zaakceptowany { background:var(--green-bg); color:var(--green-deep); }
+        .status-zakończony { background:var(--paper-deep); color:var(--ink-soft); }
         .status-zafakturowany { background:#ede9fe; color:#5b21b6; }
-        .status-zapłacony { background:#d1fae5; color:#064e3b; }
+        .status-zapłacony { background:var(--green-bg); color:var(--green-deep); }
         .status-new, .status-in_progress { background:#e0f2fe; color:#0369a1; }
-        .status-completed { background:#e5e7eb; color:#374151; }
-        .sec-badge { display:inline-block; font-size:11px; font-weight:700; padding:3px 9px; border-radius:6px; font-family:inherit; }
-        .sec-badge-ok  { background:#bae6fd; color:#0369a1; }
+        .status-completed { background:var(--paper-deep); color:var(--ink-soft); }
+        .sec-badge { display:inline-block; font-size:11px; font-weight:700; padding:3px 9px; border-radius:4px; font-family:var(--mono); }
+        .sec-badge-ok  { background:var(--green-bg); color:var(--green-deep); }
         .sec-badge-warn { background:#fef3c7; border:1px solid #fbbf24; color:#92400e; }
-        .btn-sm { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; text-decoration:none; border:none; cursor:pointer; line-height:1; white-space:nowrap; }
-        .btn-primary-sm { background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; }
-        .btn-secondary-sm { background:#dbe9f5; color:#1d4f73; }
+        .btn-sm { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; border-radius:5px; font-size:12px; font-weight:700; text-decoration:none; border:none; cursor:pointer; line-height:1; white-space:nowrap; font-family:var(--sans); }
+        .btn-primary-sm { background:var(--green-primary); color:var(--paper); }
+        .btn-primary-sm:hover { background:var(--green-deep); }
+        .btn-secondary-sm { background:var(--green-bg); color:var(--green-deep); }
         .btn-danger-sm { background:#fee2e2; color:#991b1b; }
-        .inquiry-row { border:1px solid #d5e0ea; border-radius:11px; padding:12px 14px; background:#f8fbfd; margin-bottom:8px; display:flex; flex-direction:column; gap:8px; }
-        .inquiry-row.status-new { border-left:4px solid #f59e0b; }
-        .inquiry-row.status-accepted { border-left:4px solid #22c55e; }
-        .inquiry-row.status-rejected { border-left:4px solid #ef4444; border-color:#fee2e2; background:#fff5f5; }
+        .inquiry-row { border:1px solid var(--paper-deep); border-radius:6px; padding:12px 14px; background:var(--paper-soft); margin-bottom:8px; display:flex; flex-direction:column; gap:8px; }
+        .inquiry-row.status-new { border-left:4px solid var(--gold); }
+        .inquiry-row.status-accepted { border-left:4px solid var(--green-primary); }
+        .inquiry-row.status-rejected { border-left:4px solid var(--rose); border-color:#fee2e2; background:#fff5f5; }
         .inquiry-row-top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap; }
-        .inquiry-type { font-weight:800; font-size:14px; color:#0f2330; }
-        .inquiry-msg { font-size:13px; color:#4c6373; margin:2px 0; white-space:pre-line; }
-        .inquiry-meta { font-size:12px; color:#8aa3b5; }
+        .inquiry-type { font-weight:700; font-size:14px; color:var(--green-deep); font-family:var(--serif); }
+        .inquiry-msg { font-size:13px; color:var(--ink-soft); margin:2px 0; white-space:pre-line; }
+        .inquiry-meta { font-size:12px; color:var(--ink-mute); font-family:var(--mono); }
         .inquiry-actions { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
-        .portfolio-picker { background:#eef6ff; border:1px solid #cce3f7; border-radius:10px; padding:12px 14px; margin-top:6px; display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end; }
-        .chat-box { background:#f8fbfd; border:1px solid #d5e0ea; border-radius:10px; padding:10px 12px; max-height:340px; overflow-y:auto; margin-bottom:10px; display:flex; flex-direction:column; gap:8px; }
+        .portfolio-picker { background:var(--green-bg); border:1px solid var(--green-light); border-radius:6px; padding:12px 14px; margin-top:6px; display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end; }
+        .chat-box { background:var(--paper-soft); border:1px solid var(--paper-deep); border-radius:6px; padding:10px 12px; max-height:340px; overflow-y:auto; margin-bottom:10px; display:flex; flex-direction:column; gap:8px; }
         .chat-bubble-wrap { display:flex; flex-direction:column; }
         .chat-bubble-wrap.admin { align-items:flex-end; }
         .chat-bubble-wrap.client { align-items:flex-start; }
-        .chat-bubble { max-width:75%; padding:8px 12px; border-radius:12px; font-size:13px; line-height:1.45; white-space:pre-wrap; word-break:break-word; }
-        .chat-bubble.admin { background:#0e89d8; color:#fff; border-bottom-right-radius:3px; }
-        .chat-bubble.client { background:#fff; border:1px solid #d5e0ea; color:#1a2e3d; border-bottom-left-radius:3px; }
-        .chat-meta-line { font-size:11px; color:#8aa3b5; margin-top:3px; }
-        .offer-row-firm { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; padding:10px 14px; border:1px solid #d5e0ea; border-radius:10px; background:#f8fbfd; margin-bottom:6px; }
+        .chat-bubble { max-width:75%; padding:8px 12px; border-radius:8px; font-size:13px; line-height:1.45; white-space:pre-wrap; word-break:break-word; }
+        .chat-bubble.admin { background:var(--green-deep); color:var(--paper); border-bottom-right-radius:2px; }
+        .chat-bubble.client { background:white; border:1px solid var(--paper-deep); color:var(--ink); border-bottom-left-radius:2px; }
+        .chat-meta-line { font-size:11px; color:var(--ink-mute); margin-top:3px; font-family:var(--mono); }
+        .offer-row-firm { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; padding:10px 14px; border:1px solid var(--paper-deep); border-radius:6px; background:var(--paper-soft); margin-bottom:6px; }
         .form-inline { display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap; }
         .field-sm { display:flex; flex-direction:column; gap:3px; }
-        .field-sm label { font-size:12px; font-weight:700; color:#1d3a50; }
-        .field-sm input, .field-sm select { padding:8px 10px; border:1px solid #c8d8e6; border-radius:8px; font-size:13px; background:#f8fbfd; min-width:160px; }
-        .credential-box { background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:14px 16px; }
+        .field-sm label { font-size:12px; font-weight:700; color:var(--green-deep); font-family:var(--mono); letter-spacing:0.5px; }
+        .field-sm input, .field-sm select { padding:8px 10px; border:1px solid var(--paper-deep); border-radius:5px; font-size:13px; background:white; min-width:160px; font-family:var(--sans); }
+        .credential-box { background:var(--green-bg); border:1px solid var(--green-light); border-radius:6px; padding:14px 16px; }
         .credential-box.has { background:#f0f9ff; border-color:#bae6fd; }
-        .user-row { display:grid; grid-template-columns:auto 1fr auto auto; gap:12px; align-items:center; padding:10px 14px; border:1px solid #d5e0ea; border-radius:11px; background:#f8fbfd; margin-bottom:8px; }
-        .user-row:hover { background:#eef6ff; }
-        .user-avatar { width:38px; height:38px; border-radius:50%; background:linear-gradient(130deg,#0e89d8,#1ba84a); color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; flex-shrink:0; }
-        .role-badge { display:inline-block; padding:3px 9px; border-radius:6px; font-size:11px; font-weight:700; }
+        .user-row { display:grid; grid-template-columns:auto 1fr auto auto; gap:12px; align-items:center; padding:10px 14px; border:1px solid var(--paper-deep); border-radius:6px; background:var(--paper-soft); margin-bottom:8px; }
+        .user-row:hover { background:var(--green-bg); }
+        .user-avatar { width:38px; height:38px; border-radius:50%; background:var(--green-deep); color:var(--paper); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; flex-shrink:0; font-family:var(--serif); }
+        .role-badge { display:inline-block; padding:3px 9px; border-radius:4px; font-size:11px; font-weight:700; font-family:var(--mono); }
         .role-client   { background:#dbeafe; color:#1e40af; }
-        .role-auditor  { background:#d1fae5; color:#065f46; }
+        .role-auditor  { background:var(--green-bg); color:var(--green-deep); }
         .role-admin    { background:#fef3c7; color:#92400e; }
         .add-user-tabs { display:flex; gap:4px; margin-bottom:14px; }
-        .add-user-tab { padding:6px 14px; border:1px solid #c8d8e6; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; background:#f8fbfd; color:#1d3a50; transition:.15s; }
-        .add-user-tab.active { background:linear-gradient(130deg,#0e89d8,#1ba84a); color:#fff; border-color:transparent; }
+        .add-user-tab { padding:6px 14px; border:1px solid var(--paper-deep); border-radius:5px; font-size:12px; font-weight:700; cursor:pointer; background:var(--paper-soft); color:var(--green-deep); transition:.15s; font-family:var(--sans); }
+        .add-user-tab.active { background:var(--green-primary); color:var(--paper); border-color:transparent; }
         @media (max-width: 900px) {
             .audit-row { grid-template-columns: 1fr; }
         }
@@ -97,15 +98,15 @@
 
         <div class="firma-header">
             <div>
-                <a href="{{ route('dashboard') }}" style="font-size:13px; color:#0e89d8; text-decoration:none;">← Dashboard</a>
-                <h1 style="margin:4px 0 0;">{{ $company->name }}</h1>
+                <a href="{{ route('dashboard') }}" style="font-size:13px; color:var(--green-primary); text-decoration:none; font-family:var(--sans);">← Dashboard</a>
+                <h1 style="margin:4px 0 0; font-family:var(--serif); font-size:24px; font-weight:600; color:var(--green-deep);">{{ $company->name }}</h1>
                 @if($company->short_name && $company->short_name !== $company->name)
                     <p class="muted" style="margin:2px 0 0; font-size:13px;">{{ $company->short_name }}</p>
                 @endif
             </div>
             <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
                 @if($company->nip)
-                    <span style="background:#eaf0f7; border:1px solid #d0dded; border-radius:8px; padding:5px 10px; font-size:12px; font-weight:700; color:#1d3a50; font-family:monospace;">NIP {{ $company->nip }}</span>
+                    <span style="background:var(--green-bg); border:1px solid var(--green-light); border-radius:4px; padding:4px 10px; font-size:12px; font-weight:700; color:var(--green-deep); font-family:var(--mono);">NIP {{ $company->nip }}</span>
                 @endif
             </div>
         </div>
@@ -615,7 +616,7 @@
                                     <select name="agent_type" required style="width:100%; border:1px solid #d1fae5; border-radius:8px; padding:7px 10px; font-size:12px; background:#fff; box-sizing:border-box;">
                                         <optgroup label="Audyty energetyczne">
                                             <option value="general"                 {{ $pa->agent_type==='general'                 ? 'selected' : '' }}>Audyt Energetyczny zakładu (Master)</option>
-                                            <option value="compressor_room"         {{ $pa->agent_type==='compressor_room'         ? 'selected' : '' }}>Sprężarkownia</option>
+                                            <option value="compressor_room"         {{ $pa->agent_type==='compressor_room'         ? 'selected' : '' }}>Kompresory</option>
                                             <option value="boiler_room"             {{ $pa->agent_type==='boiler_room'             ? 'selected' : '' }}>Kotłownia</option>
                                             <option value="drying_room"             {{ $pa->agent_type==='drying_room'             ? 'selected' : '' }}>Suszarnia</option>
                                             <option value="buildings"               {{ $pa->agent_type==='buildings'               ? 'selected' : '' }}>Budynki</option>
@@ -626,7 +627,7 @@
                                         </optgroup>
                                         <optgroup label="Białe certyfikaty">
                                             <option value="bc_general"                 {{ $pa->agent_type==='bc_general'                 ? 'selected' : '' }}>BC Ogólnie</option>
-                                            <option value="bc_compressor_room"         {{ $pa->agent_type==='bc_compressor_room'         ? 'selected' : '' }}>BC Sprężarkownia</option>
+                                            <option value="bc_compressor_room"         {{ $pa->agent_type==='bc_compressor_room'         ? 'selected' : '' }}>BC Kompresory</option>
                                             <option value="bc_boiler_room"             {{ $pa->agent_type==='bc_boiler_room'             ? 'selected' : '' }}>BC Kotłownia</option>
                                             <option value="bc_drying_room"             {{ $pa->agent_type==='bc_drying_room'             ? 'selected' : '' }}>BC Suszarnia</option>
                                             <option value="bc_buildings"               {{ $pa->agent_type==='bc_buildings'               ? 'selected' : '' }}>BC Budynki</option>
@@ -901,14 +902,14 @@
     var AUDIT_SUBTYPES = {
         energy: [
             { value: 'general',                 label: '⚡ Audyt energetyczny zakładu' },
-            { value: 'compressor_room',          label: '🔧 Sprężarkownia' },
+            { value: 'compressor_room',          label: '🔧 Kompresory' },
             { value: 'boiler_room',              label: '🔥 Kotłownia' },
             { value: 'drying_room',              label: '🌡️ Suszarnia' },
             { value: 'buildings',                label: '🏢 Budynki' },
             { value: 'technological_processes',  label: '⚙️ Procesy technologiczne' },
         ],
         bc: [
-            { value: 'bc_compressor_room',         label: '🔧 Sprężarkownia' },
+            { value: 'bc_compressor_room',         label: '🔧 Kompresory' },
             { value: 'bc_boiler_room',             label: '🔥 Kotłownia' },
             { value: 'bc_drying_room',             label: '🌡️ Suszarnia' },
             { value: 'bc_buildings',               label: '🏢 Budynki' },

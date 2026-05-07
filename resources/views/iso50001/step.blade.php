@@ -2,7 +2,7 @@
 
     <style>
         .iso-step-header {
-            background: linear-gradient(140deg, #0f2330 0%, #0d4f77 50%, #1a8f4b 100%);
+            background: linear-gradient(140deg, var(--ink) 0%, #0d4f77 50%, #1a8f4b 100%);
             border-radius: 16px;
             color: #fff;
             padding: 20px;
@@ -27,7 +27,7 @@
             font-weight: 700;
         }
         .iso-progress-item.active {
-            background: linear-gradient(135deg, #0e89d8 0%, #1ba84a 100%);
+            background: linear-gradient(135deg, var(--green-primary) 0%, var(--green-primary) 100%);
             border-color: transparent;
             color: #fff;
         }
@@ -97,7 +97,7 @@
             background: #fff;
             border-radius: 14px;
             padding: 18px;
-            border: 1px solid #d5e0ea;
+            border: 1px solid var(--paper-deep);
             box-shadow: 0 14px 34px rgba(14,55,85,.2);
         }
         .help-box h4 { margin: 0 0 8px; }
@@ -190,7 +190,7 @@
     @endif
 
     <section class="panel">
-        <a href="{{ route('iso50001.review', $audit) }}" style="text-decoration:none; color:#0e89d8; font-weight:700;">Podgląd wszystkich odpowiedzi i statusu kontroli</a>
+        <a href="{{ route('iso50001.review', $audit) }}" style="text-decoration:none; color:var(--green-primary); font-weight:700;">Podgląd wszystkich odpowiedzi i statusu kontroli</a>
     </section>
 
     <section class="panel" style="background:#f4fdf9; border-color:#c5e8d5;">
@@ -203,7 +203,7 @@
             @csrf
             <input type="hidden" name="context_type" value="iso50001">
             <input type="hidden" name="context_id" value="{{ $audit->id }}">
-            <button type="submit" style="background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; font-weight:700; padding:9px 20px; border-radius:10px; border:none; cursor:pointer; font-size:14px;">
+            <button type="submit" style="background:linear-gradient(130deg,var(--green-primary),var(--green-primary)); color:#fff; font-weight:700; padding:9px 20px; border-radius:10px; border:none; cursor:pointer; font-size:14px;">
                 Rozpocznij rozmowę z agentem →
             </button>
         </form>

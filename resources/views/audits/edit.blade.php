@@ -20,12 +20,12 @@
             .dependency-tree-overlay .dependency-path.dependency-path-active { stroke:#2f78af; stroke-width:2.3; opacity:1; }
             .audit-data-table tr.dependency-branch-active td:first-child { background:#eef6ff; }
             .audit-data-table tr.is-dependent-row td:first-child { position:relative; padding-left:calc(30px + (var(--dependency-depth, 1) - 1) * 16px); color:#264e6b; }
-            .audit-data-table tr.is-dependent-row td:first-child::before { content:attr(data-dependency-label); position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#1d4f73; font-weight:800; font-size:14px; line-height:1; letter-spacing:-1px; min-width:18px; text-align:center; }
+            .audit-data-table tr.is-dependent-row td:first-child::before { content:attr(data-dependency-label); position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--green-deep); font-weight:800; font-size:14px; line-height:1; letter-spacing:-1px; min-width:18px; text-align:center; }
             .audit-formulas { margin-top:12px; border:1px solid #d7e5f0; border-radius:12px; padding:10px; background:#f7fbff; }
             .formula-line { display:flex; gap:8px; align-items:baseline; font-size:13px; color:#2c4e67; padding:6px 0; border-bottom:1px solid #e0ecf5; }
             .formula-line:last-child { border-bottom:none; }
             .formula-label { font-weight:700; }
-            .btn-secondary { background:#dbe9f5; color:#1d4f73; }
+            .btn-secondary { background:#dbe9f5; color:var(--green-deep); }
             @media (max-width:900px) {
                 .audit-edit-grid { grid-template-columns:1fr; }
             }

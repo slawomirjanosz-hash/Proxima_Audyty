@@ -1,14 +1,14 @@
 <x-layouts.app>
     <section class="panel" style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
         <div>
-            <h2 style="margin:0 0 4px; font-size:20px; font-weight:800; color:#0f2330;">Diagnostyka audytów (Railway)</h2>
+            <h2 style="margin:0 0 4px; font-size:20px; font-weight:800; color:var(--ink);">Diagnostyka audytów (Railway)</h2>
             <p class="muted" style="margin:0; font-size:13px;">
                 Raport sprawdza środowisko, bazę danych, migracje, cache, storage i symulację zapisu rodzaju audytu.
             </p>
         </div>
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
             <a href="{{ route('audits.settings') }}" class="btn" style="text-decoration:none;">Powrót do ustawień audytów</a>
-            <a href="{{ route('audits.diagnostics') }}" class="btn" style="text-decoration:none; background:#0e89d8;">Odśwież testy</a>
+            <a href="{{ route('audits.diagnostics') }}" class="btn" style="text-decoration:none; background:var(--green-primary);">Odśwież testy</a>
             <form method="POST" action="{{ route('audits.diagnostics.repair') }}" style="display:inline;">
                 @csrf
                 <button type="submit" class="btn" style="background:#b45309;">Napraw schema audytów</button>
@@ -29,7 +29,7 @@
     @endif
 
     <section class="panel" style="margin-top:12px; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
-        <span style="font-size:13px; color:#4c6373;">Wygenerowano: <strong>{{ $generatedAt->format('Y-m-d H:i:s') }}</strong></span>
+        <span style="font-size:13px; color:var(--ink-mute);">Wygenerowano: <strong>{{ $generatedAt->format('Y-m-d H:i:s') }}</strong></span>
         <span style="font-size:13px; color:#0b7a30; background:#e9f9ef; border:1px solid #b6ebc8; border-radius:999px; padding:4px 10px;">
             OK: {{ $okCount }}
         </span>
@@ -40,7 +40,7 @@
 
     @foreach($groupedChecks as $group => $groupItems)
         <section class="panel" style="margin-top:12px;">
-            <h3 style="margin:0 0 10px; font-size:16px; font-weight:700; color:#0f2330;">{{ $group }}</h3>
+            <h3 style="margin:0 0 10px; font-size:16px; font-weight:700; color:var(--ink);">{{ $group }}</h3>
 
             <table>
                 <thead>

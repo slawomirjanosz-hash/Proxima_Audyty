@@ -10,7 +10,7 @@
             .info-source-row { display:grid; grid-template-columns:220px 1fr 90px 80px; gap:10px; align-items:center; }
             .info-source-name { font-size:13px; font-weight:700; color:#2c4e67; }
             .info-source-track { height:16px; border-radius:999px; background:#e6eef5; overflow:hidden; }
-            .info-source-fill { height:100%; border-radius:999px; background:#0e89d8; min-width:2px; }
+            .info-source-fill { height:100%; border-radius:999px; background:var(--green-primary); min-width:2px; }
             .info-source-share, .info-source-mwh { font-size:13px; color:#2c4e67; text-align:right; }
             @media (max-width: 900px) {
                 .info-share-header { grid-template-columns:1fr; }
@@ -24,11 +24,11 @@
                 <h1 style="margin:0;">Informacje</h1>
                 <p class="muted" style="margin:4px 0 0;">Aktualna struktura generacji mocy i kalkulator energetyczny.</p>
             </div>
-            <a href="{{ route('information.index') }}" class="btn-secondary" style="text-decoration:none; padding:8px 10px; border-radius:9px; background:#dbe9f5; color:#1d4f73;">Odśwież teraz</a>
+            <a href="{{ route('information.index') }}" class="btn-secondary" style="text-decoration:none; padding:8px 10px; border-radius:9px; background:#dbe9f5; color:var(--green-deep);">Odśwież teraz</a>
         </div>
 
-        <div class="ec-acc" id="acc-generation" style="border:1px solid #d7e5f0; border-radius:12px; overflow:hidden; margin-top:4px;">
-            <button class="ec-acc-trigger" onclick="ecAccToggle('acc-generation')" style="background:#f4f8fd;">
+        <div class="ec-acc" id="acc-generation">
+            <button class="ec-acc-trigger" onclick="ecAccToggle('acc-generation')">
                 <div class="ec-acc-icon">⚡</div>
                 <div class="ec-acc-text">
                     <strong>Aktualna struktura generacji mocy (KSE)</strong>
@@ -64,7 +64,7 @@
                 @forelse(($generationData['sources'] ?? []) as $source)
                     @php($shareText = (string) ($source['share'] ?? '0%'))
                     @php($shareValue = is_numeric(str_replace('%', '', $shareText)) ? (float) str_replace('%', '', $shareText) : 0)
-                    @php($sourceColor = $source['color'] ?? '#0e89d8')
+                    @php($sourceColor = $source['color'] ?? 'var(--green-primary)')
                     <div class="info-source-row">
                         <div class="info-source-name">{{ $source['name'] ?? '—' }}</div>
                         <div class="info-source-track"><div class="info-source-fill" style="width: {{ $shareValue }}%; background: {{ $sourceColor }};"></div></div>
@@ -76,7 +76,7 @@
                 @endforelse
             </div>
 
-            <div style="font-size:12px; color:#4c6373; margin-top:10px;">
+            <div style="font-size:12px; color:var(--ink-mute); margin-top:10px;">
                 Aktualizacja źródła: <span id="published-at">{{ $generationData['publishedAt'] ?? '—' }}</span>
                 •
                 Źródło: <a id="source-link" href="{{ $generationData['sourceUrl'] ?? 'https://www.energetycznykompas.pl' }}" target="_blank" rel="noopener">energetycznykompas.pl</a>
@@ -121,7 +121,7 @@
                             const shareText = source.share ?? '—';
                             const shareValue = toShareNumber(shareText);
                             const fillWidth = Math.max(0, Math.min(100, shareValue));
-                            const color = source.color ?? '#0e89d8';
+                            const color = source.color ?? 'var(--green-primary)';
 
                             return '<div class="info-source-row">' +
                                 '<div class="info-source-name">' + (source.name ?? '—') + '</div>' +
@@ -180,21 +180,21 @@
         <style>
             /* ── Kalkulator – ogólne ── */
             .ec-page-header { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
-            .ec-page-header .ec-bar { width:4px; height:30px; background:linear-gradient(180deg,#1ba84a,#0e89d8); border-radius:4px; flex-shrink:0; }
+            .ec-page-header .ec-bar { width:4px; height:30px; background:linear-gradient(180deg,var(--green-primary),var(--green-primary)); border-radius:4px; flex-shrink:0; }
             .ec-page-header h2 { margin:0; font-size:21px; font-weight:800; color:#10344c; }
-            .ec-page-header p { margin:3px 0 0; font-size:13px; color:#4c6373; }
+            .ec-page-header p { margin:3px 0 0; font-size:13px; color:var(--ink-mute); }
 
             /* ── Accordion ── */
-            .ec-acc { border:1px solid #d2e3f1; border-radius:14px; overflow:hidden; margin-top:12px; }
-            .ec-acc-trigger { width:100%; background:#f4f8fd; border:none; border-radius:0; text-align:left; padding:13px 18px; cursor:pointer; display:flex; align-items:center; gap:12px; transition:background .15s; }
-            .ec-acc-trigger:hover { background:#e8f0f9; }
-            .ec-acc-icon { font-size:20px; flex-shrink:0; }
+            .ec-acc { border:1px solid var(--paper-deep); border-radius:14px; overflow:hidden; margin-top:12px; box-shadow: 0 4px 16px rgba(14,55,85,.05); }
+            .ec-acc-trigger { width:100%; background: var(--green-primary); border:none; border-radius:0; text-align:left; padding:16px 20px; cursor:pointer; display:flex; align-items:center; gap:14px; transition:background .15s; color: var(--paper); font-family: inherit; }
+            .ec-acc-trigger:hover { background: var(--green-deep); }
+            .ec-acc-icon { font-size:20px; flex-shrink:0; width:36px; height:36px; border-radius:10px; display:grid; place-items:center; background:rgba(245,239,224,.15); }
             .ec-acc-text { flex:1; }
-            .ec-acc-text strong { font-size:15px; font-weight:800; color:#0f2330; display:block; }
-            .ec-acc-text span { font-size:12px; color:#4c6373; }
-            .ec-acc-chevron { font-size:16px; color:#6b8294; transition:transform .25s; flex-shrink:0; }
+            .ec-acc-text strong { font-size:15px; font-weight:700; color: var(--paper) !important; display:block; }
+            .ec-acc-text span { font-size:12px; color: var(--green-light) !important; }
+            .ec-acc-chevron { font-size:18px; color: var(--paper); transition:transform .25s; flex-shrink:0; }
             .ec-acc.open .ec-acc-chevron { transform:rotate(180deg); }
-            .ec-acc-body { display:none; padding:18px 18px 20px; border-top:1px solid #d2e3f1; }
+            .ec-acc-body { display:none; padding:18px 18px 20px; border-top:1px solid var(--paper-deep); }
             .ec-acc.open .ec-acc-body { display:block; }
 
             /* ── Przelicznik jednostek - dark panel ── */
@@ -237,19 +237,19 @@
 
             /* ── Kalkulator spalin / CO₂ – wspólne ── */
             .ec-flue-controls { display:grid; grid-template-columns:220px 220px 1fr; gap:14px; align-items:end; }
-            .ec-flue-label { font-size:12px; font-weight:700; color:#1d4f73; margin-bottom:5px; }
-            .ec-flue-select { width:100%; padding:9px 12px; border-radius:9px; border:1px solid #c9d7e3; font-size:14px; font-weight:600; color:#0f2330; background:#fff; }
-            .ec-flue-input { width:100%; box-sizing:border-box; padding:9px 12px; border-radius:9px; border:1px solid #c9d7e3; font-size:14px; font-weight:600; color:#0f2330; }
+            .ec-flue-label { font-size:12px; font-weight:700; color:var(--green-deep); margin-bottom:5px; }
+            .ec-flue-select { width:100%; padding:9px 12px; border-radius:9px; border:1px solid #c9d7e3; font-size:14px; font-weight:600; color:var(--green-deep); background:#fff; }
+            .ec-flue-input { width:100%; box-sizing:border-box; padding:9px 12px; border-radius:9px; border:1px solid #c9d7e3; font-size:14px; font-weight:600; color:var(--green-deep); }
             .ec-flue-results { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:14px; }
             .ec-flue-result-card { background:#fff; border:1px solid #d2e3f1; border-radius:10px; padding:12px 14px; text-align:center; }
             .ec-flue-result-label { font-size:10px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; color:#6b8294; margin-bottom:6px; }
             .ec-flue-result-val { font-size:20px; font-weight:800; color:#10344c; }
             .ec-flue-result-unit { font-size:11px; color:#6b8294; margin-top:2px; }
-            .ec-flue-note { font-size:12px; color:#4c6373; margin-top:12px; padding:10px 14px; background:#edf3f8; border-radius:8px; border-left:3px solid #0e89d8; }
-            .ec-sub-title { font-size:13px; font-weight:700; color:#1d4f73; margin:18px 0 10px; padding-top:16px; border-top:2px dashed #c9d7e3; display:flex; align-items:center; gap:6px; }
+            .ec-flue-note { font-size:12px; color:var(--ink-mute); margin-top:12px; padding:10px 14px; background:#edf3f8; border-radius:8px; border-left:3px solid var(--green-primary); }
+            .ec-sub-title { font-size:13px; font-weight:700; color:var(--green-deep); margin:18px 0 10px; padding-top:16px; border-top:2px dashed #c9d7e3; display:flex; align-items:center; gap:6px; }
             /* O2 scale bar */
             .ec-o2-bar { margin-top:10px; height:8px; border-radius:4px; background:linear-gradient(90deg,#22c55e 0%,#eab308 45%,#f97316 75%,#ef4444 100%); position:relative; }
-            .ec-o2-thumb { position:absolute; top:-4px; width:16px; height:16px; border-radius:50%; background:#fff; border:2px solid #0e89d8; transform:translateX(-50%); transition:left .2s; }
+            .ec-o2-thumb { position:absolute; top:-4px; width:16px; height:16px; border-radius:50%; background:#fff; border:2px solid var(--green-primary); transform:translateX(-50%); transition:left .2s; }
 
             /* ── CO₂ badges ── */
             .ec-co2el-badge { display:inline-flex; align-items:center; gap:6px; background:#e6f4ea; border:1px solid #a8d5b5; border-radius:8px; padding:7px 12px; font-size:12px; color:#1a5c2e; }
@@ -532,7 +532,7 @@
                         <div style="display:flex; justify-content:space-between; font-size:10px; color:#6b8294; margin-top:3px;"><span>0%</span><span>6%</span><span>12%</span><span>18%</span></div>
                     </div>
                     <div style="background:#edf3f8; border-radius:10px; padding:10px 12px; font-size:12px; color:#355468; line-height:1.7;">
-                        <strong style="color:#1d4f73;">Wybrane paliwo:</strong><br>
+                        <strong style="color:var(--green-deep);">Wybrane paliwo:</strong><br>
                         <span id="ec-fuel-info">GZ-50: V₀<sub>pow</sub>=9.52 m³/m³, V₀<sub>sp</sub>=10.50 m³/m³</span>
                     </div>
                 </div>
@@ -579,7 +579,7 @@
                         <input type="number" id="ec-eff" class="ec-flue-input" value="90" min="50" max="110" step="0.5" oninput="ecFlueCalc()">
                     </div>
                     <div style="background:#edf3f8; border-radius:10px; padding:10px 12px; font-size:12px; color:#355468; line-height:1.8;">
-                        <strong style="color:#1d4f73;">Wzór:</strong><br>
+                        <strong style="color:var(--green-deep);">Wzór:</strong><br>
                         Q̇<sub>pal</sub> = P&nbsp;/&nbsp;(η·H<sub>u</sub>) → V̇<sub>sp</sub> = Q̇<sub>pal</sub>·V<sub>sp</sub> → ṁ<sub>sp</sub> = V̇<sub>sp</sub>·ρ<sub>sp</sub>
                     </div>
                 </div>
@@ -599,7 +599,7 @@
                         <div class="ec-flue-result-val" id="ec-flue-mass-flow">—</div>
                         <div class="ec-flue-result-unit">kg/h</div>
                     </div>
-                    <div class="ec-flue-result-card" style="border-color:#bfd7ed; background:#f0f7ff;">
+                    <div class="ec-flue-result-card" style="border-color:#bfd7ed; background:var(--green-bg);">
                         <div class="ec-flue-result-label">Masa spalin</div>
                         <div class="ec-flue-result-val" id="ec-flue-mass-flow-s" style="color:#0e5a8a;">—</div>
                         <div class="ec-flue-result-unit">kg/s</div>
@@ -639,9 +639,9 @@
                             <span>g CO₂/kWh</span>
                         </div>
                     </div>
-                    <div style="align-self:flex-end; font-size:11px; color:#4c6373; background:#edf3f8; border-radius:8px; padding:8px 12px; line-height:1.7;">
+                    <div style="align-self:flex-end; font-size:11px; color:var(--ink-mute); background:#edf3f8; border-radius:8px; padding:8px 12px; line-height:1.7;">
                         Źródło: <a href="https://www.kobize.pl/uploads/materialy/materialy_do_pobrania/aktualnosci/2025/142_Wskazniki_emisyjnosci_2025.pdf"
-                            target="_blank" rel="noopener noreferrer" style="color:#0e89d8;">KOBiZE, grudzień 2025</a><br>
+                            target="_blank" rel="noopener noreferrer" style="color:var(--green-primary);">KOBiZE, grudzień 2025</a><br>
                         Dane za rok {{ $co2ElYear }} · <em>Stosować do raportowania za rok {{ $co2ElYear + 1 }}</em>
                     </div>
                 </div>
@@ -702,23 +702,23 @@
             </button>
             <div class="ec-acc-body">
                 <style>
-                    .hrec-label { font-size:12px; font-weight:700; color:#1d4f73; margin-bottom:5px; display:flex; align-items:center; gap:5px; }
+                    .hrec-label { font-size:12px; font-weight:700; color:var(--green-deep); margin-bottom:5px; display:flex; align-items:center; gap:5px; }
                     .hrec-badge { font-size:10px; background:#e6f4ea; color:#1a5c2e; border-radius:4px; padding:1px 5px; font-weight:600; }
-                    .hrec-input { width:100%; box-sizing:border-box; padding:9px 12px; border-radius:9px; border:1.5px solid #c9d7e3; font-size:14px; font-weight:600; color:#0f2330; transition:border-color .15s; }
-                    .hrec-input:focus { border-color:#0e89d8; outline:none; }
+                    .hrec-input { width:100%; box-sizing:border-box; padding:9px 12px; border-radius:9px; border:1.5px solid #c9d7e3; font-size:14px; font-weight:600; color:var(--green-deep); transition:border-color .15s; }
+                    .hrec-input:focus { border-color:var(--green-primary); outline:none; }
                     .hrec-input.suggested { border-color:#b0c8d8; color:#6a9ab5; background:#f4f9fc; }
-                    .hrec-select { width:100%; padding:9px 12px; border-radius:9px; border:1.5px solid #c9d7e3; font-size:14px; font-weight:600; color:#0f2330; background:#fff; }
+                    .hrec-select { width:100%; padding:9px 12px; border-radius:9px; border:1.5px solid #c9d7e3; font-size:14px; font-weight:600; color:var(--green-deep); background:#fff; }
                     .hrec-hint { font-size:11px; color:#8aacbe; margin-top:4px; min-height:16px; line-height:1.5; }
-                    .hrec-section-title { font-size:13px; font-weight:700; color:#1d4f73; margin:18px 0 10px; padding-top:16px; border-top:2px dashed #c9d7e3; display:flex; align-items:center; gap:6px; }
+                    .hrec-section-title { font-size:13px; font-weight:700; color:var(--green-deep); margin:18px 0 10px; padding-top:16px; border-top:2px dashed #c9d7e3; display:flex; align-items:center; gap:6px; }
                     .hrec-hx-block { border:1px solid #d0e4f5; border-radius:12px; padding:14px 16px; margin-bottom:10px; background:#f7fbff; }
                     .hrec-hx-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
-                    .hrec-hx-title { font-size:14px; font-weight:800; color:#0f2330; }
-                    .hrec-hx-tin { font-size:12px; color:#4c6373; background:#e6eff7; border-radius:6px; padding:3px 8px; }
+                    .hrec-hx-title { font-size:14px; font-weight:800; color:var(--green-deep); }
+                    .hrec-hx-tin { font-size:12px; color:var(--ink-mute); background:#e6eff7; border-radius:6px; padding:3px 8px; }
                     .hrec-result-card { background:#fff; border:1px solid #d2e3f1; border-radius:9px; padding:10px 12px; }
                     .hrec-result-label { font-size:10px; font-weight:700; letter-spacing:.7px; text-transform:uppercase; color:#6b8294; margin-bottom:5px; }
                     .hrec-result-val { font-size:18px; font-weight:800; color:#10344c; }
                     .hrec-result-unit { font-size:11px; color:#6b8294; margin-top:2px; }
-                    .hrec-result-card.hrec-dry { border-color:#b3d4ee; background:#f0f7ff; }
+                    .hrec-result-card.hrec-dry { border-color:#b3d4ee; background:var(--green-bg); }
                     .hrec-result-card.hrec-dry .hrec-result-val { color:#0e5a8a; }
                     .hrec-result-card.hrec-wet { border-color:#a8d5b5; background:#f0fff4; }
                     .hrec-result-card.hrec-wet .hrec-result-val { color:#1a5c2e; }
@@ -732,16 +732,16 @@
                     .hrec-sum-val.hwet { color:#4ade80; }
                     .hrec-sum-val.htot { color:#fbbf24; font-size:26px; }
                     .hrec-sum-unit { font-size:11px; color:rgba(255,255,255,.4); margin-top:2px; }
-                    .hrec-note { font-size:12px; color:#4c6373; padding:10px 14px; background:#edf3f8; border-radius:8px; border-left:3px solid #0e89d8; }
-                    .hrec-add-btn { display:inline-flex; align-items:center; gap:6px; padding:9px 16px; background:#dbe9f5; color:#1d4f73; border:1px solid #b0c8d8; border-radius:9px; font-size:13px; font-weight:700; cursor:pointer; margin-top:4px; transition:background .15s; }
+                    .hrec-note { font-size:12px; color:var(--ink-mute); padding:10px 14px; background:#edf3f8; border-radius:8px; border-left:3px solid var(--green-primary); }
+                    .hrec-add-btn { display:inline-flex; align-items:center; gap:6px; padding:9px 16px; background:#dbe9f5; color:var(--green-deep); border:1px solid #b0c8d8; border-radius:9px; font-size:13px; font-weight:700; cursor:pointer; margin-top:4px; transition:background .15s; }
                     .hrec-add-btn:hover { background:#c5ddef; }
                     .hrec-remove-btn { background:none; border:none; color:#9aabbb; font-size:16px; cursor:pointer; padding:2px 6px; border-radius:6px; transition:color .15s; }
                     .hrec-remove-btn:hover { color:#e53e3e; background:#fee2e2; }
                     .hrec-drag-handle { cursor:grab; color:#b0c8d8; font-size:20px; line-height:1; padding:0 4px 0 0; user-select:none; flex-shrink:0; }
                     .hrec-drag-handle:active { cursor:grabbing; }
                     .hrec-hx-block.hrec-dragging { opacity:0.35; background:#e6f4ff; }
-                    .hrec-hx-block.hrec-drag-over-top { border-top:3px solid #0e89d8; margin-top:-2px; }
-                    .hrec-hx-block.hrec-drag-over-bottom { border-bottom:3px solid #0e89d8; margin-bottom:-2px; }
+                    .hrec-hx-block.hrec-drag-over-top { border-top:3px solid var(--green-primary); margin-top:-2px; }
+                    .hrec-hx-block.hrec-drag-over-bottom { border-bottom:3px solid var(--green-primary); margin-bottom:-2px; }
                     .hrec-dew-badge { display:inline-flex; align-items:center; gap:4px; font-size:11px; padding:3px 8px; border-radius:6px; font-weight:700; }
                     .hrec-dew-dry { background:#fff3cd; color:#856404; }
                     .hrec-dew-wet { background:#d1e7dd; color:#0a3622; }
@@ -753,7 +753,7 @@
                         position:absolute;
                         bottom:calc(100% + 7px);
                         left:0;
-                        background:#0f2330;
+                        background:var(--green-deep);
                         color:#cde6f8;
                         font-size:11.5px;
                         line-height:1.65;
@@ -946,10 +946,10 @@
                             <span class="hrec-hx-tin" style="margin-left:8px;">{{ $sc->created_at->format('d.m.Y H:i') }}</span>
                         </div>
                         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                            <span style="font-size:11px; color:#4c6373;">{{ $sc->fuelLabel() }} · {{ $sc->mediumLabel() }}
+                            <span style="font-size:11px; color:var(--ink-mute);">{{ $sc->fuelLabel() }} · {{ $sc->mediumLabel() }}
                                 @if($sc->boiler_power) · {{ number_format($sc->boiler_power, 0, ',', ' ') }} kW @endif
                             </span>
-                            <button onclick="hrecLoadSaved({{ $sc->id }})" style="padding:4px 10px; background:#dbe9f5; color:#1d4f73; border:1px solid #b0c8d8; border-radius:7px; font-size:12px; font-weight:700; cursor:pointer;">
+                            <button onclick="hrecLoadSaved({{ $sc->id }})" style="padding:4px 10px; background:#dbe9f5; color:var(--green-deep); border:1px solid #b0c8d8; border-radius:7px; font-size:12px; font-weight:700; cursor:pointer;">
                                 ↩ Wczytaj
                             </button>
                             <button onclick="hrecDeleteSaved({{ $sc->id }}, this)" class="hrec-remove-btn" title="Usuń">✕</button>
@@ -1250,7 +1250,7 @@
 
             if (noteEl) {
                 noteEl.style.display = '';
-                noteEl.innerHTML = `${kwh.toLocaleString('pl-PL')} kWh × ${factor.value} g CO₂/kWh (${factor.labelShort}) = <strong>${kgCo2.toLocaleString('pl-PL', {maximumFractionDigits:1})} kg CO₂</strong> = <strong>${tCo2.toLocaleString('pl-PL', {maximumFractionDigits:3})} t CO₂</strong>.<br><span style="font-size:11px;">Wskaźnik: KOBiZE, rok {{ $co2ElYear }} · <a href="https://www.kobize.pl/uploads/materialy/materialy_do_pobrania/aktualnosci/2025/142_Wskazniki_emisyjnosci_2025.pdf" target="_blank" rel="noopener noreferrer" style="color:#0e89d8;">pobierz PDF</a></span>`;
+                noteEl.innerHTML = `${kwh.toLocaleString('pl-PL')} kWh × ${factor.value} g CO₂/kWh (${factor.labelShort}) = <strong>${kgCo2.toLocaleString('pl-PL', {maximumFractionDigits:1})} kg CO₂</strong> = <strong>${tCo2.toLocaleString('pl-PL', {maximumFractionDigits:3})} t CO₂</strong>.<br><span style="font-size:11px;">Wskaźnik: KOBiZE, rok {{ $co2ElYear }} · <a href="https://www.kobize.pl/uploads/materialy/materialy_do_pobrania/aktualnosci/2025/142_Wskazniki_emisyjnosci_2025.pdf" target="_blank" rel="noopener noreferrer" style="color:var(--green-primary);">pobierz PDF</a></span>`;
             }
         }
 
@@ -1489,7 +1489,7 @@
                         '<strong>Para nasycona</strong> @ ' + pres.toFixed(1) + ' bar',
                         'T_nasycenia = ' + tSat.toFixed(1) + '°C · Δh=<span style="white-space:nowrap">' + Math.round(deltaH) + ' kJ/kg</span>',
                         flowKgh.toFixed(1) + ' kg/h pary → potrzebna moc kotła: <strong style="color:#c47c00;">' + impliedPower.toFixed(0) + ' kW</strong>',
-                        '<span style="font-size:11px;color:#4c6373;">Uwzględniono podgrzanie wody zasilającej od ~20°C</span>',
+                        '<span style="font-size:11px;color:var(--ink-mute);">Uwzględniono podgrzanie wody zasilającej od ~20°C</span>',
                     ];
                     flowHint.textContent = flowKgh.toFixed(1) + ' kg/h → moc kotła ≈ ' + impliedPower.toFixed(0) + ' kW';
                 }
@@ -1628,7 +1628,7 @@
                 '</div>' +
                 // ─── Strona wody / czynnika ───
                 '<div style="margin-top:8px;border-top:1px dashed #c9d7e3;padding-top:8px;">' +
-                    '<div style="font-size:11px;font-weight:700;color:#1d4f73;margin-bottom:6px;">' +
+                    '<div style="font-size:11px;font-weight:700;color:var(--green-deep);margin-bottom:6px;">' +
                         '💧 Bilans strony wody <span style="font-weight:400;color:#8aacbe;">(kontrolny)</span>' +
                     '</div>' +
                     '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;align-items:start;">' +
@@ -1647,7 +1647,7 @@
                             '<input type="number" id="hrec-hx-' + uid + '-wtout" class="hrec-input suggested" min="-30" max="400" step="0.5" placeholder="obliczam\u2026" oninput="hrecWaterToutEdited(' + uid + ')">' +
                             '<div class="hrec-hint" id="hrec-hx-' + uid + '-wtout-hint">z Q_spalin lub wpisz ręcznie</div>' +
                         '</div>' +
-                        '<div id="hrec-hx-' + uid + '-balance" style="background:#f0f7ff;border-radius:9px;padding:7px 10px;font-size:12px;color:#355468;line-height:1.6;">' +
+                        '<div id="hrec-hx-' + uid + '-balance" style="background:var(--green-bg);border-radius:9px;padding:7px 10px;font-size:12px;color:#355468;line-height:1.6;">' +
                             '<span style="color:#b0c8d8;">podaj przepływ i T<sub>wej</sub></span>' +
                         '</div>' +
                     '</div>' +
@@ -2038,7 +2038,7 @@
             const payload = { name, ...hrecCollectState() };
             msgEl.style.display = '';
             msgEl.textContent   = 'Zapisuję…';
-            msgEl.style.color   = '#4c6373';
+            msgEl.style.color   = 'var(--ink-mute)';
             try {
                 const resp = await fetch(HREC_STORE_URL, {
                     method: 'POST',
@@ -2087,8 +2087,8 @@
                         '<span class="hrec-hx-tin" style="margin-left:8px;">' + createdAt + '</span>' +
                     '</div>' +
                     '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
-                        '<span style="font-size:11px;color:#4c6373;">' + fuelLabel + ' · ' + medLabel + powerStr + loadStr + '</span>' +
-                        '<button onclick="hrecLoadSaved(' + id + ')" style="padding:4px 10px;background:#dbe9f5;color:#1d4f73;border:1px solid #b0c8d8;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">↩ Wczytaj</button>' +
+                        '<span style="font-size:11px;color:var(--ink-mute);">' + fuelLabel + ' · ' + medLabel + powerStr + loadStr + '</span>' +
+                        '<button onclick="hrecLoadSaved(' + id + ')" style="padding:4px 10px;background:#dbe9f5;color:var(--green-deep);border:1px solid #b0c8d8;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">↩ Wczytaj</button>' +
                         '<button onclick="hrecDeleteSaved(' + id + ', this)" class="hrec-remove-btn" title="Usuń">✕</button>' +
                     '</div>' +
                 '</div>' +
@@ -2197,6 +2197,295 @@
             }
         }
         @endauth
+        </script>
+
+        {{-- ═══════════════════════════════════════════════
+             WARUNKI KLIMATYCZNE
+        ═══════════════════════════════════════════════ --}}
+        <div class="ec-acc" id="acc-climate">
+            <button class="ec-acc-trigger" onclick="ecAccToggle('acc-climate')">
+                <div class="ec-acc-icon">🌡️</div>
+                <div class="ec-acc-text">
+                    <strong>Warunki klimatyczne i lokalizacyjne</strong>
+                    <span>Stopniodni grzewcze HDD · Stopniodni chłodzenia CDD · Wysokość npm</span>
+                </div>
+                <div class="ec-acc-chevron">▾</div>
+            </button>
+            <div class="ec-acc-body">
+                <style>
+                    .climate-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-top:14px; }
+                    .climate-card { background:var(--paper-soft,#FAF5E8); border:1px solid var(--paper-deep); border-radius:12px; padding:16px; }
+                    .climate-card-label { font-size:11px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; color:var(--ink-mute); margin-bottom:6px; }
+                    .climate-card-value { font-size:32px; font-weight:800; font-family:var(--mono); color:var(--green-deep); line-height:1; }
+                    .climate-card-unit  { font-size:13px; color:var(--ink-mute); margin-top:4px; }
+                    .climate-card-sub   { font-size:11px; color:var(--ink-mute); margin-top:6px; border-top:1px solid var(--paper-deep); padding-top:6px; }
+                    .climate-search-wrap { position:relative; }
+                    .climate-suggestions { position:absolute; top:100%; left:0; right:0; background:#fff; border:1px solid var(--paper-deep); border-radius:10px; box-shadow:0 6px 24px rgba(14,55,85,.12); z-index:200; max-height:260px; overflow-y:auto; display:none; }
+                    .climate-suggestion-item { padding:9px 14px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--paper-deep); display:flex; justify-content:space-between; align-items:center; gap:8px; }
+                    .climate-suggestion-item:last-child { border-bottom:none; }
+                    .climate-suggestion-item:hover { background:var(--green-bg); color:var(--green-deep); }
+                    .climate-suggestion-main { font-weight:600; }
+                    .climate-suggestion-sub { font-size:11px; color:var(--ink-mute); text-align:right; white-space:nowrap; }
+                    .climate-info-box { background:var(--green-bg); border:1px solid var(--green-light); border-radius:10px; padding:12px 14px; font-size:12px; color:var(--ink-soft); margin-top:12px; line-height:1.6; }
+                    .climate-info-box strong { color:var(--green-deep); }
+                    .climate-proxy-note { background:#fff8e8; border:1px solid #f0c060; border-radius:10px; padding:10px 14px; font-size:12px; color:#7a4a0a; margin-top:10px; display:none; line-height:1.6; }
+                    .climate-loading { color:var(--ink-mute); font-size:13px; padding:10px 14px; }
+                    @media (max-width: 860px) { .climate-grid { grid-template-columns:1fr; } }
+                </style>
+
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:12px; font-weight:700; color:var(--ink-soft); display:block; margin-bottom:6px;">🔍 Wyszukaj miejscowość (dowolna w Polsce)</label>
+                    <div class="climate-search-wrap">
+                        <input type="text" id="climate-location-input" placeholder="np. Nałęczów, Mielec, Karpacz, Zakopane…"
+                            autocomplete="off"
+                            oninput="climateDebouncedSearch(this.value)"
+                            style="width:100%; padding:10px 14px; border:1px solid var(--paper-deep); border-radius:10px; font-size:14px; font-family:inherit; background:#fff; box-sizing:border-box;">
+                        <div id="climate-suggestions" class="climate-suggestions"></div>
+                    </div>
+                </div>
+
+                <div id="climate-proxy-note" class="climate-proxy-note"></div>
+
+                <div class="climate-grid">
+                    <div class="climate-card">
+                        <div class="climate-card-label">📍 Wybrana lokalizacja</div>
+                        <div id="climate-city-name" style="font-size:18px; font-weight:700; color:var(--green-deep); min-height:28px;">—</div>
+                        <div class="climate-card-unit">Woj.: <span id="climate-voiv">—</span></div>
+                        <div class="climate-card-sub">Koord.: <span id="climate-coords">—</span></div>
+                    </div>
+                    <div class="climate-card">
+                        <div class="climate-card-label">🏔️ Wysokość n.p.m.</div>
+                        <div class="climate-card-value" id="climate-alt">—</div>
+                        <div class="climate-card-unit">m n.p.m.</div>
+                        <div class="climate-card-sub">Dane stacji: IMGW/GUGIK</div>
+                    </div>
+                    <div class="climate-card">
+                        <div class="climate-card-label">🌡️ Strefa klimatyczna</div>
+                        <div id="climate-zone" style="font-size:24px; font-weight:800; color:var(--green-deep); line-height:1;">—</div>
+                        <div class="climate-card-unit">wg PN-EN 12831</div>
+                        <div class="climate-card-sub">T<sub>des</sub>: <span id="climate-tdes">—</span> °C</div>
+                    </div>
+                    <div class="climate-card" style="border-color:#a8c8f0; background:#eef5fb;">
+                        <div class="climate-card-label" style="color:#1a4d7a;">🔥 Stopniodni grzewcze HDD</div>
+                        <div style="display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;">
+                            <div class="climate-card-value" id="climate-hdd" style="color:#1a4d7a;">—</div>
+                            <div id="climate-hdd-days" style="font-size:13px; font-family:var(--mono); color:#2c5a7a;"></div>
+                        </div>
+                        <div class="climate-card-unit" style="color:#2c5a7a;">
+                            Kd/rok · podstawa
+                            <input type="number" id="climate-base-hdd" value="15" min="5" max="25" step="1"
+                                onchange="climateRecalcDays()"
+                                style="width:46px; padding:1px 5px; border:1px solid #a8c8f0; border-radius:6px; font-size:13px; font-family:var(--mono); color:#1a4d7a; background:#d8eeff; text-align:center;"> °C
+                        </div>
+                        <div class="climate-card-sub" style="border-color:#a8c8f0;">Norma wieloletnia 1991–2020 · IMGW</div>
+                    </div>
+                    <div class="climate-card" style="border-color:#f0c080; background:#fffbf0;">
+                        <div class="climate-card-label" style="color:#7a4a0a;">❄️ Stopniodni chłodzenia CDD</div>
+                        <div style="display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;">
+                            <div class="climate-card-value" id="climate-cdd" style="color:#a06010;">—</div>
+                            <div id="climate-cdd-days" style="font-size:13px; font-family:var(--mono); color:#7a4a0a;"></div>
+                        </div>
+                        <div class="climate-card-unit" style="color:#7a4a0a;">
+                            Kd/rok · podstawa
+                            <input type="number" id="climate-base-cdd" value="10" min="5" max="22" step="1"
+                                onchange="climateRecalcDays()"
+                                style="width:46px; padding:1px 5px; border:1px solid #f0c080; border-radius:6px; font-size:13px; font-family:var(--mono); color:#7a4a0a; background:#fff3d0; text-align:center;"> °C
+                        </div>
+                        <div class="climate-card-sub" style="border-color:#f0c080;">Norma wieloletnia 1991–2020 · IMGW</div>
+                    </div>
+                    <div class="climate-card" style="border-color:var(--green-light); background:var(--green-bg);">
+                        <div class="climate-card-label" style="color:var(--green-deep);">📊 Udział sezonu grzewczego</div>
+                        <div class="climate-card-value" id="climate-ratio" style="color:var(--green-deep);">—</div>
+                        <div class="climate-card-unit" style="color:var(--green-deep);">HDD / (HDD + CDD)</div>
+                        <div class="climate-card-sub" style="border-color:var(--green-light);">% roku w trybie ogrzewania</div>
+                    </div>
+                </div>
+
+                <div class="climate-info-box" style="margin-top:14px;">
+                    <strong>ℹ️ Jak działają dane:</strong> Wyszukiwarka korzysta z bazy OpenStreetMap (Nominatim) — możesz wpisać <em>dowolną</em> polską miejscowość.
+                    Dane HDD/CDD przypisywane są z najbliższej stacji pomiarowej IMGW (normy 1991–2020, metodologia <a href="https://www.degreedays.net/#generate2" target="_blank" rel="noopener" style="color:var(--green-primary);">degreedays.net</a>).
+                    Dla aktualnych danych za konkretny rok (np. 2025) użyj degreedays.net: wybierz stację, zakres dat, eksportuj CSV.
+                </div>
+            </div>
+        </div>
+
+        <script>
+        // === Stacje klimatyczne IMGW z współrzędnymi (normy wieloletnie 1991-2020) ===
+        // lat/lon: WGS84, alt: m npm, hdd: HDD15 Kd/rok, cdd: CDD10 Kd/rok
+        // zone: strefa PN-EN 12831, tdes: temperatura obliczeniowa °C
+        const CLIMATE_DB = [
+            { name:'Białystok',       voiv:'Podlaskie',           lat:53.1325, lon:23.1688, alt:148, hdd:3450, cdd:155, zone:'I',   tdes:-22 },
+            { name:'Bielsko-Biała',   voiv:'Śląskie',             lat:49.8224, lon:19.0444, alt:355, hdd:3350, cdd:160, zone:'III', tdes:-20 },
+            { name:'Bydgoszcz',       voiv:'Kujawsko-Pomorskie',  lat:53.1235, lon:18.0084, alt: 64, hdd:2950, cdd:195, zone:'II',  tdes:-18 },
+            { name:'Chojnice',        voiv:'Pomorskie',           lat:53.6958, lon:17.5569, alt:164, hdd:3200, cdd:155, zone:'I',   tdes:-20 },
+            { name:'Częstochowa',     voiv:'Śląskie',             lat:50.8118, lon:19.1203, alt:293, hdd:3050, cdd:185, zone:'III', tdes:-20 },
+            { name:'Elbląg',          voiv:'Warmińsko-Mazurskie', lat:54.1522, lon:19.4048, alt: 14, hdd:3100, cdd:140, zone:'I',   tdes:-20 },
+            { name:'Gdańsk',          voiv:'Pomorskie',           lat:54.3521, lon:18.6466, alt:  0, hdd:3050, cdd:130, zone:'I',   tdes:-16 },
+            { name:'Gdynia',          voiv:'Pomorskie',           lat:54.5189, lon:18.5305, alt:  5, hdd:3000, cdd:120, zone:'I',   tdes:-16 },
+            { name:'Gorzów Wlkp.',    voiv:'Lubuskie',            lat:52.7326, lon:15.2287, alt: 69, hdd:2850, cdd:195, zone:'II',  tdes:-18 },
+            { name:'Inowrocław',      voiv:'Kujawsko-Pomorskie',  lat:52.7983, lon:18.2617, alt: 88, hdd:2950, cdd:195, zone:'II',  tdes:-18 },
+            { name:'Jelenia Góra',    voiv:'Dolnośląskie',        lat:50.9044, lon:15.7299, alt:342, hdd:3300, cdd:170, zone:'III', tdes:-22 },
+            { name:'Kalisz',          voiv:'Wielkopolskie',       lat:51.7619, lon:18.0910, alt:104, hdd:2920, cdd:210, zone:'II',  tdes:-18 },
+            { name:'Katowice',        voiv:'Śląskie',             lat:50.2587, lon:19.0216, alt:285, hdd:3050, cdd:180, zone:'III', tdes:-20 },
+            { name:'Kielce',          voiv:'Świętokrzyskie',      lat:50.8661, lon:20.6286, alt:295, hdd:3200, cdd:165, zone:'III', tdes:-20 },
+            { name:'Kłodzko',         voiv:'Dolnośląskie',        lat:50.4350, lon:16.6583, alt:357, hdd:3100, cdd:140, zone:'III', tdes:-22 },
+            { name:'Koszalin',        voiv:'Zachodniopomorskie',  lat:54.1942, lon:16.1722, alt: 33, hdd:3000, cdd:100, zone:'I',   tdes:-16 },
+            { name:'Kraków',          voiv:'Małopolskie',         lat:50.0647, lon:19.9450, alt:220, hdd:3180, cdd:210, zone:'III', tdes:-20 },
+            { name:'Krosno',          voiv:'Podkarpackie',        lat:49.6897, lon:21.7712, alt:295, hdd:3300, cdd:170, zone:'III', tdes:-22 },
+            { name:'Legnica',         voiv:'Dolnośląskie',        lat:51.2070, lon:16.1551, alt:122, hdd:2700, cdd:255, zone:'II',  tdes:-18 },
+            { name:'Leszno',          voiv:'Wielkopolskie',       lat:51.8401, lon:16.5749, alt: 87, hdd:2800, cdd:210, zone:'II',  tdes:-18 },
+            { name:'Lublin',          voiv:'Lubelskie',           lat:51.2465, lon:22.5684, alt:238, hdd:3130, cdd:195, zone:'II',  tdes:-20 },
+            { name:'Łódź',            voiv:'Łódzkie',             lat:51.7592, lon:19.4560, alt:187, hdd:3020, cdd:200, zone:'II',  tdes:-20 },
+            { name:'Nowy Sącz',       voiv:'Małopolskie',         lat:49.6245, lon:20.6947, alt:291, hdd:3350, cdd:175, zone:'III', tdes:-22 },
+            { name:'Olsztyn',         voiv:'Warmińsko-Mazurskie', lat:53.7784, lon:20.4801, alt:135, hdd:3250, cdd:140, zone:'I',   tdes:-22 },
+            { name:'Opole',           voiv:'Opolskie',            lat:50.6677, lon:17.9236, alt:176, hdd:2800, cdd:230, zone:'II',  tdes:-18 },
+            { name:'Ostrowiec Świętokrzyski', voiv:'Świętokrzyskie', lat:50.9293, lon:21.3886, alt:240, hdd:3150, cdd:175, zone:'III', tdes:-20 },
+            { name:'Piła',            voiv:'Wielkopolskie',       lat:53.1514, lon:16.7380, alt: 72, hdd:3050, cdd:175, zone:'II',  tdes:-18 },
+            { name:'Poznań',          voiv:'Wielkopolskie',       lat:52.4064, lon:16.9252, alt: 92, hdd:2900, cdd:215, zone:'II',  tdes:-18 },
+            { name:'Przemyśl',        voiv:'Podkarpackie',        lat:49.7839, lon:22.7677, alt:279, hdd:3250, cdd:195, zone:'III', tdes:-22 },
+            { name:'Radom',           voiv:'Mazowieckie',         lat:51.4027, lon:21.1471, alt:188, hdd:3050, cdd:195, zone:'II',  tdes:-20 },
+            { name:'Rzeszów',         voiv:'Podkarpackie',        lat:50.0413, lon:22.0023, alt:209, hdd:3150, cdd:200, zone:'III', tdes:-20 },
+            { name:'Siedlce',         voiv:'Mazowieckie',         lat:52.1677, lon:22.2902, alt:146, hdd:3200, cdd:175, zone:'II',  tdes:-22 },
+            { name:'Słupsk',          voiv:'Pomorskie',           lat:54.4641, lon:17.0286, alt: 20, hdd:3050, cdd:110, zone:'I',   tdes:-16 },
+            { name:'Sosnowiec',       voiv:'Śląskie',             lat:50.2863, lon:19.1043, alt:296, hdd:3050, cdd:185, zone:'III', tdes:-20 },
+            { name:'Suwałki',         voiv:'Podlaskie',           lat:54.1017, lon:22.9303, alt:184, hdd:3650, cdd:130, zone:'I',   tdes:-24 },
+            { name:'Szczecin',        voiv:'Zachodniopomorskie',  lat:53.4285, lon:14.5528, alt:  1, hdd:2850, cdd:185, zone:'I',   tdes:-16 },
+            { name:'Tarnów',          voiv:'Małopolskie',         lat:50.0122, lon:20.9862, alt:209, hdd:3100, cdd:220, zone:'III', tdes:-20 },
+            { name:'Toruń',           voiv:'Kujawsko-Pomorskie',  lat:53.0138, lon:18.5981, alt: 50, hdd:2950, cdd:200, zone:'II',  tdes:-20 },
+            { name:'Wałbrzych',       voiv:'Dolnośląskie',        lat:50.7762, lon:16.2846, alt:429, hdd:3400, cdd:130, zone:'III', tdes:-22 },
+            { name:'Warszawa',        voiv:'Mazowieckie',         lat:52.2297, lon:21.0122, alt:113, hdd:3005, cdd:212, zone:'II',  tdes:-20 },
+            { name:'Włocławek',       voiv:'Kujawsko-Pomorskie',  lat:52.6483, lon:19.0677, alt: 52, hdd:2980, cdd:195, zone:'II',  tdes:-18 },
+            { name:'Wrocław',         voiv:'Dolnośląskie',        lat:51.1079, lon:17.0385, alt:120, hdd:2750, cdd:250, zone:'II',  tdes:-18 },
+            { name:'Zakopane',        voiv:'Małopolskie',         lat:49.2994, lon:19.9497, alt:858, hdd:4500, cdd: 15, zone:'III', tdes:-24 },
+            { name:'Zamość',          voiv:'Lubelskie',           lat:50.7232, lon:23.2519, alt:212, hdd:3200, cdd:185, zone:'II',  tdes:-22 },
+            { name:'Zielona Góra',    voiv:'Lubuskie',            lat:51.9356, lon:15.5062, alt:192, hdd:2880, cdd:200, zone:'II',  tdes:-18 },
+        ];
+
+        // Haversine distance in km
+        function climateDist(lat1, lon1, lat2, lon2) {
+            const R = 6371, r = Math.PI / 180;
+            const dLat = (lat2 - lat1) * r, dLon = (lon2 - lon1) * r;
+            const a = Math.sin(dLat/2)**2 + Math.cos(lat1*r)*Math.cos(lat2*r)*Math.sin(dLon/2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        function climateNearest(lat, lon) {
+            let best = null, bestDist = Infinity;
+            for (const c of CLIMATE_DB) {
+                const d = climateDist(lat, lon, c.lat, c.lon);
+                if (d < bestDist) { bestDist = d; best = c; }
+            }
+            return { station: best, dist: Math.round(bestDist) };
+        }
+
+        let climateSearchTimer = null;
+        function climateDebouncedSearch(val) {
+            clearTimeout(climateSearchTimer);
+            const box = document.getElementById('climate-suggestions');
+            if (val.trim().length < 2) { box.style.display = 'none'; return; }
+            box.innerHTML = '<div class="climate-loading">Szukam…</div>';
+            box.style.display = 'block';
+            climateSearchTimer = setTimeout(() => climateSearchNominatim(val.trim()), 350);
+        }
+
+        async function climateSearchNominatim(q) {
+            const box = document.getElementById('climate-suggestions');
+            try {
+                const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&countrycodes=pl&addressdetails=1&format=json&limit=10`;
+                const resp = await fetch(url, { headers: { 'Accept-Language': 'pl' } });
+                const results = await resp.json();
+                const places = results.filter(r => ['city','town','village','hamlet','suburb','quarter','neighbourhood','municipality'].includes(r.type) || ['city','town','village','hamlet'].includes(r.addresstype));
+                if (!places.length) {
+                    box.innerHTML = '<div class="climate-loading" style="color:#c0392b;">Nie znaleziono miejscowości w Polsce.</div>';
+                    return;
+                }
+                box.innerHTML = places.slice(0,8).map(r => {
+                    const addr = r.address || {};
+                    const cityName = addr.city || addr.town || addr.village || addr.hamlet || addr.suburb || r.display_name.split(',')[0];
+                    const county  = addr.county || '';
+                    const state   = addr.state || '';
+                    const sub     = [county, state].filter(Boolean).join(', ');
+                    return `<div class="climate-suggestion-item" onclick="climateSelectNominatim(${r.lat},${r.lon},'${cityName.replace(/'/g,"\\'")}','${state.replace(/'/g,"\\'")}','${r.display_name.replace(/'/g,"\\'")}')">
+                        <span class="climate-suggestion-main">${cityName}</span>
+                        <span class="climate-suggestion-sub">${sub}</span>
+                    </div>`;
+                }).join('');
+                box.style.display = 'block';
+            } catch(e) {
+                box.innerHTML = '<div class="climate-loading" style="color:#c0392b;">Błąd połączenia z usługą wyszukiwania.</div>';
+            }
+        }
+
+        function climateSelectNominatim(lat, lon, cityName, stateName, displayName) {
+            document.getElementById('climate-suggestions').style.display = 'none';
+            document.getElementById('climate-location-input').value = cityName;
+
+            const { station, dist } = climateNearest(parseFloat(lat), parseFloat(lon));
+
+            // Fill location cards
+            document.getElementById('climate-city-name').textContent = cityName;
+            document.getElementById('climate-voiv').textContent = stateName || '—';
+            document.getElementById('climate-coords').textContent = parseFloat(lat).toFixed(4) + ', ' + parseFloat(lon).toFixed(4);
+
+            // Fill climate cards from nearest station
+            document.getElementById('climate-alt').textContent  = station.alt.toLocaleString('pl-PL');
+            document.getElementById('climate-hdd').textContent  = station.hdd.toLocaleString('pl-PL');
+            document.getElementById('climate-cdd').textContent  = station.cdd.toLocaleString('pl-PL');
+            document.getElementById('climate-zone').textContent = 'Strefa ' + station.zone;
+            document.getElementById('climate-tdes').textContent = station.tdes;
+            const ratio = station.hdd / (station.hdd + station.cdd);
+            document.getElementById('climate-ratio').textContent = (ratio * 100).toFixed(1) + '%';
+            // Store raw values for recalc
+            window._climateHdd = station.hdd;
+            window._climateCdd = station.cdd;
+            climateRecalcDays();
+
+            // Show proxy note if not exact match
+            const noteEl = document.getElementById('climate-proxy-note');
+            const isExact = station.name.toLowerCase() === cityName.toLowerCase();
+            if (isExact) {
+                noteEl.style.display = 'none';
+            } else {
+                noteEl.style.display = 'block';
+                noteEl.innerHTML = `⚠️ <strong>Brak bezpośrednich danych pomiarowych dla „${cityName}".</strong>
+                    Zastosowano dane ze stacji IMGW w <strong>${station.name}</strong> (${station.voiv}),
+                    oddalonej o <strong>${dist} km</strong>.
+                    Dla dokładniejszych wartości użyj <a href="https://www.degreedays.net/#generate2" target="_blank" rel="noopener" style="color:#7a4a0a;font-weight:700;">degreedays.net</a>
+                    z najbliższą stacją meteorologiczną.`;
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            const box = document.getElementById('climate-suggestions');
+            if (box && !box.contains(e.target) && e.target.id !== 'climate-location-input') {
+                box.style.display = 'none';
+            }
+        });
+
+        // Recalculate estimated heating/cooling days based on base temperature inputs
+        // Method: days ≈ HDD / (base_hdd - T_avg_heating) where T_avg_heating ≈ 3°C for Poland
+        //         days ≈ CDD / (T_avg_cooling - base_cdd) where T_avg_cooling ≈ 16°C for Poland
+        function climateRecalcDays() {
+            const hdd = window._climateHdd;
+            const cdd = window._climateCdd;
+            if (!hdd && !cdd) return;
+
+            const baseHdd = parseFloat(document.getElementById('climate-base-hdd').value) || 15;
+            const baseCdd = parseFloat(document.getElementById('climate-base-cdd').value) || 10;
+
+            // Estimated days — based on mean seasonal T deficits typical for Poland
+            const avgTHeating  = 3;   // mean daily T during heating season in Poland (°C)
+            const avgTCooling  = 16;  // mean daily T during "cooling" season in Poland (°C)
+            const hddDivisor   = Math.max(1, baseHdd - avgTHeating);
+            const cddDivisor   = Math.max(1, avgTCooling - baseCdd);
+            const heatingDays  = hdd ? Math.round(hdd / hddDivisor) : 0;
+            const coolingDays  = cdd ? Math.round(cdd / cddDivisor) : 0;
+
+            const hddDaysEl = document.getElementById('climate-hdd-days');
+            const cddDaysEl = document.getElementById('climate-cdd-days');
+            if (hddDaysEl) hddDaysEl.textContent = hdd ? `(≈ ${heatingDays} dni)` : '';
+            if (cddDaysEl) cddDaysEl.textContent = cdd ? `(≈ ${coolingDays} dni)` : '';
+        }
         </script>
     </section>
 </x-layouts.app>

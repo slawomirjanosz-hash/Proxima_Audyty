@@ -7,18 +7,18 @@
     <style>
         @charset "UTF-8";
         * { box-sizing: border-box; }
-        body { font-family: 'DejaVu Sans', DejaVu Sans, Arial, sans-serif; font-size: 11pt; color: #0f2330; margin: 0; padding: 24px; }
-        h1 { font-size: 20pt; margin: 0 0 4px; color: #0f2330; }
-        .subtitle { color: #4c6373; font-size: 10pt; margin-bottom: 24px; }
-        .header { border-bottom: 2px solid #0e89d8; padding-bottom: 12px; margin-bottom: 20px; }
+        body { font-family: 'DejaVu Sans', DejaVu Sans, Arial, sans-serif; font-size: 11pt; color: var(--ink); margin: 0; padding: 24px; }
+        h1 { font-size: 20pt; margin: 0 0 4px; color: var(--ink); }
+        .subtitle { color: var(--ink-mute); font-size: 10pt; margin-bottom: 24px; }
+        .header { border-bottom: 2px solid var(--green-primary); padding-bottom: 12px; margin-bottom: 20px; }
         .header-inner { display: flex; justify-content: space-between; align-items: flex-start; }
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-        .info-box { border: 1px solid #d5e0ea; border-radius: 8px; padding: 12px; }
-        .info-box h3 { margin: 0 0 8px; font-size: 10pt; text-transform: uppercase; letter-spacing: .5px; color: #4c6373; }
+        .info-box { border: 1px solid var(--paper-deep); border-radius: 8px; padding: 12px; }
+        .info-box h3 { margin: 0 0 8px; font-size: 10pt; text-transform: uppercase; letter-spacing: .5px; color: var(--ink-mute); }
         .info-box p { margin: 3px 0; font-size: 10pt; }
-        .section-title { font-size: 13pt; font-weight: bold; margin: 20px 0 8px; padding-bottom: 4px; border-bottom: 1px solid #d5e0ea; }
+        .section-title { font-size: 13pt; font-weight: bold; margin: 20px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--paper-deep); }
         table { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 9.5pt; }
-        th { background: #f3f8f7; padding: 6px 5px; text-align: left; font-size: 8.5pt; text-transform: uppercase; letter-spacing: .3px; color: #4c6373; border-bottom: 1px solid #d5e0ea; }
+        th { background: #f3f8f7; padding: 6px 5px; text-align: left; font-size: 8.5pt; text-transform: uppercase; letter-spacing: .3px; color: var(--ink-mute); border-bottom: 1px solid var(--paper-deep); }
         td { padding: 5px; border-bottom: 1px solid #e4edf3; vertical-align: top; }
         .text-right { text-align: right; }
         .sum-row td { font-weight: bold; background: #f3f8f7; }
@@ -26,8 +26,8 @@
         .total-box h2 { margin: 0 0 6px; font-size: 15pt; }
         .payment-box { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 14px; margin-top: 16px; }
         .schedule-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 14px; margin-top: 16px; }
-        .description-box { border: 1px solid #d5e0ea; border-radius: 8px; padding: 14px; margin-top: 16px; }
-        .footer { margin-top: 30px; padding-top: 12px; border-top: 1px solid #d5e0ea; font-size: 9pt; color: #4c6373; text-align: center; }
+        .description-box { border: 1px solid var(--paper-deep); border-radius: 8px; padding: 14px; margin-top: 16px; }
+        .footer { margin-top: 30px; padding-top: 12px; border-top: 1px solid var(--paper-deep); font-size: 9pt; color: var(--ink-mute); text-align: center; }
     </style>
 </head>
 <body>
@@ -41,7 +41,7 @@
                 @if($offer->offer_date) Data: {{ $offer->offer_date->format('d.m.Y') }} @endif
             </div>
         </div>
-        <div style="text-align:right;font-size:10pt;color:#4c6373;">
+        <div style="text-align:right;font-size:10pt;color:var(--ink-mute);">
             ENESA — Energy Audit Systems<br>
             {{ date('d.m.Y') }}
         </div>
@@ -165,12 +165,12 @@ function offerNumeric($v): float {
 
 {{-- ŁĄCZNA CENA --}}
 <div class="total-box">
-    <h2 style="color:#0f2330;">Łączna wartość oferty:</h2>
-    <p style="font-size:22pt;font-weight:800;margin:0;color:#1ba84a;">
+    <h2 style="color:var(--ink);">Łączna wartość oferty:</h2>
+    <p style="font-size:22pt;font-weight:800;margin:0;color:var(--green-primary);">
         {{ number_format($offer->total_price, 2, ',', ' ') }} zł
     </p>
     @if($offer->profit_amount > 0)
-    <p style="font-size:10pt;color:#4c6373;margin:4px 0 0;">
+    <p style="font-size:10pt;color:var(--ink-mute);margin:4px 0 0;">
         Zawiera marżę: {{ number_format($offer->profit_amount, 2, ',', ' ') }} zł
         ({{ number_format($offer->profit_percent, 1, ',', ' ') }}%)
     </p>

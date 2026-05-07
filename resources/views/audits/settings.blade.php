@@ -1,22 +1,22 @@
 <x-layouts.app>
     <section class="panel">
         <style>
-            .settings-section { border: 1px solid #d2e3f1; border-radius: 14px; background: #fff; margin-top: 14px; overflow: hidden; box-shadow: 0 4px 14px rgba(18, 72, 110, 0.06); }
-            .settings-toggle { width: 100%; border: none; background: #fafdff; display:flex; justify-content:space-between; align-items:center; gap:10px; padding: 14px 14px; cursor:pointer; }
-            .settings-toggle:hover { background:#f2f8fe; }
+            .settings-section { border: 1px solid var(--paper-deep); border-radius: 14px; background: #fff; margin-top: 14px; overflow: hidden; box-shadow: 0 4px 16px rgba(14,55,85,.05); }
+            .settings-toggle { width: 100%; border: none; background: var(--green-primary); display:flex; justify-content:space-between; align-items:center; gap:10px; padding: 16px 20px; cursor:pointer; color: var(--paper); font-family: inherit; }
+            .settings-toggle:hover { background: var(--green-deep); }
             .settings-toggle-content { text-align:left; display:flex; flex-direction:column; align-items:flex-start; }
-            .settings-toggle h2 { margin:0; font-size:19px; font-weight:800; color:#10344c; letter-spacing:.2px; }
-            .settings-toggle .muted { margin:5px 0 0; font-size:13px; color:#355c77; }
-            .settings-body { display:none; padding: 0 12px 12px; border-top:1px solid #e8f1f8; }
+            .settings-toggle h2 { margin:0; font-size:15px; font-weight:700; color: var(--paper) !important; letter-spacing:.2px; }
+            .settings-toggle .muted { margin:5px 0 0; font-size:12px; color: var(--green-light) !important; }
+            .settings-body { display:none; padding: 0 12px 12px; border-top:1px solid var(--paper-deep); }
             .settings-section.open .settings-body { display:block; }
-            .settings-section.open .settings-toggle { background:#eef6ff; }
-            .settings-chevron { color:#6b8aa3; font-size:18px; transition:transform .2s; }
+            .settings-section.open .settings-toggle { background: var(--green-deep); }
+            .settings-chevron { color: var(--paper); font-size:18px; transition:transform .2s; }
             .settings-section.open .settings-chevron { transform: rotate(180deg); }
             .audit-type-card { border: 1px solid #dfeaf3; border-radius: 10px; padding: 10px; margin-top: 10px; background:#fbfdff; }
             .audit-type-header { display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
             .audit-type-title-btn { border:none; background:transparent; padding:0; margin:0; font:inherit; cursor:pointer; color:#10344c; font-weight:800; font-size:15px; display:flex; align-items:center; gap:8px; }
-            .audit-type-index { display:inline-flex; align-items:center; justify-content:center; min-width:24px; height:24px; border-radius:999px; background:#e8f3ff; color:#1d4f73; font-size:12px; font-weight:800; }
-            .audit-type-chevron { color:#6b8aa3; font-size:16px; transition:transform .2s; }
+            .audit-type-index { display:inline-flex; align-items:center; justify-content:center; min-width:24px; height:24px; border-radius:999px; background:#e8f3ff; color:var(--green-deep); font-size:12px; font-weight:800; }
+            .audit-type-chevron { color:var(--ink-mute); font-size:16px; transition:transform .2s; }
             .audit-type-card.open .audit-type-chevron { transform:rotate(180deg); }
             .audit-type-details { display:none; margin-top:10px; }
             .audit-type-card.open .audit-type-details { display:block; }
@@ -26,7 +26,7 @@
             .audit-builder { display:none; margin-top:14px; padding:12px; border:1px solid #dfeaf3; border-radius:10px; background:#f9fcff; }
             .data-table { width:100%; border-collapse: collapse; margin-top:8px; }
             .data-table th, .data-table td { border:1px solid #e5eef6; padding:8px; font-size:13px; text-align:left; }
-            .data-table th { background:#f3f8fd; color:#34556f; font-weight:700; }
+            .data-table th { background:var(--paper-deep); color:#34556f; font-weight:700; }
             .data-table input, .data-table select { width:100%; }
             .data-table-fields th, .data-table-fields td { padding:5px 6px; font-size:12px; vertical-align:middle; }
             .data-table-fields th { font-size:11px; letter-spacing:.3px; }
@@ -45,8 +45,8 @@
             .dependency-tree-overlay .dependency-path.dependency-path-active { stroke:#2f78af; stroke-width:2.2; opacity:1; }
             .data-table tr.dependency-branch-active td:nth-child(3) { background:#eef6ff; }
             .data-table tr.is-dependent-row td:nth-child(3) { position:relative; padding-left:calc(38px + (var(--dependency-depth, 1) - 1) * 24px); color:#264e6b; }
-            .data-table tr.is-dependent-row td:nth-child(3)::before { content:attr(data-dependency-label); position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#1d4f73; font-weight:800; font-size:14px; line-height:1; letter-spacing:-1px; min-width:18px; text-align:center; }
-            .btn-secondary { background: #dbe9f5; color: #1d4f73; }
+            .data-table tr.is-dependent-row td:nth-child(3)::before { content:attr(data-dependency-label); position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--green-deep); font-weight:800; font-size:14px; line-height:1; letter-spacing:-1px; min-width:18px; text-align:center; }
+            .btn-secondary { background: #dbe9f5; color: var(--green-deep); }
             .row-drag-handle { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; cursor:grab; color:#68849a; user-select:none; font-size:12px; letter-spacing:-1px; }
             .row-drag-handle:active { cursor:grabbing; }
             tr[data-draggable-row].is-dragging { opacity:.55; }
@@ -60,7 +60,7 @@
             .token-helper { margin:0 0 8px; padding:8px; border:1px solid #dbe8f3; border-radius:8px; background:#f7fbff; }
             .token-helper-title { font-size:12px; font-weight:700; color:#35556f; margin-bottom:6px; }
             .token-list { display:flex; flex-wrap:wrap; gap:6px; }
-            .token-chip { border:1px solid #c6daeb; border-radius:999px; background:#fff; color:#1d4f73; padding:4px 8px; font-size:12px; cursor:pointer; }
+            .token-chip { border:1px solid #c6daeb; border-radius:999px; background:#fff; color:var(--green-deep); padding:4px 8px; font-size:12px; cursor:pointer; }
             .token-chip:hover { background:#eef6ff; }
             .token-chip-formula { border-color:#b0d9c8; color:#0a5c46; background:#f4fdf9; }
             .token-chip-formula:hover { background:#d9f5eb; }
@@ -69,7 +69,7 @@
             .btn-trash-icon { width:28px; height:28px; min-height:28px; padding:0; border-radius:8px; background:#e9f1f8; color:#35556f; border:1px solid #c9dceb; font-size:14px; line-height:1; display:inline-flex; align-items:center; justify-content:center; }
             .btn-trash-icon:hover { background:#dceaf6; }
             .settings-tab-btn { padding:8px 14px; border-radius:10px; border:1px solid #d7e5f0; background:#eef5fb; font-weight:700; color:#28485f; display:inline-block; text-decoration:none; font-size:14px; }
-            .settings-tab-btn.active { background:#fff; border-color:#0e89d8; color:#0e89d8; }
+            .settings-tab-btn.active { background:#fff; border-color:var(--green-primary); color:var(--green-primary); }
         </style>
 
         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px;">
@@ -120,19 +120,19 @@
                 <div class="settings-body" style="padding-top:14px;">
                     <div style="margin-bottom:16px;">
                         <a href="{{ route('ai.create', ['type' => $agent['type']]) }}"
-                           style="display:inline-flex; align-items:center; gap:8px; padding:9px 18px; background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; border-radius:10px; font-weight:700; font-size:14px; text-decoration:none;">
+                           style="display:inline-flex; align-items:center; gap:8px; padding:9px 18px; background:linear-gradient(130deg,var(--green-primary),var(--green-primary)); color:#fff; border-radius:10px; font-weight:700; font-size:14px; text-decoration:none;">
                             + Nowa rozmowa z agentem
                         </a>
                     </div>
 
                     @if($agent['type'] === 'general')
-                    <div style="margin-bottom:16px; background:#f8fbff; border:1px solid #d5e0ea; border-radius:12px; padding:14px 18px;">
-                        <div style="font-weight:800; font-size:13px; color:#1d4f73; margin-bottom:4px;">📋 Podgląd struktury ankiety Master</div>
-                        <div style="font-size:13px; color:#4c6373; margin-bottom:12px;">
+                    <div style="margin-bottom:16px; background:#f8fbff; border:1px solid var(--paper-deep); border-radius:12px; padding:14px 18px;">
+                        <div style="font-weight:800; font-size:13px; color:var(--green-deep); margin-bottom:4px;">📋 Podgląd struktury ankiety Master</div>
+                        <div style="font-size:13px; color:var(--ink-mute); margin-bottom:12px;">
                             Otwórz formularz w trybie tylko do odczytu — możesz przejrzeć wszystkie sekcje i pola bez przypisywania danych do klienta.
                         </div>
                         <a href="{{ route('client.audit.master') }}" target="_blank"
-                           style="display:inline-flex; align-items:center; gap:8px; padding:9px 18px; background:#1d4f73; color:#fff; border-radius:10px; font-weight:700; font-size:13px; text-decoration:none;">
+                           style="display:inline-flex; align-items:center; gap:8px; padding:9px 18px; background:var(--green-deep); color:#fff; border-radius:10px; font-weight:700; font-size:13px; text-decoration:none;">
                             🔍 Podgląd ankiety
                         </a>
                     </div>
@@ -143,7 +143,7 @@
                                 onclick="toggleAgentTraining('training-{{ $agent['type'] }}')"
                                 style="width:100%; text-align:left; background:#f5f9fd; border:none; padding:10px 14px; font-size:13px; font-weight:700; color:#163f5b; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
                             <span>🎓 Trenuj agenta — edytuj skrypt systemowy</span>
-                            <span id="training-arrow-{{ $agent['type'] }}" style="font-size:12px; color:#6b8aa3;">▼</span>
+                            <span id="training-arrow-{{ $agent['type'] }}" style="font-size:12px; color:var(--ink-mute);">▼</span>
                         </button>
                         <div id="training-{{ $agent['type'] }}" style="display:none; padding:14px; border-top:1px solid #e5eef6;">
                             <p style="margin:0 0 10px; font-size:13px; color:#5a7390;">
@@ -170,7 +170,7 @@
                                     </form>
                                     @endif
                                     <button type="submit"
-                                            style="padding:8px 18px; border-radius:9px; border:none; background:linear-gradient(130deg,#0e89d8,#1ba84a); color:#fff; font-weight:700; font-size:13px; cursor:pointer;">
+                                            style="padding:8px 18px; border-radius:9px; border:none; background:linear-gradient(130deg,var(--green-primary),var(--green-primary)); color:#fff; font-weight:700; font-size:13px; cursor:pointer;">
                                         Zapisz trening
                                     </button>
                                 </div>
@@ -212,12 +212,12 @@
                     @forelse($questionnaireBlockLabels as $bKey => $bLabel)
                         @if(isset($questionnaireQuestions[$bKey]) && $questionnaireQuestions[$bKey]->count())
                         <div style="margin-bottom:16px;">
-                            <div style="font-weight:800; font-size:13px; color:#0e344e; margin-bottom:6px; padding:4px 10px; background:#e8f3fd; border-radius:7px; border-left:3px solid #0e89d8;">
+                            <div style="font-weight:800; font-size:13px; color:#0e344e; margin-bottom:6px; padding:4px 10px; background:#e8f3fd; border-radius:7px; border-left:3px solid var(--green-primary);">
                                 {{ $bLabel }}
                             </div>
                             <table style="width:100%; border-collapse:collapse; font-size:13px;">
                                 <thead>
-                                    <tr style="background:#f3f8fd;">
+                                    <tr style="background:var(--paper-deep);">
                                         <th style="padding:7px 8px; border:1px solid #dde9f3; text-align:left; width:60px;">Kod</th>
                                         <th style="padding:7px 8px; border:1px solid #dde9f3; text-align:left;">Pytanie</th>
                                         <th style="padding:7px 8px; border:1px solid #dde9f3; text-align:left; width:160px;">Podpowiedź</th>
@@ -228,7 +228,7 @@
                                 <tbody>
                                 @foreach($questionnaireQuestions[$bKey] as $qq)
                                     <tr id="qrow-{{ $qq->id }}" style="{{ !$qq->is_active ? 'opacity:.55;' : '' }}">
-                                        <td style="padding:6px 8px; border:1px solid #e5eef6; font-weight:700; color:#0e89d8;">{{ $qq->question_code }}</td>
+                                        <td style="padding:6px 8px; border:1px solid #e5eef6; font-weight:700; color:var(--green-primary);">{{ $qq->question_code }}</td>
                                         <td style="padding:6px 8px; border:1px solid #e5eef6;">
                                             <div class="qrow-view-{{ $qq->id }}">{{ $qq->question_text }}</div>
                                             <div class="qrow-edit-{{ $qq->id }}" style="display:none;">
@@ -244,19 +244,19 @@
                                                     </div>
                                                     <textarea name="question_text" rows="2" style="width:100%; font-size:13px; border:1px solid #c9d7e3; border-radius:7px; padding:5px 7px; resize:vertical;">{{ $qq->question_text }}</textarea>
                                                     <div style="display:flex; gap:6px;">
-                                                        <button type="submit" style="padding:5px 12px; border-radius:7px; border:none; background:#0e89d8; color:#fff; font-size:12px; cursor:pointer; font-weight:700;">Zapisz</button>
+                                                        <button type="submit" style="padding:5px 12px; border-radius:7px; border:none; background:var(--green-primary); color:#fff; font-size:12px; cursor:pointer; font-weight:700;">Zapisz</button>
                                                         <button type="button" onclick="toggleQRowEdit({{ $qq->id }})" style="padding:5px 10px; border-radius:7px; border:1px solid #c9d7e3; background:#f5f9fd; font-size:12px; cursor:pointer;">Anuluj</button>
                                                     </div>
                                                 </form>
                                             </div>
                                         </td>
-                                        <td style="padding:6px 8px; border:1px solid #e5eef6; color:#6b8aa3; font-size:12px;">{{ $qq->answer_hint ?: '—' }}</td>
+                                        <td style="padding:6px 8px; border:1px solid #e5eef6; color:var(--ink-mute); font-size:12px;">{{ $qq->answer_hint ?: '—' }}</td>
                                         <td style="padding:6px 8px; border:1px solid #e5eef6; text-align:center;">
                                             <span style="font-size:16px;">{{ $qq->is_active ? '✓' : '—' }}</span>
                                         </td>
                                         <td style="padding:6px 8px; border:1px solid #e5eef6; text-align:center; white-space:nowrap;">
                                             <button type="button" onclick="toggleQRowEdit({{ $qq->id }})"
-                                                    style="padding:4px 8px; border-radius:6px; border:1px solid #c8dce9; background:#eef5fb; color:#1d4f73; font-size:11px; cursor:pointer; font-weight:700;">
+                                                    style="padding:4px 8px; border-radius:6px; border:1px solid #c8dce9; background:#eef5fb; color:var(--green-deep); font-size:11px; cursor:pointer; font-weight:700;">
                                                 Edytuj
                                             </button>
                                             <form method="POST" action="{{ route('audits.settings.iso50001.questionnaire-destroy', $qq) }}"
@@ -275,14 +275,14 @@
                         </div>
                         @endif
                     @empty
-                        <p style="color:#6b8aa3; font-size:13px;">Brak bloków kwestionariusza.</p>
+                        <p style="color:var(--ink-mute); font-size:13px;">Brak bloków kwestionariusza.</p>
                     @endforelse
 
                     {{-- Add new question --}}
                     <div style="margin-top:14px; padding-top:12px; border-top:1px solid #dce8f5;">
                         <button type="button"
                                 onclick="toggleAddQuestion()"
-                                style="display:flex; align-items:center; gap:6px; padding:8px 14px; border:1px solid #c6d8ea; border-radius:9px; background:#f2f8fd; color:#1d4f73; font-weight:700; font-size:13px; cursor:pointer;">
+                                style="display:flex; align-items:center; gap:6px; padding:8px 14px; border:1px solid #c6d8ea; border-radius:9px; background:#f2f8fd; color:var(--green-deep); font-weight:700; font-size:13px; cursor:pointer;">
                             <span style="font-size:16px; font-weight:800;">+</span> Dodaj pytanie do kwestionariusza
                         </button>
                         <div id="add-question-form" style="display:none; margin-top:10px; padding:12px; border:1px solid #d2e3f1; border-radius:10px; background:#f8fbff;">
@@ -290,7 +290,7 @@
                                 @csrf
                                 <div style="display:grid; grid-template-columns:140px 100px 1fr; gap:10px;">
                                     <div>
-                                        <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin-bottom:4px;">Blok</label>
+                                        <label style="display:block; font-size:12px; font-weight:700; color:var(--ink-mute); margin-bottom:4px;">Blok</label>
                                         <select name="block_key" required style="width:100%; font-size:13px;">
                                             @foreach($questionnaireBlockLabels as $bk => $bl)
                                                 <option value="{{ $bk }}">{{ $bk }} — {{ Str::before($bl, ' —') }}</option>
@@ -298,26 +298,26 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin-bottom:4px;">Kod pytania</label>
+                                        <label style="display:block; font-size:12px; font-weight:700; color:var(--ink-mute); margin-bottom:4px;">Kod pytania</label>
                                         <input type="text" name="question_code" placeholder="np. A8" required maxlength="10" style="width:100%; font-size:13px;">
                                     </div>
                                     <div>
-                                        <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin-bottom:4px;">Podpowiedź / opcje odpowiedzi</label>
+                                        <label style="display:block; font-size:12px; font-weight:700; color:var(--ink-mute); margin-bottom:4px;">Podpowiedź / opcje odpowiedzi</label>
                                         <input type="text" name="answer_hint" placeholder="np. TAK / NIE" maxlength="255" style="width:100%; font-size:13px;">
                                     </div>
                                 </div>
                                 <div>
-                                    <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin-bottom:4px;">Treść pytania *</label>
+                                    <label style="display:block; font-size:12px; font-weight:700; color:var(--ink-mute); margin-bottom:4px;">Treść pytania *</label>
                                     <textarea name="question_text" rows="2" required maxlength="1000"
                                               style="width:100%; font-size:13px; border:1px solid #c9d7e3; border-radius:8px; padding:7px 9px; resize:vertical; box-sizing:border-box;"
                                               placeholder="Wpisz treść pytania…"></textarea>
                                 </div>
                                 <div style="display:flex; gap:8px;">
-                                    <button type="submit" style="padding:7px 18px; border-radius:8px; border:none; background:linear-gradient(130deg,#0e89d8,#1ba84a); color:#fff; font-weight:700; font-size:13px; cursor:pointer;">
+                                    <button type="submit" style="padding:7px 18px; border-radius:8px; border:none; background:linear-gradient(130deg,var(--green-primary),var(--green-primary)); color:#fff; font-weight:700; font-size:13px; cursor:pointer;">
                                         Dodaj pytanie
                                     </button>
                                     <button type="button" onclick="toggleAddQuestion()"
-                                            style="padding:7px 14px; border-radius:8px; border:1px solid #c9d7e3; background:#f5f9fd; color:#1d4f73; font-size:13px; cursor:pointer;">
+                                            style="padding:7px 14px; border-radius:8px; border:1px solid #c9d7e3; background:#f5f9fd; color:var(--green-deep); font-size:13px; cursor:pointer;">
                                         Anuluj
                                     </button>
                                 </div>
@@ -349,7 +349,7 @@
                 <div class="settings-body" style="padding-top:14px;">
                     <div style="margin-bottom:16px;">
                         <a href="{{ route('ai.create', ['type' => $agent['type']]) }}"
-                           style="display:inline-flex; align-items:center; gap:8px; padding:9px 18px; background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; border-radius:10px; font-weight:700; font-size:14px; text-decoration:none;">
+                           style="display:inline-flex; align-items:center; gap:8px; padding:9px 18px; background:linear-gradient(130deg,var(--green-primary),var(--green-primary)); color:#fff; border-radius:10px; font-weight:700; font-size:14px; text-decoration:none;">
                             + Nowa rozmowa z agentem
                         </a>
                     </div>
@@ -359,7 +359,7 @@
                                 onclick="toggleAgentTraining('training-{{ $agent['type'] }}')"
                                 style="width:100%; text-align:left; background:#f5f9fd; border:none; padding:10px 14px; font-size:13px; font-weight:700; color:#163f5b; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
                             <span>🎓 Trenuj agenta — edytuj skrypt systemowy</span>
-                            <span id="training-arrow-{{ $agent['type'] }}" style="font-size:12px; color:#6b8aa3;">▼</span>
+                            <span id="training-arrow-{{ $agent['type'] }}" style="font-size:12px; color:var(--ink-mute);">▼</span>
                         </button>
                         <div id="training-{{ $agent['type'] }}" style="display:none; padding:14px; border-top:1px solid #e5eef6;">
                             <p style="margin:0 0 10px; font-size:13px; color:#5a7390;">
@@ -386,7 +386,7 @@
                                     </form>
                                     @endif
                                     <button type="submit"
-                                            style="padding:8px 18px; border-radius:9px; border:none; background:linear-gradient(130deg,#0e89d8,#1ba84a); color:#fff; font-weight:700; font-size:13px; cursor:pointer;">
+                                            style="padding:8px 18px; border-radius:9px; border:none; background:linear-gradient(130deg,var(--green-primary),var(--green-primary)); color:#fff; font-weight:700; font-size:13px; cursor:pointer;">
                                         Zapisz trening
                                     </button>
                                 </div>
@@ -429,7 +429,7 @@
                 <div class="settings-body" style="padding-top:14px;">
                     <div style="margin-bottom:16px;">
                         <a href="{{ route('ai.create', ['type' => $agent['type']]) }}"
-                           style="display:inline-flex; align-items:center; gap:8px; padding:9px 18px; background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; border-radius:10px; font-weight:700; font-size:14px; text-decoration:none;">
+                           style="display:inline-flex; align-items:center; gap:8px; padding:9px 18px; background:linear-gradient(130deg,var(--green-primary),var(--green-primary)); color:#fff; border-radius:10px; font-weight:700; font-size:14px; text-decoration:none;">
                             + Nowa rozmowa z agentem
                         </a>
                     </div>
@@ -439,7 +439,7 @@
                                 onclick="toggleAgentTraining('training-{{ $agent['type'] }}')"
                                 style="width:100%; text-align:left; background:#f5f9fd; border:none; padding:10px 14px; font-size:13px; font-weight:700; color:#163f5b; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
                             <span>🎓 Trenuj agenta — edytuj skrypt systemowy</span>
-                            <span id="training-arrow-{{ $agent['type'] }}" style="font-size:12px; color:#6b8aa3;">▼</span>
+                            <span id="training-arrow-{{ $agent['type'] }}" style="font-size:12px; color:var(--ink-mute);">▼</span>
                         </button>
                         <div id="training-{{ $agent['type'] }}" style="display:none; padding:14px; border-top:1px solid #e5eef6;">
                             <p style="margin:0 0 10px; font-size:13px; color:#5a7390;">
@@ -466,7 +466,7 @@
                                     </form>
                                     @endif
                                     <button type="submit"
-                                            style="padding:8px 18px; border-radius:9px; border:none; background:linear-gradient(130deg,#0e89d8,#1ba84a); color:#fff; font-weight:700; font-size:13px; cursor:pointer;">
+                                            style="padding:8px 18px; border-radius:9px; border:none; background:linear-gradient(130deg,var(--green-primary),var(--green-primary)); color:#fff; font-weight:700; font-size:13px; cursor:pointer;">
                                         Zapisz trening
                                     </button>
                                 </div>
@@ -575,22 +575,22 @@
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px;">
                     <div style="display:flex; align-items:center; gap:8px;">
                         <button type="button" class="section-collapse-arrow" onclick="toggleAuditTypeSectionCollapse(this)" title="Zwiń sekcję">▾</button>
-                        <strong class="section-order-label" style="font-size:12px; color:#1d4f73;"><span class="section-drag-handle" title="Przeciągnij sekcję">•••</span><span class="section-order-title">${defaults.name || 'Nowa sekcja'}</span></strong>
+                        <strong class="section-order-label" style="font-size:12px; color:var(--green-deep);"><span class="section-drag-handle" title="Przeciągnij sekcję">•••</span><span class="section-order-title">${defaults.name || 'Nowa sekcja'}</span></strong>
                     </div>
                     <button type="button" class="btn-secondary" onclick="removeAuditTypeSection(this)">Usuń</button>
                 </div>
                 <div class="section-collapsible-content" style="display:grid; gap:8px;">
                     <div>
-                        <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Nazwa sekcji</label>
+                        <label style="display:block; font-size:12px; font-weight:700; color:var(--ink-mute);">Nazwa sekcji</label>
                         <input type="text" class="section-name-input" name="sections[${index}][name]" value="${defaults.name || ''}" placeholder="Np. Dane wejściowe" oninput="updateSectionHeaderTitle(this)" required>
                     </div>
                     <div>
-                        <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Zadania (jedno zadanie w linii)</label>
+                        <label style="display:block; font-size:12px; font-weight:700; color:var(--ink-mute);">Zadania (jedno zadanie w linii)</label>
                         <textarea name="sections[${index}][tasks_text]" rows="3" style="width:100%; border:1px solid #c9d7e3; border-radius:9px; padding:8px 10px; font-size:14px;">${defaults.tasksText || ''}</textarea>
                     </div>
                     <div>
                         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;">
-                            <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin:0;">Tabela danych sekcji</label>
+                            <label style="display:block; font-size:12px; font-weight:700; color:var(--ink-mute); margin:0;">Tabela danych sekcji</label>
                             <button type="button" class="btn-secondary" onclick="addSectionDataRow('${containerId}-table-${index}', ${index})">+ Dodaj wiersz</button>
                         </div>
                         <table class="data-table data-table-fields" id="${containerId}-table-${index}">
@@ -615,10 +615,10 @@
 
                     <div>
                         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;">
-                            <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin:0;">Wzory sekcji</label>
+                            <label style="display:block; font-size:12px; font-weight:700; color:var(--ink-mute); margin:0;">Wzory sekcji</label>
                             <button type="button" class="btn-secondary" onclick="addSectionFormulaRow('${containerId}-formulas-${index}', ${index}, '${containerId}-table-${index}')">+ Dodaj wzór</button>
                         </div>
-                        <div style="font-size:12px; color:#4c6373; margin:0 0 6px;">Tokeny pól: <strong>{token}</strong>, np. <strong>({moc_nominalna} * 1.2) / 1000</strong>. Możesz też używać tokenu wyniku innego wzoru. We wzorze wpisuj tylko liczby, operatory i tokeny (bez jednostek).</div>
+                        <div style="font-size:12px; color:var(--ink-mute); margin:0 0 6px;">Tokeny pól: <strong>{token}</strong>, np. <strong>({moc_nominalna} * 1.2) / 1000</strong>. Możesz też używać tokenu wyniku innego wzoru. We wzorze wpisuj tylko liczby, operatory i tokeny (bez jednostek).</div>
                         <div class="token-helper">
                             <div class="token-helper-title">Kliknij token, aby wstawić go do wzoru</div>
                             <div class="token-list section-token-list"></div>
@@ -2066,31 +2066,31 @@
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px;">
                     <div style="display:flex; align-items:center; gap:8px;">
                         <button type="button" class="section-collapse-arrow" onclick="toggleFormulaCollapse(this)" title="Zwiń wzór">▾</button>
-                        <strong class="formula-order-label" style="font-size:12px; color:#1d4f73;"><span class="formula-drag-handle" title="Przeciągnij wzór">•••</span><span class="formula-order-title">${defaults.label || 'Nowy wzór'}</span></strong>
+                        <strong class="formula-order-label" style="font-size:12px; color:var(--green-deep);"><span class="formula-drag-handle" title="Przeciągnij wzór">•••</span><span class="formula-order-title">${defaults.label || 'Nowy wzór'}</span></strong>
                     </div>
                     <button type="button" class="btn-secondary" onclick="removeFormulaRow(this)">Usuń</button>
                 </div>
                 <div class="formula-collapsible-content" style="display:grid; grid-template-columns:1fr 160px 160px; gap:8px;">
                     <div>
-                        <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Co obliczyć</label>
+                        <label style="display:block; font-size:12px; font-weight:700; color:var(--ink-mute);">Co obliczyć</label>
                         <input type="text" class="formula-name-input" name="sections[${sectionIndex}][formulas][${index}][label]" value="${defaults.label || ''}" placeholder="Np. Zużycie roczne" oninput="updateFormulaHeaderTitle(this)">
                     </div>
                     <div>
-                        <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Token wyniku</label>
+                        <label style="display:block; font-size:12px; font-weight:700; color:var(--ink-mute);">Token wyniku</label>
                         <input type="text" class="formula-token-preview" name="sections[${sectionIndex}][formulas][${index}][key]" value="${defaults.key || ''}" placeholder="auto" onfocus="rememberTokenBeforeEdit(this)" oninput="handleFormulaTokenEdit(this)" onblur="handleFormulaTokenEdit(this)">
                     </div>
                     <div>
-                        <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Jednostka wyniku</label>
+                        <label style="display:block; font-size:12px; font-weight:700; color:var(--ink-mute);">Jednostka wyniku</label>
                         <input type="text" name="sections[${sectionIndex}][formulas][${index}][unit]" value="${defaults.unit || ''}" placeholder="Np. kW">
                     </div>
                     <div style="grid-column:1 / -1;">
-                        <label style="display:block; font-size:12px; font-weight:700; color:#4c6373;">Wzór</label>
+                        <label style="display:block; font-size:12px; font-weight:700; color:var(--ink-mute);">Wzór</label>
                         <textarea name="sections[${sectionIndex}][formulas][${index}][expression]" rows="2" style="width:100%; border:1px solid #c9d7e3; border-radius:9px; padding:8px 10px; font-size:14px;" placeholder="Np. ({moc_nominalna} * {czas_pracy_h}) / 1000" onfocus="setActiveFormulaTextarea(this)">${defaults.expression || ''}</textarea>
                     </div>
                 </div>
                 <div class="formula-collapsible-content" style="margin-top:8px; display:flex; align-items:center; gap:8px;">
                     <button type="button" class="btn-secondary" onclick="validateSectionFormula(this, '${tableId}')">Sprawdź wzór</button>
-                    <span class="formula-validation-message" style="font-size:12px; color:#4c6373;"></span>
+                    <span class="formula-validation-message" style="font-size:12px; color:var(--ink-mute);"></span>
                 </div>
             `;
 

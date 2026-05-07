@@ -7,15 +7,30 @@
     <link rel="icon" type="image/png" href="/logo.png">
     <link rel="shortcut icon" type="image/png" href="/logo.png">
     <link rel="apple-touch-icon" href="/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-1: #eff8f0;
-            --bg-2: #e7f1fb;
-            --ink: #0f2330;
-            --muted: #4c6373;
-            --line: #d5e0ea;
-            --menu-grad: linear-gradient(130deg, #1ba84a 0%, #0e89d8 100%);
-            --menu-grad-soft: linear-gradient(130deg, #1ba84a 0%, #1997d8 100%);
+            --green-deep: #1A4D3A;
+            --green-primary: #2E7D5C;
+            --green-light: #A4C2A8;
+            --green-bg: #E7EEE5;
+            --paper: #F5EFE0;
+            --paper-deep: #EBE3D0;
+            --paper-soft: #FAF5E8;
+            --gold: #A87F2A;
+            --gold-light: #D4A84B;
+            --ink: #1A1612;
+            --ink-soft: #3D352C;
+            --ink-mute: #76695A;
+            --serif: 'Fraunces', Georgia, serif;
+            --sans: 'Manrope', 'Segoe UI', sans-serif;
+            --bg-1: #e7eee5;
+            --bg-2: #f0ede6;
+            --muted: var(--ink-mute);
+            --line: var(--paper-deep);
+            --menu-grad: linear-gradient(160deg, var(--green-deep) 0%, var(--green-primary) 100%);
+            --menu-grad-soft: linear-gradient(130deg, var(--green-primary) 0%, var(--green-deep) 100%);
             --panel: #ffffff;
         }
 
@@ -24,8 +39,12 @@
         body {
             margin: 0;
             min-height: 100vh;
-            font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+            font-family: var(--sans);
             color: var(--ink);
+            background:
+                radial-gradient(circle at 86% 12%, rgba(46,125,92,0.10), transparent 30%),
+                radial-gradient(circle at 12% 84%, rgba(168,127,42,0.08), transparent 34%),
+                linear-gradient(165deg, var(--bg-1) 0%, var(--bg-2) 100%);
             background:
                 radial-gradient(circle at 86% 12%, rgba(14, 137, 216, 0.16), transparent 30%),
                 radial-gradient(circle at 12% 84%, rgba(27, 168, 74, 0.14), transparent 34%),
@@ -165,7 +184,7 @@
             margin: 0 0 24px;
             font-size: clamp(20px, 2.4vw, 28px);
             font-weight: 800;
-            background: linear-gradient(90deg, #1ba84a 0%, #0e89d8 100%);
+            background: linear-gradient(90deg, var(--green-primary) 0%, var(--green-primary) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -210,7 +229,7 @@
             text-transform: uppercase;
         }
 
-        .tag-pro     { background: #1ba84a; color: #fff; }
+        .tag-pro     { background: var(--green-primary); color: #fff; }
         .tag-express { background: #1585d0; color: #fff; }
         .tag-iso     { background: #d97706; color: #fff; }
         .tag-micro   { background: #6d28d9; color: #fff; }
@@ -326,7 +345,7 @@
         .login-card label { display:block; margin:12px 0 6px; font-weight:600; font-size:14px; }
         .login-card input { width:100%; box-sizing:border-box; padding:10px; border-radius:9px; border:1px solid #c9d7e3; }
         .login-card .row { display:flex; justify-content:flex-start; align-items:center; margin-top:10px; font-size:14px; }
-        .login-card .submit-btn { margin-top:14px; width:100%; border:0; border-radius:10px; padding:11px; color:#fff; font-weight:700; background:linear-gradient(130deg, #1ba84a, #0e89d8); cursor:pointer; }
+        .login-card .submit-btn { margin-top:14px; width:100%; border:0; border-radius:10px; padding:11px; color:#fff; font-weight:700; background:var(--green-primary); cursor:pointer; }
         .login-card .err { margin-top:10px; padding:9px; background:#ffe6e6; color:#9f1f1f; border:1px solid #ffc9c9; border-radius:8px; }
         .login-card .hint { margin-top:10px; font-size:12px; color:#4f6675; }
         .login-close { margin-top:10px; display:block; text-align:center; color:#4f6675; text-decoration:none; font-size:13px; }
@@ -405,7 +424,7 @@
                     <form method="GET" action="{{ route('locale.switch', [], false) }}">
                         <select name="locale" onchange="this.form.submit()" style="height:36px; border-radius:9px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.12); color:#fff; padding:0 10px; font-weight:600;">
                             @foreach(config('localization.supported_locales', ['pl' => 'Polski', 'en' => 'English']) as $localeCode => $localeLabel)
-                                <option value="{{ $localeCode }}" @selected(app()->getLocale() === $localeCode) style="color:#0f2330;">{{ $localeLabel }}</option>
+                                <option value="{{ $localeCode }}" @selected(app()->getLocale() === $localeCode) style="color:var(--green-deep);">{{ $localeLabel }}</option>
                             @endforeach
                         </select>
                     </form>

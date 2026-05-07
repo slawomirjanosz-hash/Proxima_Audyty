@@ -14,15 +14,15 @@
         body {
             font-family: 'DejaVu Sans', sans-serif;
             font-size: 9.5pt;
-            color: #0f2330;
+            color: #1A1612;
             background: #ffffff;
             line-height: 1.5;
         }
 
-        /* â”€â”€ HEADER â”€â”€ */
+        /* ── HEADER ── */
         .page-header {
             width: 100%;
-            border-bottom: 3px solid #0e89d8;
+            border-bottom: 3px solid #1A4D3A;
             padding-bottom: 12px;
             margin-bottom: 16px;
         }
@@ -35,12 +35,12 @@
         .company-name {
             font-size: 14pt;
             font-weight: 700;
-            color: #0e89d8;
+            color: #1A4D3A;
             margin-bottom: 2px;
         }
         .company-tagline {
             font-size: 7.5pt;
-            color: #4c6373;
+            color: #76695A;
             letter-spacing: 1px;
             text-transform: uppercase;
         }
@@ -49,12 +49,12 @@
         .report-title {
             font-size: 15pt;
             font-weight: 800;
-            color: #0f2330;
+            color: #1A4D3A;
             margin: 0 0 4px;
         }
         .report-subtitle {
             font-size: 9pt;
-            color: #4c6373;
+            color: #76695A;
             margin-bottom: 14px;
         }
 
@@ -67,22 +67,22 @@
         }
         table.meta-grid td { width: 33%; vertical-align: top; }
         .meta-card {
-            background: #f3f8fc;
-            border: 1px solid #d5e0ea;
+            background: #E7EEE5;
+            border: 1px solid #A4C2A8;
             padding: 7px 10px;
         }
         .meta-lbl {
             font-size: 7.5pt;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: #6b8aa3;
+            color: #76695A;
             font-weight: 700;
             margin-bottom: 2px;
         }
         .meta-val {
             font-size: 8.5pt;
             font-weight: 600;
-            color: #0f2330;
+            color: #1A4D3A;
         }
 
         /* â”€â”€ CLIENT BLOCK â”€â”€ */
@@ -91,8 +91,8 @@
             font-weight: 700;
             letter-spacing: 1px;
             text-transform: uppercase;
-            color: #ffffff;
-            background: #0e89d8;
+            color: #F5EFE0;
+            background: #1A4D3A;
             padding: 5px 12px;
             margin-bottom: 0;
         }
@@ -100,21 +100,21 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 18px;
-            border: 1px solid #d5e0ea;
+            border: 1px solid #A4C2A8;
             border-top: none;
         }
         table.client-data td {
             padding: 6px 12px;
             font-size: 8.5pt;
-            border-bottom: 1px solid #e5eef6;
+            border-bottom: 1px solid #EBE3D0;
             vertical-align: top;
         }
         table.client-data td.cl-label {
             font-weight: 700;
-            color: #2c4e67;
+            color: #1A4D3A;
             width: 30%;
-            background: #eef5fb;
-            border-right: 1px solid #d5e0ea;
+            background: #E7EEE5;
+            border-right: 1px solid #A4C2A8;
         }
         table.client-data tr:last-child td { border-bottom: none; }
 
@@ -122,14 +122,14 @@
         .section-title {
             font-size: 11pt;
             font-weight: 800;
-            color: #10344c;
+            color: #1A4D3A;
             margin: 18px 0 6px;
             padding-bottom: 4px;
-            border-bottom: 1px solid #d5e0ea;
+            border-bottom: 1px solid #A4C2A8;
         }
         .section-num {
-            background: #0e89d8;
-            color: #ffffff;
+            background: #2E7D5C;
+            color: #F5EFE0;
             font-size: 8pt;
             font-weight: 800;
             padding: 2px 6px;
@@ -141,33 +141,33 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 4px;
-            border: 1px solid #d5e0ea;
+            border: 1px solid #A4C2A8;
         }
         table.data th {
-            background: #eef5fb;
-            color: #2c4e67;
+            background: #E7EEE5;
+            color: #1A4D3A;
             font-weight: 700;
             padding: 5px 10px;
             text-align: left;
-            border: 1px solid #d5e0ea;
+            border: 1px solid #A4C2A8;
             font-size: 8pt;
         }
         table.data td {
             padding: 5px 10px;
             vertical-align: top;
-            border-bottom: 1px solid #dde8f2;
+            border-bottom: 1px solid #EBE3D0;
             font-size: 8.5pt;
         }
         table.data td.key {
-            color: #2c4e67;
+            color: #1A4D3A;
             font-weight: 700;
             width: 42%;
-            background: #f8fbff;
-            border-right: 1px solid #dde8f2;
+            background: #FAF5E8;
+            border-right: 1px solid #EBE3D0;
         }
-        table.data td.val { color: #0f2330; }
-        table.data tr.even td { background: #f3f8fd; }
-        table.data tr.even td.key { background: #eef4fa; }
+        table.data td.val { color: #1A1612; }
+        table.data tr.even td { background: #F5EFE0; }
+        table.data tr.even td.key { background: #EBE3D0; }
         table.data tr:last-child td { border-bottom: none; }
 
         /* â”€â”€ REMARKS â”€â”€ */
@@ -201,23 +201,23 @@
         table.sig-tbl td { width: 50%; font-size: 8pt; padding: 0 8px; }
         table.sig-tbl td.sig-right { text-align: right; }
         .sig-line {
-            border-top: 1px solid #0f2330;
+            border-top: 1px solid #1A4D3A;
             margin-top: 32px;
             margin-bottom: 4px;
         }
-        .sig-label { font-size: 7.5pt; color: #6b8aa3; text-align: center; letter-spacing: 0.5px; }
+        .sig-label { font-size: 7.5pt; color: #76695A; text-align: center; letter-spacing: 0.5px; }
 
-        /* â”€â”€ FOOTER â”€â”€ */
+        /* ── FOOTER ── */
         .page-footer { position: fixed; bottom: -16mm;
             left: 0;
             right: 0;
-            border-top: 1px solid #d5e0ea;
+            border-top: 1px solid #A4C2A8;
             padding: 5px 0 0 0;
         }
         table.footer-tbl { width: 100%; border-collapse: collapse; }
         table.footer-tbl td {
             font-size: 7.5pt;
-            color: #8a9bac;
+            color: #76695A;
             padding: 0;
         }
         table.footer-tbl td.f-right { text-align: right; }

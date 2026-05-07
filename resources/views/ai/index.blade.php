@@ -1,13 +1,14 @@
 <x-layouts.app>
     <style>
         .ai-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 14px; }
-        .ai-card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 18px; box-shadow: 0 4px 12px rgba(14,55,85,.06); }
-        .ai-card h3 { margin: 0 0 6px; font-size: 15px; }
-        .ai-card .meta { font-size: 12px; color: var(--muted); }
+        .ai-card { background: var(--paper-soft); border: 1px solid var(--paper-deep); border-radius: 8px; padding: 18px; }
+        .ai-card h3 { margin: 0 0 6px; font-size: 15px; font-family: var(--serif); color: var(--green-deep); font-weight: 600; }
+        .ai-card .meta { font-size: 12px; color: var(--ink-mute); }
         .ai-card .actions { margin-top: 14px; display: flex; gap: 8px; }
-        .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 9px; font-size: 13px; font-weight: 600; text-decoration: none; cursor: pointer; border: none; }
-        .btn-primary { background: linear-gradient(130deg, #1ba84a, #0e89d8); color: #fff; }
-        .btn-secondary { background: #f0f5fa; color: #2a5070; border: 1px solid var(--line); }
+        .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 5px; font-size: 13px; font-weight: 600; text-decoration: none; cursor: pointer; border: none; font-family: var(--sans); }
+        .btn-primary { background: var(--green-primary); color: var(--paper); }
+        .btn-primary:hover { background: var(--green-deep); }
+        .btn-secondary { background: var(--paper-soft); color: var(--green-deep); border: 1px solid var(--paper-deep); }
         .btn-danger { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
         .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
         .empty-state .icon { font-size: 48px; margin-bottom: 12px; }

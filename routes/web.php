@@ -317,6 +317,8 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('role:client,admin,auditor')->name('client.audit.compressor.questionnaire');
     Route::post('/moje-audyty/{audit}/kwestionariusz-sprezarkowni', [ClientController::class, 'saveCompressorQuestionnaire'])
         ->middleware('role:client,admin,auditor')->name('client.audit.compressor.questionnaire.save');
+    Route::post('/moje-audyty/{audit}/kwestionariusz-sprezarkowni/ajax-zapisz', [ClientController::class, 'saveCompressorQuestionnaireAjax'])
+        ->middleware('role:client,admin,auditor')->name('client.audit.compressor.questionnaire.ajax-save');
     Route::post('/moje-audyty/{audit}/skan-tabliczki', [ClientController::class, 'scanCompressorNameplate'])
         ->middleware('role:client,admin,auditor')->name('client.audit.compressor.scan');
     Route::get('/moje-audyty/{audit}/praca/{conversation}', [ClientController::class, 'auditWork'])

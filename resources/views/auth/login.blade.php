@@ -8,17 +8,21 @@
     <link rel="shortcut icon" type="image/png" href="/logo.png">
     <link rel="apple-touch-icon" href="/logo.png">
     <style>
-        body { margin:0; font-family: "Segoe UI", Tahoma, Arial, sans-serif; min-height:100vh; display:grid; place-items:center; background: linear-gradient(150deg, #e9f8ee 0%, #e8f2fb 100%); }
-        .card { width:min(430px, 92vw); background:#fff; border:1px solid #d7e6f0; border-radius:16px; padding:22px; box-shadow:0 14px 28px rgba(13,58,90,.08); }
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=Manrope:wght@400;500;600;700&display=swap');
+        :root { --green-deep:#1A4D3A; --green-primary:#2E7D5C; --green-light:#A4C2A8; --green-bg:#E7EEE5; --paper:#F5EFE0; --paper-deep:#EBE3D0; --paper-soft:#FAF5E8; --gold:#A87F2A; --ink:#1A1612; --ink-mute:#76695A; }
+        body { margin:0; font-family:'Manrope',sans-serif; min-height:100vh; display:grid; place-items:center; background:var(--green-bg); }
+        .card { width:min(430px, 92vw); background:var(--paper-soft); border:1px solid var(--paper-deep); border-radius:8px; padding:22px; box-shadow:0 8px 24px rgba(26,77,58,.12); }
         .brand { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
         .logo { width:42px; height:42px; border-radius:12px; overflow:hidden; display:grid; place-items:center; }
-        h1 { margin:0 0 14px; font-size:24px; }
-        label { display:block; margin:12px 0 6px; font-weight:600; font-size:14px; }
-        input { width:100%; box-sizing:border-box; padding:10px; border-radius:9px; border:1px solid #c9d7e3; }
+        h1 { margin:0 0 14px; font-size:24px; font-family:'Fraunces',serif; color:var(--green-deep); font-weight:600; }
+        label { display:block; margin:12px 0 6px; font-weight:600; font-size:14px; color:var(--ink); }
+        input { width:100%; box-sizing:border-box; padding:10px; border-radius:5px; border:1px solid var(--paper-deep); font-family:'Manrope',sans-serif; background:white; }
+        input:focus { outline:none; border-color:var(--green-primary); box-shadow:0 0 0 2px rgba(46,125,92,.12); }
         .row { display:flex; justify-content:flex-start; align-items:center; margin-top:10px; font-size:14px; }
-        button { margin-top:14px; width:100%; border:0; border-radius:10px; padding:11px; color:#fff; font-weight:700; background:linear-gradient(130deg, #1ba84a, #0e89d8); cursor:pointer; }
-        .err { margin-top:10px; padding:9px; background:#ffe6e6; color:#9f1f1f; border:1px solid #ffc9c9; border-radius:8px; }
-        .hint { margin-top:10px; font-size:12px; color:#4f6675; }
+        button { margin-top:14px; width:100%; border:0; border-radius:5px; padding:11px; color:var(--paper); font-weight:700; background:var(--green-primary); cursor:pointer; font-family:'Manrope',sans-serif; font-size:15px; }
+        button:hover { background:var(--green-deep); }
+        .err { margin-top:10px; padding:9px; background:#ffe6e6; color:#9f1f1f; border:1px solid #ffc9c9; border-radius:5px; }
+        .hint { margin-top:10px; font-size:12px; color:var(--ink-mute); }
     </style>
 </head>
 <body>
@@ -28,7 +32,7 @@
             <div class="logo"><img src="/logo.png" alt="ENESA" style="width:42px;height:42px;object-fit:cover;"></div>
             <div>
                 <strong>ENESA</strong>
-                <div style="font-size:12px;color:#4f6675;">Panel dostepu</div>
+                <div style="font-size:12px;color:var(--ink-mute);">Panel dostępu</div>
             </div>
         </div>
 

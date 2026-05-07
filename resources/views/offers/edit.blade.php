@@ -9,24 +9,24 @@ if (!function_exists('offerNumeric')) {
 ?>
 <x-layouts.app>
 <style>
-.o-card { background:#fff; border:1px solid #d5e0ea; border-radius:16px; padding:20px; margin-bottom:14px; }
+.o-card { background:#fff; border:1px solid var(--paper-deep); border-radius:16px; padding:20px; margin-bottom:14px; }
 .o-card-header { display:flex; justify-content:space-between; align-items:center; padding:14px 18px; background:#f3f8f7; border-radius:10px; cursor:pointer; user-select:none; }
 .o-card-header h3 { margin:0; font-size:16px; }
 .o-card-body { padding:16px 0 4px; }
 .o-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 .o-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
 .o-form-row { margin-bottom:12px; }
-.o-label { display:block; font-size:12px; font-weight:700; color:#4c6373; margin-bottom:4px; text-transform:uppercase; letter-spacing:.4px; }
+.o-label { display:block; font-size:12px; font-weight:700; color:var(--ink-mute); margin-bottom:4px; text-transform:uppercase; letter-spacing:.4px; }
 .o-input { padding:8px 10px; border-radius:9px; border:1px solid #c9d7e3; font-size:14px; width:100%; box-sizing:border-box; }
 .o-select { padding:8px 10px; border-radius:9px; border:1px solid #c9d7e3; font-size:14px; width:100%; box-sizing:border-box; background:#fff; }
 .o-btn { padding:9px 18px; border-radius:9px; border:0; cursor:pointer; font-size:14px; font-weight:600; display:inline-flex; align-items:center; gap:6px; text-decoration:none; }
-.o-btn-blue { background:#0e89d8; color:#fff; }
-.o-btn-green { background:#1ba84a; color:#fff; }
+.o-btn-blue { background:var(--green-primary); color:#fff; }
+.o-btn-green { background:var(--green-primary); color:#fff; }
 .o-btn-red { background:#dc2626; color:#fff; }
 .o-btn-gray { background:#718096; color:#fff; }
 .o-btn-sm { padding:4px 8px; border-radius:6px; border:0; cursor:pointer; font-size:12px; font-weight:600; }
 .o-tbl { width:100%; border-collapse:collapse; font-size:13px; }
-.o-tbl th { padding:6px 4px; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:#4c6373; background:#f3f8f7; text-align:left; }
+.o-tbl th { padding:6px 4px; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--ink-mute); background:#f3f8f7; text-align:left; }
 .o-tbl td { padding:3px 4px; border-bottom:1px solid #e4edf3; }
 .o-tbl-input { padding:4px 6px; border-radius:6px; border:1px solid #c9d7e3; font-size:13px; width:100%; box-sizing:border-box; }
 .o-section-sumrow { display:flex; justify-content:flex-end; margin-top:8px; gap:16px; font-size:14px; }
@@ -173,7 +173,7 @@ if (!function_exists('offerNumeric')) {
             <div class="o-card-header" onclick="toggleSection('{{ $sectionId }}')">
                 <h3>
                     {{ $sectionLabel }}
-                    <span style="font-size:13px;color:#4c6373;font-weight:400;" id="{{ $sectionId }}-header-sum"></span>
+                    <span style="font-size:13px;color:var(--ink-mute);font-weight:400;" id="{{ $sectionId }}-header-sum"></span>
                 </h3>
                 <svg id="{{ $sectionId }}-icon" style="width:20px;height:20px;transition:transform .2s;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </div>
@@ -204,8 +204,8 @@ if (!function_exists('offerNumeric')) {
                                 <td><input type="text" name="{{ $sectionId }}[{{ $i }}][value]" value="{{ number_format(offerNumeric($item['value'] ?? 0), 2, '.', '') }}" data-raw="{{ offerNumeric($item['value'] ?? 0) }}" class="o-tbl-input value-input" data-section="{{ $sectionId }}" readonly style="background:#f3f8f7;"></td>
                                 <td>
                                     <div style="display:flex;gap:2px;">
-                                        <button type="button" onclick="moveRow(this,'up','{{ $sectionId }}')" class="o-btn-sm" style="background:#e2e8f0;color:#0f2330;">↑</button>
-                                        <button type="button" onclick="moveRow(this,'down','{{ $sectionId }}')" class="o-btn-sm" style="background:#e2e8f0;color:#0f2330;">↓</button>
+                                        <button type="button" onclick="moveRow(this,'up','{{ $sectionId }}')" class="o-btn-sm" style="background:#e2e8f0;color:var(--ink);">↑</button>
+                                        <button type="button" onclick="moveRow(this,'down','{{ $sectionId }}')" class="o-btn-sm" style="background:#e2e8f0;color:var(--ink);">↓</button>
                                         <button type="button" onclick="removeRow(this,'{{ $sectionId }}')" class="o-btn-sm" style="background:#fee2e2;color:#991b1b;">✕</button>
                                     </div>
                                 </td>
@@ -221,8 +221,8 @@ if (!function_exists('offerNumeric')) {
                                 <td><input type="text" name="{{ $sectionId }}[0][value]" value="0,00 zł" data-raw="0" class="o-tbl-input value-input" data-section="{{ $sectionId }}" readonly style="background:#f3f8f7;"></td>
                                 <td>
                                     <div style="display:flex;gap:2px;">
-                                        <button type="button" onclick="moveRow(this,'up','{{ $sectionId }}')" class="o-btn-sm" style="background:#e2e8f0;color:#0f2330;">↑</button>
-                                        <button type="button" onclick="moveRow(this,'down','{{ $sectionId }}')" class="o-btn-sm" style="background:#e2e8f0;color:#0f2330;">↓</button>
+                                        <button type="button" onclick="moveRow(this,'up','{{ $sectionId }}')" class="o-btn-sm" style="background:#e2e8f0;color:var(--ink);">↑</button>
+                                        <button type="button" onclick="moveRow(this,'down','{{ $sectionId }}')" class="o-btn-sm" style="background:#e2e8f0;color:var(--ink);">↓</button>
                                         <button type="button" onclick="removeRow(this,'{{ $sectionId }}')" class="o-btn-sm" style="background:#fee2e2;color:#991b1b;">✕</button>
                                     </div>
                                 </td>
@@ -249,7 +249,7 @@ if (!function_exists('offerNumeric')) {
             <div class="o-card" id="section-{{ $sId }}">
                 <div class="o-card-header" onclick="toggleSection('{{ $sId }}')">
                     <h3 id="{{ $sId }}-name-label">{{ $cs['name'] ?? 'Sekcja' }}
-                        <span style="font-size:13px;color:#4c6373;font-weight:400;" id="{{ $sId }}-header-sum"></span>
+                        <span style="font-size:13px;color:var(--ink-mute);font-weight:400;" id="{{ $sId }}-header-sum"></span>
                     </h3>
                     <div style="display:flex;gap:6px;align-items:center;">
                         <button type="button" onclick="event.stopPropagation();editSectionName('{{ $sId }}')" class="o-btn-sm" style="background:#dbeafe;color:#1d4ed8;">✏️</button>
@@ -285,8 +285,8 @@ if (!function_exists('offerNumeric')) {
                                     <td><input type="text" name="custom_sections[{{ $csIdx+1 }}][items][{{ $ii }}][value]" value="{{ number_format(offerNumeric($item['value'] ?? 0), 2, '.', '') }}" data-raw="{{ offerNumeric($item['value'] ?? 0) }}" class="o-tbl-input value-input" data-section="{{ $sId }}" readonly style="background:#f3f8f7;"></td>
                                     <td>
                                         <div style="display:flex;gap:2px;">
-                                            <button type="button" onclick="moveRow(this,'up','{{ $sId }}')" class="o-btn-sm" style="background:#e2e8f0;color:#0f2330;">↑</button>
-                                            <button type="button" onclick="moveRow(this,'down','{{ $sId }}')" class="o-btn-sm" style="background:#e2e8f0;color:#0f2330;">↓</button>
+                                            <button type="button" onclick="moveRow(this,'up','{{ $sId }}')" class="o-btn-sm" style="background:#e2e8f0;color:var(--ink);">↑</button>
+                                            <button type="button" onclick="moveRow(this,'down','{{ $sId }}')" class="o-btn-sm" style="background:#e2e8f0;color:var(--ink);">↓</button>
                                             <button type="button" onclick="removeRow(this,'{{ $sId }}')" class="o-btn-sm" style="background:#fee2e2;color:#991b1b;">✕</button>
                                         </div>
                                     </td>
@@ -314,20 +314,20 @@ if (!function_exists('offerNumeric')) {
             <h3 style="margin:0 0 14px;font-size:16px;">Kalkulator zysku</h3>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:14px;">
                 <div style="background:#fff;border-radius:10px;padding:12px;text-align:center;">
-                    <div style="font-size:11px;text-transform:uppercase;color:#4c6373;letter-spacing:.4px;margin-bottom:4px;">Łącznie (koszty)</div>
+                    <div style="font-size:11px;text-transform:uppercase;color:var(--ink-mute);letter-spacing:.4px;margin-bottom:4px;">Łącznie (koszty)</div>
                     <div style="font-size:18px;font-weight:700;" id="grand-total">0,00 zł</div>
                 </div>
                 <div style="background:#fff;border-radius:10px;padding:12px;text-align:center;">
-                    <div style="font-size:11px;text-transform:uppercase;color:#4c6373;letter-spacing:.4px;margin-bottom:4px;">Wbudowany zysk</div>
-                    <div style="font-size:14px;font-weight:700;color:#1ba84a;" id="built-in-profit-display">0,00 zł (0,0%)</div>
+                    <div style="font-size:11px;text-transform:uppercase;color:var(--ink-mute);letter-spacing:.4px;margin-bottom:4px;">Wbudowany zysk</div>
+                    <div style="font-size:14px;font-weight:700;color:var(--green-primary);" id="built-in-profit-display">0,00 zł (0,0%)</div>
                 </div>
                 <div style="background:#fff;border-radius:10px;padding:12px;text-align:center;">
-                    <div style="font-size:11px;text-transform:uppercase;color:#4c6373;letter-spacing:.4px;margin-bottom:4px;">Łącznie z zysku</div>
-                    <div style="font-size:14px;font-weight:700;color:#0e89d8;" id="total-profit-display">0,00 zł (0,0%)</div>
+                    <div style="font-size:11px;text-transform:uppercase;color:var(--ink-mute);letter-spacing:.4px;margin-bottom:4px;">Łącznie z zysku</div>
+                    <div style="font-size:14px;font-weight:700;color:var(--green-primary);" id="total-profit-display">0,00 zł (0,0%)</div>
                 </div>
                 <div style="background:#fff;border-radius:10px;padding:12px;text-align:center;">
-                    <div style="font-size:11px;text-transform:uppercase;color:#4c6373;letter-spacing:.4px;margin-bottom:4px;">Suma z zyskiem</div>
-                    <div style="font-size:20px;font-weight:800;color:#0f2330;" id="total-with-profit">0,00 zł</div>
+                    <div style="font-size:11px;text-transform:uppercase;color:var(--ink-mute);letter-spacing:.4px;margin-bottom:4px;">Suma z zyskiem</div>
+                    <div style="font-size:20px;font-weight:800;color:var(--ink);" id="total-with-profit">0,00 zł</div>
                 </div>
             </div>
             <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
@@ -516,8 +516,8 @@ function addRow(section) {
         <td><input type="text" name="${section}[${idx}][value]" value="0,00 zł" data-raw="0" class="o-tbl-input value-input" data-section="${section}" readonly style="background:#f3f8f7;"></td>
         <td>
             <div style="display:flex;gap:2px;">
-                <button type="button" onclick="moveRow(this,'up','${section}')" class="o-btn-sm" style="background:#e2e8f0;color:#0f2330;">↑</button>
-                <button type="button" onclick="moveRow(this,'down','${section}')" class="o-btn-sm" style="background:#e2e8f0;color:#0f2330;">↓</button>
+                <button type="button" onclick="moveRow(this,'up','${section}')" class="o-btn-sm" style="background:#e2e8f0;color:var(--ink);">↑</button>
+                <button type="button" onclick="moveRow(this,'down','${section}')" class="o-btn-sm" style="background:#e2e8f0;color:var(--ink);">↓</button>
                 <button type="button" onclick="removeRow(this,'${section}')" class="o-btn-sm" style="background:#fee2e2;color:#991b1b;">✕</button>
             </div>
         </td>
@@ -671,7 +671,7 @@ function addScheduleRow(milestone, date, description) {
     const idx   = scheduleCount++;
     const tr    = document.createElement('tr');
     tr.innerHTML = `
-        <td style="text-align:center;color:#4c6373;">${idx + 1}</td>
+        <td style="text-align:center;color:var(--ink-mute);">${idx + 1}</td>
         <td><input type="text" name="schedule[${idx}][milestone]" value="${escapeHtml(milestone||'')}" class="o-tbl-input"></td>
         <td><input type="text" name="schedule[${idx}][description]" value="${escapeHtml(description||'')}" class="o-tbl-input"></td>
         <td style="text-align:center;"><button type="button" onclick="this.closest('tr').remove(); reindexSchedule()" class="o-btn-sm" style="background:#fee2e2;color:#991b1b;">✕</button></td>
@@ -693,7 +693,7 @@ function addPaymentRow(description, percent, deadline) {
     const idx   = paymentCount++;
     const tr    = document.createElement('tr');
     tr.innerHTML = `
-        <td style="text-align:center;color:#4c6373;">${idx + 1}</td>
+        <td style="text-align:center;color:var(--ink-mute);">${idx + 1}</td>
         <td><input type="text" name="payment_terms[${idx}][description]" value="${escapeHtml(description||'')}" class="o-tbl-input"></td>
         <td><input type="number" step="0.01" min="0" max="100" name="payment_terms[${idx}][percent]" value="${percent||''}" class="o-tbl-input" style="text-align:right;"></td>
         <td><input type="text" name="payment_terms[${idx}][deadline]" value="${escapeHtml(deadline||'')}" class="o-tbl-input"></td>
@@ -726,7 +726,7 @@ function addCustomSection() {
     div.innerHTML   = `
         <div class="o-card-header" onclick="toggleSection('${sId}')">
             <h3 id="${sId}-name-label">${escapeHtml(sectionName.trim())}
-                <span style="font-size:13px;color:#4c6373;font-weight:400;" id="${sId}-header-sum"></span>
+                <span style="font-size:13px;color:var(--ink-mute);font-weight:400;" id="${sId}-header-sum"></span>
             </h3>
             <div style="display:flex;gap:6px;align-items:center;">
                 <button type="button" onclick="event.stopPropagation();editSectionName('${sId}')" class="o-btn-sm" style="background:#dbeafe;color:#1d4ed8;">✏️</button>
@@ -756,8 +756,8 @@ function addCustomSection() {
                             <td><input type="number" step="0.01" min="0" name="custom_sections[${num}][items][0][catalog_price]" class="o-tbl-input catalog-price-input" placeholder="kat." oninput="updateBuiltInProfit()"></td>
                             <td><input type="text" name="custom_sections[${num}][items][0][value]" value="0,00 zł" data-raw="0" class="o-tbl-input value-input" data-section="${sId}" readonly style="background:#f3f8f7;"></td>
                             <td><div style="display:flex;gap:2px;">
-                                <button type="button" onclick="moveRow(this,'up','${sId}')" class="o-btn-sm" style="background:#e2e8f0;color:#0f2330;">↑</button>
-                                <button type="button" onclick="moveRow(this,'down','${sId}')" class="o-btn-sm" style="background:#e2e8f0;color:#0f2330;">↓</button>
+                                <button type="button" onclick="moveRow(this,'up','${sId}')" class="o-btn-sm" style="background:#e2e8f0;color:var(--ink);">↑</button>
+                                <button type="button" onclick="moveRow(this,'down','${sId}')" class="o-btn-sm" style="background:#e2e8f0;color:var(--ink);">↓</button>
                                 <button type="button" onclick="removeRow(this,'${sId}')" class="o-btn-sm" style="background:#fee2e2;color:#991b1b;">✕</button>
                             </div></td>
                         </tr>
@@ -789,8 +789,8 @@ function addCustomRow(sId, sNum) {
         <td><input type="number" step="0.01" min="0" name="custom_sections[${sNum}][items][${idx}][catalog_price]" class="o-tbl-input catalog-price-input" placeholder="kat." oninput="updateBuiltInProfit()"></td>
         <td><input type="text" name="custom_sections[${sNum}][items][${idx}][value]" value="0,00 zł" data-raw="0" class="o-tbl-input value-input" data-section="${sId}" readonly style="background:#f3f8f7;"></td>
         <td><div style="display:flex;gap:2px;">
-            <button type="button" onclick="moveRow(this,'up','${sId}')" class="o-btn-sm" style="background:#e2e8f0;color:#0f2330;">↑</button>
-            <button type="button" onclick="moveRow(this,'down','${sId}')" class="o-btn-sm" style="background:#e2e8f0;color:#0f2330;">↓</button>
+            <button type="button" onclick="moveRow(this,'up','${sId}')" class="o-btn-sm" style="background:#e2e8f0;color:var(--ink);">↑</button>
+            <button type="button" onclick="moveRow(this,'down','${sId}')" class="o-btn-sm" style="background:#e2e8f0;color:var(--ink);">↓</button>
             <button type="button" onclick="removeRow(this,'${sId}')" class="o-btn-sm" style="background:#fee2e2;color:#991b1b;">✕</button>
         </div></td>
     `;

@@ -2,17 +2,17 @@
     <section class="panel">
         <style>
             .tab-button { padding: 8px 12px; border-radius: 10px; border: 1px solid #d7e5f0; background: #eef5fb; font-weight: 700; color: #28485f; cursor: pointer; }
-            .tab-button.active { background: #fff; border-color: #0e89d8; color: #0e89d8; }
+            .tab-button.active { background: #fff; border-color: var(--green-primary); color: var(--green-primary); }
             .tab-content { display: none; margin-top: 14px; }
             .tab-content.active { display: block; }
             .dashboard-sections { display: flex; flex-direction: column; gap: 10px; }
-            .dashboard-section { border: 1px solid #d7e5f0; border-radius: 12px; background: #fff; padding: 10px; }
+            .dashboard-section { border: 1px solid var(--paper-deep); border-radius: 14px; background: #fff; padding: 10px; box-shadow: 0 4px 16px rgba(14,55,85,.05); }
             .dashboard-section.dragging { opacity: 0.55; }
-            .dashboard-section.drag-over { border-style: dashed; border-color: #0e89d8; background: #f0f8ff; }
-            .dashboard-section-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
-            .dashboard-drag-handle { border: 1px solid #d7e5f0; background: #eef5fb; color: #28485f; border-radius: 8px; padding: 3px 8px; cursor: grab; font-size: 12px; font-weight: 700; user-select: none; }
+            .dashboard-section.drag-over { border-style: dashed; border-color: var(--green-primary); }
+            .dashboard-section-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 14px 20px; background: var(--green-primary); border-radius: 10px 10px 0 0; margin: -10px -10px 10px; }
+            .dashboard-drag-handle { border: 1px solid rgba(245,239,224,.3); background: rgba(245,239,224,.15); color: var(--paper); border-radius: 8px; padding: 3px 8px; cursor: grab; font-size: 12px; font-weight: 700; user-select: none; }
             .dashboard-drag-handle:active { cursor: grabbing; }
-            .dashboard-section-title { margin: 0; font-size: 18px; }
+            .dashboard-section-title { margin: 0; font-size: 15px; font-weight: 700; color: var(--paper) !important; }
             #modal-content input:not([type="checkbox"]),
             #modal-content select,
             #modal-content textarea { width: 100%; }
@@ -20,8 +20,8 @@
             @media (max-width: 860px) {
                 .crm-form-grid { grid-template-columns:1fr; }
             }
-            .crm-collapse-btn { border:1px solid #c5d9e8; background:#ddeef7; color:#1e5f84; border-radius:8px; padding:2px 8px; cursor:pointer; font-size:13px; font-weight:700; user-select:none; line-height:1.5; transition:background .15s; }
-            .crm-collapse-btn:hover { background:#b8d8ed; }
+            .crm-collapse-btn { border:1px solid rgba(245,239,224,.3); background:rgba(245,239,224,.15); color:var(--paper); border-radius:8px; padding:2px 8px; cursor:pointer; font-size:13px; font-weight:700; user-select:none; line-height:1.5; transition:background .15s; }
+            .crm-collapse-btn:hover { background:rgba(245,239,224,.3); }
             .crm-actions-wrap { display:flex; gap:2px; align-items:center; flex-wrap:nowrap; }
             .crm-action-btn { padding:1px 5px !important; font-size:13px !important; line-height:1.3 !important; min-width:0 !important; }
             .task-row-urgent td { background:#fff0f0 !important; }
@@ -49,7 +49,7 @@
         <div id="tab-dashboard" class="tab-content active">
             <h2 style="margin:0 0 10px;">📊 Przegląd</h2>
             <div id="dashboard-sections" class="dashboard-sections">
-                <div class="dashboard-section" data-section-id="stats" draggable="true" style="background:#f0f9ff;">
+                <div class="dashboard-section" data-section-id="stats" draggable="true">
                     <div class="dashboard-section-header">
                         <h3 class="dashboard-section-title">📈 Kluczowe wskaźniki</h3>
                         <div style="display:flex; gap:6px; align-items:center;">
@@ -58,14 +58,14 @@
                         </div>
                     </div>
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px;">
-                        <div style="padding:10px; border-radius:10px; background:#0e89d8; color:#fff;"><div>Firmy CRM</div><div style="font-size:26px; font-weight:800;">{{ $stats['total_companies'] }}</div></div>
+                        <div style="padding:10px; border-radius:10px; background:var(--green-primary); color:#fff;"><div>Firmy CRM</div><div style="font-size:26px; font-weight:800;">{{ $stats['total_companies'] }}</div></div>
                         <div style="padding:10px; border-radius:10px; background:#8b5cf6; color:#fff;"><div>Aktywne szanse</div><div style="font-size:26px; font-weight:800;">{{ $stats['active_deals'] }}</div></div>
                         <div style="padding:10px; border-radius:10px; background:#10b981; color:#fff;"><div>Wartość pipeline</div><div style="font-size:26px; font-weight:800;">{{ number_format($stats['total_pipeline_value'], 0, ',', ' ') }} zł</div></div>
                         <div style="padding:10px; border-radius:10px; background:#ef4444; color:#fff;"><div>Zadań po terminie</div><div style="font-size:26px; font-weight:800;">{{ $stats['overdue_tasks'] }}</div></div>
                     </div>
                 </div>
 
-                <div class="dashboard-section" data-section-id="funnel" draggable="true" style="background:#faf5ff;">
+                <div class="dashboard-section" data-section-id="funnel" draggable="true">
                     <div class="dashboard-section-header">
                         <h3 class="dashboard-section-title">💼 Lejek Sprzedażowy</h3>
                         <div style="display:flex; gap:6px; align-items:center;">
@@ -107,7 +107,7 @@
                     @endif
                 </div>
 
-                <div class="dashboard-section" data-section-id="won-lost" draggable="true" style="background:#f0fdf4;">
+                <div class="dashboard-section" data-section-id="won-lost" draggable="true">
                     <div class="dashboard-section-header">
                         <h3 class="dashboard-section-title">🎯 Ostatnio Wygrane/Przegrane</h3>
                         <div style="display:flex; gap:6px; align-items:center;">
@@ -127,20 +127,20 @@
                                         <div style="font-weight:700;">{{ $deal->name }}</div>
                                         <div class="muted" style="font-size:12px;">{{ $deal->company->name ?? 'Brak firmy' }} • {{ $deal->actual_close_date?->format('d.m.Y') }}</div>
                                     </div>
-                                    <div style="font-weight:800; color:{{ $dealStage?->color ?? '#0f2330' }};">{{ number_format((float) $deal->value, 0, ',', ' ') }} zł</div>
+                                    <div style="font-weight:800; color:{{ $dealStage?->color ?? 'var(--ink)' }};">{{ number_format((float) $deal->value, 0, ',', ' ') }} zł</div>
                                 </div>
                             @endforeach
                         </div>
                     @endif
                 </div>
 
-                <div class="dashboard-section" data-section-id="tasks" draggable="true" style="background:#fffdf0;">
+                <div class="dashboard-section" data-section-id="tasks" draggable="true">
                     <div class="dashboard-section-header">
                         <h3 class="dashboard-section-title">✅ Zadania i Przypomnienia</h3>
                         <div style="display:flex; gap:6px; align-items:center;">
+                            <button type="button" onclick="showTaskModal()">➕ Dodaj Zadanie</button>
                             <button type="button" class="crm-collapse-btn" onclick="toggleSection('tasks')" title="Zwiń/Rozwiń">▼</button>
                             <span class="dashboard-drag-handle" title="Przeciągnij sekcję">↕ Przesuń</span>
-                            <button type="button" onclick="showTaskModal()">➕ Dodaj Zadanie</button>
                         </div>
                     </div>
                     <table>
@@ -200,13 +200,13 @@
                     </table>
                 </div>
 
-                <div class="dashboard-section" data-section-id="deals-list" draggable="true" style="background:#fff8f0;">
+                <div class="dashboard-section" data-section-id="deals-list" draggable="true">
                     <div class="dashboard-section-header">
                         <h3 class="dashboard-section-title">💼 Lejek Sprzedażowy - Szanse</h3>
                         <div style="display:flex; gap:6px; align-items:center;">
+                            <button type="button" onclick="showDealModal()">➕ Dodaj Szansę</button>
                             <button type="button" class="crm-collapse-btn" onclick="toggleSection('deals-list')" title="Zwiń/Rozwiń">▼</button>
                             <span class="dashboard-drag-handle" title="Przeciągnij sekcję">↕ Przesuń</span>
-                            <button type="button" onclick="showDealModal()">➕ Dodaj Szansę</button>
                         </div>
                     </div>
                     <table>
@@ -432,7 +432,7 @@
     </section>
 
     <div id="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:50; align-items:center; justify-content:center;" onclick="closeModal(event)">
-        <div style="background:#fff; width:min(920px, 96vw); max-height:90vh; overflow:auto; border-radius:14px; padding:16px; border:1px solid #d5e0ea;" onclick="event.stopPropagation()">
+        <div style="background:#fff; width:min(920px, 96vw); max-height:90vh; overflow:auto; border-radius:14px; padding:16px; border:1px solid var(--paper-deep);" onclick="event.stopPropagation()">
             <div id="modal-content"></div>
         </div>
     </div>

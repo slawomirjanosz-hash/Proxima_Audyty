@@ -8,6 +8,7 @@ use App\Models\ClientChatMessage;
 use App\Models\ClientInquiry;
 use App\Models\Company;
 use App\Models\EnergyAudit;
+use App\Models\EnergyAuditMasterData;
 use App\Models\Iso50001QuestionnaireQuestion;
 use App\Models\Offer;
 use App\Models\SystemSetting;
@@ -125,7 +126,7 @@ class ClientController extends Controller
         return collect([
             // ── Audyty energetyczne ──────────────────────────────
             ['value' => 'agent:general',                  'id' => null, 'name' => 'Audyty Energetyczne całego zakładu', 'category' => 'energy'],
-            ['value' => 'agent:compressor_room',          'id' => null, 'name' => 'Sprężarkownia',          'category' => 'energy'],
+            ['value' => 'agent:compressor_room',          'id' => null, 'name' => 'Kompresory',          'category' => 'energy'],
             ['value' => 'agent:boiler_room',              'id' => null, 'name' => 'Kotłownia',              'category' => 'energy'],
             ['value' => 'agent:drying_room',              'id' => null, 'name' => 'Suszarnia',              'category' => 'energy'],
             ['value' => 'agent:buildings',                'id' => null, 'name' => 'Budynki',                'category' => 'energy'],
@@ -134,7 +135,7 @@ class ClientController extends Controller
             ['value' => 'agent:iso50001',                 'id' => null, 'name' => 'ISO 50001',              'category' => 'iso'],
             // ── Białe certyfikaty ────────────────────────────────
             ['value' => 'agent:bc_general',                  'id' => null, 'name' => 'Ogólnie',                'category' => 'white_cert'],
-            ['value' => 'agent:bc_compressor_room',          'id' => null, 'name' => 'Sprężarkownia',          'category' => 'white_cert'],
+            ['value' => 'agent:bc_compressor_room',          'id' => null, 'name' => 'Kompresory',          'category' => 'white_cert'],
             ['value' => 'agent:bc_boiler_room',              'id' => null, 'name' => 'Kotłownia',              'category' => 'white_cert'],
             ['value' => 'agent:bc_drying_room',              'id' => null, 'name' => 'Suszarnia',              'category' => 'white_cert'],
             ['value' => 'agent:bc_buildings',                'id' => null, 'name' => 'Budynki',                'category' => 'white_cert'],
@@ -489,11 +490,15 @@ class ClientController extends Controller
         }
 
         return view('client.compressor-questionnaire', [
-            'audit'        => $audit,
-            'answers'      => $answers,
-            'company'      => $company,
-            'user'         => $user,
-            'chatMessages' => $chatMessages,
+            'audit'           => $audit,
+            'answers'         => $answers,
+            'company'         => $company,
+            'user'            => $user,
+            'chatMessages'    => $chatMessages,
+            'masterFormData'  => $audit->company_id
+                ? (EnergyAuditMasterData::where('company_id', $audit->company_id)->first()?->getFormDataSafe() ?? [])
+                : [],
+            'isStaff'         => $isStaff,
         ]);
     }
 
@@ -567,6 +572,59 @@ class ClientController extends Controller
             ->with('status', 'Ankieta sprężarkowni zapisana. Asystent AI zapozna się z danymi i zada tylko pytania uzupełniające.');
     }
 
+    /**
+     * AJAX auto-save for the new Kompresory (CA) questionnaire.
+     * Accepts JSON: { fields: { "FIELD-ID": "value", ... }, completion_percent: N }
+     */
+    public function saveCompressorQuestionnaireAjax(Request $request, EnergyAudit $audit): \Illuminate\Http\JsonResponse
+    {
+        $user = auth()->user();
+        $isStaff = in_array($user->role->value, ['admin', 'auditor', 'super_admin']);
+        if (!$isStaff) {
+            $clientCompanyId = $user->company_id
+                ?? Company::where('client_id', $user->id)->value('id');
+            abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
+        }
+        abort_unless($audit->agent_type === 'compressor_room', 404);
+
+        $request->validate([
+            'fields'             => ['required', 'array'],
+            'completion_percent' => ['nullable', 'integer', 'min:0', 'max:100'],
+        ]);
+
+        // Sanitize: allow only string/numeric values
+        $incoming = collect($request->input('fields'))
+            ->filter(fn($v) => is_string($v) || is_numeric($v) || $v === null)
+            ->map(fn($v) => $v === null ? null : strip_tags(trim((string) $v)))
+            ->toArray();
+
+        // Merge with existing answers
+        $existing = (array) ($audit->questionnaire_answers ?? []);
+        foreach ($incoming as $key => $value) {
+            $key = preg_replace('/[^A-Za-z0-9_\-\[\]]/', '', (string) $key);
+            if ($key === '') continue;
+            if ($value === null || $value === '') {
+                unset($existing[$key]);
+            } else {
+                $existing[$key] = $value;
+            }
+        }
+
+        $completionPercent = $request->input('completion_percent');
+        $updateData = ['questionnaire_answers' => $existing];
+        if ($completionPercent !== null) {
+            $updateData['questionnaire_completed'] = $completionPercent >= 80;
+        }
+
+        $audit->update($updateData);
+
+        return response()->json([
+            'ok'  => true,
+            'saved' => count($incoming),
+            'total' => count($existing),
+        ]);
+    }
+
     public function auditWork(EnergyAudit $audit, AiConversation $conversation): \Illuminate\View\View
     {
         $user = auth()->user();
@@ -596,14 +654,14 @@ class ClientController extends Controller
 
         $agentLabels = [
             'general'                 => 'Audyty Energetyczne całego zakładu',
-            'compressor_room'         => 'Sprężarkownia',
+            'compressor_room' => 'Kompresory',
             'boiler_room'             => 'Kotłownia',
             'drying_room'             => 'Suszarnia',
             'buildings'               => 'Budynki',
             'technological_processes' => 'Procesy technologiczne',
             'iso50001'                => 'ISO 50001',
             'bc_general'              => 'Białe certyfikaty — Ogólnie',
-            'bc_compressor_room'      => 'Białe certyfikaty — Sprężarkownia',
+            'bc_compressor_room' => 'Białe certyfikaty — Kompresory',
             'bc_boiler_room'          => 'Białe certyfikaty — Kotłownia',
             'bc_drying_room'          => 'Białe certyfikaty — Suszarnia',
             'bc_buildings'            => 'Białe certyfikaty — Budynki',

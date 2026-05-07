@@ -102,7 +102,7 @@
             </section>
         @else
             <section class="panel">
-                <a href="{{ route('iso50001.step', ['isoAudit' => $audit, 'step' => max(1, (int) $audit->current_step)]) }}" style="text-decoration:none; color:#0e89d8; font-weight:700;">Wróć do formularza krokowego</a>
+                <a href="{{ route('iso50001.step', ['isoAudit' => $audit, 'step' => max(1, (int) $audit->current_step)]) }}" style="text-decoration:none; color:var(--green-primary); font-weight:700;">Wróć do formularza krokowego</a>
             </section>
         @endif
     </div>

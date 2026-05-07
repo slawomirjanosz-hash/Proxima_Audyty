@@ -90,7 +90,7 @@
             display: inline-block;
             width: 32px; height: 32px;
             border: 3px solid #4a6375;
-            border-top-color: #0e89d8;
+            border-top-color: var(--green-primary);
             border-radius: 50%;
             animation: spin .8s linear infinite;
             margin-bottom: 12px;

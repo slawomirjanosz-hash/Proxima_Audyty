@@ -45,20 +45,20 @@
     </section>
 
     <div id="customer-type-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:50; align-items:center; justify-content:center;">
-        <div style="background:#fff; width:min(520px, 92vw); border-radius:14px; padding:16px; border:1px solid #d5e0ea;">
+        <div style="background:#fff; width:min(520px, 92vw); border-radius:14px; padding:16px; border:1px solid var(--paper-deep);">
             <h3 id="customer-type-modal-title" style="margin:0 0 10px;">Dodaj Typ Klienta</h3>
             <form id="customer-type-form" method="POST" action="{{ route('crm.customer-types.store') }}">
                 @csrf
                 <input type="hidden" id="customer-type-method" name="_method" value="">
 
-                <label style="display:block; margin:8px 0 4px; font-size:12px; font-weight:700; color:#4c6373;">Nazwa typu *</label>
+                <label style="display:block; margin:8px 0 4px; font-size:12px; font-weight:700; color:var(--ink-mute);">Nazwa typu *</label>
                 <input type="text" name="name" id="customer-type-name" required>
 
-                <label style="display:block; margin:8px 0 4px; font-size:12px; font-weight:700; color:#4c6373;">Slug *</label>
+                <label style="display:block; margin:8px 0 4px; font-size:12px; font-weight:700; color:var(--ink-mute);">Slug *</label>
                 <input type="text" name="slug" id="customer-type-slug" required>
                 <p class="muted" style="margin:4px 0 0; font-size:12px;">Np: klient, partner, konkurencja (bez spacji, małe litery)</p>
 
-                <label style="display:block; margin:8px 0 4px; font-size:12px; font-weight:700; color:#4c6373;">Kolor (hex) *</label>
+                <label style="display:block; margin:8px 0 4px; font-size:12px; font-weight:700; color:var(--ink-mute);">Kolor (hex) *</label>
                 <input type="color" name="color" id="customer-type-color" required style="height:40px; padding:4px;">
 
                 <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">

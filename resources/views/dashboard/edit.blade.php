@@ -3,11 +3,11 @@
         <style>
             .audit-edit-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px; }
             .audit-edit-grid input, .audit-edit-grid select, .audit-edit-grid textarea { width:100%; }
-            .audit-section { border:1px solid #d7e5f0; border-radius:12px; padding:12px; background:#f9fcff; margin-top:10px; }
-            .audit-section h4 { margin:0 0 8px; }
+            .audit-section { border:1px solid var(--paper-deep); border-radius:8px; padding:12px; background:var(--paper-soft); margin-top:10px; }
+            .audit-section h4 { margin:0 0 8px; font-family:var(--serif); color:var(--green-deep); }
             .audit-task-list { display:grid; gap:6px; }
             .audit-field-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; margin-top:10px; }
-            .btn-secondary { background:#dbe9f5; color:#1d4f73; }
+            .btn-secondary { background:var(--paper-deep); color:var(--green-deep); border:1px solid var(--paper-deep); border-radius:5px; }
             @media (max-width:900px) {
                 .audit-edit-grid, .audit-field-grid { grid-template-columns:1fr; }
             }
@@ -15,7 +15,7 @@
 
         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
             <div>
-                <h1 style="margin:0;">Edycja audytu</h1>
+                <h1 style="margin:0; font-family:var(--serif); color:var(--green-deep);">Edycja audytu</h1>
                 <p class="muted" style="margin:4px 0 0;">{{ $audit->title }}</p>
             </div>
             <a href="{{ route('dashboard', ['tab' => 'in-progress']) }}" class="btn-secondary" style="text-decoration:none; padding:8px 10px; border-radius:9px;">← Wróć do audytów</a>

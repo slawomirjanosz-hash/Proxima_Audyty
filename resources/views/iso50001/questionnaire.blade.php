@@ -2,7 +2,7 @@
 
     <style>
         .qst-header {
-            background: linear-gradient(135deg, #163347 0%, #0e89d8 55%, #1ba84a 100%);
+            background: linear-gradient(135deg, #163347 0%, var(--green-primary) 55%, var(--green-primary) 100%);
             color: #fff;
             border-radius: 16px;
             padding: 26px;
@@ -50,7 +50,7 @@
         .qst-code {
             font-weight: 800;
             font-size: 13px;
-            color: #0e89d8;
+            color: var(--green-primary);
             background: #e8f4ff;
             border-radius: 8px;
             padding: 4px 8px;
@@ -65,7 +65,7 @@
         }
         .qst-hint {
             font-size: 12px;
-            color: #6b8aa3;
+            color: var(--ink-mute);
             margin-bottom: 6px;
         }
         .qst-answer-area {
@@ -81,7 +81,7 @@
         }
         .qst-answer-area:focus {
             outline: none;
-            border-color: #0e89d8;
+            border-color: var(--green-primary);
             background: #fff;
             box-shadow: 0 0 0 3px rgba(14, 137, 216, .12);
         }
@@ -110,11 +110,11 @@
         }
         .qst-progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #0e89d8, #1ba84a);
+            background: linear-gradient(90deg, var(--green-primary), var(--green-primary));
             border-radius: 999px;
             transition: width .4s ease;
         }
-        .chevron-icon { font-size: 14px; color: #6b8aa3; transition: transform .2s; }
+        .chevron-icon { font-size: 14px; color: var(--ink-mute); transition: transform .2s; }
         .qst-block.open .chevron-icon { transform: rotate(180deg); }
         .qst-block-body { display: none; }
         .qst-block.open .qst-block-body { display: block; }
@@ -203,7 +203,7 @@
                                     oninput="markChanged()"
                                 >{{ $displayVal }}</textarea>
                                 @if($isPrefilled)
-                                    <div style="font-size:11px; color:#0e89d8; margin-top:3px;">✦ Uzupełniono automatycznie na podstawie danych firmy — sprawdź i popraw jeśli potrzeba.</div>
+                                    <div style="font-size:11px; color:var(--green-primary); margin-top:3px;">✦ Uzupełniono automatycznie na podstawie danych firmy — sprawdź i popraw jeśli potrzeba.</div>
                                 @endif
                             </div>
                         </div>
@@ -213,7 +213,7 @@
         @endforeach
 
         <div class="qst-actions">
-            <button type="submit" style="background:linear-gradient(130deg,#0e89d8,#1ba84a); color:#fff; font-weight:700; font-size:15px; padding:10px 28px; border-radius:10px; border:none; cursor:pointer;">
+            <button type="submit" style="background:linear-gradient(130deg,var(--green-primary),var(--green-primary)); color:#fff; font-weight:700; font-size:15px; padding:10px 28px; border-radius:10px; border:none; cursor:pointer;">
                 Zapisz i przejdź do audytu →
             </button>
             <a href="{{ $backRoute ?? route('iso50001.index') }}" style="display:inline-flex; align-items:center; padding:10px 18px; background:#eff6fb; color:#204a66; border:1px solid #d2e4f1; border-radius:10px; text-decoration:none; font-weight:600;">
@@ -300,11 +300,11 @@
 
                 const banner = document.createElement('div');
                 banner.id = 'restore-banner';
-                banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:10000;background:#1d4f73;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);';
+                banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:10000;background:var(--green-deep);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);';
                 banner.innerHTML = '<span>💾 Masz niezapisaną wersję roboczą z poprzedniej sesji. Czy chcesz ją przywrócić?</span>'
                     + '<div style="display:flex;gap:8px;">'
                     + '<button onclick="applyLocalDraft()" style="background:#16a34a;color:#fff;border:none;padding:7px 16px;border-radius:8px;font-weight:700;cursor:pointer;">Przywróć</button>'
-                    + '<button onclick="discardLocalDraft()" style="background:#6b8aa3;color:#fff;border:none;padding:7px 16px;border-radius:8px;cursor:pointer;">Odrzuć</button>'
+                    + '<button onclick="discardLocalDraft()" style="background:var(--ink-mute);color:#fff;border:none;padding:7px 16px;border-radius:8px;cursor:pointer;">Odrzuć</button>'
                     + '</div>';
                 document.body.prepend(banner);
                 window._localDraft = saved.data;

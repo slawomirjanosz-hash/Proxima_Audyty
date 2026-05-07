@@ -2,13 +2,13 @@
     <section class="panel">
         <style>
             .audit-tab-btn { padding: 8px 12px; border-radius: 10px; border: 1px solid #d7e5f0; background: #eef5fb; font-weight: 700; color: #28485f; cursor: pointer; }
-            .audit-tab-btn.active { background: #fff; border-color: #0e89d8; color: #0e89d8; }
+            .audit-tab-btn.active { background: #fff; border-color: var(--green-primary); color: var(--green-primary); }
             .audit-tab-content { display: none; margin-top: 14px; }
             .audit-tab-content.active { display: block; }
             .audit-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
             .audit-form-grid input, .audit-form-grid select { width: 100%; }
             .audit-actions { display: flex; gap: 8px; align-items: center; }
-            .btn-secondary { background: #dbe9f5; color: #1d4f73; }
+            .btn-secondary { background: #dbe9f5; color: var(--green-deep); }
             .status-pill { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 6px; }
             .status-pill.completed { background: #d9f6e3; color: #0c5f28; }
             .audit-list { display:grid; gap:10px; }
@@ -18,14 +18,14 @@
             .audit-list-item.open .audit-list-header { background:#eaf3ff; }
             .audit-list-main { display:flex; flex-direction:column; gap:3px; }
             .audit-list-title { font-weight:800; color:#10344c; }
-            .audit-list-meta { font-size:12px; color:#4c6373; }
-            .audit-list-chevron { color:#6b8aa3; font-size:16px; transition:transform .2s; }
+            .audit-list-meta { font-size:12px; color:var(--ink-mute); }
+            .audit-list-chevron { color:var(--ink-mute); font-size:16px; transition:transform .2s; }
             .audit-list-item.open .audit-list-chevron { transform:rotate(180deg); }
             .audit-list-body { display:none; padding:12px; border-top:1px solid #e0ecf5; }
             .audit-list-item.open .audit-list-body { display:block; }
             .audit-list-grid { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:8px; margin-bottom:10px; }
             .audit-list-grid div { font-size:13px; color:#355468; }
-            .audit-list-grid strong { display:block; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:#6b8aa3; margin-bottom:2px; }
+            .audit-list-grid strong { display:block; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--ink-mute); margin-bottom:2px; }
             @media (max-width: 900px) {
                 .audit-form-grid { grid-template-columns: 1fr; }
                 .audit-actions { flex-wrap: wrap; }
