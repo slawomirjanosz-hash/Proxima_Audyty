@@ -20,7 +20,18 @@ use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    $overdueTasksForUser = null;
+    if (auth()->check() && !auth()->user()->isClient()) {
+        $userId = auth()->id();
+        $overdueTasksForUser = \App\Models\CrmTask::where('assigned_to', $userId)
+            ->whereNotIn('status', ['zakonczone', 'anulowane'])
+            ->whereNotNull('due_date')
+            ->where('due_date', '<', now())
+            ->with(['company'])
+            ->orderBy('due_date')
+            ->get();
+    }
+    return view('welcome', compact('overdueTasksForUser'));
 })->name('home');
 
 Route::get('/oferty', [OffersController::class, 'index'])->name('offers.index');

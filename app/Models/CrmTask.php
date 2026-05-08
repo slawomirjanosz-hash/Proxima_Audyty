@@ -22,6 +22,8 @@ class CrmTask extends Model
         'company_id',
         'deal_id',
         'created_by',
+        'notify_on_complete',
+        'notify_frequency',
     ];
 
     protected $casts = [
@@ -30,6 +32,7 @@ class CrmTask extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
+        'notify_on_complete' => 'boolean',
     ];
 
     public function assignedTo(): BelongsTo

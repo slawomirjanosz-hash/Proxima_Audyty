@@ -43,6 +43,32 @@
         .login-card .err { margin-top:10px; padding:10px; background:#ffe6e6; color:#9f1f1f; border:1px solid #ffc9c9; border-radius:8px; font-size:13px; }
         .login-close { margin-top:12px; display:block; text-align:center; color:var(--ink-mute); text-decoration:none; font-size:13px; }
         .login-close:hover { color: var(--ink); }
+        /* Overdue widget */
+        .overdue-widget {
+            position: fixed; right: 20px; top: 80px; z-index: 100;
+            width: min(340px, calc(100vw - 40px));
+            background: var(--paper-soft);
+            border: 2px solid #ef4444;
+            border-radius: 14px;
+            box-shadow: 0 8px 32px rgba(239,68,68,.18);
+            overflow: hidden;
+            transition: transform .3s, opacity .3s;
+        }
+        .overdue-widget.dismissed { transform: translateX(400px); opacity: 0; pointer-events: none; }
+        .overdue-widget-header {
+            background: #ef4444; color: #fff;
+            padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;
+            font-weight: 700; font-size: 13px;
+        }
+        .overdue-widget-header button { background: transparent; border: none; color: #fff; font-size: 16px; cursor: pointer; padding: 0 4px; line-height: 1; }
+        .overdue-task-item {
+            display: block; padding: 9px 14px; border-bottom: 1px solid var(--paper-deep);
+            text-decoration: none; color: var(--ink); font-size: 13px;
+            transition: background .15s;
+        }
+        .overdue-task-item:last-child { border-bottom: none; }
+        .overdue-task-item:hover { background: #fee2e2; }
+        .overdue-task-meta { font-size: 11px; color: var(--ink-mute); margin-top: 2px; }
     </style>
 
     <section class="panel" style="min-height: calc(100vh - 180px); display:grid; align-content:center; gap:16px; max-width:800px;">
@@ -63,6 +89,31 @@
             standard wykonania gotowy dla rynku międzynarodowego.
         </p>
     </section>
+
+    @auth
+        @if(!empty($overdueTasksForUser) && $overdueTasksForUser->isNotEmpty())
+            <div class="overdue-widget" id="overdue-widget">
+                <div class="overdue-widget-header">
+                    <span>⚠️ Zadania po terminie ({{ $overdueTasksForUser->count() }})</span>
+                    <button onclick="document.getElementById('overdue-widget').classList.add('dismissed')" title="Zamknij">✕</button>
+                </div>
+                @foreach($overdueTasksForUser->take(6) as $overdueTask)
+                    <a href="{{ route('crm.index') }}" class="overdue-task-item" title="Przejdź do CRM">
+                        <div style="font-weight:600;">{{ $overdueTask->title }}</div>
+                        <div class="overdue-task-meta">
+                            {{ $overdueTask->due_date?->format('d.m.Y') }}
+                            @if($overdueTask->company) · {{ $overdueTask->company->name }} @endif
+                        </div>
+                    </a>
+                @endforeach
+                @if($overdueTasksForUser->count() > 6)
+                    <a href="{{ route('crm.index') }}" class="overdue-task-item" style="font-weight:700; color:var(--green-primary); text-align:center; display:block;">
+                        + {{ $overdueTasksForUser->count() - 6 }} więcej → CRM
+                    </a>
+                @endif
+            </div>
+        @endif
+    @endauth
 
     @guest
         @if($showLoginModal)

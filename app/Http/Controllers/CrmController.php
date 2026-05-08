@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\CrmTaskAssignedMail;
+use App\Mail\CrmTaskCompletedMail;
 use App\Models\CrmActivity;
 use App\Support\CompanyNameNormalizer;
 use App\Models\CrmCompany;
@@ -520,9 +521,13 @@ class CrmController extends Controller
             'assigned_to' => ['nullable', 'exists:users,id'],
             'company_id' => ['nullable', 'exists:crm_companies,id'],
             'deal_id' => ['nullable', 'exists:crm_deals,id'],
+            'notify_on_complete' => ['nullable', 'boolean'],
+            'notify_frequency' => ['nullable', 'in:codziennie,co_2_dni,co_tydzien,wylaczone'],
         ]);
 
         $validated['created_by'] = $request->user()->id;
+        $validated['notify_on_complete'] = (bool) ($request->input('notify_on_complete', false));
+        $validated['notify_frequency'] = $validated['notify_frequency'] ?? 'codziennie';
 
         $task = CrmTask::create($validated);
         $this->logCrmChange($request, 'task', (int) $task->id, 'created', [
@@ -561,7 +566,14 @@ class CrmController extends Controller
             'assigned_to' => ['nullable', 'exists:users,id'],
             'company_id' => ['nullable', 'exists:crm_companies,id'],
             'deal_id' => ['nullable', 'exists:crm_deals,id'],
+            'notify_on_complete' => ['nullable', 'boolean'],
+            'notify_frequency' => ['nullable', 'in:codziennie,co_2_dni,co_tydzien,wylaczone'],
         ]);
+
+        $validated['notify_on_complete'] = (bool) ($request->input('notify_on_complete', false));
+        $validated['notify_frequency'] = $validated['notify_frequency'] ?? $task->notify_frequency ?? 'codziennie';
+
+        $wasCompleted = in_array((string) $task->status, ['zakonczone', 'anulowane']);
 
         if (($validated['status'] ?? '') === 'zakonczone' && empty($validated['completed_at'])) {
             $validated['completed_at'] = now();
@@ -590,6 +602,19 @@ class CrmController extends Controller
             if ($assignee && $assignee->email) {
                 $task->load(['company', 'deal']);
                 Mail::to($assignee->email)->send(new CrmTaskAssignedMail($task, $assignee));
+            }
+        }
+
+        // Notify the creator when task is marked complete and notify_on_complete is enabled
+        if (! $wasCompleted
+            && ($validated['status'] ?? '') === 'zakonczone'
+            && $task->notify_on_complete
+            && $task->created_by
+        ) {
+            $creator = User::find($task->created_by);
+            if ($creator && $creator->email) {
+                $task->load(['company', 'deal', 'assignedTo']);
+                Mail::to($creator->email)->send(new CrmTaskCompletedMail($task, $creator));
             }
         }
 

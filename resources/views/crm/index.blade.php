@@ -770,6 +770,21 @@
                             </select>
                         </div>
                         <div style="grid-column:1 / -1;"><label>Opis</label><textarea name="description" rows="3">${data.description || ''}</textarea></div>
+                        <div style="grid-column:1 / -1; border-top:1px solid var(--paper-deep); padding-top:10px; display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end;">
+                            <label style="display:flex; align-items:center; gap:7px; cursor:pointer; font-weight:600; font-size:13px;">
+                                <input type="checkbox" name="notify_on_complete" value="1" ${data.notify_on_complete ? 'checked' : ''} style="width:16px;height:16px;">
+                                Powiadom twórcę e-mailem gdy zadanie zostanie zakończone
+                            </label>
+                            <div style="display:flex; flex-direction:column; gap:4px;">
+                                <label style="font-size:12px; font-weight:700; color:var(--ink-mute);">Przypomnienia e-mail o przekroczeniu terminu</label>
+                                <select name="notify_frequency" style="width:auto; min-width:200px;">
+                                    <option value="codziennie" ${(data.notify_frequency ?? 'codziennie') === 'codziennie' ? 'selected' : ''}>Codziennie</option>
+                                    <option value="co_2_dni" ${data.notify_frequency === 'co_2_dni' ? 'selected' : ''}>Co 2 dni</option>
+                                    <option value="co_tydzien" ${data.notify_frequency === 'co_tydzien' ? 'selected' : ''}>Co tydzień (pon.)</option>
+                                    <option value="wylaczone" ${data.notify_frequency === 'wylaczone' ? 'selected' : ''}>Wyłączone</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
                         <button type="button" class="btn-secondary" onclick="closeModal()">Anuluj</button>
@@ -777,9 +792,6 @@
                     </div>
                 </form>
             `;
-        }
-
-        function showTaskModal() {
             openModal(taskFormHtml('{{ route('crm.task.add') }}', 'POST', {}));
         }
 
