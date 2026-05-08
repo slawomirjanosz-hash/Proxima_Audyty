@@ -921,6 +921,18 @@
 
                 <div class="hrec-note" id="hrec-main-note" style="margin-top:12px; display:none;"></div>
 
+                {{-- ── Generuj protokół PDF ── --}}
+                <div style="margin-top:18px; padding:14px 18px; background:linear-gradient(135deg,#f0f7f4 0%,#e6f0eb 100%); border-radius:12px; border:1px solid #c3dace; display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+                    <div style="flex:1; min-width:200px;">
+                        <div style="font-size:13px; font-weight:700; color:var(--green-deep); margin-bottom:3px;">📄 Protokół kalkulacji</div>
+                        <div style="font-size:11.5px; color:var(--ink-mute);">Wygeneruj profesjonalny raport PDF z wynikami odzysku ciepła ze spalin — gotowy do druku lub do wgrania do dokumentacji audytu.</div>
+                    </div>
+                    <button id="hrec-pdf-btn" onclick="hrecGeneratePdf()" style="padding:11px 22px; background:var(--green-deep); color:#fff; border:none; border-radius:10px; font-size:13.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:8px; white-space:nowrap; flex-shrink:0; box-shadow:0 2px 8px rgba(26,77,58,.25); transition:background .15s;">
+                        <span style="font-size:18px; line-height:1;">📄</span> Generuj protokół PDF
+                    </button>
+                    <span id="hrec-pdf-msg" style="font-size:12px; display:none;"></span>
+                </div>
+
                 {{-- ── Zapis kalkulacji (tylko zalogowani) ── --}}
                 @auth
                 <div class="hrec-section-title" style="margin-top:18px;">💾 Zapisz kalkulację na koncie</div>
@@ -2197,6 +2209,375 @@
             }
         }
         @endauth
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfYThS3cvm5g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script>
+        // ── Generowanie protokołu PDF ──────────────────────────────────────────
+        function hrecGeneratePdf() {
+            if (!window.jspdf) {
+                alert('Biblioteka PDF jeszcze się ładuje – spróbuj za chwilę.');
+                return;
+            }
+            const btn    = document.getElementById('hrec-pdf-btn');
+            const msgEl  = document.getElementById('hrec-pdf-msg');
+            btn.disabled = true;
+            btn.textContent = 'Generuję…';
+            if (msgEl) { msgEl.style.display = ''; msgEl.style.color = 'var(--ink-mute)'; msgEl.textContent = ''; }
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+                // ── Kolory (palette ENESA) ──
+                const C_GREEN  = [26, 77, 58];
+                const C_GPRI   = [46, 125, 92];
+                const C_GLIGHT = [164, 194, 168];
+                const C_GOLD   = [168, 127, 42];
+                const C_INK    = [26, 22, 18];
+                const C_MUTED  = [118, 105, 90];
+                const C_PAPER  = [245, 239, 224];
+                const C_PAPD   = [219, 209, 194];
+                const C_WHITE  = [255, 255, 255];
+                const C_BLUE   = [14, 90, 138];
+                const C_CGREEN = [26, 92, 46];
+                const C_AMBER  = [196, 124, 0];
+
+                const pageW = 210, pageH = 297, M = 16, CW = pageW - 2 * M;
+                let y = 0;
+
+                // ── Nagłówek ──
+                doc.setFillColor(...C_GREEN);
+                doc.rect(0, 0, pageW, 34, 'F');
+                // Koło-logo
+                doc.setFillColor(...C_GPRI);
+                doc.circle(M + 12, 17, 10, 'F');
+                doc.setTextColor(...C_WHITE);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(15);
+                doc.text('E', M + 12, 21, { align: 'center' });
+                // Nazwa
+                doc.setFontSize(19);
+                doc.text('ENESA', M + 28, 15);
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(8.5);
+                doc.setTextColor(...C_GLIGHT);
+                doc.text('Energy Audit Systems', M + 28, 21);
+                doc.text('PROTOKÓŁ KALKULACJI ENERGETYCZNEJ', M + 28, 27);
+                // Data po prawej
+                const now      = new Date();
+                const pad      = n => String(n).padStart(2, '0');
+                const dateStr  = pad(now.getDate()) + '.' + pad(now.getMonth() + 1) + '.' + now.getFullYear();
+                const timeStr  = pad(now.getHours()) + ':' + pad(now.getMinutes());
+                doc.setFontSize(8);
+                doc.setTextColor(...C_GLIGHT);
+                doc.text(dateStr + '  ' + timeStr, pageW - M, 16, { align: 'right' });
+                doc.setFontSize(7.5);
+                doc.text('Data generowania protokołu', pageW - M, 22, { align: 'right' });
+
+                y = 43;
+
+                // ── Tytuł ──
+                doc.setTextColor(...C_GREEN);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(15);
+                doc.text('Moc odzyskana ze spalin', M, y);
+                y += 5;
+                doc.setDrawColor(...C_GOLD);
+                doc.setLineWidth(1.0);
+                doc.line(M, y, M + CW, y);
+                y += 5;
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(8.5);
+                doc.setTextColor(...C_MUTED);
+                doc.text('Obliczenia wykonane automatycznie przez kalkulator ENESA. Wyniki mają charakter szacunkowy.', M, y);
+                y += 10;
+
+                // ── Helpers ──
+                const fv = id => {
+                    const el = document.getElementById(id);
+                    if (!el || el.value === '') return null;
+                    const v = parseFloat(el.value);
+                    return isNaN(v) ? null : v;
+                };
+                const tv = id => {
+                    const el = document.getElementById(id);
+                    if (!el) return null;
+                    const v = parseFloat(el.textContent);
+                    return isNaN(v) ? null : v;
+                };
+                const fmt = (v, dec = 1) => v != null ? v.toFixed(dec) : '—';
+                const fmtI = v => v != null ? Math.round(v).toString() : '—';
+
+                function secTitle(text) {
+                    doc.setFillColor(228, 238, 230);
+                    doc.rect(M - 2, y - 4, CW + 4, 9, 'F');
+                    doc.setDrawColor(...C_GLIGHT);
+                    doc.setLineWidth(0.4);
+                    doc.line(M - 2, y + 5, M - 2 + CW + 4, y + 5);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(9.5);
+                    doc.setTextColor(...C_GREEN);
+                    doc.text(text, M, y);
+                    y += 9;
+                }
+
+                function row(label, value) {
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(8.5);
+                    doc.setTextColor(...C_MUTED);
+                    doc.text(label, M + 3, y);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(...C_INK);
+                    doc.text(String(value ?? '—'), M + 90, y);
+                    y += 5.2;
+                }
+
+                function sep() {
+                    doc.setDrawColor(...C_PAPD);
+                    doc.setLineWidth(0.25);
+                    doc.line(M, y, M + CW, y);
+                    y += 3;
+                }
+
+                // ── 1. Dane kotła ──
+                const fuelKey   = document.getElementById('hrec-fuel').value;
+                const fuelLabel = fuelKey === 'gas' ? 'Gaz ziemny GZ-50' : 'Węgiel kamienny';
+                const fuelData  = HREC_FUEL[fuelKey];
+                const boilerP   = fv('hrec-power');
+                const boilerEff = fv('hrec-eff');
+                const boilerLd  = fv('hrec-load') ?? 100;
+                const tIn       = fv('hrec-t-in');
+                const massFlow  = fv('hrec-mass-flow');
+                const xH2O      = fv('hrec-xh2o');
+                const o2Val     = fv('hrec-o2') ?? 3;
+                const lambda    = 21 / (21 - o2Val);
+                const effP      = boilerP != null ? boilerP * boilerLd / 100 : null;
+
+                secTitle('1. Dane kotła i spalin');
+                sep();
+                row('Rodzaj paliwa', fuelLabel);
+                if (boilerP != null)   row('Moc nominalna kotła', fmt(boilerP, 0) + ' kW');
+                if (boilerEff != null) row('Sprawność kotła', fmt(boilerEff, 0) + ' %');
+                if (boilerLd !== 100 && effP != null) row('Wydajność / moc robocza', boilerLd.toFixed(0) + '%  →  ' + fmt(effP, 0) + ' kW');
+                row('Temp. spalin wejściowa', tIn != null ? fmt(tIn, 0) + ' °C' : '—');
+                row('Zawartość O₂ w spalinach', o2Val.toFixed(1) + ' %   (λ = ' + lambda.toFixed(3) + ')');
+                row('Masowy strumień spalin', massFlow != null ? fmtI(massFlow) + ' kg/h' : '—');
+                row('Zawartość H₂O w spalinach', xH2O != null ? xH2O.toFixed(3) + ' kg/kg' : '—');
+                row('Temperatura punktu rosy', fuelData.tDew + ' °C');
+                y += 4;
+
+                // ── 2. Czynnik grzewczy ──
+                const medKey   = document.getElementById('hrec-medium').value;
+                const medLabel = { water: 'Woda', steam: 'Para wodna', glycol: 'Glikol / woda-glikol', air: 'Powietrze', other: 'Inne' }[medKey] || medKey;
+                const tSup     = fv('hrec-medium-temp');
+                const tRet     = fv('hrec-medium-ret');
+                const pres     = fv('hrec-medium-pres');
+                const medFlw   = fv('hrec-medium-flow');
+
+                secTitle('2. Czynnik grzewczy');
+                sep();
+                row('Czynnik roboczy', medLabel);
+                if (tSup  != null) row('Temperatura zasilania', fmt(tSup, 0) + ' °C');
+                if (tRet  != null) row('Temperatura powrotu', fmt(tRet, 0) + ' °C');
+                if (pres  != null) row('Ciśnienie robocze', fmt(pres, 1) + ' bar');
+                if (medFlw != null) row('Przepływ czynnika', fmtI(medFlw) + ' kg/h');
+                y += 4;
+
+                // ── 3. Wymienniki ──
+                secTitle('3. Wymienniki ciepła (ekonomajzery)');
+
+                hrecHxList.forEach(function(uid, idx) {
+                    if (y > pageH - 70) { doc.addPage(); y = 20; }
+
+                    const tOutEl = document.getElementById('hrec-hx-' + uid + '-tout');
+                    const dryEl  = document.getElementById('hrec-hx-' + uid + '-dry');
+                    const wetEl  = document.getElementById('hrec-hx-' + uid + '-wet');
+                    const totEl  = document.getElementById('hrec-hx-' + uid + '-total');
+                    const tinEl  = document.getElementById('hrec-hx-' + uid + '-tin');
+
+                    const tOut = tOutEl ? parseFloat(tOutEl.value) : NaN;
+                    const qD   = dryEl  ? parseFloat(dryEl.textContent) : NaN;
+                    const qW   = wetEl  ? parseFloat(wetEl.textContent) : NaN;
+                    const qT   = totEl  ? parseFloat(totEl.textContent) : NaN;
+                    const tinT = tinEl  ? tinEl.textContent.replace(/T\s*wej\s*:/i, '').trim() : '—';
+
+                    // HX header row
+                    doc.setFillColor(215, 232, 245);
+                    doc.rect(M, y - 3.5, CW, 7, 'F');
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(9);
+                    doc.setTextColor(...C_GREEN);
+                    doc.text('Wymiennik ' + (idx + 1), M + 2, y);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(8);
+                    doc.setTextColor(...C_MUTED);
+                    const tInDisp = (tIn != null && idx === 0) ? fmt(tIn, 0) + ' °C' : tinT;
+                    doc.text('T_wej: ' + tInDisp + '  →  T_wyj: ' + (!isNaN(tOut) ? tOut.toFixed(0) + ' °C' : '—'), pageW - M, y, { align: 'right' });
+                    y += 8;
+
+                    // 3-column result cards
+                    const cW = (CW - 4) / 3;
+                    const cards = [
+                        { label: 'Moc sucha (jawna)',       val: qD, fg: C_BLUE,   bg: [225, 240, 252] },
+                        { label: 'Moc mokra (kondensacja)', val: qW, fg: C_CGREEN, bg: [222, 247, 228] },
+                        { label: 'Moc sumaryczna',          val: qT, fg: C_AMBER,  bg: [255, 249, 225] },
+                    ];
+                    cards.forEach(function(c, ci) {
+                        const bx = M + ci * (cW + 2);
+                        doc.setFillColor(...c.bg);
+                        doc.roundedRect(bx, y - 3, cW, 15, 2, 2, 'F');
+                        doc.setFont('helvetica', 'normal');
+                        doc.setFontSize(7);
+                        doc.setTextColor(...C_MUTED);
+                        doc.text(c.label, bx + cW / 2, y + 1, { align: 'center' });
+                        doc.setFont('helvetica', 'bold');
+                        doc.setFontSize(13);
+                        doc.setTextColor(...c.fg);
+                        doc.text(!isNaN(c.val) ? c.val.toFixed(1) + ' kW' : '—', bx + cW / 2, y + 9, { align: 'center' });
+                    });
+                    y += 17;
+
+                    // Water side
+                    const wFlow = fv('hrec-hx-' + uid + '-wflow');
+                    const wTinV = fv('hrec-hx-' + uid + '-wtin');
+                    const wTout = fv('hrec-hx-' + uid + '-wtout');
+                    if (wTinV != null || wTout != null) {
+                        doc.setFont('helvetica', 'normal');
+                        doc.setFontSize(7.5);
+                        doc.setTextColor(...C_MUTED);
+                        const wLine = 'Strona czynnika: ' +
+                            (wTinV != null ? 'T_wej=' + wTinV.toFixed(1) + '°C' : '') +
+                            (wTinV != null && wTout != null ? ' → ' : '') +
+                            (wTout != null ? 'T_wyj=' + wTout.toFixed(1) + '°C' : '') +
+                            (wFlow != null ? '  ·  przepływ: ' + Math.round(wFlow) + ' kg/h' : '');
+                        doc.text(wLine, M + 2, y);
+                        y += 5;
+                    }
+                    y += 4;
+                });
+
+                // ── 4. Podsumowanie ──
+                if (y > pageH - 70) { doc.addPage(); y = 20; }
+                y += 4;
+
+                const sumDry   = tv('hrec-sum-dry');
+                const sumWet   = tv('hrec-sum-wet');
+                const sumTotal = tv('hrec-sum-total');
+
+                // Ciemne tło podsumowania
+                doc.setFillColor(...C_GREEN);
+                doc.roundedRect(M, y, CW, 48, 5, 5, 'F');
+
+                doc.setTextColor(...C_WHITE);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(10.5);
+                doc.text('Sumaryczna moc odzyskana ze spalin', M + 5, y + 8);
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(8);
+                doc.setTextColor(...C_GLIGHT);
+                doc.text('Wyniki kalkulacji wielostopniowego wymiennika ciepła / ekonomajzera', M + 5, y + 14);
+
+                const bY = y + 19;
+                const bW = (CW - 12) / 3;
+                const sumCards = [
+                    { label: 'Moc sucha (jawna)',       val: sumDry,   col: [100, 180, 220] },
+                    { label: 'Moc mokra (kondensacja)', val: sumWet,   col: [74, 222, 128]  },
+                    { label: 'Moc sumaryczna',          val: sumTotal, col: [251, 191, 36]  },
+                ];
+                sumCards.forEach(function(c, ci) {
+                    const bx = M + 3 + ci * (bW + 3);
+                    doc.setDrawColor(...c.col);
+                    doc.setLineWidth(0.6);
+                    doc.roundedRect(bx, bY, bW, 20, 3, 3, 'D');
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(7);
+                    doc.setTextColor(...c.col);
+                    doc.text(c.label, bx + bW / 2, bY + 6, { align: 'center' });
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(15);
+                    doc.setTextColor(...c.col);
+                    doc.text(c.val != null ? c.val.toFixed(1) : '—', bx + bW / 2, bY + 14, { align: 'center' });
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(7);
+                    doc.text('kW', bx + bW / 2, bY + 18, { align: 'center' });
+                });
+                y += 52;
+
+                // Komentarz procentowy
+                if (boilerP != null && sumTotal != null && sumTotal > 0 && effP != null) {
+                    const pct = (sumTotal / effP * 100).toFixed(1);
+                    doc.setFillColor(...C_PAPER);
+                    doc.rect(M, y, CW, 8, 'F');
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(8.5);
+                    doc.setTextColor(...C_INK);
+                    doc.text(
+                        'Odzysk: ' + sumTotal.toFixed(1) + ' kW  /  ' + effP.toFixed(0) + ' kW mocy roboczej  =  ' + pct + '% mocy kotła',
+                        M + CW / 2, y + 5.5, { align: 'center' }
+                    );
+                    y += 11;
+                }
+                if (sumWet != null && sumWet > 0) {
+                    doc.setFillColor(222, 247, 228);
+                    doc.rect(M, y, CW, 8, 'F');
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(8.5);
+                    doc.setTextColor(...C_CGREEN);
+                    doc.text('Ekonomajzer kondensacyjny – odzysk ciepła skraplania: ' + sumWet.toFixed(1) + ' kW', M + 4, y + 5.5);
+                    y += 12;
+                }
+
+                y += 6;
+
+                // ── Podstawy obliczeń ──
+                if (y < pageH - 50) {
+                    doc.setFillColor(...C_PAPER);
+                    doc.setDrawColor(...C_PAPD);
+                    doc.setLineWidth(0.3);
+                    doc.roundedRect(M, y, CW, 28, 3, 3, 'FD');
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(8.5);
+                    doc.setTextColor(...C_GREEN);
+                    doc.text('Wzory obliczeniowe', M + 4, y + 6);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(7.5);
+                    doc.setTextColor(...C_MUTED);
+                    const lines = [
+                        'Q_sucha = ṁ × cp × (T_wej − T_wyj) / 3600  [kW]',
+                        'Q_mokra = ṁ × xH₂O × frac × r / 3600  [kW]   gdzie frac = (T_rosy − T_wyj) / (T_rosy − 20)',
+                        'Q_łączna = Q_sucha + Q_mokra  [kW]    λ = 21 / (21 − O₂%)',
+                    ];
+                    lines.forEach(function(l, li) {
+                        doc.text(l, M + 4, y + 13 + li * 5);
+                    });
+                }
+
+                // ── Stopka ──
+                const fY = pageH - 12;
+                doc.setFillColor(...C_GREEN);
+                doc.rect(0, fY - 4, pageW, 16, 'F');
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(7.5);
+                doc.setTextColor(...C_GLIGHT);
+                doc.text('ENESA – Energy Audit Systems  ·  Proxima Lumine', M, fY + 2);
+                doc.text('Protokół wygenerowany automatycznie. Obliczenia mają charakter szacunkowy.', pageW / 2, fY + 2, { align: 'center' });
+                doc.text(dateStr + '  ' + timeStr, pageW - M, fY + 2, { align: 'right' });
+                doc.setTextColor(100, 160, 130);
+                doc.setFontSize(7);
+                doc.text('Strona 1', pageW / 2, fY + 7, { align: 'center' });
+
+                // ── Zapisz ──
+                const fname = 'ENESA_Protokol_Spaliny_' + dateStr.replace(/\./g, '-') + '.pdf';
+                doc.save(fname);
+                if (msgEl) { msgEl.style.color = '#1a5c2e'; msgEl.textContent = '✅ Plik zapisany: ' + fname; }
+            } catch (err) {
+                if (msgEl) { msgEl.style.color = '#c53030'; msgEl.textContent = '❌ Błąd: ' + err.message; }
+                console.error(err);
+            } finally {
+                btn.disabled    = false;
+                btn.innerHTML   = '<span style="font-size:18px;line-height:1;">📄</span> Generuj protokół PDF';
+            }
+        }
         </script>
 
         {{-- ═══════════════════════════════════════════════
