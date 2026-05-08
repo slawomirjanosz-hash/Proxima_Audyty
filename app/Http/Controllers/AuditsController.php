@@ -160,7 +160,7 @@ class AuditsController extends Controller
         $agentService = app(\App\Services\AiAgentService::class);
         $agentDefs = [
             ['type' => 'general',                 'icon' => '⚡', 'name' => 'Audyt energetyczny zakładu',        'description' => 'Ankieta Master — zbiera dane o całym zakładzie (procesy, nośniki, zużycia, hale) i zasila wszystkie dalsze audyty'],
-            ['type' => 'compressor_room',          'icon' => '🔧', 'name' => 'Sprężarkownia',              'description' => 'Zbieranie danych do audytu sprężarkowni i instalacji sprężonego powietrza'],
+            ['type' => 'compressor_room',          'icon' => '🔧', 'name' => 'Kompresory',                 'description' => 'Zbieranie danych do audytu kompresory i instalacji sprężonego powietrza'],
             ['type' => 'boiler_room',             'icon' => '🔥', 'name' => 'Kotłownia',                  'description' => 'Zbieranie danych do audytu kotłowni — kotły, paliwo, sprawność, c.w.u.'],
             ['type' => 'drying_room',             'icon' => '🌡️', 'name' => 'Suszarnia',                  'description' => 'Zbieranie danych do audytu suszarni i procesów suszenia'],
             ['type' => 'buildings',               'icon' => '🏢', 'name' => 'Budynki',                    'description' => 'Zbieranie danych do audytu energetycznego budynków i infrastruktury'],
@@ -191,7 +191,7 @@ class AuditsController extends Controller
         // AI agents for the "biale-certyfikaty" tab
         $bcAgentDefs = [
             ['type' => 'bc_general',                 'icon' => '📋', 'name' => 'Ogólnie',                   'description' => 'Wstępne doradztwo i informacje o białych certyfikatach (świadectwach efektywności energetycznej)'],
-            ['type' => 'bc_compressor_room',          'icon' => '🔧', 'name' => 'Sprężarkownia',              'description' => 'Zbieranie danych do białych certyfikatów — modernizacja sprężarkowni i instalacji sprężonego powietrza'],
+            ['type' => 'bc_compressor_room',          'icon' => '🔧', 'name' => 'Kompresory (BC)',            'description' => 'Zbieranie danych do białych certyfikatów — modernizacja kompresory i instalacji sprężonego powietrza'],
             ['type' => 'bc_boiler_room',              'icon' => '🔥', 'name' => 'Kotłownia',                  'description' => 'Zbieranie danych do białych certyfikatów — modernizacja kotłowni i systemów cieplnych'],
             ['type' => 'bc_drying_room',              'icon' => '🌡️', 'name' => 'Suszarnia',                  'description' => 'Zbieranie danych do białych certyfikatów — modernizacja suszarni i procesów suszenia'],
             ['type' => 'bc_buildings',                'icon' => '🏢', 'name' => 'Budynki',                    'description' => 'Zbieranie danych do białych certyfikatów — termomodernizacja i modernizacja budynków'],

@@ -41,7 +41,7 @@
                             <input type="radio" name="context_type" value="compressor_room"
                                 {{ ($contextType === 'compressor_room' ? 'checked' : '') }}>
                             <div class="icon">🔧</div>
-                            <div class="label">Sprężarkownia</div>
+                            <div class="label">Kompresory</div>
                         </label>
                         <label class="type-btn">
                             <input type="radio" name="context_type" value="boiler_room"
@@ -95,7 +95,7 @@
                             <input type="radio" name="context_type" value="bc_compressor_room"
                                 {{ ($contextType === 'bc_compressor_room' ? 'checked' : '') }}>
                             <div class="icon">🔧</div>
-                            <div class="label">BC Sprężarkownia</div>
+                            <div class="label">BC Kompresory</div>
                         </label>
                         <label class="type-btn">
                             <input type="radio" name="context_type" value="bc_boiler_room"

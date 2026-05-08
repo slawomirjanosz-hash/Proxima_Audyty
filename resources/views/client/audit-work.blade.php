@@ -330,7 +330,7 @@
                            class="aw-back"
                            style="color:#059669; font-size:12px;"
                            title="Wróć do ankiety wstępnej i uzupełnij dane">
-                            📋 Edytuj ankietę sprężarkowni
+                            📋 Edytuj ankietę Kompresory
                         </a>
                     @elseif($audit->agent_type === 'iso50001')
                         <a href="{{ route('client.audit.iso.questionnaire', $audit) }}"

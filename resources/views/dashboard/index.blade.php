@@ -251,7 +251,7 @@
                                             <select name="agent_type" required style="width:100%; border:1px solid #d1fae5; border-radius:8px; padding:7px 10px; font-size:12px; background:#fff; box-sizing:border-box;">
                                                 <optgroup label="Audyty energetyczne" data-category="energy">
                                                     <option value="general"                 {{ $pa->agent_type === 'general'                 ? 'selected' : '' }}>Audyt Energetyczny zakładu (Master)</option>
-                                                    <option value="compressor_room"         {{ $pa->agent_type === 'compressor_room'         ? 'selected' : '' }}>Sprężarkownia</option>
+                                                    <option value="compressor_room"         {{ $pa->agent_type === 'compressor_room'         ? 'selected' : '' }}>Kompresory</option>
                                                     <option value="boiler_room"             {{ $pa->agent_type === 'boiler_room'             ? 'selected' : '' }}>Kotłownia</option>
                                                     <option value="drying_room"             {{ $pa->agent_type === 'drying_room'             ? 'selected' : '' }}>Suszarnia</option>
                                                     <option value="buildings"               {{ $pa->agent_type === 'buildings'               ? 'selected' : '' }}>Budynki</option>
@@ -262,7 +262,7 @@
                                                 </optgroup>
                                                 <optgroup label="Białe certyfikaty" data-category="white_cert">
                                                     <option value="bc_general"                 {{ $pa->agent_type === 'bc_general'                 ? 'selected' : '' }}>Ogólnie (BC)</option>
-                                                    <option value="bc_compressor_room"         {{ $pa->agent_type === 'bc_compressor_room'         ? 'selected' : '' }}>Sprężarkownia (BC)</option>
+                                                    <option value="bc_compressor_room"         {{ $pa->agent_type === 'bc_compressor_room'         ? 'selected' : '' }}>Kompresory (BC)</option>
                                                     <option value="bc_boiler_room"             {{ $pa->agent_type === 'bc_boiler_room'             ? 'selected' : '' }}>Kotłownia (BC)</option>
                                                     <option value="bc_drying_room"             {{ $pa->agent_type === 'bc_drying_room'             ? 'selected' : '' }}>Suszarnia (BC)</option>
                                                     <option value="bc_buildings"               {{ $pa->agent_type === 'bc_buildings'               ? 'selected' : '' }}>Budynki (BC)</option>
@@ -352,7 +352,7 @@
                                         <option value="">— wybierz agenta —</option>
                                         <optgroup label="Audyty energetyczne" data-category="energy">
                                             <option value="general">Ogólnie</option>
-                                            <option value="compressor_room">Sprężarkownia</option>
+                                            <option value="compressor_room">Kompresory</option>
                                             <option value="boiler_room">Kotłownia</option>
                                             <option value="drying_room">Suszarnia</option>
                                             <option value="buildings">Budynki</option>
@@ -363,7 +363,7 @@
                                         </optgroup>
                                         <optgroup label="Białe certyfikaty" data-category="white_cert">
                                             <option value="bc_general">Ogólnie (BC)</option>
-                                            <option value="bc_compressor_room">Sprężarkownia (BC)</option>
+                                            <option value="bc_compressor_room">Kompresory (BC)</option>
                                             <option value="bc_boiler_room">Kotłownia (BC)</option>
                                             <option value="bc_drying_room">Suszarnia (BC)</option>
                                             <option value="bc_buildings">Budynki (BC)</option>

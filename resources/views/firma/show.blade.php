@@ -491,12 +491,12 @@
                         <div class="chat-meta-line">{{ $msg->user?->name ?? '—' }} · {{ $msg->created_at->format('d.m.Y H:i') }}</div>
                     </div>
                 @empty
-                    <div id="chat-empty-note" style="text-align:center; color:#9ab4c5; font-size:13px; padding:20px;">Brak wiadomości.</div>
+                    <div id="chat-empty-note" style="text-align:center; color:var(--ink-mute); font-size:13px; padding:20px;">Brak wiadomości.</div>
                 @endforelse
             </div>
 
             <div style="display:flex; gap:8px; align-items:flex-end; margin-top:8px;">
-                <textarea id="chat-input" rows="2" placeholder="Wpisz odpowiedź do klienta..." style="flex:1; resize:vertical; padding:8px 10px; border:1px solid #c8d8e6; border-radius:8px; font-size:13px;" required></textarea>
+                <textarea id="chat-input" rows="2" placeholder="Wpisz odpowiedź do klienta..." style="flex:1; resize:vertical; padding:8px 10px; border:1px solid var(--paper-deep); border-radius:8px; font-size:13px;" required></textarea>
                 <button type="button" id="chat-send-btn" class="btn-sm btn-primary-sm" style="padding:8px 16px;" onclick="adminChatSend()">Wyślij</button>
             </div>
             </div>
@@ -536,11 +536,11 @@
                             <div class="audit-row-meta">{{ $audit->auditType?->name ?: $audit->audit_type ?: '—' }}</div>
                         </div>
                         <div>
-                            <div style="font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:#6b8aa3; margin-bottom:2px;">Audytor</div>
+                            <div style="font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--ink-mute); margin-bottom:2px;">Audytor</div>
                             <div style="font-size:13px;">{{ $audit->auditor?->name ?? '—' }}</div>
                         </div>
                         <div>
-                            <div style="font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:#6b8aa3; margin-bottom:2px;">Data</div>
+                            <div style="font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--ink-mute); margin-bottom:2px;">Data</div>
                             <div style="font-size:13px;">{{ $audit->created_at->format('d.m.Y') }}</div>
                         </div>
                         <div>
@@ -557,10 +557,10 @@
                                 <a href="{{ route('client.audit.compressor.questionnaire', $audit) }}"
                                    class="btn-sm"
                                    style="background:#f0faf4; color:#0f6e2e; border:1px solid #a7d9b7; padding:5px 10px;"
-                                   title="Wejdź do ankiety sprężarkowni jako audytor">📋 Ankieta</a>
+                                   title="Wejdź do ankiety Kompresory jako audytor">📋 Ankieta</a>
                                 <a href="{{ route('client.audit.ai', $audit) }}"
                                    class="btn-sm"
-                                   style="background:#f0f5ff; color:#1e3a8a; border:1px solid #a5b4fc; padding:5px 10px;"
+                                   style="background:var(--green-bg); color:var(--green-deep); border:1px solid var(--green-light); padding:5px 10px;"
                                    title="Uruchom asystenta AI dla tego audytu">🤖 AI</a>
                             @endif
                             <form method="POST" action="{{ route('firma.destroyAudit', [$company, $audit]) }}" style="margin:0;" onsubmit="return confirm('Usunąć audyt &quot;{{ addslashes($audit->title) }}&quot;? Tej operacji nie można cofnąć.')">
@@ -572,7 +572,7 @@
                     </div>
                 @endforeach
             @else
-                <div style="padding:20px; text-align:center; color:#8a9bac; border:1px dashed #c8d8e6; border-radius:12px; font-size:14px;">
+                <div style="padding:20px; text-align:center; color:var(--ink-mute); border:1px dashed var(--paper-deep); border-radius:12px; font-size:14px;">
                     Brak przydzielonych audytów.
                 </div>
             @endif

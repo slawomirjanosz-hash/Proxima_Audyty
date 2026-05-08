@@ -252,7 +252,7 @@
     </div>
 
     @if ($previewMode)
-        <section class="panel" style="margin-top:14px; background:#f2f8ff; border-color:#cfe0ff; color:#154f93;">
+        <section class="panel" style="margin-top:14px; background:var(--green-bg); border-color:var(--green-light); color:var(--green-deep);">
             <strong>Tryb podglądu:</strong> Przeglądasz Strefę klienta jako konto uprzywilejowane.
         </section>
     @endif
@@ -275,7 +275,7 @@
                         <span class="cs-chev">&#9660;</span>
                     </button>
                     <div class="cs-body">
-                        <p style="font-size:13px; color:#4c6373; margin:0 0 12px 0;">Wybierz jeden rodzaj audytu który Cię interesuje i wyślij zapytanie. Odpiszemy tak szybko jak to możliwe.</p>
+<p style="font-size:13px; color:var(--ink-mute); margin:0 0 12px 0;">Wybierz jeden rodzaj audytu który Cię interesuje i wyślij zapytanie. Odpiszemy tak szybko jak to możliwe.</p>
 
                         @error('audit_type')
                             <div style="color:#b91c1c; font-size:12px; margin-bottom:8px; padding:8px 12px; background:#fef2f2; border-radius:8px; border:1px solid #fca5a5;">
@@ -328,7 +328,7 @@
                             </div>
 
                             <div style="margin-bottom:12px;">
-                                <label style="display:block; font-size:12px; font-weight:700; color:#4c6373; margin-bottom:4px;">Wiadomość (opcjonalnie)</label>
+                                <label style="display:block; font-size:12px; font-weight:700; color:var(--ink-mute); margin-bottom:4px;">Wiadomość (opcjonalnie)</label>
                                 <textarea name="message" rows="3" style="width:100%; resize:vertical;" placeholder="Opisz swoje potrzeby lub zadaj pytanie...">{{ old('message') }}</textarea>
                             </div>
 
@@ -352,7 +352,7 @@
                     </button>
                     <div class="cs-body">
                         @if ($inquiries->isEmpty())
-                            <div style="padding:20px; text-align:center; color:#9ab4c5; border:1px dashed #d5e0ea; border-radius:12px; font-size:14px;">
+                            <div style="padding:20px; text-align:center; color:var(--ink-mute); border:1px dashed var(--paper-deep); border-radius:12px; font-size:14px;">
                                 Nie wysłałeś jeszcze żadnego zapytania. Użyj formularza powyżej.
                             </div>
                         @else
@@ -586,7 +586,7 @@
                             </div>
                         </button>
                         <div class="cs-body">
-                            <p style="font-size:13px; color:#4c6373; margin:0 0 12px;">Audyty przydzielone przez nasz zespół. Wejdź, aby przeprowadzić audyt.</p>
+                            <p style="font-size:13px; color:var(--ink-mute); margin:0 0 12px;">Audyty przydzielone przez nasz zespół. Wejdź, aby przeprowadzić audyt.</p>
                             <div class="inquiry-list">
                                 @foreach ($companyAudits as $audit)
                                     @php
@@ -596,58 +596,58 @@
                                     <div class="audit-client-card status-{{ $audit->status }}" style="flex-direction:column; align-items:stretch; gap:10px;">
                                         <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
                                             <div style="flex:1; min-width:200px;">
-                                                <div style="font-weight:800; font-size:15px; color:#0f2330;">{{ $audit->title }}</div>
-                                                <div style="font-size:12px; color:#4c6373; margin-top:2px;">
+                                                <div style="font-weight:800; font-size:15px; color:var(--ink);">{{ $audit->title }}</div>
+                                                <div style="font-size:12px; color:var(--ink-mute); margin-top:2px;">
                                                     {{ $audit->auditType?->name ?? $audit->audit_type ?? '&#8212;' }}
                                                     &nbsp;&middot;&nbsp; {{ $audit->created_at->format('d.m.Y') }}
                                                 </div>
                                             </div>
-                                            <span class="inquiry-badge" style="background:#e0f2fe; color:#0369a1; border:none; white-space:nowrap;">
+                                            <span class="inquiry-badge" style="background:var(--green-bg); color:var(--green-deep); border:1px solid var(--green-light); white-space:nowrap;">
                                                 {{ $audit->statusLabel() }}
                                             </span>
                                         </div>
                                         <div style="display:flex; gap:8px; flex-wrap:wrap;">
                                             @if($audit->agent_type === 'compressor_room' || $audit->agent_type === 'bc_compressor_room')
                                                 <a href="{{ route('client.audit.compressor.questionnaire', $audit) }}"
-                                                   style="padding:7px 14px; border-radius:8px; background:linear-gradient(130deg,#2E7D5C,#1A4D3A); color:#fff; font-size:12px; font-weight:700; text-decoration:none;">
+                                                   style="padding:7px 14px; border-radius:8px; background:var(--green-primary); color:var(--paper); font-size:12px; font-weight:700; text-decoration:none;">
                                                     📋 {{ $audit->questionnaire_completed ? 'Edytuj ankietę Kompresory' : 'Wypełnij ankietę Kompresory' }}
                                                 </a>
                                                 <a href="{{ route('client.audit.ai', $audit) }}"
-                                                   style="padding:7px 14px; border-radius:8px; background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; font-size:12px; font-weight:700; text-decoration:none;">
+                                                   style="padding:7px 14px; border-radius:8px; background:var(--green-deep); color:var(--paper); font-size:12px; font-weight:700; text-decoration:none;">
                                                     {{ $hasStarted ? '▶ Kontynuuj audyt' : '▶ Rozpocznij audyt' }}
                                                 </a>
                                             @elseif($audit->agent_type === 'iso50001' && !$audit->questionnaire_completed)
                                                 <a href="{{ route('client.audit.iso.questionnaire', $audit) }}"
-                                                   style="padding:7px 14px; border-radius:8px; background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; font-size:12px; font-weight:700; text-decoration:none;">
+                                                   style="padding:7px 14px; border-radius:8px; background:var(--green-primary); color:var(--paper); font-size:12px; font-weight:700; text-decoration:none;">
                                                     📋 Wypełnij kwestionariusz
                                                 </a>
                                             @elseif($audit->agent_type === 'general')
                                                 <a href="{{ route('client.audit.master') }}"
-                                                   style="padding:7px 14px; border-radius:8px; background:linear-gradient(130deg,#d97706,#0e89d8); color:#fff; font-size:12px; font-weight:700; text-decoration:none;">
+                                                   style="padding:7px 14px; border-radius:8px; background:var(--gold); color:var(--paper); font-size:12px; font-weight:700; text-decoration:none;">
                                                     📋 Wypełnij ankietę Master
                                                 </a>
                                                 @php $masterDone = \App\Models\EnergyAuditMasterData::where('company_id', $audit->company_id)->where('completion_percent', '>=', 30)->exists(); @endphp
                                                 @if($masterDone)
                                                 <a href="{{ route('client.audit.ai', $audit) }}"
-                                                   style="padding:7px 14px; border-radius:8px; background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; font-size:12px; font-weight:700; text-decoration:none;">
+                                                   style="padding:7px 14px; border-radius:8px; background:var(--green-deep); color:var(--paper); font-size:12px; font-weight:700; text-decoration:none;">
                                                     {{ $hasStarted ? '▶ Kontynuuj audyt' : '▶ Rozpocznij audyt' }}
                                                 </a>
                                                 @endif
                                             @else
                                                 <a href="{{ route('client.audit.ai', $audit) }}"
-                                                   style="padding:7px 14px; border-radius:8px; background:linear-gradient(130deg,#1ba84a,#0e89d8); color:#fff; font-size:12px; font-weight:700; text-decoration:none;">
+                                                   style="padding:7px 14px; border-radius:8px; background:var(--green-deep); color:var(--paper); font-size:12px; font-weight:700; text-decoration:none;">
                                                     {{ $hasStarted ? '▶ Kontynuuj audyt' : '▶ Rozpocznij audyt' }}
                                                 </a>
                                             @endif
                                             @if($audit->agent_type === 'iso50001' && $audit->questionnaire_completed)
                                                 <a href="{{ route('client.audit.iso.questionnaire', $audit) }}"
-                                                   style="padding:7px 14px; border-radius:8px; background:#e0f2fe; color:#0369a1; font-size:12px; font-weight:700; text-decoration:none; border:1px solid #bfdfff;">
+                                                   style="padding:7px 14px; border-radius:8px; background:var(--green-bg); color:var(--green-deep); font-size:12px; font-weight:700; text-decoration:none; border:1px solid var(--green-light);">
                                                     📋 Edytuj kwestionariusz
                                                 </a>
                                             @endif
                                             @if($hasData)
                                             <a href="{{ route('client.audit.edit', $audit) }}"
-                                               style="padding:7px 14px; border-radius:8px; background:#dbe9f5; color:#1d4f73; font-size:12px; font-weight:700; text-decoration:none;">
+                                               style="padding:7px 14px; border-radius:8px; background:var(--paper-deep); color:var(--green-deep); font-size:12px; font-weight:700; text-decoration:none;">
                                                 ✏️ Edytuj dane / Rekomendacje
                                             </a>
                                             @endif

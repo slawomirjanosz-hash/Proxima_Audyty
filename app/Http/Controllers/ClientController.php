@@ -330,7 +330,7 @@ class ClientController extends Controller
         // Redirect to questionnaire first for compressor room audits
         if ($agentType === 'compressor_room' && ! $audit->questionnaire_completed) {
             return redirect()->route('client.audit.compressor.questionnaire', $audit)
-                ->with('status', 'Przed rozpoczęciem rozmowy wypełnij ankietę sprężarkowni — podaj co wiesz, resztę zbierze asystent AI.');
+                ->with('status', 'Przed rozpoczęciem rozmowy wypełnij ankietę Kompresory — podaj co wiesz, resztę zbierze asystent AI.');
         }
 
         // Redirect to Master Form first for general energy audits
@@ -565,11 +565,11 @@ class ClientController extends Controller
 
         if ($isStaff) {
             return redirect()->route('client.audit.ai', $audit)
-                ->with('status', 'Ankieta sprężarkowni zapisana przez audytora.');
+                ->with('status', 'Ankieta Kompresory zapisana przez audytora.');
         }
 
         return redirect()->route('client.audit.ai', $audit)
-            ->with('status', 'Ankieta sprężarkowni zapisana. Asystent AI zapozna się z danymi i zada tylko pytania uzupełniające.');
+            ->with('status', 'Ankieta Kompresory zapisana. Asystent AI zapozna się z danymi i zada tylko pytania uzupełniające.');
     }
 
     /**

@@ -1,8 +1,8 @@
 ﻿<x-layouts.app>
 @if(isset($isStaff) && $isStaff && isset($audit) && $audit->company)
 <div style="background:#1d4f73;color:#fff;padding:8px 20px;font-size:13px;display:flex;align-items:center;gap:12px;">
-  <span>&#9881; Tryb administratora: {{ $audit->company->name }}</span>
-  <a href="{{ route('firma.show', $audit->company) }}" style="color:#a0d4f5;margin-left:auto;">&#8592; Wr&#243;&#263; do firmy</a>
+  <span>âš™ Tryb administratora: {{ $audit->company->name }}</span>
+  <a href="{{ route('firma.show', $audit->company) }}" style="color:#a0d4f5;margin-left:auto;">â† WrĂłÄ‡ do firmy</a>
 </div>
 @endif
 
@@ -28,7 +28,6 @@
   --ink: #1A1612;
   --ink-soft: #3D352C;
   --ink-mute: #76695A;
-  --forest: #1A4D3A;
   --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
   --sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
@@ -38,7 +37,7 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
-body { margin: 0; }
+body { margin: 0; background: var(--paper); font-family: var(--font-body); font-size: 15px; color: var(--ink); }
 
 .enesa-form-body::before {
   content: 'POUFNE';
@@ -752,8 +751,24 @@ body { margin: 0; }
 .alok-cell-sum.error { color: var(--rose);       background: var(--rose-light); }
 
 
-.enesa-form-body { display: flex; min-height: calc(100vh - 60px); position: relative; }
-.enesa-form-body::before { content: 'POUFNE'; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-45deg); font-size: 120px; font-weight: 900; color: rgba(0,0,0,0.03); pointer-events: none; z-index: 0; letter-spacing: 0.2em; }
+.enesa-form-body {
+  display: flex;
+  min-height: calc(100vh - 60px);
+  position: relative;
+}
+.enesa-form-body::before {
+  content: 'POUFNE';
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%) rotate(-45deg);
+  font-size: 120px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.03);
+  pointer-events: none;
+  z-index: 0;
+  letter-spacing: 0.2em;
+}
 </style>
 
 <div class="save-indicator" id="save-indicator">Zapisano</div>
@@ -1359,13 +1374,13 @@ body { margin: 0; }
 
 
   <!-- ============================================================ -->
-  <!-- ETAP 3 · SPRĘŻARKOWNIA JAKO SYSTEM -->
+  <!-- ETAP 3 · KOMPRESORY JAKO SYSTEM -->
   <!-- ============================================================ -->
   <section class="section" id="etap-3">
     <div class="section-head">
       <div>
         <div class="section-eyebrow">ETAP 3</div>
-        <h2 class="section-title serif">Sprężarkownia jako system</h2>
+        <h2 class="section-title serif">KOMPRESORY JAKO SYSTEM</h2>
         <p class="section-desc">Specific Power, ciśnienie robocze, sterowanie sekwencyjne, monitoring BMS/SCADA, zbiornik buforowy · 7 pól · czas: 3-4 min</p>
       </div>
       <div class="section-meta">
@@ -1377,7 +1392,7 @@ body { margin: 0; }
     <div class="section-body">
 
       <div class="group-info">
-        <strong>Sprężarkownia jako system — 7 pól · czas: 3-4 min</strong>
+        <strong>KOMPRESORY JAKO SYSTEM — 7 pól · czas: 3-4 min</strong>
         <ul>
           <li><strong>Specific Power</strong> — kluczowy KPI. Cel: &lt;6,5 kW/(m³/min). Powyżej 8,5 → kandydat do modernizacji.</li>
           <li><strong>Praca w nocy/weekend</strong> — to KLUCZOWY wskaźnik nieszczelności. Jeśli zakład nie pracuje a sprężarka chodzi → wycieki.</li>
@@ -2259,6 +2274,7 @@ Lakiernia spray — 6 bar — ~800 m³/h
 </main>
 
 
+
 </div>
 
 <script>
@@ -2270,6 +2286,22 @@ const MASTER_DATA = @json($masterFormData ?? []);
 const FORM_DATA   = @json($answers ?? []);
 const AUDIT_ID  = {{ $audit->id }};
 
+  const enesaStorage = {
+    get: (k) => {
+      if (k.startsWith(MASTER_PREFIX)) {
+        const fid = k.slice(MASTER_PREFIX.length);
+        return readMasterField(fid);
+      }
+      if (typeof FORM_DATA !== 'undefined' && FORM_DATA) {
+        const caKey = k.startsWith(STORAGE_PREFIX) ? k.slice(STORAGE_PREFIX.length) : k;
+        if (FORM_DATA[caKey] !== undefined) return FORM_DATA[caKey];
+      }
+      try { return localStorage.getItem(k) ?? '' } catch { return '' }
+    },
+    set: (k, v) => {
+      try { localStorage.setItem(k, v) } catch {}
+    }
+  };
 
 // ============================================================
 // ENESA CA Form - JavaScript (v1.0) — Sprężone Powietrze · scope SCOPE 3
@@ -3329,60 +3361,5 @@ rebuildAlokacja();     // zbuduj macierz E2b
 refreshKpiAndFlagi();  // E7 auto-koszt + E8 KPI + 14 flag CA
 
 
-// === LARAVEL BLADE OVERRIDES ===
-// Override isMasterConnected to check MASTER_DATA (from PHP/DB) instead of localStorage
-// Must use variable assignment (not function declaration) to override hoisted original
-isMasterConnected = function() {
-  if (typeof MASTER_DATA !== 'undefined' && MASTER_DATA) {
-    return Object.keys(MASTER_DATA).length > 0;
-  }
-  return false;
-};
-
-// Override enesaStorage to read from FORM_DATA for own (ca:) keys and MASTER_DATA for master: keys
-if (typeof enesaStorage !== 'undefined') {
-  const _origGet = enesaStorage.get.bind(enesaStorage);
-  enesaStorage.get = function(key) {
-    if (key && key.startsWith(MASTER_PREFIX)) {
-      return readMasterField(key.slice(MASTER_PREFIX.length));
-    }
-    if (key && key.startsWith(STORAGE_PREFIX)) {
-      const fieldId = key.slice(STORAGE_PREFIX.length);
-      if (typeof FORM_DATA !== 'undefined' && FORM_DATA && FORM_DATA[fieldId] !== undefined) {
-        return String(FORM_DATA[fieldId]);
-      }
-    }
-    return _origGet(key);
-  };
-}
-
-// Override scheduleAutoSave to POST to Laravel backend
-scheduleAutoSave = function() {
-  if (typeof saveTimer !== 'undefined' && saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    const data = {};
-    document.querySelectorAll('[data-id]').forEach(el => {
-      if (!el.dataset.masterSource && !el.closest('[data-master-source]')) {
-        const v = el.value;
-        if (v !== '' && v !== null) data[el.dataset.id] = v;
-        try { localStorage.setItem(STORAGE_PREFIX + el.dataset.id, v); } catch {}
-      }
-    });
-    if (typeof SAVE_URL === 'undefined' || !SAVE_URL) return;
-    const total = document.querySelectorAll('[data-id]:not([data-master-source])').length;
-    const pct = total > 0 ? Math.round(Object.keys(data).length / total * 100) : 0;
-    fetch(SAVE_URL, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF},
-      body: JSON.stringify({fields: data, completion_percent: pct})
-    }).then(r => r.json()).then(d => {
-      if (typeof showSaveIndicator === 'function') showSaveIndicator('Zapisano (' + (d.saved || '?') + ' pĂłl)');
-    }).catch(err => {
-      if (typeof showSaveIndicator === 'function') showSaveIndicator('BĹ‚Ä…d zapisu!');
-      console.error('Save error:', err);
-    });
-  }, 800);
-};
-// === END LARAVEL BLADE OVERRIDES ===
 </script>
 </x-layouts.app>
