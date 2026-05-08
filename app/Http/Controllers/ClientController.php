@@ -701,6 +701,31 @@ class ClientController extends Controller
     }
 
     /**
+     * Preview the Kompresory questionnaire without a specific audit (staff only).
+     * Renders in read-only/empty mode — no data is saved.
+     */
+    public function previewCompressorQuestionnaire(): \Illuminate\View\View
+    {
+        // Create a transient (unsaved) audit-like object for the view
+        $fakeAudit = new \App\Models\EnergyAudit([
+            'id'         => 0,
+            'agent_type' => 'compressor_room',
+            'title'      => 'Podgląd ankiety Kompresory',
+            'company_id' => null,
+        ]);
+
+        return view('client.compressor-questionnaire', [
+            'audit'          => $fakeAudit,
+            'answers'        => [],
+            'company'        => null,
+            'user'           => auth()->user(),
+            'chatMessages'   => collect(),
+            'masterFormData' => [],
+            'isStaff'        => true,
+        ]);
+    }
+
+    /**
      * Formularz ręcznej edycji danych protokołu przez klienta.
      */
     public function editAuditData(\App\Models\EnergyAudit $audit): \Illuminate\Contracts\View\View

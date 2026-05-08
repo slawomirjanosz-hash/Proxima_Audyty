@@ -33,7 +33,10 @@ $css = $css -replace '\.sidenav\s*\{[^}]*\}', @'
 '@
 
 $css = $css -replace 'body::before', '.enesa-form-body::before'
-$css = $css -replace 'body\s*\{[^}]*display\s*:\s*flex[^}]*\}', 'body { margin: 0; background: var(--paper); font-family: var(--font-body); font-size: 15px; color: var(--ink); }'
+$css = $css -replace 'body\s*\{[^}]*display\s*:\s*flex[^}]*\}', 'body { margin: 0; }'
+# Add --forest variable to :root if missing
+$css = $css -replace '(--ink-mute:\s*#[0-9A-Fa-f]+;)', '$1
+  --forest: #1A4D3A;'
 
 # Remove margin-left from .main
 $css = $css -replace '(\.main\s*\{[^}]*)margin-left\s*:\s*[^;]+;', '$1'

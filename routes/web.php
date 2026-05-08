@@ -326,6 +326,8 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('role:client')->name('client.audit.iso.questionnaire.save');
     Route::get('/moje-audyty/{audit}/kwestionariusz-sprezarkowni', [ClientController::class, 'showCompressorQuestionnaire'])
         ->middleware('role:client,admin,auditor')->name('client.audit.compressor.questionnaire');
+    Route::get('/strefa-klienta/podglad-ankiety-kompresory', [ClientController::class, 'previewCompressorQuestionnaire'])
+        ->middleware('role:admin,auditor')->name('client.audit.compressor.questionnaire.preview');
     Route::post('/moje-audyty/{audit}/kwestionariusz-sprezarkowni', [ClientController::class, 'saveCompressorQuestionnaire'])
         ->middleware('role:client,admin,auditor')->name('client.audit.compressor.questionnaire.save');
     Route::post('/moje-audyty/{audit}/kwestionariusz-sprezarkowni/ajax-zapisz', [ClientController::class, 'saveCompressorQuestionnaireAjax'])

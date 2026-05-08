@@ -138,6 +138,19 @@
                     </div>
                     @endif
 
+                    @if($agent['type'] === 'compressor_room')
+                    <div style="margin-bottom:16px; background:#f8fbff; border:1px solid var(--paper-deep); border-radius:12px; padding:14px 18px;">
+                        <div style="font-weight:800; font-size:13px; color:var(--green-deep); margin-bottom:4px;">📋 Podgląd struktury ankiety Kompresory</div>
+                        <div style="font-size:13px; color:var(--ink-mute); margin-bottom:12px;">
+                            Otwórz formularz w trybie tylko do odczytu — możesz przejrzeć wszystkie sekcje i pola bez przypisywania danych do klienta.
+                        </div>
+                        <a href="{{ route('client.audit.compressor.questionnaire.preview') }}" target="_blank"
+                           style="display:inline-flex; align-items:center; gap:8px; padding:9px 18px; background:var(--green-deep); color:#fff; border-radius:10px; font-weight:700; font-size:13px; text-decoration:none;">
+                            🔍 Podgląd ankiety
+                        </a>
+                    </div>
+                    @endif
+
                     <div style="border:1px solid #dde8f3; border-radius:12px; overflow:hidden;">
                         <button type="button"
                                 onclick="toggleAgentTraining('training-{{ $agent['type'] }}')"

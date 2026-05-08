@@ -28,6 +28,7 @@
   --ink: #1A1612;
   --ink-soft: #3D352C;
   --ink-mute: #76695A;
+  --forest: #1A4D3A;
   --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
   --sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
@@ -37,7 +38,7 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
-body { margin: 0; background: var(--paper); font-family: var(--font-body); font-size: 15px; color: var(--ink); }
+body { margin: 0; }
 
 .enesa-form-body::before {
   content: 'POUFNE';
@@ -2280,11 +2281,11 @@ Lakiernia spray — 6 bar — ~800 m³/h
 <script>
 const STORAGE_PREFIX = 'ca:';
 const MASTER_PREFIX  = 'master:';
-const SAVE_URL  = '{{ route("client.audit.compressor.questionnaire.ajax-save", $audit) }}';
+const SAVE_URL  = '{{ $audit->id ? route("client.audit.compressor.questionnaire.ajax-save", $audit) : "" }}';
 const CSRF      = '{{ csrf_token() }}';
 const MASTER_DATA = @json($masterFormData ?? []);
 const FORM_DATA   = @json($answers ?? []);
-const AUDIT_ID  = {{ $audit->id }};
+const AUDIT_ID  = {{ $audit->id ?? 0 }};
 
   const enesaStorage = {
     get: (k) => {

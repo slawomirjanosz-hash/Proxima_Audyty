@@ -73,6 +73,9 @@
                         <div class="meta">{{ $conv->created_at->format('d.m.Y H:i') }}</div>
                         <div class="actions">
                             <a href="{{ route('ai.show', $conv) }}" class="btn btn-primary">Kontynuuj</a>
+                            @if($conv->context_type === 'compressor_room')
+                                <a href="{{ route('client.audit.compressor.questionnaire', $conv->context_id) }}?readonly=1" class="btn btn-secondary" target="_blank">Podgląd ankiety</a>
+                            @endif
                             <form method="POST" action="{{ route('ai.destroy', $conv) }}" onsubmit="return confirm('Zarchiwizować rozmowę?')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-danger">Archiwizuj</button>
