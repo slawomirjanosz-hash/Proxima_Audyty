@@ -207,12 +207,20 @@ class OffersController extends Controller
 
     public function generatePdf(Offer $offer)
     {
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('offers.print', compact('offer'))
+        $coverHtml = view('offers.cover', compact('offer'))->render();
+        $printHtml = view('offers.print', compact('offer'))->render();
+
+        // Inject cover before the main content with a forced page break
+        // We strip the </body></html> from cover and prepend it to print's <body>
+        $combined = $coverHtml . '<div style="page-break-after:always;"></div>' . $printHtml;
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($combined)
             ->setOptions([
                 'isHtml5ParserEnabled' => true,
                 'isRemoteEnabled'      => false,
                 'defaultFont'          => 'DejaVu Sans',
                 'defaultPaperSize'     => 'a4',
+                'chroot'               => public_path(),
             ]);
         return $pdf->download('oferta-' . ($offer->offer_number ?: $offer->id) . '.pdf');
     }
