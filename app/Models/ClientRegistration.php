@@ -15,6 +15,8 @@ class ClientRegistration extends Model
         'postal_code',
         'phone',
         'email',
+        'first_name',
+        'last_name',
         'status',
     ];
 }

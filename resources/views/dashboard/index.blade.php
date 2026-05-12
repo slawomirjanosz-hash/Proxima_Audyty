@@ -172,6 +172,7 @@
                         <tr>
                             <th>Firma</th>
                             <th>NIP</th>
+                            <th>Osoba kontaktowa</th>
                             <th>Miasto</th>
                             <th>Telefon</th>
                             <th>E-mail</th>
@@ -184,6 +185,7 @@
                             <tr>
                                 <td style="font-weight:700;">{{ $reg->name }}</td>
                                 <td style="font-family:monospace; font-size:13px;">{{ $reg->nip }}</td>
+                                <td>{{ trim(($reg->first_name ?? '') . ' ' . ($reg->last_name ?? '')) ?: '—' }}</td>
                                 <td>{{ $reg->city ?? '—' }}</td>
                                 <td>{{ $reg->phone }}</td>
                                 <td>{{ $reg->email }}</td>

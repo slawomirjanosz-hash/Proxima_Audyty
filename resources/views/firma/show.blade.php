@@ -108,6 +108,12 @@
                 @if($company->nip)
                     <span style="background:var(--green-bg); border:1px solid var(--green-light); border-radius:4px; padding:4px 10px; font-size:12px; font-weight:700; color:var(--green-deep); font-family:var(--mono);">NIP {{ $company->nip }}</span>
                 @endif
+                @if(auth()->user()->canManageEverything())
+                    <button type="button" onclick="openDeleteCompanyModal()"
+                        style="padding:5px 14px; background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">
+                        🗑 Usuń firmę
+                    </button>
+                @endif
             </div>
         </div>
 
@@ -1020,12 +1026,72 @@
     @endif
 
     // Close modals on backdrop click
-    ['modal-mail','modal-remove'].forEach(id => {
-        document.getElementById(id).addEventListener('click', function(e) {
+    ['modal-mail','modal-remove','modal-delete-company'].forEach(id => {
+        document.getElementById(id)?.addEventListener('click', function(e) {
             if (e.target === this) this.style.display = 'none';
         });
     });
     </script>
+
+    {{-- Delete company confirmation modal --}}
+    @if(auth()->user()->canManageEverything())
+    <div id="modal-delete-company" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:#fff; border-radius:16px; padding:28px 32px; max-width:480px; width:92%; box-shadow:0 8px 40px rgba(0,0,0,.22);">
+            <h3 style="margin:0 0 10px; font-size:18px; color:#991b1b;">⚠️ Trwałe usunięcie firmy</h3>
+            <p style="margin:0 0 8px; font-size:14px; color:#3b5567;">Zostanie usunięte <strong>wszystko</strong>:</p>
+            <ul style="margin:0 0 14px; padding-left:20px; font-size:13px; color:#4c6373; line-height:1.8;">
+                <li>Firma i jej dane</li>
+                <li>Wszyscy użytkownicy przypisani do firmy</li>
+                <li>Wszystkie audyty i konwersacje AI</li>
+                <li>Wiadomości czatu, zapytania, oferty</li>
+            </ul>
+            <p style="margin:0 0 6px; font-size:13px; font-weight:700; color:#991b1b;">Tej operacji <u>nie można cofnąć</u>.</p>
+            <p style="margin:0 0 12px; font-size:13px; color:#4c6373;">Aby potwierdzić, wpisz nazwę firmy:</p>
+            <p style="margin:0 0 8px; font-size:13px; font-family:monospace; background:#fef2f2; border:1px solid #fca5a5; border-radius:6px; padding:6px 10px; color:#991b1b; word-break:break-all;">
+                {{ $company->name }}
+            </p>
+            <input type="text" id="delete-company-confirm-input" placeholder="Wpisz nazwę firmy..."
+                style="width:100%; border:1px solid #fca5a5; border-radius:8px; padding:9px 12px; font-size:13px; background:#fff; box-sizing:border-box; margin-bottom:16px; outline:none;"
+                oninput="checkDeleteCompanyInput()">
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button type="button" onclick="closeDeleteCompanyModal()"
+                    style="padding:9px 20px; border:1px solid #c8d8e6; border-radius:8px; background:#f8fbfd; font-weight:700; cursor:pointer; color:#1d3a50;">
+                    Anuluj
+                </button>
+                <form id="delete-company-form" method="POST" action="{{ route('firma.destroy', $company) }}" style="margin:0;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" id="delete-company-btn" disabled
+                        style="padding:9px 20px; background:#dc2626; color:#fff; border:none; border-radius:8px; font-weight:700; cursor:pointer; opacity:.4; transition:opacity .15s;">
+                        Usuń firmę na zawsze
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const EXPECTED_COMPANY_NAME = @json($company->name);
+    function openDeleteCompanyModal() {
+        document.getElementById('delete-company-confirm-input').value = '';
+        document.getElementById('delete-company-btn').disabled = true;
+        document.getElementById('delete-company-btn').style.opacity = '.4';
+        document.getElementById('modal-delete-company').style.display = 'flex';
+        setTimeout(() => document.getElementById('delete-company-confirm-input').focus(), 100);
+    }
+    function closeDeleteCompanyModal() {
+        document.getElementById('modal-delete-company').style.display = 'none';
+    }
+    function checkDeleteCompanyInput() {
+        const val = document.getElementById('delete-company-confirm-input').value;
+        const btn = document.getElementById('delete-company-btn');
+        const match = val.trim() === EXPECTED_COMPANY_NAME.trim();
+        btn.disabled = !match;
+        btn.style.opacity = match ? '1' : '.4';
+        btn.style.cursor = match ? 'pointer' : 'default';
+    }
+    </script>
+    @endif
 
     <x-admin-chat-float :chatMessages="$chatMessages" :company="$company" />
 </x-layouts.app>

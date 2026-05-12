@@ -115,6 +115,20 @@
                 <div class="section-label">Dane kontaktowe</div>
 
                 <div class="field">
+                    <label for="first_name">Imię osoby kontaktowej <span class="req">*</span></label>
+                    <input type="text" id="first_name" name="first_name" required
+                           value="{{ old('first_name') }}" placeholder="np. Jan">
+                    @error('first_name')<div class="field-error">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="field">
+                    <label for="last_name">Nazwisko osoby kontaktowej <span class="req">*</span></label>
+                    <input type="text" id="last_name" name="last_name" required
+                           value="{{ old('last_name') }}" placeholder="np. Kowalski">
+                    @error('last_name')<div class="field-error">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="field">
                     <label for="phone">Telefon kontaktowy <span class="req">*</span></label>
                     <input type="tel" id="phone" name="phone" required
                            value="{{ old('phone') }}" placeholder="np. +48 123 456 789">

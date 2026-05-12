@@ -2,12 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRole;
+use App\Mail\RegistrationAcceptedMail;
+use App\Mail\RegistrationRejectedMail;
+use App\Mail\WelcomeClientMail;
 use App\Models\ClientRegistration;
 use App\Models\Company;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class RegistrationController extends Controller
@@ -85,6 +91,8 @@ class RegistrationController extends Controller
             'city'        => ['nullable', 'string', 'max:100'],
             'street'      => ['nullable', 'string', 'max:255'],
             'postal_code' => ['nullable', 'string', 'max:10'],
+            'first_name'  => ['required', 'string', 'max:100'],
+            'last_name'   => ['required', 'string', 'max:100'],
             'phone'       => ['required', 'string', 'max:30'],
             'email'       => ['required', 'email:rfc', 'max:200'],
         ]);
@@ -114,7 +122,7 @@ class RegistrationController extends Controller
     {
         $reg = ClientRegistration::where('status', 'pending')->findOrFail($id);
 
-        Company::create([
+        $company = Company::create([
             'name'        => $reg->name,
             'short_name'  => $reg->short_name,
             'nip'         => $reg->nip,
@@ -125,10 +133,55 @@ class RegistrationController extends Controller
             'email'       => $reg->email,
         ]);
 
+        // Create a client user account from the registration contact data
+        $plainPassword = $this->generatePassword();
+        $firstName     = $reg->first_name ?? '';
+        $lastName      = $reg->last_name ?? '';
+        $fullName      = trim($firstName . ' ' . $lastName) ?: $reg->name;
+        $shortName     = mb_substr($firstName, 0, 3) . mb_substr($lastName, 0, 3);
+
+        $user = User::where('email', $reg->email)->first();
+
+        if (! $user) {
+            $user = User::create([
+                'name'       => $fullName,
+                'first_name' => $firstName,
+                'last_name'  => $lastName,
+                'short_name' => $shortName ?: mb_substr($fullName, 0, 6),
+                'email'      => $reg->email,
+                'phone'      => $reg->phone,
+                'password'   => $plainPassword,
+                'role'       => UserRole::Client->value,
+                'company_id' => $company->id,
+            ]);
+        } else {
+            $user->update(['company_id' => $company->id, 'role' => UserRole::Client->value]);
+            $plainPassword = null; // don't reset existing user's password
+        }
+
+        // Link user as primary client of the company
+        $company->update(['client_id' => $user->id]);
+        $company->assignedUsers()->syncWithoutDetaching([$user->id]);
+
         $reg->update(['status' => 'accepted']);
 
-        return redirect()->route('dashboard')
-            ->with('status', 'Firma "' . $reg->name . '" została dodana do systemu.');
+        // Send welcome e-mail with login credentials (only for new users)
+        $mailError = null;
+        if ($plainPassword) {
+            try {
+                Mail::to($user->email)->send(new WelcomeClientMail($user, $company, $plainPassword));
+            } catch (\Throwable $e) {
+                report($e);
+                $mailError = $e->getMessage();
+            }
+        }
+
+        $status = 'Firma "' . $reg->name . '" została dodana do systemu. Konto klienta: ' . $user->email . '.';
+        if ($mailError) {
+            $status .= ' ⚠ Nie udało się wysłać e-maila: ' . $mailError;
+        }
+
+        return redirect()->route('dashboard')->with('status', $status);
     }
 
     public function destroy(int $id): RedirectResponse
@@ -137,8 +190,20 @@ class RegistrationController extends Controller
         $name = $reg->name;
         $reg->update(['status' => 'rejected']);
 
+        try {
+            Mail::to($reg->email)->send(new RegistrationRejectedMail($reg));
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         return redirect()->route('dashboard')
-            ->with('status', 'Wniosek rejestracyjny firmy "' . $name . '" zostal odrzucony.');
+            ->with('status', 'Wniosek rejestracyjny firmy "' . $name . '" został odrzucony.');
+    }
+
+    private function generatePassword(): string
+    {
+        $chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789!@#';
+        return substr(str_shuffle(str_repeat($chars, 4)), 0, 12);
     }
 
     private function nipChecksum(string $nip): bool

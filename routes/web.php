@@ -491,6 +491,9 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/firmy/{company}/uzytkownik/{user}/mail', [CompanyController::class, 'resendMail'])
         ->middleware('role:admin,auditor')
         ->name('firma.resendMail');
+    Route::delete('/firmy/{company}', [CompanyController::class, 'destroy'])
+        ->middleware('role:admin')
+        ->name('firma.destroy');
 
     // AI Agent
     Route::prefix('ai')->name('ai.')->group(function () {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
 use App\Mail\WelcomeClientMail;
+use App\Models\AiConversation;
 use App\Models\AuditType;
 use App\Models\ClientChatMessage;
 use App\Models\ClientInquiry;
@@ -273,6 +274,30 @@ class CompanyController extends Controller
         }
 
         return view('firma.report', compact('company', 'audit', 'conversation', 'questionnaireQuestions'));
+    }
+
+    public function destroy(Request $request, Company $company): RedirectResponse
+    {
+        if (! $request->user()->canManageEverything()) {
+            abort(403);
+        }
+
+        // Delete AI conversations linked to company's energy audits (no FK constraint)
+        $auditIds = $company->energyAudits()->pluck('id');
+        AiConversation::whereIn('context_id', $auditIds)
+            ->where('context_type', EnergyAudit::class)
+            ->delete();
+
+        // Delete users that belong exclusively to this company
+        User::where('company_id', $company->id)->delete();
+
+        // Delete the company — DB cascades handle: energy_audits, offers,
+        // company_contacts, company_user pivot, client_chat_messages
+        $companyName = $company->name;
+        $company->delete();
+
+        return redirect()->route('dashboard')
+            ->with('status', 'Firma „' . $companyName . '" oraz wszystkie powiązane dane zostały trwale usunięte.');
     }
 
     public function addUser(Request $request, Company $company): RedirectResponse

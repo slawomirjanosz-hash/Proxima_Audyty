@@ -163,7 +163,14 @@ class OffersController extends Controller
 
     public function sendToClient(Offer $offer)
     {
-        $email = $offer->customer_email;
+        // Prefer the email of the user who created the linked inquiry
+        $inquiry = ClientInquiry::where('offer_id', $offer->id)->with('user')->first();
+        $email   = $inquiry?->user?->email;
+
+        // Fall back to offer/company data if no inquiry user found
+        if (! $email) {
+            $email = $offer->customer_email;
+        }
         if (! $email && $offer->company) {
             $email = $offer->company->email ?? $offer->company->client?->email;
         }
