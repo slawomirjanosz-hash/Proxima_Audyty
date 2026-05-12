@@ -7,6 +7,7 @@ use App\Models\CrmCompany;
 use App\Models\CrmDeal;
 use App\Models\Offer;
 use Illuminate\Http\Request;
+use App\Mail\OfferSentMail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
@@ -179,21 +180,7 @@ class OffersController extends Controller
             return back()->with('error', 'Brak adresu e-mail klienta w ofercie. Uzupełnij dane klienta.');
         }
 
-        $offerLabel = ($offer->offer_number ? $offer->offer_number . ': ' : '') . $offer->offer_title;
-        $subject    = 'Masz nową ofertę – ' . $offerLabel;
-        $clientZoneUrl = url('/strefa-klienta');
-        $body = "Dzień dobry,\n\n"
-            . "Przygotowaliśmy dla Ciebie ofertę: {$offerLabel}\n\n"
-            . "Aby ją zobaczyć, wygenerować PDF lub zaakceptować, zaloguj się do Strefy klienta:\n"
-            . "{$clientZoneUrl}\n\n"
-            . "Jeśli masz pytania, napisz do nas przez chat w Strefie klienta.\n\n"
-            . "Pozdrawiamy,\nZespół ENESA";
-
-        Mail::send([], [], function ($msg) use ($email, $subject, $body) {
-            $msg->to($email)
-                ->subject($subject)
-                ->text($body);
-        });
+        Mail::to($email)->send(new OfferSentMail($offer));
 
         // Mark the linked inquiry offer as sent
         ClientInquiry::where('offer_id', $offer->id)

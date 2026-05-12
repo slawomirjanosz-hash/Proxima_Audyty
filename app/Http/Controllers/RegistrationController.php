@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
+use App\Mail\AuditAssignedMail;
+use App\Mail\OfferSentMail;
 use App\Mail\RegistrationAcceptedMail;
+use App\Mail\RegistrationReceivedMail;
 use App\Mail\RegistrationRejectedMail;
 use App\Mail\WelcomeClientMail;
 use App\Models\ClientRegistration;
@@ -114,6 +117,14 @@ class RegistrationController extends Controller
         }
 
         ClientRegistration::create($validated);
+
+        try {
+            Mail::to($validated['email'])->send(new RegistrationReceivedMail(
+                ClientRegistration::where('nip', $validated['nip'])->latest()->first()
+            ));
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         return view('rejestracja.success', ['name' => $validated['name']]);
     }

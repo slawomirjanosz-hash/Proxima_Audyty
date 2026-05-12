@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
+use App\Mail\AuditAssignedMail;
 use App\Mail\WelcomeClientMail;
 use App\Models\AiConversation;
 use App\Models\AuditType;
@@ -98,14 +99,14 @@ class CompanyController extends Controller
             abort_unless($auditType !== null, 422, 'Brak skonfigurowanego typu audytu.');
         }
 
-        EnergyAudit::create([
+        $audit = EnergyAudit::create([
             'title'         => $validated['title'],
             'audit_type_id' => $auditType->id,
             'audit_type'    => $auditType->name,
             'agent_type'    => $validated['agent_type'],
             'company_id'    => $company->id,
             'auditor_id'    => $validated['auditor_id'] ?? null,
-            'status'        => 'wysłany',
+            'status'        => 'wysałany',
             'data_payload'  => [],
         ]);
 
@@ -113,6 +114,16 @@ class CompanyController extends Controller
         \App\Models\ClientInquiry::where('company_id', $company->id)
             ->where('status', 'offer_accepted')
             ->update(['status' => 'closed']);
+
+        // Notify the company client by email
+        $company->load('client');
+        if ($company->client) {
+            try {
+                Mail::to($company->client->email)->send(new AuditAssignedMail($audit, $company, $company->client));
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
 
         return redirect()->route('firma.show', $company)
             ->with('status', 'Audyt został przydzielony firmie.');
