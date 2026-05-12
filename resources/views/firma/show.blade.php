@@ -5,13 +5,13 @@
         .firma-meta-inline .meta-chip { display:inline-flex; align-items:center; gap:4px; font-size:13px; color:var(--ink-mute); }
         .firma-meta-inline .meta-chip strong { color:var(--ink); font-weight:600; }
         .section-box { background:var(--paper-soft); border:1px solid var(--paper-deep); border-radius:8px; margin-top:10px; overflow:hidden; }
-        .section-box-toggle { width:100%; display:flex; justify-content:space-between; align-items:center; gap:8px; padding:14px 18px; background:var(--paper-soft); border:none; cursor:pointer; text-align:left; font-family:var(--sans); }
-        .section-box-toggle:hover { background:var(--green-bg); }
-        .section-box-toggle h2 { margin:0; font-size:15px; font-weight:700; color:var(--green-deep); font-family:var(--serif); display:flex; align-items:center; gap:8px; }
+        .section-box-toggle { width:100%; display:flex; justify-content:space-between; align-items:center; gap:8px; padding:14px 18px; background:var(--green-deep); border:none; cursor:pointer; text-align:left; font-family:var(--sans); color:var(--paper); }
+        .section-box-toggle:hover { background:var(--green-primary); }
+        .section-box-toggle h2 { margin:0; font-size:15px; font-weight:700; color:var(--paper); font-family:var(--serif); display:flex; align-items:center; gap:8px; }
         .section-box-toggle .toggle-right { display:flex; align-items:center; gap:8px; }
-        .section-box-toggle .chevron { font-size:13px; color:var(--ink-mute); transition:transform .2s; }
+        .section-box-toggle .chevron { font-size:13px; color:var(--green-light); transition:transform .2s; }
         .section-box.open .chevron { transform:rotate(180deg); }
-        .section-box.open .section-box-toggle { background:var(--green-bg); }
+        .section-box.open .section-box-toggle { background:var(--green-primary); }
         .section-box-body { display:none; padding:16px 18px; border-top:1px solid var(--paper-deep); }
         .section-box.open .section-box-body { display:block; }
         .section-box-header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:14px; }

@@ -74,17 +74,18 @@
             justify-content: space-between;
             align-items: center;
             padding: 14px 18px;
-            background: none;
+            background: var(--green-deep);
             border: none;
             cursor: pointer;
             text-align: left;
+            color: var(--paper);
         }
-        .cs-toggle:hover { background: var(--green-bg); }
-        .cs-toggle h3 { margin: 0; font-size: 15px; font-weight: 600; color: var(--green-deep); font-family: var(--serif); }
+        .cs-toggle:hover { background: var(--green-primary); }
+        .cs-toggle h3 { margin: 0; font-size: 15px; font-weight: 600; color: var(--paper); font-family: var(--serif); }
         .cs-body { display: none; padding: 0 18px 18px; }
         .cs-box.open .cs-body { display: block; }
         .cs-box.open .cs-chev { transform: rotate(180deg); }
-        .cs-chev { font-size: 12px; color: var(--ink-mute); transition: transform .2s; flex-shrink: 0; }
+        .cs-chev { font-size: 12px; color: var(--green-light); transition: transform .2s; flex-shrink: 0; }
         .cs-head-row { display: flex; align-items: center; gap: 8px; }
 
         /* ─── Chat notification blink ───────────────────────────── */
