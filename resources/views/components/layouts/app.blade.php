@@ -325,9 +325,16 @@
         }
         .company-tile, .dash-section, .pending-section { background: var(--paper-soft) !important; }
         .company-tile:hover, .audit-row:hover, .user-row:hover, .co-tbl tbody tr:hover { background: var(--green-bg) !important; }
-        .tile-name, .audit-row-title, .inquiry-type, .dash-section-header h2,
-        .section-box-header h2, h1, h2, h3 { color: var(--green-deep) !important; }
-        h1, h2 { font-family: var(--serif) !important; }
+        .tile-name, .audit-row-title, .inquiry-type,
+        .section-box-header h2 { color: var(--green-deep) !important; }
+        /* Content-area headings use serif and dark ink */
+        .content-body h1, .content-body h2 { font-family: var(--serif) !important; color: var(--green-deep) !important; }
+        /* Headings on dark toggle bars — always light */
+        .section-box-toggle h2,
+        .cs-toggle h3,
+        .dash-section-header h2 { color: var(--paper) !important; font-family: var(--sans) !important; font-weight: 600 !important; }
+        /* Sidebar headings stay light */
+        .sidebar h1, .sidebar h2, .sidebar h3 { color: var(--paper) !important; font-family: var(--sans) !important; }
         .tile-meta, .audit-row-meta, .inquiry-meta, .inquiry-msg, p.muted { color: var(--ink-mute) !important; }
         .co-view-btn.active, .btn-accept, .add-user-tab.active, .btn-primary-sm {
             background: var(--green-primary) !important; color: var(--paper) !important; border-color: transparent !important;

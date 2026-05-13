@@ -55,12 +55,13 @@
         .btn-reject { padding:5px 12px; border:none; border-radius:5px; background:#dc2626; color:#fff; font-weight:700; font-size:12px; cursor:pointer; margin-left:4px; font-family:var(--sans); }
         .btn-reject:hover { background:#b91c1c; }
         .dash-section { margin-top:14px; border:1px solid var(--paper-deep); border-radius:8px; background:var(--paper-soft); overflow:hidden; }
-        .dash-section-header { display:flex; justify-content:space-between; align-items:center; padding:12px 18px; cursor:pointer; user-select:none; gap:8px; }
-        .dash-section-header:hover { background:var(--green-bg); }
-        .dash-section-header h2 { margin:0; font-size:15px; font-weight:600; color:var(--green-deep); font-family:var(--serif); }
+        .dash-section-header { display:flex; justify-content:space-between; align-items:center; padding:12px 18px; cursor:pointer; user-select:none; gap:8px; background:var(--green-deep); color:var(--paper); }
+        .dash-section-header:hover { background:var(--green-primary); }
+        .dash-section.open .dash-section-header { background:var(--green-primary); }
+        .dash-section-header h2 { margin:0; font-size:15px; font-weight:600; color:var(--paper); font-family:var(--sans); }
         .dash-section-body { display:none; padding:0 18px 18px; }
         .dash-section.open .dash-section-body { display:block; }
-        .dash-chevron { font-size:12px; color:var(--ink-mute); transition:transform .2s; }
+        .dash-chevron { font-size:12px; color:var(--green-light); transition:transform .2s; }
         .dash-section.open .dash-chevron { transform:rotate(180deg); }
         .co-controls { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; padding:10px 0 4px; }
         .co-search-wrap { flex:1; min-width:180px; max-width:380px; position:relative; }
