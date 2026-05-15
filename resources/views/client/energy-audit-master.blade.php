@@ -4,10 +4,10 @@ $_companyData = null;
 if (isset($company) && $company) {
     $_auditorName = '';
     $_auditorEmail = '';
-    if (method_exists($company, 'assignedUsers')) {
-        $_auditor = $company->assignedUsers->where('role', 'auditor')->first();
-        if ($_auditor) { $_auditorName = $_auditor->name; $_auditorEmail = $_auditor->email; }
-    }
+    // Audytor przydzielony do firmy (auditor_id), fallback: assignedUsers z rolą audytor
+    $_auditor = $company->auditor
+        ?? (method_exists($company, 'assignedUsers') ? $company->assignedUsers->where('role', 'auditor')->first() : null);
+    if ($_auditor) { $_auditorName = $_auditor->name; $_auditorEmail = $_auditor->email; }
     $_companyData = [
         'name'          => $company->name ?? '',
         'nip'           => $company->nip ?? '',
