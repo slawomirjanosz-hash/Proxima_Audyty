@@ -40,7 +40,8 @@
                     <a href="{{ route('profile.edit') }}" style="display:block; padding:9px 14px; font-size:13px; color:#1d4f73; text-decoration:none; font-weight:600;" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background=''">&#9881;&#65039; Ustawienia profilu</a>
                     <a href="{{ route('profile.password') }}" style="display:block; padding:9px 14px; font-size:13px; color:#1d4f73; text-decoration:none; font-weight:600;" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background=''">&#128274; Zmiana hasła</a>
                     <div style="border-top:1px solid #edf3f8; margin:4px 0;"></div>
-                    <form method="POST" action="{{ route('logout', [], false) }}" style="margin:0;">
+                    <form method="POST" action="{{ route('logout', [], false) }}" style="margin:0;"
+                          onsubmit="this.querySelector('button').disabled=true; this.querySelector('button').textContent='Wylogowywanie…';">
                         @csrf
                         <button type="submit" style="
                             width:100%; text-align:left; padding:9px 14px; font-size:13px;

@@ -429,7 +429,8 @@
                         </select>
                     </form>
                     @auth
-                        <form method="POST" action="{{ route('logout', [], false) }}">
+                        <form method="POST" action="{{ route('logout', [], false) }}"
+                              onsubmit="this.querySelector('button').disabled=true;">
                             @csrf
                             <button class="login-btn" type="submit">{{ __('ui.actions.logout') }}</button>
                         </form>

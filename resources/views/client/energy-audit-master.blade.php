@@ -12,7 +12,7 @@ if (isset($company) && $company) {
         'name'          => $company->name ?? '',
         'nip'           => $company->nip ?? '',
         'regon'         => $company->regon ?? '',
-        'address'       => $company->address ?? '',
+        'address'       => implode(', ', array_filter([$company->street ?? '', $company->postal_code ?? ''])),
         'city'          => $company->city ?? '',
         'auditorName'   => $_auditorName,
         'auditorEmail'  => $_auditorEmail,
@@ -1119,8 +1119,22 @@ body { margin: 0; }
             <div class="field-id mono">ZAK-V2-LOK-ADRES</div>
           </div>
           <div class="field-input-wrap">
-            <input type="text" class="field-input" data-id="ZAK-V2-LOK-ADRES" placeholder="ul. Główna 12, 43-100 Tychy">
-            <div class="field-hint">Fizyczna lokalizacja zakładu — może być inna niż siedziba</div>
+            <div style="position:relative;">
+              <input type="text" class="field-input" data-id="ZAK-V2-LOK-ADRES"
+                id="master-loc-adres-input"
+                placeholder="ul. Główna 12, 43-100 Tychy"
+                autocomplete="off"
+                oninput="masterLocDebouncedSearch(this.value)">
+              <div id="master-loc-suggestions" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--paper-deep);border-radius:10px;box-shadow:0 6px 24px rgba(14,55,85,.12);z-index:300;max-height:240px;overflow-y:auto;display:none;margin-top:2px;"></div>
+            </div>
+            <div id="master-climate-status" style="display:none;font-size:11px;color:var(--green-deep);margin-top:5px;padding:5px 10px;background:var(--green-bg,#eef8f0);border-radius:6px;border:1px solid var(--green-light,#a8ddb8);line-height:1.5;"></div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
+              <button type="button" onclick="masterLocForceAutoFill()"
+                style="font-size:11px;padding:4px 10px;border:1px solid var(--green-light,#a8ddb8);border-radius:6px;background:var(--green-bg,#eef8f0);color:var(--green-deep,#1a5c3a);cursor:pointer;white-space:nowrap;font-family:inherit;">
+                🌡 Uzupełnij klimat
+              </button>
+              <div class="field-hint" style="margin:0;">Fizyczna lokalizacja zakładu — domyślnie adres siedziby (E0). System uzupełnia klimat automatycznie.</div>
+            </div>
           </div>
           <div class="kto-cell"><span class="tag em">EM</span></div>
           <div class="field-unit">—</div>
@@ -4405,6 +4419,247 @@ function bindAllFields() {
   });
 }
 
+// ================================================================
+// === Automatyczne warunki klimatyczne (ZAK-V2-LOK-ADRES) ===
+// ================================================================
+
+// Sprawdza czy pola klimatyczne są puste (traktuje '' i '0' jako puste)
+function masterClimateFieldsEmpty() {
+  const zone = document.querySelector('[data-id="ZAK-V4-KLIMAT"]');
+  const hdd  = document.querySelector('[data-id="ZAK-V5-HDD"]');
+  const cdd  = document.querySelector('[data-id="ZAK-V6-CDD"]');
+  const zoneEmpty = !zone || !zone.value;
+  const hddEmpty  = !hdd  || !hdd.value  || hdd.value  === '0';
+  const cddEmpty  = !cdd  || !cdd.value  || cdd.value  === '0';
+  return zoneEmpty && hddEmpty && cddEmpty;
+}
+
+// Wymuś uzupełnienie klimatu (ignoruje sprawdzenie pustości — używane przez przycisk)
+async function masterLocForceAutoFill() {
+  const adresEl = document.querySelector('[data-id="ZAK-V2-LOK-ADRES"]');
+  if (!adresEl || !adresEl.value.trim()) {
+    const s = document.getElementById('master-climate-status');
+    if (s) { s.innerHTML = '⚠ Wpisz najpierw adres lokalizacji.'; s.style.display = 'block'; }
+    return;
+  }
+  // Wyczyść pola klimatyczne żeby force-przeliczyć
+  ['ZAK-V4-KLIMAT','ZAK-V5-HDD','ZAK-V6-CDD','ZAK-V7-ALTITUDE'].forEach(id => {
+    const el = document.querySelector('[data-id="' + id + '"]');
+    if (el) el.value = '';
+  });
+  await masterLocAutoFillIfNeeded();
+}
+
+// Auto-geocodowanie na starcie gdy adres jest już wypełniony a klimat pusty
+async function masterLocAutoFillIfNeeded() {
+  const adresEl = document.querySelector('[data-id="ZAK-V2-LOK-ADRES"]');
+  if (!adresEl || !adresEl.value.trim()) return;
+  if (!masterClimateFieldsEmpty()) return;   // klimat już wypełniony
+
+  const q = adresEl.value.trim();
+  const statusEl = document.getElementById('master-climate-status');
+  if (statusEl) {
+    statusEl.innerHTML = '⏳ Szukam warunków klimatycznych dla „' + q + '"…';
+    statusEl.style.display = 'block';
+  }
+  try {
+    const url = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q) + '&countrycodes=pl&addressdetails=1&format=json&limit=5';
+    const resp = await fetch(url, { headers: { 'Accept-Language': 'pl' } });
+    const results = await resp.json();
+    if (!results || !results.length) {
+      if (statusEl) { statusEl.innerHTML = '⚠ Nie znaleziono lokalizacji „' + q + '" — wpisz miejscowość ręcznie.'; }
+      return;
+    }
+    // Weź pierwszy wynik z preferowaniem miejscowości
+    const place = results.find(r =>
+      ['city','town','village','hamlet','suburb','municipality'].includes(r.type) ||
+      ['city','town','village','hamlet'].includes(r.addresstype)
+    ) || results[0];
+    const addr = place.address || {};
+    const cityName = addr.city || addr.town || addr.village || addr.hamlet || addr.suburb || place.display_name.split(',')[0];
+    const stateName = addr.state || '';
+    masterLocSelectPlace(place.lat, place.lon, cityName, stateName, place.display_name);
+  } catch(e) {
+    if (statusEl) { statusEl.innerHTML = '⚠ Błąd połączenia z usługą geolokalizacji.'; statusEl.style.display = 'block'; }
+  }
+}
+const MASTER_CLIMATE_DB = [
+  { name:'Białystok',       voiv:'Podlaskie',           lat:53.1325, lon:23.1688, alt:148, hdd:3450, cdd:155, zone:'I',   tdes:-22 },
+  { name:'Bielsko-Biała',   voiv:'Śląskie',             lat:49.8224, lon:19.0444, alt:355, hdd:3350, cdd:160, zone:'III', tdes:-20 },
+  { name:'Bydgoszcz',       voiv:'Kujawsko-Pomorskie',  lat:53.1235, lon:18.0084, alt: 64, hdd:2950, cdd:195, zone:'II',  tdes:-18 },
+  { name:'Chojnice',        voiv:'Pomorskie',           lat:53.6958, lon:17.5569, alt:164, hdd:3200, cdd:155, zone:'I',   tdes:-20 },
+  { name:'Częstochowa',     voiv:'Śląskie',             lat:50.8118, lon:19.1203, alt:293, hdd:3050, cdd:185, zone:'III', tdes:-20 },
+  { name:'Elbląg',          voiv:'Warmińsko-Mazurskie', lat:54.1522, lon:19.4048, alt: 14, hdd:3100, cdd:140, zone:'I',   tdes:-20 },
+  { name:'Gdańsk',          voiv:'Pomorskie',           lat:54.3521, lon:18.6466, alt:  0, hdd:3050, cdd:130, zone:'I',   tdes:-16 },
+  { name:'Gdynia',          voiv:'Pomorskie',           lat:54.5189, lon:18.5305, alt:  5, hdd:3000, cdd:120, zone:'I',   tdes:-16 },
+  { name:'Gorzów Wlkp.',    voiv:'Lubuskie',            lat:52.7326, lon:15.2287, alt: 69, hdd:2850, cdd:195, zone:'II',  tdes:-18 },
+  { name:'Inowrocław',      voiv:'Kujawsko-Pomorskie',  lat:52.7983, lon:18.2617, alt: 88, hdd:2950, cdd:195, zone:'II',  tdes:-18 },
+  { name:'Jelenia Góra',    voiv:'Dolnośląskie',        lat:50.9044, lon:15.7299, alt:342, hdd:3300, cdd:170, zone:'III', tdes:-22 },
+  { name:'Kalisz',          voiv:'Wielkopolskie',       lat:51.7619, lon:18.0910, alt:104, hdd:2920, cdd:210, zone:'II',  tdes:-18 },
+  { name:'Katowice',        voiv:'Śląskie',             lat:50.2587, lon:19.0216, alt:285, hdd:3050, cdd:180, zone:'III', tdes:-20 },
+  { name:'Kielce',          voiv:'Świętokrzyskie',      lat:50.8661, lon:20.6286, alt:295, hdd:3200, cdd:165, zone:'III', tdes:-20 },
+  { name:'Kłodzko',         voiv:'Dolnośląskie',        lat:50.4350, lon:16.6583, alt:357, hdd:3100, cdd:140, zone:'III', tdes:-22 },
+  { name:'Koszalin',        voiv:'Zachodniopomorskie',  lat:54.1942, lon:16.1722, alt: 33, hdd:3000, cdd:100, zone:'I',   tdes:-16 },
+  { name:'Kraków',          voiv:'Małopolskie',         lat:50.0647, lon:19.9450, alt:220, hdd:3180, cdd:210, zone:'III', tdes:-20 },
+  { name:'Krosno',          voiv:'Podkarpackie',        lat:49.6897, lon:21.7712, alt:295, hdd:3300, cdd:170, zone:'III', tdes:-22 },
+  { name:'Legnica',         voiv:'Dolnośląskie',        lat:51.2070, lon:16.1551, alt:122, hdd:2700, cdd:255, zone:'II',  tdes:-18 },
+  { name:'Leszno',          voiv:'Wielkopolskie',       lat:51.8401, lon:16.5749, alt: 87, hdd:2800, cdd:210, zone:'II',  tdes:-18 },
+  { name:'Lublin',          voiv:'Lubelskie',           lat:51.2465, lon:22.5684, alt:238, hdd:3130, cdd:195, zone:'II',  tdes:-20 },
+  { name:'Łódź',            voiv:'Łódzkie',             lat:51.7592, lon:19.4560, alt:187, hdd:3020, cdd:200, zone:'II',  tdes:-20 },
+  { name:'Nowy Sącz',       voiv:'Małopolskie',         lat:49.6245, lon:20.6947, alt:291, hdd:3350, cdd:175, zone:'III', tdes:-22 },
+  { name:'Olsztyn',         voiv:'Warmińsko-Mazurskie', lat:53.7784, lon:20.4801, alt:135, hdd:3250, cdd:140, zone:'I',   tdes:-22 },
+  { name:'Opole',           voiv:'Opolskie',            lat:50.6677, lon:17.9236, alt:176, hdd:2800, cdd:230, zone:'II',  tdes:-18 },
+  { name:'Piła',            voiv:'Wielkopolskie',       lat:53.1514, lon:16.7380, alt: 72, hdd:3050, cdd:175, zone:'II',  tdes:-18 },
+  { name:'Poznań',          voiv:'Wielkopolskie',       lat:52.4064, lon:16.9252, alt: 92, hdd:2900, cdd:215, zone:'II',  tdes:-18 },
+  { name:'Przemyśl',        voiv:'Podkarpackie',        lat:49.7839, lon:22.7677, alt:279, hdd:3250, cdd:195, zone:'III', tdes:-22 },
+  { name:'Radom',           voiv:'Mazowieckie',         lat:51.4027, lon:21.1471, alt:188, hdd:3050, cdd:195, zone:'II',  tdes:-20 },
+  { name:'Rzeszów',         voiv:'Podkarpackie',        lat:50.0413, lon:22.0023, alt:209, hdd:3150, cdd:200, zone:'III', tdes:-20 },
+  { name:'Siedlce',         voiv:'Mazowieckie',         lat:52.1677, lon:22.2902, alt:146, hdd:3200, cdd:175, zone:'II',  tdes:-22 },
+  { name:'Słupsk',          voiv:'Pomorskie',           lat:54.4641, lon:17.0286, alt: 20, hdd:3050, cdd:110, zone:'I',   tdes:-16 },
+  { name:'Sosnowiec',       voiv:'Śląskie',             lat:50.2863, lon:19.1043, alt:296, hdd:3050, cdd:185, zone:'III', tdes:-20 },
+  { name:'Suwałki',         voiv:'Podlaskie',           lat:54.1017, lon:22.9303, alt:184, hdd:3650, cdd:130, zone:'I',   tdes:-24 },
+  { name:'Szczecin',        voiv:'Zachodniopomorskie',  lat:53.4285, lon:14.5528, alt:  1, hdd:2850, cdd:185, zone:'I',   tdes:-16 },
+  { name:'Tarnów',          voiv:'Małopolskie',         lat:50.0122, lon:20.9862, alt:209, hdd:3100, cdd:220, zone:'III', tdes:-20 },
+  { name:'Toruń',           voiv:'Kujawsko-Pomorskie',  lat:53.0138, lon:18.5981, alt: 50, hdd:2950, cdd:200, zone:'II',  tdes:-20 },
+  { name:'Wałbrzych',       voiv:'Dolnośląskie',        lat:50.7762, lon:16.2846, alt:429, hdd:3400, cdd:130, zone:'III', tdes:-22 },
+  { name:'Warszawa',        voiv:'Mazowieckie',         lat:52.2297, lon:21.0122, alt:113, hdd:3005, cdd:212, zone:'II',  tdes:-20 },
+  { name:'Włocławek',       voiv:'Kujawsko-Pomorskie',  lat:52.6483, lon:19.0677, alt: 52, hdd:2980, cdd:195, zone:'II',  tdes:-18 },
+  { name:'Wrocław',         voiv:'Dolnośląskie',        lat:51.1079, lon:17.0385, alt:120, hdd:2750, cdd:250, zone:'II',  tdes:-18 },
+  { name:'Zakopane',        voiv:'Małopolskie',         lat:49.2994, lon:19.9497, alt:858, hdd:4500, cdd: 15, zone:'III', tdes:-24 },
+  { name:'Zamość',          voiv:'Lubelskie',           lat:50.7232, lon:23.2519, alt:212, hdd:3200, cdd:185, zone:'II',  tdes:-22 },
+  { name:'Zielona Góra',    voiv:'Lubuskie',            lat:51.9356, lon:15.5062, alt:192, hdd:2880, cdd:200, zone:'II',  tdes:-18 },
+];
+
+function masterClimateDist(lat1, lon1, lat2, lon2) {
+  const R = 6371, r = Math.PI / 180;
+  const dLat = (lat2 - lat1) * r, dLon = (lon2 - lon1) * r;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*r)*Math.cos(lat2*r)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function masterClimateNearest(lat, lon) {
+  let best = null, bestDist = Infinity;
+  for (const c of MASTER_CLIMATE_DB) {
+    const d = masterClimateDist(lat, lon, c.lat, c.lon);
+    if (d < bestDist) { bestDist = d; best = c; }
+  }
+  return { station: best, dist: Math.round(bestDist) };
+}
+
+let masterLocSearchTimer = null;
+function masterLocDebouncedSearch(val) {
+  clearTimeout(masterLocSearchTimer);
+  const box = document.getElementById('master-loc-suggestions');
+  if (!box) return;
+  if (val.trim().length < 3) { box.style.display = 'none'; return; }
+  box.innerHTML = '<div style="padding:9px 14px;font-size:13px;color:var(--ink-mute);">Szukam…</div>';
+  box.style.display = 'block';
+  masterLocSearchTimer = setTimeout(() => masterLocSearchNominatim(val.trim()), 400);
+}
+
+async function masterLocSearchNominatim(q) {
+  const box = document.getElementById('master-loc-suggestions');
+  if (!box) return;
+  try {
+    const url = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q) + '&countrycodes=pl&addressdetails=1&format=json&limit=8';
+    const resp = await fetch(url, { headers: { 'Accept-Language': 'pl' } });
+    const results = await resp.json();
+    const places = results.filter(r =>
+      ['city','town','village','hamlet','suburb','quarter','neighbourhood','municipality'].includes(r.type) ||
+      ['city','town','village','hamlet'].includes(r.addresstype)
+    );
+    if (!places.length) {
+      box.innerHTML = '<div style="padding:9px 14px;font-size:13px;color:#c0392b;">Nie znaleziono miejscowości w Polsce.</div>';
+      return;
+    }
+    box.innerHTML = places.slice(0, 6).map(r => {
+      const addr = r.address || {};
+      const cityName = addr.city || addr.town || addr.village || addr.hamlet || addr.suburb || r.display_name.split(',')[0];
+      const state = addr.state || '';
+      const escapedCity  = cityName.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      const escapedState = state.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      const escapedDisp  = r.display_name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      return '<div onclick="masterLocSelectPlace(' + r.lat + ',' + r.lon + ',\'' + escapedCity + '\',\'' + escapedState + '\',\'' + escapedDisp + '\')"'
+        + ' style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--paper-deep);display:flex;justify-content:space-between;align-items:center;gap:8px;"'
+        + ' onmouseover="this.style.background=\'var(--green-bg,#eef8f0)\'" onmouseout="this.style.background=\'\'">'
+        + '<span style="font-weight:600;">' + cityName + '</span>'
+        + '<span style="font-size:11px;color:var(--ink-mute);">' + state + '</span>'
+        + '</div>';
+    }).join('');
+    box.style.display = 'block';
+  } catch(e) {
+    box.innerHTML = '<div style="padding:9px 14px;font-size:13px;color:#c0392b;">Błąd połączenia z usługą wyszukiwania.</div>';
+  }
+}
+
+function masterLocSelectPlace(lat, lon, cityName, stateName, displayName) {
+  const box = document.getElementById('master-loc-suggestions');
+  if (box) box.style.display = 'none';
+
+  const { station, dist } = masterClimateNearest(parseFloat(lat), parseFloat(lon));
+  if (!station) return;
+
+  // Auto-fill GPS if empty
+  const gpsEl = document.querySelector('[data-id="ZAK-V3-GPS"]');
+  if (gpsEl && !gpsEl.value) {
+    gpsEl.value = parseFloat(lat).toFixed(4) + '°N ' + parseFloat(lon).toFixed(4) + '°E';
+    gpsEl.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  // Auto-fill climate zone (match select option starting with zone prefix)
+  const zoneEl = document.querySelector('[data-id="ZAK-V4-KLIMAT"]');
+  if (zoneEl) {
+    const prefix = station.zone + ' ';
+    const opt = Array.from(zoneEl.options).find(o => o.text.startsWith(prefix) || o.value.startsWith(prefix));
+    if (opt) {
+      zoneEl.value = opt.value || opt.text;
+      zoneEl.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }
+
+  // Auto-fill HDD
+  const hddEl = document.querySelector('[data-id="ZAK-V5-HDD"]');
+  if (hddEl) {
+    hddEl.value = station.hdd;
+    hddEl.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  // Auto-fill CDD
+  const cddEl = document.querySelector('[data-id="ZAK-V6-CDD"]');
+  if (cddEl) {
+    cddEl.value = station.cdd;
+    cddEl.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  // Auto-fill altitude
+  const altEl = document.querySelector('[data-id="ZAK-V7-ALTITUDE"]');
+  if (altEl) {
+    altEl.value = station.alt;
+    altEl.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  // Show status info
+  const statusEl = document.getElementById('master-climate-status');
+  if (statusEl) {
+    const isExact = station.name.toLowerCase() === cityName.toLowerCase();
+    const stationNote = isExact
+      ? 'dane ze stacji IMGW: ' + station.name
+      : '⚠ Brak danych dla „' + cityName + '" — użyto stacji IMGW <strong>' + station.name + '</strong> (' + dist + ' km)';
+    statusEl.innerHTML = '✓ Warunki klimatyczne uzupełnione automatycznie · ' + stationNote
+      + ' · Strefa ' + station.zone + ' · HDD=' + station.hdd + ' · CDD=' + station.cdd + ' · ' + station.alt + ' m n.p.m.';
+    statusEl.style.display = 'block';
+  }
+}
+
+document.addEventListener('click', function(e) {
+  const box   = document.getElementById('master-loc-suggestions');
+  const input = document.getElementById('master-loc-adres-input');
+  if (box && !box.contains(e.target) && e.target !== input) {
+    box.style.display = 'none';
+  }
+});
+// ================================================================
+
 // === INIT ===
 restoreDynamicCols();  // odbuduj dynamiczne kolumny (wydz/hale/zespół) z localStorage
 buildZuzyciaTable();   // zbuduj tabelę E8 (36 mies × 9 nośników)
@@ -4426,6 +4681,23 @@ enesaStorage.get = function(key) {
   }
   return _origGet(key);
 };
+
+// Załaduj dane z FORM_DATA (serwer) do pól, których localStorage nie wypełnił
+// (loadSavedData() uruchomił się przed tym override, więc mógł ominąć FORM_DATA)
+(function loadFormDataIntoDom() {
+  if (typeof FORM_DATA === 'undefined' || !FORM_DATA) return;
+  let loaded = 0;
+  for (const [fieldId, value] of Object.entries(FORM_DATA)) {
+    if (fieldId.startsWith('_') || value === null || value === undefined || String(value) === '') continue;
+    const el = document.querySelector('[data-id="' + fieldId + '"]');
+    if (el && !el.value) {
+      el.value = String(value);
+      el.classList.add('filled');
+      loaded++;
+    }
+  }
+  if (loaded > 0) updateAllProgress();
+})();
 
 // Override scheduleAutoSave to POST to Laravel backend
 const _origSchedule = scheduleAutoSave;
@@ -4479,7 +4751,10 @@ function prefillFromCompanyData() {
   setIfEmpty('AUD-V1-NAZWA',   COMPANY_DATA.name);
   setIfEmpty('AUD-V2-NIP',     COMPANY_DATA.nip);
   setIfEmpty('AUD-V3-REGON',   COMPANY_DATA.regon);
-  setIfEmpty('AUD-V4-ADRES',   (COMPANY_DATA.address || '') + (COMPANY_DATA.city ? ', ' + COMPANY_DATA.city : ''));
+  const companyAddress = (COMPANY_DATA.address || '') + (COMPANY_DATA.city ? ', ' + COMPANY_DATA.city : '');
+  setIfEmpty('AUD-V4-ADRES',   companyAddress);
+  // Domyślna lokalizacja audytowana = adres siedziby (klient może zmienić)
+  setIfEmpty('ZAK-V2-LOK-ADRES', companyAddress);
   setIfEmpty('AUD-V5-KRS',     COMPANY_DATA.krs);
   setIfEmpty('AUD-V6-KONTAKT', COMPANY_DATA.contactName);
   setIfEmpty('AUD-V7-EMAIL',   COMPANY_DATA.contactEmail);
@@ -4498,7 +4773,28 @@ document.addEventListener('DOMContentLoaded', () => {
       setIfEmpty('AUD-V13-ZES-' + n + '-ROLA', m.role || '');
     });
   }
+
+  // Gdy zmienia się adres siedziby (AUD-V4-ADRES), aktualizuj lokalizację audytowaną
+  // tylko jeśli jest pusta lub nadal równa adresowi siedziby (nie była ręcznie zmieniona)
+  const siedzibaEl = document.querySelector('[data-id="AUD-V4-ADRES"]');
+  const lokAdresEl = document.querySelector('[data-id="ZAK-V2-LOK-ADRES"]');
+  if (siedzibaEl && lokAdresEl) {
+    let lastSiedziba = siedzibaEl.value;
+    siedzibaEl.addEventListener('input', () => {
+      const newSiedziba = siedzibaEl.value;
+      if (!lokAdresEl.value || lokAdresEl.value === lastSiedziba) {
+        lokAdresEl.value = newSiedziba;
+        lokAdresEl.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      lastSiedziba = newSiedziba;
+    });
+  }
+
+  // Auto-uzupełnij klimat po załadowaniu (z opóźnieniem, by FORM_DATA i prefill zdążyły)
+  setTimeout(masterLocAutoFillIfNeeded, 200);
 });
+// Backup: window.load (odpala po DOMContentLoaded, pewniejszy gdy jest wiele skryptów)
+window.addEventListener('load', function() { setTimeout(masterLocAutoFillIfNeeded, 300); });
 // === END LARAVEL BLADE OVERRIDES ===
 </script>
 </x-layouts.app>

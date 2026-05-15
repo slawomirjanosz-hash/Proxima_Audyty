@@ -24,8 +24,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // 419 (CSRF token mismatch) → redirect to home with message
+        // 419 (CSRF token mismatch)
         $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, \Illuminate\Http\Request $request) {
+            // Podwójny klik "Wyloguj" — sesja już unieważniona, po prostu przekieruj
+            if ($request->is('logout') || $request->routeIs('logout')) {
+                return redirect()->route('home');
+            }
             return redirect()->route('home')->with('status', 'Sesja wygasła. Zaloguj się ponownie.');
         });
 
