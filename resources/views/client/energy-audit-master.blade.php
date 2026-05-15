@@ -648,6 +648,18 @@ body { margin: 0; }
     <li class="sidenav-item" data-target="etap-11"><span class="sidenav-num mono">E11</span><span class="sidenav-name">Kontekst</span><span class="sidenav-count mono" data-count-for="etap-11">0/12</span></li>
     <li class="sidenav-item" data-target="etap-12"><span class="sidenav-num mono">E12</span><span class="sidenav-name">Historia</span><span class="sidenav-count mono" data-count-for="etap-12">0/10</span></li>
   </ul>
+  <div style="padding: 16px 12px 8px;">
+    <button id="btn-save-now" onclick="masterManualSave()" style="
+      width:100%; padding:10px 0; background:#2E7D5C; color:#fff;
+      border:none; border-radius:6px; font-size:13px; font-weight:700;
+      cursor:pointer; letter-spacing:0.03em; transition:background .2s;
+    " onmouseover="this.style.background='#1A4D3A'" onmouseout="this.style.background='#2E7D5C'">
+      💾 Zapisz dane
+    </button>
+    <div style="font-size:10px; color:rgba(255,255,255,0.5); text-align:center; margin-top:5px;">
+      Autozapis co 30 sek.
+    </div>
+  </div>
 </nav>
 
 <!-- ====== MAIN CONTENT ====== -->
@@ -4795,6 +4807,25 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 // Backup: window.load (odpala po DOMContentLoaded, pewniejszy gdy jest wiele skryptów)
 window.addEventListener('load', function() { setTimeout(masterLocAutoFillIfNeeded, 300); });
+
+// Ręczny zapis (przycisk)
+function masterManualSave() {
+  const btn = document.getElementById('btn-save-now');
+  if (btn) { btn.disabled = true; btn.textContent = 'Zapisywanie…'; }
+  scheduleAutoSave();
+  // Poczekaj chwilę by timer odpalił i potem zaktualizuj przycisk
+  setTimeout(() => {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '✓ Zapisano!';
+      setTimeout(() => { btn.textContent = '💾 Zapisz dane'; }, 2000);
+    }
+  }, 1200);
+}
+
+// Autozapis co 30 sekund
+setInterval(() => scheduleAutoSave(), 30000);
+
 // === END LARAVEL BLADE OVERRIDES ===
 </script>
 </x-layouts.app>

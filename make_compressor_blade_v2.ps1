@@ -36,6 +36,24 @@ $css = [regex]::Replace($css, '(?sm)^body\s*\{.*?\}', 'body { margin: 0; }')
 $bodyHtml = $bodyHtml -replace 'Sprężarkownia', 'Kompresory'
 $bodyHtml = $bodyHtml -replace 'sprężarkownia', 'kompresory'
 
+# Inject save button into sidenav (before closing </nav>)
+$saveBtnHtml = @'
+  <div style="padding: 16px 12px 8px;">
+    <button id="btn-save-now" onclick="manualSave()" style="
+      width:100%; padding:10px 0; background:#2E7D5C; color:#fff;
+      border:none; border-radius:6px; font-size:13px; font-weight:700;
+      cursor:pointer; letter-spacing:0.03em; transition:background .2s;
+    " onmouseover="this.style.background='#1A4D3A'" onmouseout="this.style.background='#2E7D5C'">
+      💾 Zapisz dane
+    </button>
+    <div style="font-size:10px; color:rgba(255,255,255,0.5); text-align:center; margin-top:5px;">
+      Autozapis co 30 sek.
+    </div>
+  </div>
+</nav>
+'@
+$bodyHtml = $bodyHtml -replace '</nav>', $saveBtnHtml
+
 # JS override - injected at END of script tag, overrides enesaStorage.get and scheduleAutoSave
 $jsOverride = @'
 
@@ -91,8 +109,57 @@ scheduleAutoSave = function() {
       if (typeof showSaveIndicator === 'function') showSaveIndicator('Błąd zapisu!');
       console.error('Save error:', err);
     });
-  }, 800);
+  }, 1500);
 };
+
+// Ręczny zapis (przycisk)
+function manualSave() {
+  const btn = document.getElementById('btn-save-now');
+  if (btn) { btn.disabled = true; btn.textContent = 'Zapisywanie…'; }
+  if (typeof saveTimer !== 'undefined' && saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    const data = {};
+    document.querySelectorAll('[data-id]').forEach(el => {
+      if (!el.dataset.masterSource && !el.closest('[data-master-source]')) {
+        const v = el.value;
+        if (v !== '' && v !== null) data[el.dataset.id] = v;
+        try { localStorage.setItem(STORAGE_PREFIX + el.dataset.id, v); } catch {}
+      }
+    });
+    if (typeof SAVE_URL === 'undefined' || !SAVE_URL) {
+      if (btn) { btn.disabled = false; btn.textContent = '💾 Zapisz dane'; }
+      return;
+    }
+    const total = document.querySelectorAll('[data-id]:not([data-master-source])').length;
+    const pct = total > 0 ? Math.round(Object.keys(data).length / total * 100) : 0;
+    fetch(SAVE_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF},
+      body: JSON.stringify({fields: data, completion_percent: pct})
+    }).then(r => r.json()).then(d => {
+      if (typeof showSaveIndicator === 'function') showSaveIndicator('✓ Zapisano (' + Object.keys(data).length + ' pól)');
+      if (btn) { btn.disabled = false; btn.textContent = '✓ Zapisano!'; setTimeout(() => { btn.textContent = '💾 Zapisz dane'; }, 2000); }
+    }).catch(err => {
+      if (typeof showSaveIndicator === 'function') showSaveIndicator('⚠ Błąd zapisu!');
+      if (btn) { btn.disabled = false; btn.textContent = '⚠ Błąd'; setTimeout(() => { btn.textContent = '💾 Zapisz dane'; }, 2000); }
+      console.error('Save error:', err);
+    });
+  }, 0);
+}
+
+// Autozapis co 30 sekund
+setInterval(() => scheduleAutoSave(), 30000);
+
+// Załaduj FORM_DATA do pól DOM (loadSavedData uruchomił się przed override)
+if (typeof FORM_DATA !== 'undefined' && FORM_DATA) {
+  document.querySelectorAll('[data-id]').forEach(el => {
+    const id = el.dataset.id;
+    if (!el.dataset.masterSource && FORM_DATA[id] !== undefined && FORM_DATA[id] !== '' && !el.value) {
+      el.value = String(FORM_DATA[id]);
+    }
+  });
+}
+
 // === END LARAVEL BLADE OVERRIDES ===
 '@
 

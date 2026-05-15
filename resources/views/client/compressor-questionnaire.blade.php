@@ -805,6 +805,18 @@ body { margin: 0; }
     <li class="sidenav-item" data-target="etap-7"><span class="sidenav-num mono">E7</span><span class="sidenav-name">Eksploatacja</span><span class="sidenav-count mono" data-count-for="etap-7">0/6</span></li>
     <li class="sidenav-item" data-target="etap-8"><span class="sidenav-num mono">E8</span><span class="sidenav-name">KPI · Flagi</span><span class="sidenav-count mono" data-count-for="etap-8" id="sidenav-flag-count">0/14</span></li>
   </ul>
+  <div style="padding: 16px 12px 8px;">
+    <button id="btn-save-now" onclick="manualSave()" style="
+      width:100%; padding:10px 0; background:#2E7D5C; color:#fff;
+      border:none; border-radius:6px; font-size:13px; font-weight:700;
+      cursor:pointer; letter-spacing:0.03em; transition:background .2s;
+    " onmouseover="this.style.background='#1A4D3A'" onmouseout="this.style.background='#2E7D5C'">
+      💾 Zapisz dane
+    </button>
+    <div style="font-size:10px; color:rgba(255,255,255,0.5); text-align:center; margin-top:5px;">
+      Autozapis co 30 sek.
+    </div>
+  </div>
 </nav>
 
 <!-- ====== MAIN CONTENT ====== -->
@@ -3361,6 +3373,87 @@ refreshMasterFields();
 rebuildAlokacja();     // zbuduj macierz E2b
 refreshKpiAndFlagi();  // E7 auto-koszt + E8 KPI + 14 flag CA
 
+// === LARAVEL BLADE OVERRIDES ===
+
+// 1. Override enesaStorage — czytaj FORM_DATA (serwer) przed localStorage
+if (typeof enesaStorage !== 'undefined') {
+  const _origGet = enesaStorage.get.bind(enesaStorage);
+  enesaStorage.get = function(key) {
+    if (key && key.startsWith(MASTER_PREFIX)) {
+      return readMasterField(key.slice(MASTER_PREFIX.length));
+    }
+    if (key && key.startsWith(STORAGE_PREFIX)) {
+      const fieldId = key.slice(STORAGE_PREFIX.length);
+      if (typeof FORM_DATA !== 'undefined' && FORM_DATA && FORM_DATA[fieldId] !== undefined) {
+        return String(FORM_DATA[fieldId]);
+      }
+    }
+    return _origGet(key);
+  };
+  // Załaduj FORM_DATA do pól DOM (loadSavedData uruchomił się przed override)
+  if (typeof FORM_DATA !== 'undefined' && FORM_DATA) {
+    document.querySelectorAll('[data-id]').forEach(el => {
+      const id = el.dataset.id;
+      if (!el.dataset.masterSource && FORM_DATA[id] !== undefined && FORM_DATA[id] !== '' && !el.value) {
+        el.value = String(FORM_DATA[id]);
+      }
+    });
+  }
+}
+
+// 2. Override scheduleAutoSave — zapisuj na serwer + localStorage
+function doServerSave(onDone) {
+  const data = {};
+  document.querySelectorAll('[data-id]').forEach(el => {
+    if (!el.dataset.masterSource && !el.closest('[data-master-source]')) {
+      const v = el.value;
+      if (v !== '' && v !== null) data[el.dataset.id] = v;
+      try { localStorage.setItem(STORAGE_PREFIX + el.dataset.id, v); } catch {}
+    }
+  });
+  if (typeof SAVE_URL === 'undefined' || !SAVE_URL) {
+    if (typeof showSaveIndicator === 'function') showSaveIndicator('Zapisano lokalnie');
+    if (onDone) onDone(false);
+    return;
+  }
+  const total = document.querySelectorAll('[data-id]:not([data-master-source])').length;
+  const pct = total > 0 ? Math.round(Object.keys(data).length / total * 100) : 0;
+  fetch(SAVE_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF},
+    body: JSON.stringify({fields: data, completion_percent: pct})
+  }).then(r => r.json()).then(d => {
+    if (typeof showSaveIndicator === 'function') showSaveIndicator('✓ Zapisano (' + Object.keys(data).length + ' pól)');
+    if (onDone) onDone(true);
+  }).catch(err => {
+    if (typeof showSaveIndicator === 'function') showSaveIndicator('⚠ Błąd zapisu!');
+    console.error('Save error:', err);
+    if (onDone) onDone(false);
+  });
+}
+
+scheduleAutoSave = function() {
+  if (typeof saveTimer !== 'undefined' && saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => doServerSave(), 1500);
+};
+
+// Ręczny zapis (przycisk)
+function manualSave() {
+  const btn = document.getElementById('btn-save-now');
+  if (btn) { btn.disabled = true; btn.textContent = 'Zapisywanie…'; }
+  doServerSave((ok) => {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = ok ? '✓ Zapisano!' : '⚠ Błąd';
+      setTimeout(() => { btn.textContent = '💾 Zapisz dane'; }, 2000);
+    }
+  });
+}
+
+// Autozapis co 30 sekund
+setInterval(() => doServerSave(), 30000);
+
+// === END LARAVEL BLADE OVERRIDES ===
 
 </script>
 </x-layouts.app>
