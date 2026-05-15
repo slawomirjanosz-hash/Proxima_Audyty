@@ -4732,18 +4732,35 @@ function parsePolishAddress(addr) {
 }
 function extractMainPKD(krsData) {
   try {
-    const odpis = krsData && (krsData.odpis || krsData.OdpisAktualny);
+    const odpis = krsData && (krsData.odpis || krsData.OdpisAktualny || krsData);
     const dane = odpis && (odpis.dane || odpis.Dane);
     const d3 = dane && (dane.dzial3 || dane.Dzial3);
     const pred = d3 && (d3.przedmiotDzialalnosci || d3.PrzedmiotDzialalnosci);
     if (!pred) return null;
+    // Nowa struktura KRS MS API: przedmiotPrzewazajacejDzialalnosci
+    const main = pred.przedmiotPrzewazajacejDzialalnosci || pred.PrzedmiotPrzewazajacejDzialalnosci;
+    const item = Array.isArray(main) ? main[0] : main;
+    if (item && (item.kodDzial || item.KodDzial)) {
+      const dzial = item.kodDzial || item.KodDzial || '';
+      const klasa = item.kodKlasa || item.KodKlasa || '';
+      const podklasa = item.kodPodklasa || item.KodPodklasa || '';
+      const opis = item.opis || item.Opis || '';
+      let kod = dzial;
+      if (klasa) kod += '.' + klasa;
+      if (podklasa) kod += '.' + podklasa;
+      return kod + (opis ? ' ' + opis : '');
+    }
+    // Fallback: stara struktura z pozycja/kodDzialalnosci
     const poz = pred.pozycja || pred.Pozycja;
     if (!poz) return null;
     const items = Array.isArray(poz) ? poz : [poz];
-    const main = items.find(p => String(p.glownoscDzialalnosci || p.GlownoscDzialalnosci || '').toLowerCase() === 'true') || items[0];
-    if (!main) return null;
-    const kod = main.kodDzialalnosci || main.KodDzialalnosci || '';
-    const nazwa = main.nazwyPkd || main.NazwyPkd || '';
+    const fallback = items.find(p => {
+      const g = String(p.glownoscDzialalnosci || p.GlownoscDzialalnosci || '').toLowerCase();
+      return g === 'true' || g === 't' || g === 'tak' || g === '1';
+    }) || items[0];
+    if (!fallback) return null;
+    const kod = fallback.kodDzialalnosci || fallback.KodDzialalnosci || '';
+    const nazwa = fallback.nazwyPkd || fallback.NazwyPkd || '';
     return kod ? kod + (nazwa ? ' ' + nazwa : '') : null;
   } catch { return null; }
 }
