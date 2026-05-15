@@ -60,6 +60,7 @@ if (isset($currentUser) && $currentUser) {
   --ink: #1A1612;
   --ink-soft: #3D352C;
   --ink-mute: #76695A;
+  --forest: #1A4D3A;
   --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
   --sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
@@ -594,19 +595,7 @@ body { margin: 0; }
 
 /* === Responsive === */
 @media (max-width: 1024px) {
-  .sidenav {
-  width: 220px;
-  background: var(--forest);
-  color: var(--paper);
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow-y: auto;
-  flex-shrink: 0;
-  padding-top: 24px;
-  box-sizing: border-box;
-  z-index: 10;
-}
+  .sidenav { width: 60px; padding-top: 12px; }
   .sidenav-brand .sidenav-logo { font-size: 16px; }
   .sidenav-brand .sidenav-sub { display: none; }
   .sidenav-name, .sidenav-count { display: none; }
@@ -655,7 +644,7 @@ body { margin: 0; }
       border:none; border-radius:6px; font-size:13px; font-weight:700;
       cursor:pointer; letter-spacing:0.03em; transition:background .2s;
     " onmouseover="this.style.background='#1A4D3A'" onmouseout="this.style.background='#2E7D5C'">
-      đź’ľ Zapisz dane
+      Zapisz dane
     </button>
     <div style="font-size:10px; color:rgba(255,255,255,0.5); text-align:center; margin-top:5px;">
       Autozapis co 30 sek.
@@ -4675,17 +4664,17 @@ document.addEventListener('click',function(e){
 // 8a. GUS / Biala Lista MF - auto-uzupelnienie REGON, PKD, adresu
 async function fetchGUSData() {
   const nipEl = document.querySelector('[data-id="AUD-V2-NIP"]');
-  if (!nipEl || !nipEl.value.trim()) { showGUSStatus('Wpisz NIP firmy', 'error'); return; }
+  if (!nipEl || !nipEl.value.trim()) { showGUSStatus('⚠ Wpisz NIP firmy', 'error'); return; }
   const nip = nipEl.value.replace(/[^0-9]/g, '');
-  if (nip.length !== 10) { showGUSStatus('NIP musi miec 10 cyfr', 'error'); return; }
-  showGUSStatus('Pobieranie danych z Bialej Listy MF...', 'loading');
+  if (nip.length !== 10) { showGUSStatus('⚠ NIP musi mieć 10 cyfr', 'error'); return; }
+  showGUSStatus('⏳ Pobieranie danych z Białej Listy MF...', 'loading');
   const today = new Date().toISOString().slice(0, 10);
   try {
     const resp = await fetch('https://wl-api.mf.gov.pl/api/search/nip/' + nip + '?date=' + today, { headers: { 'Accept': 'application/json' } });
-    if (!resp.ok) { showGUSStatus('Nie znaleziono NIP ' + nip + ' w Bialej Liscie MF', 'error'); return; }
+    if (!resp.ok) { showGUSStatus('⚠ Nie znaleziono NIP ' + nip + ' w Białej Liście MF', 'error'); return; }
     const data = await resp.json();
     const s = data.result && data.result.subject;
-    if (!s) { showGUSStatus('Brak danych dla NIP ' + nip, 'error'); return; }
+    if (!s) { showGUSStatus('⚠ Brak danych dla NIP ' + nip, 'error'); return; }
     const filled = [];
     if (s.regon) {
       const el = document.querySelector('[data-id="AUD-V3-REGON"]');
@@ -4699,30 +4688,30 @@ async function fetchGUSData() {
       }
       if (parsed.city) {
         const el = document.querySelector('[data-id="AUD-V4-MIASTO"]');
-        if (el && !el.value) { el.value = parsed.city; el.dispatchEvent(new Event('input', {bubbles:true})); filled.push('miejscowosc'); }
+        if (el && !el.value) { el.value = parsed.city; el.dispatchEvent(new Event('input', {bubbles:true})); filled.push('miejscowość'); }
       }
     }
     let statusMsg = 'Pobrano: ' + (filled.length ? filled.join(', ') : 'brak nowych danych');
     if (s.krs) {
-      statusMsg += ' | Pobieranie PKD z KRS ' + s.krs + '...';
+      statusMsg += ' \u00b7 Pobieranie PKD z KRS ' + s.krs + '...';
       showGUSStatus(statusMsg, 'loading');
       try {
-        const kr = await fetch('https://api-krs.ms.gov.pl/api/krs/OdpisAktualny/' + s.krs + '?rejestr=P&format=json');
+        const krsNum = String(s.krs).replace(/\D/g,'').padStart(10,'0');
+        const kr = await fetch('/api/krs/pkd/' + krsNum, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
         if (kr.ok) {
           const kd = await kr.json();
-          const pkd = extractMainPKD(kd);
-          if (pkd) {
+          if (kd.pkd) {
             const el = document.querySelector('[data-id="AUD-V5-PKD"]');
-            if (el && !el.value) { el.value = pkd; el.dispatchEvent(new Event('input', {bubbles:true})); filled.push('PKD'); }
-            statusMsg = 'Pobrano: ' + filled.join(', ');
-          } else { statusMsg += ' | PKD nie znaleziono w KRS'; }
-        } else { statusMsg += ' | blad KRS API (' + kr.status + ')'; }
-      } catch { statusMsg += ' | PKD: blad polaczenia z KRS'; }
+            if (el && !el.value) { el.value = kd.pkd; el.dispatchEvent(new Event('input', {bubbles:true})); filled.push('PKD'); }
+            statusMsg = '\u2713 Pobrano: ' + filled.join(', ');
+          } else { statusMsg += ' \u00b7 PKD nie znaleziono w KRS'; }
+        } else { statusMsg += ' \u00b7 b\u0142\u0105d KRS API (' + kr.status + ')'; }
+      } catch { statusMsg += ' \u00b7 PKD: b\u0142\u0105d po\u0142\u0105czenia z KRS'; }
     } else {
-      statusMsg += ' | PKD: brak nr KRS (spolki os. / CEIDG)';
+      statusMsg += ' \u00b7 PKD: brak nr KRS (sp\u00f3\u0142ki os. / CEIDG)';
     }
     showGUSStatus(statusMsg, 'ok');
-  } catch { showGUSStatus('Blad polaczenia z API Bialej Listy MF', 'error'); }
+  } catch { showGUSStatus('\u26a0 B\u0142\u0105d po\u0142\u0105czenia z API Bia\u0142ej Listy MF', 'error'); }
 }
 function parsePolishAddress(addr) {
   if (!addr) return { street: '', city: '' };

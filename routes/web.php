@@ -358,6 +358,32 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/strefa-klienta/audyt-energetyczny/dane', [EnergyAuditMasterController::class, 'getDataForAudit'])
         ->middleware('role:client,admin,auditor')
         ->name('client.energy-audit-master.data');
+    // ── KRS PKD proxy (CORS workaround) ─────────────────────────────────────
+    Route::get('/api/krs/pkd/{krs}', function (string $krs) {
+        if (!preg_match('/^\d{1,10}$/', $krs)) {
+            return response()->json(['error' => 'invalid KRS'], 422);
+        }
+        $krs = str_pad($krs, 10, '0', STR_PAD_LEFT);
+        $url = "https://api-krs.ms.gov.pl/api/krs/OdpisAktualny/{$krs}?rejestr=P&format=json";
+        try {
+            $r = \Illuminate\Support\Facades\Http::timeout(8)->get($url);
+            if (!$r->successful()) {
+                return response()->json(['pkd' => null, 'error' => 'KRS API ' . $r->status()], 502);
+            }
+            $d = $r->json();
+            $pred = $d['odpis']['dane']['dzial3']['przedmiotDzialalnosci'] ?? [];
+            $main = $pred['przedmiotPrzewazajacejDzialalnosci'] ?? null;
+            if ($main) {
+                $item = isset($main[0]) ? $main[0] : $main;
+                $kod = ($item['kodDzial'] ?? '') . (isset($item['kodKlasa']) ? '.' . $item['kodKlasa'] : '') . (isset($item['kodPodklasa']) ? '.' . $item['kodPodklasa'] : '');
+                return response()->json(['pkd' => trim($kod . ' ' . ($item['opis'] ?? '')), 'kod' => $kod]);
+            }
+            return response()->json(['pkd' => null]);
+        } catch (\Exception $e) {
+            return response()->json(['pkd' => null, 'error' => 'exception'], 502);
+        }
+    })->middleware('auth')->name('api.krs.pkd');
+    // ─────────────────────────────────────────────────────────────────────────
     Route::get('/iso50001', [Iso50001AuditController::class, 'index'])
         ->name('iso50001.index');
     Route::post('/iso50001', [Iso50001AuditController::class, 'store'])
