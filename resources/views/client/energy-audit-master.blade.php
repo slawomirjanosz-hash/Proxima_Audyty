@@ -12,8 +12,10 @@ if (isset($company) && $company) {
         'name'          => $company->name ?? '',
         'nip'           => $company->nip ?? '',
         'regon'         => $company->regon ?? '',
-        'address'       => implode(', ', array_filter([$company->street ?? '', $company->postal_code ?? ''])),
+        'street'        => $company->street ?? '',
+        'postalCode'    => $company->postal_code ?? '',
         'city'          => $company->city ?? '',
+        'address'       => implode(', ', array_filter([$company->street ?? '', $company->postal_code ?? ''])), // legacy
         'auditorName'   => $_auditorName,
         'auditorEmail'  => $_auditorEmail,
         'krs'           => $company->krs ?? '',
@@ -744,7 +746,11 @@ body { margin: 0; }
           </div>
           <div class="field-input-wrap">
             <input type="text" class="field-input" data-id="AUD-V3-REGON" placeholder="9 lub 14 cyfr">
-            <div class="field-hint">9 lub 14 cyfr</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+              <button type="button" onclick="fetchGUSData()" style="font-size:11px;padding:4px 12px;border:1px solid var(--green-light,#a8ddb8);border-radius:6px;background:var(--green-bg,#eef8f0);color:var(--green-deep,#1a5c3a);cursor:pointer;white-space:nowrap;font-family:inherit;font-weight:600;">&#x1F50D; Pobierz z GUS</button>
+              <div class="field-hint" style="margin:0;">Auto-uzupe&#322;nia REGON, PKD, adres z Bia&#322;ej Listy MF + KRS</div>
+            </div>
+            <div id="gus-status" style="display:none;font-size:11px;margin-top:5px;padding:5px 10px;border-radius:6px;border:1px solid;line-height:1.5;"></div>
           </div>
           <div class="kto-cell"><span class="tag em">EM</span></div>
           <div class="field-unit">—</div>
@@ -752,12 +758,25 @@ body { margin: 0; }
 
         <div class="field">
           <div class="field-label">
-            <div class="field-q">Adres siedziby</div>
-            <div class="field-id mono">AUD-V4-ADRES</div>
+            <div class="field-q">Ulica i numer siedziby</div>
+            <div class="field-id mono">AUD-V4-ULICA</div>
           </div>
           <div class="field-input-wrap">
-            <input type="text" class="field-input" data-id="AUD-V4-ADRES" placeholder="ul. Warszawska 100, 61-058 Poznań">
-            <div class="field-hint">Adres rejestracyjny — może różnić się od lokalizacji audytowanej (E1)</div>
+            <input type="text" class="field-input" data-id="AUD-V4-ULICA" placeholder="ul. Warszawska 100">
+            <div class="field-hint">Ulica i numer budynku (adres rejestrowy)</div>
+          </div>
+          <div class="kto-cell"><span class="tag em">EM</span></div>
+          <div class="field-unit">—</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Miejscowość siedziby</div>
+            <div class="field-id mono">AUD-V4-MIASTO</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="text" class="field-input" data-id="AUD-V4-MIASTO" placeholder="61-058 Poznań">
+            <div class="field-hint">Kod pocztowy i miejscowość</div>
           </div>
           <div class="kto-cell"><span class="tag em">EM</span></div>
           <div class="field-unit">—</div>
@@ -4518,18 +4537,18 @@ function setIfEmpty(fieldId, value) {
 
 function prefillFromCompanyData() {
   if (!COMPANY_DATA) return;
-  setIfEmpty('AUD-V1-NAZWA',   COMPANY_DATA.name);
-  setIfEmpty('AUD-V2-NIP',     COMPANY_DATA.nip);
-  setIfEmpty('AUD-V3-REGON',   COMPANY_DATA.regon);
-  const companyAddress = (COMPANY_DATA.address || '') + (COMPANY_DATA.city ? ', ' + COMPANY_DATA.city : '');
-  setIfEmpty('AUD-V4-ADRES',   companyAddress);
-  setIfEmpty('ZAK-V2-LOK-ADRES', companyAddress);
-  setIfEmpty('AUD-V5-KRS',     COMPANY_DATA.krs);
-  setIfEmpty('AUD-V6-KONTAKT', COMPANY_DATA.contactName);
-  setIfEmpty('AUD-V7-EMAIL',   COMPANY_DATA.contactEmail);
-  setIfEmpty('AUD-V8-TEL',     COMPANY_DATA.contactPhone);
-  setIfEmpty('AUD-V9-AUDYTOR', COMPANY_DATA.auditorName);
-  setIfEmpty('AUD-V10-AUD-EMAIL', COMPANY_DATA.auditorEmail);
+  setIfEmpty('AUD-V1-NAZWA',         COMPANY_DATA.name);
+  setIfEmpty('AUD-V2-NIP',           COMPANY_DATA.nip);
+  setIfEmpty('AUD-V3-REGON',         COMPANY_DATA.regon);
+  // Adres siedziby — dwa osobne pola
+  setIfEmpty('AUD-V4-ULICA',         COMPANY_DATA.street);
+  const cityFull = [COMPANY_DATA.postalCode, COMPANY_DATA.city].filter(Boolean).join(' ');
+  setIfEmpty('AUD-V4-MIASTO',        cityFull);
+  // Domyślna lokalizacja audytowana = miejscowość siedziby
+  setIfEmpty('ZAK-V2-LOK-ADRES',     COMPANY_DATA.city || cityFull);
+  // Audytor
+  setIfEmpty('AUD-V10-AUDYTOR',      COMPANY_DATA.auditorName);
+  setIfEmpty('AUD-V11-AUDYTOR-MAIL', COMPANY_DATA.auditorEmail);
 }
 
 // 7. Klimat â€” auto-uzupelnienie
@@ -4653,18 +4672,103 @@ document.addEventListener('click',function(e){
   if(box&&!box.contains(e.target)&&e.target!==inp)box.style.display='none';
 });
 
-// 8. DOMContentLoaded â€” prefill + watcher adresu + klimat
+// 8a. GUS / Biala Lista MF - auto-uzupelnienie REGON, PKD, adresu
+async function fetchGUSData() {
+  const nipEl = document.querySelector('[data-id="AUD-V2-NIP"]');
+  if (!nipEl || !nipEl.value.trim()) { showGUSStatus('Wpisz NIP firmy', 'error'); return; }
+  const nip = nipEl.value.replace(/[^0-9]/g, '');
+  if (nip.length !== 10) { showGUSStatus('NIP musi miec 10 cyfr', 'error'); return; }
+  showGUSStatus('Pobieranie danych z Bialej Listy MF...', 'loading');
+  const today = new Date().toISOString().slice(0, 10);
+  try {
+    const resp = await fetch('https://wl-api.mf.gov.pl/api/search/nip/' + nip + '?date=' + today, { headers: { 'Accept': 'application/json' } });
+    if (!resp.ok) { showGUSStatus('Nie znaleziono NIP ' + nip + ' w Bialej Liscie MF', 'error'); return; }
+    const data = await resp.json();
+    const s = data.result && data.result.subject;
+    if (!s) { showGUSStatus('Brak danych dla NIP ' + nip, 'error'); return; }
+    const filled = [];
+    if (s.regon) {
+      const el = document.querySelector('[data-id="AUD-V3-REGON"]');
+      if (el) { el.value = s.regon; el.dispatchEvent(new Event('input', {bubbles:true})); filled.push('REGON: ' + s.regon); }
+    }
+    if (s.residenceAddress || s.workingAddress) {
+      const parsed = parsePolishAddress(s.residenceAddress || s.workingAddress);
+      if (parsed.street) {
+        const el = document.querySelector('[data-id="AUD-V4-ULICA"]');
+        if (el && !el.value) { el.value = parsed.street; el.dispatchEvent(new Event('input', {bubbles:true})); filled.push('ulica'); }
+      }
+      if (parsed.city) {
+        const el = document.querySelector('[data-id="AUD-V4-MIASTO"]');
+        if (el && !el.value) { el.value = parsed.city; el.dispatchEvent(new Event('input', {bubbles:true})); filled.push('miejscowosc'); }
+      }
+    }
+    let statusMsg = 'Pobrano: ' + (filled.length ? filled.join(', ') : 'brak nowych danych');
+    if (s.krs) {
+      statusMsg += ' | Pobieranie PKD z KRS ' + s.krs + '...';
+      showGUSStatus(statusMsg, 'loading');
+      try {
+        const kr = await fetch('https://api-krs.ms.gov.pl/api/krs/OdpisAktualny/' + s.krs + '?rejestr=P&format=json');
+        if (kr.ok) {
+          const kd = await kr.json();
+          const pkd = extractMainPKD(kd);
+          if (pkd) {
+            const el = document.querySelector('[data-id="AUD-V5-PKD"]');
+            if (el && !el.value) { el.value = pkd; el.dispatchEvent(new Event('input', {bubbles:true})); filled.push('PKD'); }
+            statusMsg = 'Pobrano: ' + filled.join(', ');
+          } else { statusMsg += ' | PKD nie znaleziono w KRS'; }
+        } else { statusMsg += ' | blad KRS API (' + kr.status + ')'; }
+      } catch { statusMsg += ' | PKD: blad polaczenia z KRS'; }
+    } else {
+      statusMsg += ' | PKD: brak nr KRS (spolki os. / CEIDG)';
+    }
+    showGUSStatus(statusMsg, 'ok');
+  } catch { showGUSStatus('Blad polaczenia z API Bialej Listy MF', 'error'); }
+}
+function parsePolishAddress(addr) {
+  if (!addr) return { street: '', city: '' };
+  const m = addr.match(/^(.*?),\s*(\d{2}-\d{3}[\s\S]*)$/);
+  if (m) return { street: m[1].trim(), city: m[2].trim() };
+  return { street: addr.trim(), city: '' };
+}
+function extractMainPKD(krsData) {
+  try {
+    const odpis = krsData && (krsData.odpis || krsData.OdpisAktualny);
+    const dane = odpis && (odpis.dane || odpis.Dane);
+    const d3 = dane && (dane.dzial3 || dane.Dzial3);
+    const pred = d3 && (d3.przedmiotDzialalnosci || d3.PrzedmiotDzialalnosci);
+    if (!pred) return null;
+    const poz = pred.pozycja || pred.Pozycja;
+    if (!poz) return null;
+    const items = Array.isArray(poz) ? poz : [poz];
+    const main = items.find(p => String(p.glownoscDzialalnosci || p.GlownoscDzialalnosci || '').toLowerCase() === 'true') || items[0];
+    if (!main) return null;
+    const kod = main.kodDzialalnosci || main.KodDzialalnosci || '';
+    const nazwa = main.nazwyPkd || main.NazwyPkd || '';
+    return kod ? kod + (nazwa ? ' ' + nazwa : '') : null;
+  } catch { return null; }
+}
+function showGUSStatus(msg, type) {
+  const el = document.getElementById('gus-status');
+  if (!el) return;
+  el.style.display = 'block';
+  el.innerHTML = msg;
+  el.style.background = type==='error' ? '#fef2f2' : type==='ok' ? '#eef8f0' : '#fffbeb';
+  el.style.borderColor = type==='error' ? '#fca5a5' : type==='ok' ? '#a8ddb8' : '#fcd34d';
+  el.style.color = type==='error' ? '#c0392b' : type==='ok' ? '#1a5c3a' : '#78350f';
+}
+
+// 8b. DOMContentLoaded - prefill + watcher adresu + klimat + GUS auto-trigger
 document.addEventListener('DOMContentLoaded', () => {
   prefillFromCompanyData();
   if (TEAM_MEMBERS && TEAM_MEMBERS.length > 0) {
     TEAM_MEMBERS.forEach((m, i) => {
       const n = i + 1;
-      setIfEmpty('AUD-V13-ZES-' + n + '-IMIE', m.name || '');
-      setIfEmpty('AUD-V13-ZES-' + n + '-EMAIL', m.email || '');
-      setIfEmpty('AUD-V13-ZES-' + n + '-ROLA', m.role || '');
+      setIfEmpty('AUD-V13-IMIE-U' + n, m.name || '');
+      setIfEmpty('AUD-V13-MAIL-U' + n, m.email || '');
+      setIfEmpty('AUD-V13-ROLA-U' + n, m.role || '');
     });
   }
-  const siedzibaEl = document.querySelector('[data-id="AUD-V4-ADRES"]');
+  const siedzibaEl = document.querySelector('[data-id="AUD-V4-MIASTO"]');
   const lokAdresEl = document.querySelector('[data-id="ZAK-V2-LOK-ADRES"]');
   if (siedzibaEl && lokAdresEl) {
     let lastSiedziba = siedzibaEl.value;
@@ -4676,6 +4780,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       lastSiedziba = newSiedziba;
     });
+  }
+  const nipVal = (document.querySelector('[data-id="AUD-V2-NIP"]') || {}).value || '';
+  const regonVal = (document.querySelector('[data-id="AUD-V3-REGON"]') || {}).value || '';
+  if (nipVal.replace(/[^0-9]/g,'').length === 10 && !regonVal) {
+    setTimeout(fetchGUSData, 600);
   }
   setTimeout(masterLocAutoFillIfNeeded, 200);
 });
