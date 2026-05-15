@@ -828,8 +828,8 @@ body { margin: 0; }
             <div class="field-id mono">AUD-V8-ZLEC</div>
           </div>
           <div class="field-input-wrap">
-            <input type="text" class="field-input" data-id="AUD-V8-ZLEC" placeholder="(zwykle == klient z V1)">
-            <div class="field-hint">Jeśli inny niż klient — pełna nazwa</div>
+            <input type="text" class="field-input" data-id="AUD-V8-ZLEC" placeholder="Firma zlecająca audyt">
+            <div class="field-hint">Domyślnie = firma klienta. Zmień, jeśli zleceniodawcą jest inny podmiot (np. spółka-matka).</div>
           </div>
           <div class="kto-cell"><span class="tag kon">KON</span></div>
           <div class="field-unit">—</div>
@@ -841,8 +841,8 @@ body { margin: 0; }
             <div class="field-id mono">AUD-V9-ZLEC-KONTAKT</div>
           </div>
           <div class="field-input-wrap">
-            <input type="text" class="field-input" data-id="AUD-V9-ZLEC-KONTAKT" placeholder="email + telefon">
-            <div class="field-hint">Email + telefon osoby decyzyjnej</div>
+            <input type="text" class="field-input" data-id="AUD-V9-ZLEC-KONTAKT" placeholder="imię nazwisko · email · telefon">
+            <div class="field-hint">Email + telefon osoby decyzyjnej u zleceniodawcy</div>
           </div>
           <div class="kto-cell"><span class="tag kon">KON</span></div>
           <div class="field-unit">—</div>
@@ -4538,6 +4538,10 @@ function prefillFromCompanyData() {
   // Audytor
   setIfEmpty('AUD-V10-AUDYTOR',      COMPANY_DATA.auditorName);
   setIfEmpty('AUD-V11-AUDYTOR-MAIL', COMPANY_DATA.auditorEmail);
+  // Zleceniodawca — domyślnie = firma klienta (użytkownik może zmienić)
+  setIfEmpty('AUD-V8-ZLEC', COMPANY_DATA.name);
+  const _zlecKontakt = [COMPANY_DATA.contactName, COMPANY_DATA.contactEmail, COMPANY_DATA.contactPhone].filter(Boolean).join(' · ');
+  setIfEmpty('AUD-V9-ZLEC-KONTAKT', _zlecKontakt);
 }
 
 // 7. Klimat â€” auto-uzupelnienie
