@@ -92,6 +92,7 @@ Route::post('/admin/diagnostyka/test-mail', [DiagnosticsController::class, 'test
 
 Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+    Route::get('/logout', fn() => redirect()->route('home'));
 
     Route::get('/profil', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profil', [ProfileController::class, 'update'])->name('profile.update');
