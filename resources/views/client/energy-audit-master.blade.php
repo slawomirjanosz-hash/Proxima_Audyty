@@ -6,8 +6,20 @@ if (isset($company) && $company) {
     $_auditorEmail = '';
     $_auditorPhone = '';
     // Audytor przydzielony do firmy (auditor_id), fallback: assignedUsers z rolą audytor
-    $_auditor = $company->auditor
-        ?? (method_exists($company, 'assignedUsers') ? $company->assignedUsers->where('role', 'auditor')->first() : null);
+    // 1. auditor_id na Company (ustawiany przez sync przy edycji audytu)
+    $_auditor = $company->auditor;
+    // 2. fallback: audytor z ostatniego EnergyAudit tej firmy
+    if (!$_auditor && $company->relationLoaded('energyAudits')) {
+        $_auditor = $company->energyAudits
+            ->whereNotNull('auditor_id')
+            ->sortByDesc('updated_at')
+            ->first()
+            ?->auditor;
+    }
+    // 3. fallback: assignedUsers z rolą audytor
+    if (!$_auditor && method_exists($company, 'assignedUsers')) {
+        $_auditor = $company->assignedUsers->first(fn($u) => ($u->role->value ?? $u->role) === 'auditor');
+    }
     if ($_auditor) { $_auditorName = $_auditor->name; $_auditorEmail = $_auditor->email; $_auditorPhone = $_auditor->phone ?? ''; }
     // Osoba rejestrująca firmę — client (fallback jeśli brak CompanyContact)
     $_client  = $company->client ?? null;
