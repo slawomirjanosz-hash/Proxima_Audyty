@@ -41,7 +41,7 @@ class EnergyAuditMasterController extends Controller
 
         $auditors = User::whereIn('role', ['admin', 'auditor', 'super_admin'])
             ->orderBy('name')
-            ->get(['id', 'name', 'email', 'phone']);
+            ->get(['id', 'name', 'email']);
 
         return view('client.energy-audit-master', [
             'company'      => $company,

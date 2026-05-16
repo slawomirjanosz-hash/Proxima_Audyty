@@ -3517,7 +3517,15 @@ const COMPANY_ID = {{ isset($company) && $company ? $company->id : 'null' }};
 const PREVIEW_MODE = {{ (!empty($previewMode) && $previewMode) ? 'true' : 'false' }};
 const COMPANY_DATA = @json($_companyData);
 const TEAM_MEMBERS = @json($_teamMembers);
-const AUDITORS_LIST = @json(isset($auditors) ? $auditors->map(fn($a) => ['id'=>$a->id,'name'=>$a->name,'email'=>$a->email,'phone'=>$a->phone??'']) : []);
+@php
+$_auditorsList = [];
+if (isset($auditors)) {
+    foreach ($auditors as $_a) {
+        $_auditorsList[] = ['id' => $_a->id, 'name' => $_a->name, 'email' => $_a->email, 'phone' => $_a->phone ?? ''];
+    }
+}
+@endphp
+const AUDITORS_LIST = @json($_auditorsList);
 
 
 // ============================================================
