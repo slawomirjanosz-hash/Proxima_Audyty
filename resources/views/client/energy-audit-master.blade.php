@@ -4,10 +4,11 @@ $_companyData = null;
 if (isset($company) && $company) {
     $_auditorName = '';
     $_auditorEmail = '';
+    $_auditorPhone = '';
     // Audytor przydzielony do firmy (auditor_id), fallback: assignedUsers z rolą audytor
     $_auditor = $company->auditor
         ?? (method_exists($company, 'assignedUsers') ? $company->assignedUsers->where('role', 'auditor')->first() : null);
-    if ($_auditor) { $_auditorName = $_auditor->name; $_auditorEmail = $_auditor->email; }
+    if ($_auditor) { $_auditorName = $_auditor->name; $_auditorEmail = $_auditor->email; $_auditorPhone = $_auditor->phone ?? ''; }
     // Osoba rejestrująca firmę — client (fallback jeśli brak CompanyContact)
     $_client  = $company->client ?? null;
     $_contact = $company->contacts->first();
@@ -21,6 +22,7 @@ if (isset($company) && $company) {
         'address'       => implode(', ', array_filter([$company->street ?? '', $company->postal_code ?? ''])), // legacy
         'auditorName'   => $_auditorName,
         'auditorEmail'  => $_auditorEmail,
+        'auditorPhone'  => $_auditorPhone,
         'krs'           => $company->krs ?? '',
         // Kontakt: CompanyContact → jeśli brak, użyj klienta (osoby rejestrującej)
         'contactName'   => optional($_contact)->name  ?: optional($_client)->name  ?? '',
@@ -883,7 +885,7 @@ body { margin: 0; }
 
       <div class="group">
         <div class="group-title" style="display:flex;align-items:center;gap:10px;">Audytor wiodący (ENESA)
-          <button type="button" onclick="fillAudytor()" style="font-size:11px;padding:3px 9px;background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc;border-radius:5px;cursor:pointer;font-weight:600;line-height:1.3;">&#8635; Uzupełnij z systemu</button>
+          <button type="button" onclick="showAuditorPicker()" style="font-size:11px;padding:3px 9px;background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc;border-radius:5px;cursor:pointer;font-weight:600;line-height:1.3;">&#8635; Uzupełnij z systemu</button>
         </div>
         <div class="group-desc">Konsultant ENESA prowadzący audyt</div>
 
@@ -3515,6 +3517,7 @@ const COMPANY_ID = {{ isset($company) && $company ? $company->id : 'null' }};
 const PREVIEW_MODE = {{ (!empty($previewMode) && $previewMode) ? 'true' : 'false' }};
 const COMPANY_DATA = @json($_companyData);
 const TEAM_MEMBERS = @json($_teamMembers);
+const AUDITORS_LIST = @json(isset($auditors) ? $auditors->map(fn($a) => ['id'=>$a->id,'name'=>$a->name,'email'=>$a->email,'phone'=>$a->phone??'']) : []);
 
 
 // ============================================================
@@ -4581,22 +4584,41 @@ function prefillFromCompanyData() {
 }
 
 // Force-fill helpers (przyciski "Uzupełnij automatycznie" — nadpisują istniejące wartości)
-function _forceSet(id, v) {
-  if (!v) return;
+function _forceSetField(id, v) {
   const el = document.querySelector('[data-id="' + id + '"]');
-  if (el) { el.value = v; el.dispatchEvent(new Event('input', {bubbles: true})); }
+  if (el) { el.value = v ?? ''; el.dispatchEvent(new Event('input', {bubbles: true})); }
 }
 function fillZleceniodawca() {
   if (!COMPANY_DATA) return;
-  _forceSet('AUD-V8-ZLEC',      COMPANY_DATA.name);
-  _forceSet('AUD-V9-ZLEC-IMIE', COMPANY_DATA.contactName);
-  _forceSet('AUD-V9-ZLEC-MAIL', COMPANY_DATA.contactEmail);
-  _forceSet('AUD-V9-ZLEC-TEL',  COMPANY_DATA.contactPhone);
+  _forceSetField('AUD-V8-ZLEC',      COMPANY_DATA.name);
+  _forceSetField('AUD-V9-ZLEC-IMIE', COMPANY_DATA.contactName);
+  _forceSetField('AUD-V9-ZLEC-MAIL', COMPANY_DATA.contactEmail);
+  _forceSetField('AUD-V9-ZLEC-TEL',  COMPANY_DATA.contactPhone);
 }
-function fillAudytor() {
-  if (!COMPANY_DATA) return;
-  _forceSet('AUD-V10-AUDYTOR',      COMPANY_DATA.auditorName);
-  _forceSet('AUD-V11-AUDYTOR-MAIL', COMPANY_DATA.auditorEmail);
+function fillAudytor(auditorId) {
+  // Called from popup select — pick specific auditor from AUDITORS_LIST
+  const aud = AUDITORS_LIST.find(a => String(a.id) === String(auditorId));
+  if (!aud) return;
+  _forceSetField('AUD-V10-AUDYTOR',      aud.name);
+  _forceSetField('AUD-V11-AUDYTOR-MAIL', aud.email);
+  _forceSetField('AUD-V12-AUDYTOR-TEL',  aud.phone);
+  document.getElementById('auditor-picker-popup')?.remove();
+}
+function showAuditorPicker() {
+  document.getElementById('auditor-picker-popup')?.remove();
+  const popup = document.createElement('div');
+  popup.id = 'auditor-picker-popup';
+  popup.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border:1px solid #d1d5db;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:9999;padding:20px 24px;min-width:320px;max-width:90vw;';
+  const sysAud = COMPANY_DATA?.auditorName ? '<div style="font-size:12px;color:#0369a1;background:#e0f2fe;border-radius:6px;padding:6px 10px;margin-bottom:12px;">&#128101; Audytor z systemu: <strong>' + COMPANY_DATA.auditorName + '</strong>' + (COMPANY_DATA.auditorEmail ? ' &middot; ' + COMPANY_DATA.auditorEmail : '') + '</div>' : '<div style="font-size:12px;color:#92400e;background:#fef3c7;border-radius:6px;padding:6px 10px;margin-bottom:12px;">&#9888; Brak przypisanego audytora dla tej firmy</div>';
+  const opts = AUDITORS_LIST.map(a => '<option value="' + a.id + '">' + a.name + (a.email ? ' (' + a.email + ')' : '') + '</option>').join('');
+  popup.innerHTML = '<div style="font-weight:700;font-size:15px;margin-bottom:12px;color:#1a4d3a;">Wybierz audytora wiodącego</div>' + sysAud + '<select id="auditor-picker-sel" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;margin-bottom:14px;"><option value="">— wybierz z listy —</option>' + opts + '</select><div style="display:flex;gap:8px;justify-content:flex-end;"><button onclick="document.getElementById(\'auditor-picker-popup\').remove()" style="padding:7px 14px;border:1px solid #d1d5db;border-radius:7px;cursor:pointer;background:#f9fafb;">Anuluj</button><button onclick="fillAudytor(document.getElementById(\'auditor-picker-sel\').value)" style="padding:7px 14px;border:none;border-radius:7px;cursor:pointer;background:#1a4d3a;color:#fff;font-weight:600;">Uzupełnij</button></div>';
+  document.body.appendChild(popup);
+  // Auto-select system auditor if found
+  const sel = popup.querySelector('#auditor-picker-sel');
+  if (COMPANY_DATA?.auditorName && AUDITORS_LIST.length) {
+    const match = AUDITORS_LIST.find(a => a.name === COMPANY_DATA.auditorName);
+    if (match) sel.value = match.id;
+  }
 }
 
 // 7. Klimat â€” auto-uzupelnienie

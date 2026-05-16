@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ClientChatMessage;
 use App\Models\Company;
 use App\Models\EnergyAuditMasterData;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -38,6 +39,10 @@ class EnergyAuditMasterController extends Controller
             )
             : null;
 
+        $auditors = User::whereIn('role', ['admin', 'auditor', 'super_admin'])
+            ->orderBy('name')
+            ->get(['id', 'name', 'email', 'phone']);
+
         return view('client.energy-audit-master', [
             'company'      => $company,
             'masterData'   => $masterData,
@@ -45,6 +50,7 @@ class EnergyAuditMasterController extends Controller
             'isStaff'      => $isStaff,
             'previewMode'  => $previewMode,
             'currentUser'  => $user,
+            'auditors'     => $auditors,
             'chatMessages' => (!$previewMode && $company)
                 ? ClientChatMessage::where('company_id', $company->id)
                     ->orderBy('created_at')
