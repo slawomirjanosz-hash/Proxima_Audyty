@@ -3456,4 +3456,8 @@ setInterval(() => doServerSave(), 30000);
 // === END LARAVEL BLADE OVERRIDES ===
 
 </script>
+
+<x-client-chat-float :chatMessages="$chatMessages" :companyId="$audit->company_id" />
+<x-ai-chat-float contextType="compressor_room" :contextId="$audit->id" />
+
 </x-layouts.app>

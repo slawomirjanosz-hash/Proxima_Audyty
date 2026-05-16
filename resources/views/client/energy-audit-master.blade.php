@@ -4900,4 +4900,8 @@ window.addEventListener('load', function() { setTimeout(masterLocAutoFillIfNeede
 
 // === END LARAVEL BLADE OVERRIDES ===
 </script>
+
+<x-client-chat-float :chatMessages="$chatMessages" :companyId="isset($company) && $company ? $company->id : null" />
+<x-ai-chat-float contextType="general" />
+
 </x-layouts.app>
