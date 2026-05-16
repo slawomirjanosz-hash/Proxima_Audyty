@@ -8,6 +8,9 @@ if (isset($company) && $company) {
     $_auditor = $company->auditor
         ?? (method_exists($company, 'assignedUsers') ? $company->assignedUsers->where('role', 'auditor')->first() : null);
     if ($_auditor) { $_auditorName = $_auditor->name; $_auditorEmail = $_auditor->email; }
+    // Osoba rejestrująca firmę — client (fallback jeśli brak CompanyContact)
+    $_client  = $company->client ?? null;
+    $_contact = $company->contacts->first();
     $_companyData = [
         'name'          => $company->name ?? '',
         'nip'           => $company->nip ?? '',
@@ -19,9 +22,10 @@ if (isset($company) && $company) {
         'auditorName'   => $_auditorName,
         'auditorEmail'  => $_auditorEmail,
         'krs'           => $company->krs ?? '',
-        'contactName'   => optional($company->contacts->first())->name ?? '',
-        'contactEmail'  => optional($company->contacts->first())->email ?? '',
-        'contactPhone'  => optional($company->contacts->first())->phone ?? '',
+        // Kontakt: CompanyContact → jeśli brak, użyj klienta (osoby rejestrującej)
+        'contactName'   => optional($_contact)->name  ?: optional($_client)->name  ?? '',
+        'contactEmail'  => optional($_contact)->email ?: optional($_client)->email ?? '',
+        'contactPhone'  => optional($_contact)->phone ?: optional($_client)->phone ?? '',
     ];
 }
 $_teamMembers = [];
@@ -819,7 +823,9 @@ body { margin: 0; }
       </div>
 
       <div class="group">
-        <div class="group-title">Zleceniodawca audytu (jeśli różni się od klienta)</div>
+        <div class="group-title" style="display:flex;align-items:center;gap:10px;">Zleceniodawca audytu (jeśli różni się od klienta)
+          <button type="button" onclick="fillZleceniodawca()" style="font-size:11px;padding:3px 9px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:5px;cursor:pointer;font-weight:600;line-height:1.3;">&#8635; Uzupełnij danymi firmy</button>
+        </div>
         <div class="group-desc">Najczęściej zleceniodawca = klient. Może być korporacja-matka, fundusz inwestycyjny.</div>
 
         <div class="field">
@@ -876,7 +882,9 @@ body { margin: 0; }
       </div>
 
       <div class="group">
-        <div class="group-title">Audytor wiodący (ENESA)</div>
+        <div class="group-title" style="display:flex;align-items:center;gap:10px;">Audytor wiodący (ENESA)
+          <button type="button" onclick="fillAudytor()" style="font-size:11px;padding:3px 9px;background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc;border-radius:5px;cursor:pointer;font-weight:600;line-height:1.3;">&#8635; Uzupełnij z systemu</button>
+        </div>
         <div class="group-desc">Konsultant ENESA prowadzący audyt</div>
 
         <div class="field">
@@ -4570,6 +4578,25 @@ function prefillFromCompanyData() {
   setIfEmpty('AUD-V9-ZLEC-IMIE',  COMPANY_DATA.contactName);
   setIfEmpty('AUD-V9-ZLEC-MAIL',  COMPANY_DATA.contactEmail);
   setIfEmpty('AUD-V9-ZLEC-TEL',   COMPANY_DATA.contactPhone);
+}
+
+// Force-fill helpers (przyciski "Uzupełnij automatycznie" — nadpisują istniejące wartości)
+function _forceSet(id, v) {
+  if (!v) return;
+  const el = document.querySelector('[data-id="' + id + '"]');
+  if (el) { el.value = v; el.dispatchEvent(new Event('input', {bubbles: true})); }
+}
+function fillZleceniodawca() {
+  if (!COMPANY_DATA) return;
+  _forceSet('AUD-V8-ZLEC',      COMPANY_DATA.name);
+  _forceSet('AUD-V9-ZLEC-IMIE', COMPANY_DATA.contactName);
+  _forceSet('AUD-V9-ZLEC-MAIL', COMPANY_DATA.contactEmail);
+  _forceSet('AUD-V9-ZLEC-TEL',  COMPANY_DATA.contactPhone);
+}
+function fillAudytor() {
+  if (!COMPANY_DATA) return;
+  _forceSet('AUD-V10-AUDYTOR',      COMPANY_DATA.auditorName);
+  _forceSet('AUD-V11-AUDYTOR-MAIL', COMPANY_DATA.auditorEmail);
 }
 
 // 7. Klimat â€” auto-uzupelnienie
