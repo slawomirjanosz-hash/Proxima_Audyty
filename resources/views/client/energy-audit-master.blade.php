@@ -4611,8 +4611,8 @@ function prefillFromCompanyData() {
   setIfEmpty('AUD-V9-ZLEC-IMIE',  COMPANY_DATA.contactName);
   setIfEmpty('AUD-V9-ZLEC-MAIL',  COMPANY_DATA.contactEmail);
   setIfEmpty('AUD-V9-ZLEC-TEL',   COMPANY_DATA.contactPhone);
-  // Numer umowy — z oferty powiązanej z audytem
-  setIfEmpty('AUD-V19-UMOWA', COMPANY_DATA.offerNumber);
+  // Numer umowy — z oferty powiązanej z audytem (zawsze aktualizuj gdy jest wartość)
+  if (COMPANY_DATA.offerNumber) _forceSetField('AUD-V19-UMOWA', COMPANY_DATA.offerNumber);
 }
 
 // Force-fill helpers (przyciski "Uzupełnij automatycznie" — nadpisują istniejące wartości)
