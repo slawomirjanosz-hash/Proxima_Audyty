@@ -884,9 +884,7 @@ body { margin: 0; }
       </div>
 
       <div class="group">
-        <div class="group-title" style="display:flex;align-items:center;gap:10px;">Audytor wiodący (ENESA)
-          <button type="button" onclick="showAuditorPicker()" style="font-size:11px;padding:3px 9px;background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc;border-radius:5px;cursor:pointer;font-weight:600;line-height:1.3;">&#8635; Uzupełnij z systemu</button>
-        </div>
+        <div class="group-title">Audytor wiodący (ENESA)</div>
         <div class="group-desc">Konsultant ENESA prowadzący audyt</div>
 
         <div class="field">
@@ -4580,9 +4578,10 @@ function prefillFromCompanyData() {
   setIfEmpty('AUD-V4-MIASTO',        cityFull);
   // Domyślna lokalizacja audytowana = miejscowość siedziby
   setIfEmpty('ZAK-V2-LOK-ADRES',     COMPANY_DATA.city || cityFull);
-  // Audytor
-  setIfEmpty('AUD-V10-AUDYTOR',      COMPANY_DATA.auditorName);
-  setIfEmpty('AUD-V11-AUDYTOR-MAIL', COMPANY_DATA.auditorEmail);
+  // Audytor — zawsze z systemu, nadpisuje stare wartości z FORM_DATA
+  _forceSetField('AUD-V10-AUDYTOR',      COMPANY_DATA.auditorName  || '');
+  _forceSetField('AUD-V11-AUDYTOR-MAIL', COMPANY_DATA.auditorEmail || '');
+  _forceSetField('AUD-V12-AUDYTOR-TEL',  COMPANY_DATA.auditorPhone || '');
   // Zleceniodawca — domyślnie = firma klienta (użytkownik może zmienić)
   setIfEmpty('AUD-V8-ZLEC', COMPANY_DATA.name);
   // Kontakt zleceniodawcy — z danych rejestracyjnych firmy (pierwszy kontakt)
