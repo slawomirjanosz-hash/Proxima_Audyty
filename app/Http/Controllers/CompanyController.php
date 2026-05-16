@@ -244,6 +244,11 @@ class CompanyController extends Controller
 
         $audit->update($validated);
 
+        // Synchronize auditor_id to company so master form picks it up automatically
+        if (array_key_exists('auditor_id', $validated)) {
+            $company->update(['auditor_id' => $validated['auditor_id']]);
+        }
+
         return redirect()->route('firma.show', $company)
             ->with('status', 'Audyt "' . $audit->title . '" zaktualizowany.');
     }
