@@ -165,8 +165,8 @@
 <div class="aicw-panel" id="aicw-panel" style="display:none;" role="dialog" aria-label="Chat z Agentem AI">
     <div class="aicw-head">
         <div>
-            <div class="aicw-head-title">🤖 Agent AI — ENESA</div>
-            <div class="aicw-head-sub">Zadaj pytanie dotyczące audytu</div>
+            <div class="aicw-head-title" id="aicw-head-title">🤖 Agent AI — ENESA</div>
+            <div class="aicw-head-sub">Rozmowa <span id="aicw-conv-num" style="font-weight:700;opacity:1;">…</span> · Zadaj pytanie</div>
         </div>
         <button class="aicw-close" onclick="aicwToggle()" aria-label="Zamknij chat">✕</button>
     </div>
@@ -250,6 +250,8 @@
         .then(data => {
             if (data.error) { initMsg.textContent = 'Błąd inicjalizacji: ' + data.error; return; }
             convId = data.conversation_id;
+            const numEl = document.getElementById('aicw-conv-num');
+            if (numEl) numEl.textContent = '#' + convId;
             if (initMsg) initMsg.remove();
 
             if (data.messages && data.messages.length) {
