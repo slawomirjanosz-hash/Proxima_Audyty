@@ -16,7 +16,8 @@
         .section-box.open .section-box-body { display:block; }
         .section-box-header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
         .section-box-header h2 { margin:0; font-size:17px; font-weight:700; color:var(--green-deep); font-family:var(--serif); }
-        .audit-row { display:grid; grid-template-columns:2fr 1fr 1fr 140px auto; gap:12px; align-items:center; padding:12px 14px; border:1px solid var(--paper-deep); border-radius:6px; background:var(--paper-soft); margin-bottom:8px; }
+        .audit-row { display:grid; grid-template-columns:2fr 1fr 1fr 140px auto; gap:12px; align-items:start; padding:12px 14px; border:1px solid var(--paper-deep); border-radius:6px; background:var(--paper-soft); margin-bottom:8px; }
+        .audit-row > .audit-edit-panel { grid-column:1/-1; }
         .audit-row:hover { background:var(--green-bg); }
         .audit-row-title { font-weight:700; color:var(--ink); font-size:14px; }
         .audit-row-meta { font-size:12px; color:var(--ink-mute); }
@@ -569,12 +570,43 @@
                                    style="background:var(--green-bg); color:var(--green-deep); border:1px solid var(--green-light); padding:5px 10px;"
                                    title="Uruchom asystenta AI dla tego audytu">🤖 AI</a>
                             @endif
+                            <button type="button" class="btn-sm"
+                                style="background:#fffbeb; color:#92400e; border:1px solid #fcd34d; padding:5px 10px;"
+                                onclick="toggleAuditEdit({{ $audit->id }})"
+                                title="Edytuj audyt (audytor, tytuł)">✏️ Edytuj</button>
                             <form method="POST" action="{{ route('firma.destroyAudit', [$company, $audit]) }}" style="margin:0;" onsubmit="return confirm('Usunąć audyt &quot;{{ addslashes($audit->title) }}&quot;? Tej operacji nie można cofnąć.')">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn-sm" style="background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; padding:5px 10px;">Usuń</button>
                             </form>
                         </div>
+                        {{-- Inline edit form (hidden by default) --}}
+                        <div class="audit-edit-panel">
+                        <div id="audit-edit-{{ $audit->id }}" style="display:none; margin-top:10px; background:#fffbeb; border:1px solid #fcd34d; border-radius:8px; padding:14px 16px;">
+                            <form method="POST" action="{{ route('firma.updateAudit', [$company, $audit]) }}" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+                                @csrf
+                                @method('PATCH')
+                                <div style="flex:2; min-width:200px;">
+                                    <label style="font-size:11px; font-weight:600; text-transform:uppercase; color:var(--ink-mute); display:block; margin-bottom:4px;">Tytuł audytu</label>
+                                    <input type="text" name="title" value="{{ old('title', $audit->title) }}"
+                                           style="width:100%; padding:6px 10px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; box-sizing:border-box;">
+                                </div>
+                                <div style="flex:2; min-width:180px;">
+                                    <label style="font-size:11px; font-weight:600; text-transform:uppercase; color:var(--ink-mute); display:block; margin-bottom:4px;">Audytor</label>
+                                    <select name="auditor_id" style="width:100%; padding:6px 10px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; box-sizing:border-box;">
+                                        <option value="">— brak —</option>
+                                        @foreach($auditors as $aud)
+                                            <option value="{{ $aud->id }}" @selected($audit->auditor_id == $aud->id)>{{ $aud->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div style="display:flex; gap:6px;">
+                                    <button type="submit" class="btn-sm btn-primary-sm" style="padding:7px 14px;">Zapisz</button>
+                                    <button type="button" class="btn-sm" style="padding:7px 12px;" onclick="toggleAuditEdit({{ $audit->id }})">Anuluj</button>
+                                </div>
+                            </form>
+                        </div>
+                        </div>{{-- /audit-edit-panel --}}
                     </div>
                 @endforeach
             @else
@@ -778,6 +810,10 @@
     function toggleSection(id) {
         const el = document.getElementById(id);
         if (el) el.classList.toggle('open');
+    }
+    function toggleAuditEdit(auditId) {
+        const el = document.getElementById('audit-edit-' + auditId);
+        if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
     }
     function toggleAddUserPanel() {
         const panel  = document.getElementById('add-user-panel');

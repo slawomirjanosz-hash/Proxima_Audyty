@@ -837,12 +837,38 @@ body { margin: 0; }
 
         <div class="field">
           <div class="field-label">
-            <div class="field-q">Kontakt zleceniodawcy</div>
-            <div class="field-id mono">AUD-V9-ZLEC-KONTAKT</div>
+            <div class="field-q">Osoba kontaktowa zleceniodawcy</div>
+            <div class="field-id mono">AUD-V9-ZLEC-IMIE</div>
           </div>
           <div class="field-input-wrap">
-            <input type="text" class="field-input" data-id="AUD-V9-ZLEC-KONTAKT" placeholder="imię nazwisko · email · telefon">
-            <div class="field-hint">Email + telefon osoby decyzyjnej u zleceniodawcy</div>
+            <input type="text" class="field-input" data-id="AUD-V9-ZLEC-IMIE" placeholder="np. Jan Kowalski">
+            <div class="field-hint">Imię i nazwisko osoby decyzyjnej u zleceniodawcy</div>
+          </div>
+          <div class="kto-cell"><span class="tag kon">KON</span></div>
+          <div class="field-unit">—</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Email kontaktu zleceniodawcy</div>
+            <div class="field-id mono">AUD-V9-ZLEC-MAIL</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="email" class="field-input" data-id="AUD-V9-ZLEC-MAIL" placeholder="np. j.kowalski@firma.pl">
+            <div class="field-hint">Adres e-mail osoby kontaktowej</div>
+          </div>
+          <div class="kto-cell"><span class="tag kon">KON</span></div>
+          <div class="field-unit">—</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            <div class="field-q">Telefon kontaktu zleceniodawcy</div>
+            <div class="field-id mono">AUD-V9-ZLEC-TEL</div>
+          </div>
+          <div class="field-input-wrap">
+            <input type="tel" class="field-input" data-id="AUD-V9-ZLEC-TEL" placeholder="+48 ...">
+            <div class="field-hint">Numer telefonu osoby kontaktowej</div>
           </div>
           <div class="kto-cell"><span class="tag kon">KON</span></div>
           <div class="field-unit">—</div>
@@ -4540,8 +4566,10 @@ function prefillFromCompanyData() {
   setIfEmpty('AUD-V11-AUDYTOR-MAIL', COMPANY_DATA.auditorEmail);
   // Zleceniodawca — domyślnie = firma klienta (użytkownik może zmienić)
   setIfEmpty('AUD-V8-ZLEC', COMPANY_DATA.name);
-  const _zlecKontakt = [COMPANY_DATA.contactName, COMPANY_DATA.contactEmail, COMPANY_DATA.contactPhone].filter(Boolean).join(' · ');
-  setIfEmpty('AUD-V9-ZLEC-KONTAKT', _zlecKontakt);
+  // Kontakt zleceniodawcy — z danych rejestracyjnych firmy (pierwszy kontakt)
+  setIfEmpty('AUD-V9-ZLEC-IMIE',  COMPANY_DATA.contactName);
+  setIfEmpty('AUD-V9-ZLEC-MAIL',  COMPANY_DATA.contactEmail);
+  setIfEmpty('AUD-V9-ZLEC-TEL',   COMPANY_DATA.contactPhone);
 }
 
 // 7. Klimat â€” auto-uzupelnienie

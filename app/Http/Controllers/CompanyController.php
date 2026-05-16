@@ -233,6 +233,21 @@ class CompanyController extends Controller
             ->with('status', 'Audyt został usunięty.');
     }
 
+    public function updateAudit(Request $request, Company $company, EnergyAudit $audit): RedirectResponse
+    {
+        abort_unless((int) $audit->company_id === $company->id, 404);
+
+        $validated = $request->validate([
+            'title'      => ['required', 'string', 'max:255'],
+            'auditor_id' => ['nullable', 'exists:users,id'],
+        ]);
+
+        $audit->update($validated);
+
+        return redirect()->route('firma.show', $company)
+            ->with('status', 'Audyt "' . $audit->title . '" zaktualizowany.');
+    }
+
     public function approveAudit(Request $request, Company $company, EnergyAudit $audit): RedirectResponse
     {
         abort_unless((int) $audit->company_id === $company->id, 404);

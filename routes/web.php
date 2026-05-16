@@ -500,6 +500,9 @@ Route::middleware('auth')->group(function (): void {
     Route::patch('/firmy/{company}/audyt/{audit}/status', [CompanyController::class, 'updateStatus'])
         ->middleware('role:admin,auditor')
         ->name('firma.updateStatus');
+    Route::patch('/firmy/{company}/audyt/{audit}/edytuj', [CompanyController::class, 'updateAudit'])
+        ->middleware('role:admin,auditor')
+        ->name('firma.updateAudit');
     Route::delete('/firmy/{company}/audyt/{audit}', [CompanyController::class, 'destroyAudit'])
         ->middleware('role:admin,auditor')
         ->name('firma.destroyAudit');
