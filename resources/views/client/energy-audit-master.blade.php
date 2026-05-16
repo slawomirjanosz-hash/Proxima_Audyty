@@ -21,6 +21,16 @@ if (isset($company) && $company) {
         $_auditor = $company->assignedUsers->first(fn($u) => ($u->role->value ?? $u->role) === 'auditor');
     }
     if ($_auditor) { $_auditorName = $_auditor->name; $_auditorEmail = $_auditor->email; $_auditorPhone = $_auditor->phone ?? ''; }
+    // Nr oferty z ostatniego audytu powiązanego z ofertą
+    $_offerNumber = '';
+    if ($company->relationLoaded('energyAudits')) {
+        $_offerNumber = $company->energyAudits
+            ->whereNotNull('offer_id')
+            ->sortByDesc('updated_at')
+            ->first()
+            ?->offer
+            ?->offer_number ?? '';
+    }
     // Osoba rejestrująca firmę — client (fallback jeśli brak CompanyContact)
     $_client  = $company->client ?? null;
     $_contact = $company->contacts->first();
@@ -35,6 +45,7 @@ if (isset($company) && $company) {
         'auditorName'   => $_auditorName,
         'auditorEmail'  => $_auditorEmail,
         'auditorPhone'  => $_auditorPhone,
+        'offerNumber'   => $_offerNumber,
         'krs'           => $company->krs ?? '',
         // Kontakt: CompanyContact → jeśli brak, użyj klienta (osoby rejestrującej)
         'contactName'   => optional($_contact)->name  ?: optional($_client)->name  ?? '',
@@ -4600,6 +4611,8 @@ function prefillFromCompanyData() {
   setIfEmpty('AUD-V9-ZLEC-IMIE',  COMPANY_DATA.contactName);
   setIfEmpty('AUD-V9-ZLEC-MAIL',  COMPANY_DATA.contactEmail);
   setIfEmpty('AUD-V9-ZLEC-TEL',   COMPANY_DATA.contactPhone);
+  // Numer umowy — z oferty powiązanej z audytem
+  setIfEmpty('AUD-V19-UMOWA', COMPANY_DATA.offerNumber);
 }
 
 // Force-fill helpers (przyciski "Uzupełnij automatycznie" — nadpisują istniejące wartości)

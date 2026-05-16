@@ -88,6 +88,7 @@ class CompanyController extends Controller
             'audit_type_id' => ['nullable', 'exists:audit_types,id'],
             'auditor_id'    => ['nullable', 'exists:users,id'],
             'agent_type'    => ['required', 'string', 'in:' . implode(',', $agentTypes)],
+            'offer_id'      => ['nullable', 'exists:offers,id'],
         ]);
 
         // Auto-resolve audit_type from agent_type if not explicitly provided
@@ -106,6 +107,7 @@ class CompanyController extends Controller
             'agent_type'    => $validated['agent_type'],
             'company_id'    => $company->id,
             'auditor_id'    => $validated['auditor_id'] ?? null,
+            'offer_id'      => $validated['offer_id'] ?? null,
             'status'        => 'wysałany',
             'data_payload'  => [],
         ]);
@@ -240,6 +242,7 @@ class CompanyController extends Controller
         $validated = $request->validate([
             'title'      => ['required', 'string', 'max:255'],
             'auditor_id' => ['nullable', 'exists:users,id'],
+            'offer_id'   => ['nullable', 'exists:offers,id'],
         ]);
 
         $audit->update($validated);

@@ -600,6 +600,17 @@
                                         @endforeach
                                     </select>
                                 </div>
+                                @if($companyOffers->isNotEmpty())
+                                <div style="flex:2; min-width:180px;">
+                                    <label style="font-size:11px; font-weight:600; text-transform:uppercase; color:var(--ink-mute); display:block; margin-bottom:4px;">Oferta (nr umowy)</label>
+                                    <select name="offer_id" style="width:100%; padding:6px 10px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; box-sizing:border-box;">
+                                        <option value="">— brak —</option>
+                                        @foreach($companyOffers as $co)
+                                            <option value="{{ $co->id }}" @selected($audit->offer_id == $co->id)>{{ $co->offer_number ? '#'.$co->offer_number.' · ' : '' }}{{ $co->offer_title }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                @endif
                                 <div style="display:flex; gap:6px;">
                                     <button type="submit" class="btn-sm btn-primary-sm" style="padding:7px 14px;">Zapisz</button>
                                     <button type="button" class="btn-sm" style="padding:7px 12px;" onclick="toggleAuditEdit({{ $audit->id }})">Anuluj</button>
@@ -751,6 +762,17 @@
                                 </select>
                             </div>
                         </div>
+                        @if($companyOffers->isNotEmpty())
+                        <div>
+                            <label style="font-size:11px; font-weight:700; color:#374151; display:block; margin-bottom:4px;">Powiąż z ofertą (nr umowy)</label>
+                            <select name="offer_id" style="width:100%; border:1px solid #c8d8e6; border-radius:8px; padding:7px 10px; font-size:12px; background:#fff; box-sizing:border-box;">
+                                <option value="">— brak —</option>
+                                @foreach($companyOffers as $co)
+                                    <option value="{{ $co->id }}">{{ $co->offer_number ? '#'.$co->offer_number.' · ' : '' }}{{ $co->offer_title }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
                         <div style="display:flex; gap:8px;">
                             <button type="submit" style="padding:9px 20px; background:linear-gradient(130deg,#0e89d8,#0772b5); color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">Przydziel audyt</button>
                             <button type="button" onclick="resetAuditAssign()" style="padding:9px 14px; background:#f8fbfd; border:1px solid #d5e0ea; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; color:#4c6373;">← Zmień</button>

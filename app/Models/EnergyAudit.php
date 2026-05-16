@@ -52,6 +52,7 @@ class EnergyAudit extends Model
         'data_payload',
         'company_id',
         'auditor_id',
+        'offer_id',
         'questionnaire_answers',
         'questionnaire_completed',
         'questionnaire_reviewed_at',
@@ -78,5 +79,10 @@ class EnergyAudit extends Model
     public function auditor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'auditor_id');
+    }
+
+    public function offer(): BelongsTo
+    {
+        return $this->belongsTo(Offer::class);
     }
 }
