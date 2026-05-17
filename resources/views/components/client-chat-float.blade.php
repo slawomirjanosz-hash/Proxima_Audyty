@@ -151,6 +151,29 @@
     .fcw-send:hover:not(:disabled) { background: #0a6faf; }
     .fcw-send:disabled { opacity: .5; cursor: not-allowed; }
 
+    /* ── Resize handle ────────────────────────────────────── */
+    .fcw-resize-handle {
+        width: 100%;
+        height: 10px;
+        cursor: ns-resize;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        background: transparent;
+        border-radius: 16px 16px 0 0;
+        transition: background .15s;
+    }
+    .fcw-resize-handle:hover { background: rgba(14,137,216,.08); }
+    .fcw-resize-handle::after {
+        content: '';
+        width: 36px;
+        height: 3px;
+        border-radius: 2px;
+        background: rgba(14,137,216,.25);
+    }
+    .fcw-resize-handle:hover::after { background: rgba(14,137,216,.5); }
+
     @media (max-width: 600px) {
         .fcw-panel { width: calc(100vw - 16px); right: 8px; bottom: 80px; }
     }
@@ -164,6 +187,7 @@
 
 {{-- Chat panel (hidden initially) --}}
 <div class="fcw-panel" id="fcw-panel" style="display:none;" role="dialog" aria-label="Chat z zespołem ENESA">
+    <div class="fcw-resize-handle" id="fcw-resize-handle"></div>
     <div class="fcw-head">
         <div>
             <div class="fcw-head-title">💬 Chat z zespołem ENESA</div>
@@ -200,9 +224,13 @@
     let isOpen    = false;
     let hasNew    = false;
 
+    window._fcwOpen = false;
+
     window.fcwToggle = function () {
         isOpen = !isOpen;
         panel.style.display = isOpen ? 'flex' : 'none';
+        window._fcwOpen = isOpen;
+        window._recalcChatLayout?.();
         if (isOpen) {
             messagesEl.scrollTop = messagesEl.scrollHeight;
             dot.style.display = 'none';
@@ -210,6 +238,39 @@
             inputEl.focus();
         }
     };
+
+    // Resize by dragging the top handle
+    (function() {
+        const handle = document.getElementById('fcw-resize-handle');
+        if (!handle) return;
+        let startY, startH;
+        function onMove(e) {
+            const cy = e.touches ? e.touches[0].clientY : e.clientY;
+            const dy = startY - cy;
+            const newH = Math.max(280, Math.min(window.innerHeight - 120, startH + dy));
+            panel.style.height = newH + 'px';
+            panel.style.maxHeight = newH + 'px';
+        }
+        function onUp() {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+            document.removeEventListener('touchmove', onMove);
+            document.removeEventListener('touchend', onUp);
+        }
+        handle.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            startY = e.clientY;
+            startH = panel.offsetHeight;
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+        });
+        handle.addEventListener('touchstart', function(e) {
+            startY = e.touches[0].clientY;
+            startH = panel.offsetHeight;
+            document.addEventListener('touchmove', onMove, {passive: false});
+            document.addEventListener('touchend', onUp);
+        }, {passive: true});
+    })();
 
     function escHtml(s) {
         return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

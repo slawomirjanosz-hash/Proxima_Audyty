@@ -35,10 +35,11 @@
     .aicw-panel {
         position: fixed;
         bottom: 88px;
-        right: 88px;
+        right: 24px;
         z-index: 1200;
         width: 340px;
-        max-height: 500px;
+        height: 500px;
+        max-height: calc(100vh - 120px);
         background: #fff;
         border: 1px solid #c8d8e6;
         border-radius: 16px;
@@ -47,6 +48,7 @@
         flex-direction: column;
         overflow: hidden;
         animation: aicw-slide-in .2s ease;
+        transition: right .25s ease;
     }
     @keyframes aicw-slide-in { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
 
@@ -150,8 +152,31 @@
     .aicw-send:disabled { opacity: .5; cursor: not-allowed; }
     .aicw-init-msg { text-align:center; font-size:12px; color:#6b7280; padding:16px 12px; }
 
+    /* ── Resize handle ────────────────────────────────────── */
+    .aicw-resize-handle {
+        width: 100%;
+        height: 10px;
+        cursor: ns-resize;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        background: transparent;
+        border-radius: 16px 16px 0 0;
+        transition: background .15s;
+    }
+    .aicw-resize-handle:hover { background: rgba(46,125,85,.1); }
+    .aicw-resize-handle::after {
+        content: '';
+        width: 36px;
+        height: 3px;
+        border-radius: 2px;
+        background: rgba(46,125,85,.25);
+    }
+    .aicw-resize-handle:hover::after { background: rgba(46,125,85,.55); }
+
     @media (max-width:600px) {
-        .aicw-panel { width: calc(100vw - 16px); right: 8px; bottom: 150px; }
+        .aicw-panel { width: calc(100vw - 16px); right: 8px !important; bottom: 150px; }
         .aicw-btn   { right: 88px; }
     }
 </style>
@@ -163,6 +188,7 @@
 
 {{-- Panel --}}
 <div class="aicw-panel" id="aicw-panel" style="display:none;" role="dialog" aria-label="Chat z Agentem AI">
+    <div class="aicw-resize-handle" id="aicw-resize-handle"></div>
     <div class="aicw-head">
         <div>
             <div class="aicw-head-title" id="aicw-head-title">🤖 Agent AI — ENESA</div>
@@ -269,15 +295,62 @@
         });
     }
 
+    window._aicwOpen = false;
+
+    // ── Global layout: when both chats open, panels sit side-by-side ──
+    window._recalcChatLayout = function() {
+        const ap = document.getElementById('aicw-panel');
+        if (!ap) return;
+        const bothOpen = window._fcwOpen && window._aicwOpen;
+        // ENESA panel stays at right:24px (330px wide)
+        // AI panel: right:24px (only AI) or right:366px (both open, 24+330+12)
+        ap.style.right = bothOpen ? '366px' : '24px';
+    };
+
     window.aicwToggle = function () {
         isOpen = !isOpen;
         panel.style.display = isOpen ? 'flex' : 'none';
+        window._aicwOpen = isOpen;
+        window._recalcChatLayout();
         if (isOpen) {
             initConversation();
             messagesEl.scrollTop = messagesEl.scrollHeight;
             if (!inputEl.disabled) inputEl.focus();
         }
     };
+
+    // Resize by dragging the top handle
+    (function() {
+        const handle = document.getElementById('aicw-resize-handle');
+        if (!handle) return;
+        let startY, startH;
+        function onMove(e) {
+            const cy = e.touches ? e.touches[0].clientY : e.clientY;
+            const dy = startY - cy;
+            const newH = Math.max(280, Math.min(window.innerHeight - 120, startH + dy));
+            panel.style.height = newH + 'px';
+            panel.style.maxHeight = newH + 'px';
+        }
+        function onUp() {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+            document.removeEventListener('touchmove', onMove);
+            document.removeEventListener('touchend', onUp);
+        }
+        handle.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            startY = e.clientY;
+            startH = panel.offsetHeight;
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+        });
+        handle.addEventListener('touchstart', function(e) {
+            startY = e.touches[0].clientY;
+            startH = panel.offsetHeight;
+            document.addEventListener('touchmove', onMove, {passive: false});
+            document.addEventListener('touchend', onUp);
+        }, {passive: true});
+    })();
 
     window.aicwSend = function () {
         if (!convId || sending) return;
