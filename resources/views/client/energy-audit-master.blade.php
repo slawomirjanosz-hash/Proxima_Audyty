@@ -4902,6 +4902,6 @@ window.addEventListener('load', function() { setTimeout(masterLocAutoFillIfNeede
 </script>
 
 <x-client-chat-float :chatMessages="$chatMessages" :companyId="isset($company) && $company ? $company->id : null" />
-<x-ai-chat-float contextType="general" />
+<x-ai-chat-float contextType="general" :agentNumber="1" />
 
 </x-layouts.app>

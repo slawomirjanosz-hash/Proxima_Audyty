@@ -1,10 +1,11 @@
 {{--
     Floating AI Agent chat widget — shown on audit/questionnaire pages.
     Props:
-      $contextType – string (default: 'general')
-      $contextId   – int|null (audit id for context-aware conversations)
+      $contextType  – string (default: 'general')
+      $contextId    – int|null (audit id for context-aware conversations)
+      $agentNumber  – int (default: 1) — visible agent number, e.g. 1, 2, 3
 --}}
-@props(['contextType' => 'general', 'contextId' => null])
+@props(['contextType' => 'general', 'contextId' => null, 'agentNumber' => 1])
 
 @php $user = auth()->user(); @endphp
 @if($user)
@@ -182,16 +183,16 @@
 </style>
 
 {{-- Toggle button --}}
-<button class="aicw-btn" id="aicw-btn" onclick="aicwToggle()" title="Chat z Agentem AI" aria-label="Otwórz chat z Agentem AI">
-    🤖
+<button class="aicw-btn" id="aicw-btn" onclick="aicwToggle()" title="Agent Enesa #{{ $agentNumber }}" aria-label="Otwórz chat z Agentem Enesa">
+    💡
 </button>
 
 {{-- Panel --}}
-<div class="aicw-panel" id="aicw-panel" style="display:none;" role="dialog" aria-label="Chat z Agentem AI">
+<div class="aicw-panel" id="aicw-panel" style="display:none;" role="dialog" aria-label="Agent Enesa #{{ $agentNumber }}">
     <div class="aicw-resize-handle" id="aicw-resize-handle"></div>
     <div class="aicw-head">
         <div>
-            <div class="aicw-head-title" id="aicw-head-title">🤖 Agent AI — ENESA</div>
+            <div class="aicw-head-title" id="aicw-head-title">💡 Agent Enesa #{{ $agentNumber }}</div>
             <div class="aicw-head-sub">Rozmowa <span id="aicw-conv-num" style="font-weight:700;opacity:1;">…</span> · Zadaj pytanie</div>
         </div>
         <button class="aicw-close" onclick="aicwToggle()" aria-label="Zamknij chat">✕</button>
@@ -231,7 +232,7 @@
 
     function appendBubble(role, content, ts) {
         const side = role === 'user' ? 'from-user' : 'from-ai';
-        const label = role === 'user' ? 'Ty' : 'Agent AI';
+        const label = role === 'user' ? 'Ty' : 'Agent Enesa';
         const wrap = document.createElement('div');
         wrap.className = 'aicw-bw ' + side;
         wrap.innerHTML =
@@ -283,7 +284,7 @@
             if (data.messages && data.messages.length) {
                 data.messages.forEach(m => appendBubble(m.role, m.content, m.created_at));
             } else {
-                appendBubble('assistant', 'Cześć! Jestem Agentem AI ENESA. W czym mogę pomóc?', '');
+                appendBubble('assistant', 'Cześć! Jestem Agentem Enesa. W czym mogę pomóc?', '');
             }
 
             inputEl.disabled = false;

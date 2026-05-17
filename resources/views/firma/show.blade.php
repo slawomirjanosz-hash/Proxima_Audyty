@@ -661,7 +661,7 @@
                             </div>
                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
                                 <div>
-                                    <label style="font-size:11px; font-weight:700; color:#374151; display:block; margin-bottom:4px;">Agent AI *</label>
+                                    <label style="font-size:11px; font-weight:700; color:#374151; display:block; margin-bottom:4px;">Agent Enesa *</label>
                                     <select name="agent_type" required style="width:100%; border:1px solid #d1fae5; border-radius:8px; padding:7px 10px; font-size:12px; background:#fff; box-sizing:border-box;">
                                         <optgroup label="Audyty energetyczne">
                                             <option value="general"                 {{ $pa->agent_type==='general'                 ? 'selected' : '' }}>Audyt Energetyczny zakładu (Master)</option>

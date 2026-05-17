@@ -3458,6 +3458,6 @@ setInterval(() => doServerSave(), 30000);
 </script>
 
 <x-client-chat-float :chatMessages="$chatMessages" :companyId="$audit->company_id" />
-<x-ai-chat-float contextType="compressor_room" :contextId="$audit->id" />
+<x-ai-chat-float contextType="compressor_room" :contextId="$audit->id" :agentNumber="2" />
 
 </x-layouts.app>
