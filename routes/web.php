@@ -43,6 +43,7 @@ Route::get('/oferta', function () {
 // Public legal pages
 Route::view('/polityka-prywatnosci', 'legal.rodo')->name('legal.rodo');
 Route::view('/regulamin', 'legal.regulamin')->name('legal.regulamin');
+Route::view('/oferta', 'oferta.index')->name('oferta.public');
 
 // Public company registration
 Route::get('/rejestracja', [RegistrationController::class, 'index'])->name('register.form');
