@@ -621,7 +621,7 @@ class CrmController extends Controller
         return redirect()->route('crm.index')->with('status', 'Zadanie zostało zaktualizowane.');
     }
 
-    public function deleteTask(int $id): RedirectResponse
+    public function deleteTask(Request $request, int $id): RedirectResponse
     {
         $task = CrmTask::findOrFail($id);
         $taskTitle = $task->title;

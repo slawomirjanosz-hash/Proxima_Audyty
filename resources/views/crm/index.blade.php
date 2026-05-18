@@ -792,6 +792,9 @@
                     </div>
                 </form>
             `;
+        }
+
+        function showTaskModal() {
             openModal(taskFormHtml('{{ route('crm.task.add') }}', 'POST', {}));
         }
 
