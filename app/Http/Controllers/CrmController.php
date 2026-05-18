@@ -536,12 +536,12 @@ class CrmController extends Controller
 
         // Notify the assignee (skip if assigning to yourself)
         if ($task->assigned_to && $task->assigned_to !== $request->user()->id) {
-            $assignee = User::find($task->assigned_to);
-            if ($assignee && $assignee->email) {
-                $task->load(['company', 'deal']);
-                Mail::to($assignee->email)->send(new CrmTaskAssignedMail($task, $assignee));
-            }
-        }
+                    $assignee = User::find($task->assigned_to);
+                    if ($assignee && $assignee->email) {
+                        $task->load(['company', 'deal', 'createdBy']);
+                        Mail::to($assignee->email)->send(new CrmTaskAssignedMail($task, $assignee));
+                    }
+                }
 
         return redirect()->route('crm.index')->with('status', 'Zadanie zostało dodane.');
     }
@@ -600,7 +600,7 @@ class CrmController extends Controller
         if ($newAssignedTo && $newAssignedTo !== $oldAssignedTo && $newAssignedTo !== $request->user()->id) {
             $assignee = User::find($newAssignedTo);
             if ($assignee && $assignee->email) {
-                $task->load(['company', 'deal']);
+                $task->load(['company', 'deal', 'createdBy']);
                 Mail::to($assignee->email)->send(new CrmTaskAssignedMail($task, $assignee));
             }
         }
@@ -613,7 +613,7 @@ class CrmController extends Controller
         ) {
             $creator = User::find($task->created_by);
             if ($creator && $creator->email) {
-                $task->load(['company', 'deal', 'assignedTo']);
+                $task->load(['company', 'deal', 'assignedTo', 'createdBy']);
                 Mail::to($creator->email)->send(new CrmTaskCompletedMail($task, $creator));
             }
         }

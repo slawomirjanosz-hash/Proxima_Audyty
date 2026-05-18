@@ -20,8 +20,12 @@
         .meta-row:last-child { margin-bottom: 0; }
         .meta-label { font-size: 11px; font-weight: 700; color: #6b8aa3; text-transform: uppercase; letter-spacing: .5px; min-width: 90px; }
         .meta-value { font-size: 13px; color: #1a2e3d; font-weight: 600; }
-        .meta-value.priority-pilna  { color: #dc2626; }
-        .meta-value.priority-wysoka { color: #d97706; }
+        .meta-value.priority-pilna  { color: #dc2626; font-weight:800; }
+        .meta-value.priority-wysoka { color: #d97706; font-weight:700; }
+        .meta-value.priority-normalna { color: #1a2e3d; }
+        .meta-value.priority-niska   { color: #6b8aa3; }
+        .due-date-highlight { font-size: 14px; font-weight: 800; color: #0e4f8a; background:#dbeafe; padding: 2px 8px; border-radius: 5px; display: inline-block; }
+        .due-overdue { color: #dc2626 !important; background: #fee2e2 !important; }
         .desc-box { background: #fafcff; border-left: 3px solid #0e89d8; padding: 10px 14px; border-radius: 0 8px 8px 0; font-size: 13px; color: #3b5567; line-height: 1.6; margin-bottom: 20px; }
         .cta-wrap { text-align: center; margin: 20px 0 24px; }
         .cta-btn { display: inline-block; padding: 12px 32px; background: linear-gradient(130deg, #0e89d8, #1ba84a); color: #fff; text-decoration: none; font-weight: 800; font-size: 15px; border-radius: 8px; }
@@ -62,7 +66,14 @@
             @if($task->due_date)
             <div class="meta-row">
                 <span class="meta-label">Termin</span>
-                <span class="meta-value">{{ $task->due_date->format('d.m.Y') }}</span>
+                <span class="meta-value due-date-highlight{{ $task->due_date->isPast() ? ' due-overdue' : '' }}">
+                    {{ $task->due_date->format('d.m.Y H:i') }}
+                    @if($task->due_date->isToday()) &mdash; <em>dzisiaj!</em>
+                    @elseif($task->due_date->isTomorrow()) &mdash; <em>jutro</em>
+                    @elseif($task->due_date->isPast()) &mdash; <em>termin przekroczony</em>
+                    @else &mdash; za {{ $task->due_date->diffInDays(now()) }} {{ $task->due_date->diffInDays(now()) === 1 ? 'dzień' : 'dni' }}
+                    @endif
+                </span>
             </div>
             @endif
             @if($task->company)
@@ -75,6 +86,12 @@
             <div class="meta-row">
                 <span class="meta-label">Szansa</span>
                 <span class="meta-value">{{ $task->deal->name }}</span>
+            </div>
+            @endif
+            @if($task->createdBy)
+            <div class="meta-row">
+                <span class="meta-label">Przydzielił(a)</span>
+                <span class="meta-value">{{ $task->createdBy->name }}</span>
             </div>
             @endif
         </div>

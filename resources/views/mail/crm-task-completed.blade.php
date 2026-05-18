@@ -20,6 +20,10 @@
         .meta-row:last-child { margin-bottom: 0; }
         .meta-label { font-size: 11px; font-weight: 700; color: #2E7D5C; text-transform: uppercase; letter-spacing: .5px; min-width: 90px; }
         .meta-value { font-size: 13px; color: #1a2e3d; font-weight: 600; }
+        .meta-value.priority-pilna  { color: #dc2626; font-weight:800; }
+        .meta-value.priority-wysoka { color: #d97706; font-weight:700; }
+        .meta-value.priority-normalna { color: #1a2e3d; }
+        .meta-value.priority-niska   { color: #6b8aa3; }
         .footer { background: #1A4D3A; padding: 18px 36px; text-align: center; }
         .footer p { color: #A4C2A8; font-size: 11px; line-height: 1.7; }
     </style>
@@ -47,12 +51,18 @@
             </div>
             <div class="meta-row">
                 <span class="meta-label">Priorytet</span>
-                <span class="meta-value">{{ ucfirst($task->priority) }}</span>
+                <span class="meta-value priority-{{ $task->priority }}">{{ ucfirst($task->priority) }}</span>
             </div>
             @if($task->company)
             <div class="meta-row">
                 <span class="meta-label">Firma</span>
                 <span class="meta-value">{{ $task->company->name }}</span>
+            </div>
+            @endif
+            @if($task->deal)
+            <div class="meta-row">
+                <span class="meta-label">Szansa</span>
+                <span class="meta-value">{{ $task->deal->name }}</span>
             </div>
             @endif
             @if($task->due_date)
@@ -71,6 +81,12 @@
             <div class="meta-row">
                 <span class="meta-label">Wykonał(a)</span>
                 <span class="meta-value">{{ $task->assignedTo->name }}</span>
+            </div>
+            @endif
+            @if($task->createdBy)
+            <div class="meta-row">
+                <span class="meta-label">Przydzielił(a)</span>
+                <span class="meta-value">{{ $task->createdBy->name }}</span>
             </div>
             @endif
         </div>
