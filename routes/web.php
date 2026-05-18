@@ -40,6 +40,10 @@ Route::get('/oferta', function () {
     return redirect()->route('offers.index');
 })->name('oferta');
 
+// Public legal pages
+Route::view('/polityka-prywatnosci', 'legal.rodo')->name('legal.rodo');
+Route::view('/regulamin', 'legal.regulamin')->name('legal.regulamin');
+
 // Public company registration
 Route::get('/rejestracja', [RegistrationController::class, 'index'])->name('register.form');
 Route::get('/rejestracja/nip-szukaj', [RegistrationController::class, 'lookupNip'])

@@ -88,16 +88,17 @@ class RegistrationController extends Controller
     public function store(Request $request): RedirectResponse|View
     {
         $validated = $request->validate([
-            'nip'         => ['required', 'string', 'max:20'],
-            'name'        => ['required', 'string', 'max:255'],
-            'short_name'  => ['nullable', 'string', 'max:100'],
-            'city'        => ['nullable', 'string', 'max:100'],
-            'street'      => ['nullable', 'string', 'max:255'],
-            'postal_code' => ['nullable', 'string', 'max:10'],
-            'first_name'  => ['required', 'string', 'max:100'],
-            'last_name'   => ['required', 'string', 'max:100'],
-            'phone'       => ['required', 'string', 'max:30'],
-            'email'       => ['required', 'email:rfc', 'max:200'],
+            'nip'             => ['required', 'string', 'max:20'],
+            'name'            => ['required', 'string', 'max:255'],
+            'short_name'      => ['nullable', 'string', 'max:100'],
+            'city'            => ['nullable', 'string', 'max:100'],
+            'street'          => ['nullable', 'string', 'max:255'],
+            'postal_code'     => ['nullable', 'string', 'max:10'],
+            'first_name'      => ['required', 'string', 'max:100'],
+            'last_name'       => ['required', 'string', 'max:100'],
+            'phone'           => ['required', 'string', 'max:30'],
+            'email'           => ['required', 'email:rfc', 'max:200'],
+            'accepted_terms'  => ['accepted'],
         ]);
 
         $validated['nip'] = preg_replace('/\D/', '', $validated['nip']);
@@ -115,6 +116,8 @@ class RegistrationController extends Controller
         if (Company::where('nip', $validated['nip'])->exists()) {
             return back()->withErrors(['nip' => 'Firma z tym NIP jest już zarejestrowana w systemie.'])->withInput();
         }
+
+        unset($validated['accepted_terms']);
 
         ClientRegistration::create($validated);
 

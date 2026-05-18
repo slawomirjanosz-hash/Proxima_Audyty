@@ -42,6 +42,12 @@
         .btn-submit:hover { background: var(--green-deep); }
         .hint-text { font-size: 12px; color: var(--ink-mute); max-width: 380px; line-height: 1.55; }
         .global-error { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; color: #991b1b; font-size: 14px; }
+        .consent-block { margin-top: 20px; padding: 16px 18px; background: #f0f7f4; border: 1px solid var(--green-light); border-radius: 10px; }
+        .consent-block label { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--ink-soft); line-height: 1.55; cursor: pointer; }
+        .consent-block input[type=checkbox] { flex-shrink: 0; width: 17px; height: 17px; margin-top: 2px; accent-color: var(--green-primary); cursor: pointer; }
+        .consent-block a { color: var(--green-primary); font-weight: 700; text-decoration: underline; }
+        .consent-block a:hover { color: var(--green-deep); }
+        .consent-block .field-error { margin-top: 6px; }
         @media (max-width: 800px) { .form-grid { grid-template-columns: 1fr; } .nip-row { flex-direction: column; align-items: stretch; } .reg-card { padding: 24px 20px 32px; } }
     </style>
 
@@ -141,6 +147,24 @@
                            value="{{ old('email') }}" placeholder="np. biuro@firma.pl">
                     @error('email')<div class="field-error">{{ $message }}</div>@enderror
                 </div>
+            </div>
+
+            <div class="consent-block">
+                <label for="accepted_terms">
+                    <input type="checkbox" id="accepted_terms" name="accepted_terms" value="1"
+                           {{ old('accepted_terms') ? 'checked' : '' }}>
+                    <span>
+                        Zapoznałem/-am się i akceptuję
+                        <a href="{{ route('legal.regulamin') }}" target="_blank">Warunki korzystania z platformy ENESA</a>
+                        oraz
+                        <a href="{{ route('legal.rodo') }}" target="_blank">Politykę prywatności i klauzulę RODO</a>.
+                        Wyrażam zgodę na przetwarzanie danych osobowych w celach związanych z obsługą rejestracji
+                        i świadczeniem usług audytu energetycznego przez ENESA Energy Audit &amp; Solutions sp. z o.o.
+                    </span>
+                </label>
+                @error('accepted_terms')
+                    <div class="field-error">{{ $message }}</div>
+                @enderror
             </div>
 
             <div class="submit-row">
