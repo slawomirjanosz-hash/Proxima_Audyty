@@ -637,6 +637,719 @@ body { margin: 0; }
 
 .enesa-form-body { display: flex; min-height: calc(100vh - 60px); position: relative; }
 .enesa-form-body::before { content: 'POUFNE'; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-45deg); font-size: 120px; font-weight: 900; color: rgba(0,0,0,0.03); pointer-events: none; z-index: 0; letter-spacing: 0.2em; }
+/* === Master E13 === */
+.scope-matrix-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--paper-deep, #d6cdb6);
+  border-radius: 4px;
+  background: white;
+  margin-top: 12px;
+}
+.scope-matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.scope-matrix th, .scope-matrix td {
+  border: 1px solid var(--paper-deep, #d6cdb6);
+  padding: 10px 12px;
+  vertical-align: top;
+  text-align: left;
+}
+.scope-matrix th {
+  background: var(--green-soft, #c8d5c2);
+  color: var(--green-deep, #1a4d3a);
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 13px;
+  text-align: center;
+}
+.scope-matrix .row-cat-header td {
+  background: var(--green-deep, #1a4d3a);
+  color: white;
+  font-family: var(--serif);
+  font-size: 13px;
+  letter-spacing: 0.4px;
+  padding: 8px 12px;
+}
+.scope-matrix .td-scope-kod {
+  background: var(--paper-deep, #f5efe2);
+  text-align: center;
+  font-family: var(--mono);
+  width: 80px;
+}
+.scope-matrix .td-scope-kod strong {
+  font-size: 13px;
+  color: var(--green-deep, #1a4d3a);
+  font-weight: 700;
+}
+.scope-matrix .td-scope-name {
+  font-size: 12px;
+}
+.scope-matrix .td-scope-name strong {
+  font-size: 13px;
+  color: var(--ink, #2d2a24);
+  display: block;
+  margin-bottom: 2px;
+}
+.scope-matrix .scope-desc {
+  font-size: 11px;
+  color: var(--ink-mute, #8b7355);
+  font-style: italic;
+  line-height: 1.4;
+  margin-top: 2px;
+}
+.scope-matrix .td-scope-exist,
+.scope-matrix .td-scope-audit {
+  text-align: center;
+  vertical-align: middle;
+}
+.scope-select {
+  width: 100%;
+  padding: 5px 8px;
+  font-size: 12px;
+  border: 1px solid var(--paper-deep, #d6cdb6);
+  background: white;
+  font-family: var(--sans);
+}
+
+/* Status badges */
+.scope-status-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 3px;
+  letter-spacing: 0.3px;
+  margin-top: 4px;
+}
+.scope-status-badge.status-ready {
+  background: rgba(46, 204, 113, 0.15);
+  color: #1a8a4f;
+}
+.scope-status-badge.status-pending {
+  background: rgba(231, 195, 73, 0.2);
+  color: #8a6f1a;
+}
+
+/* Sidenav E13 — wyróżnij */
+.sidenav-e13 {
+  border-top: 1px dashed var(--paper-deep, #d6cdb6);
+  margin-top: 4px;
+  padding-top: 4px;
+}
+.sidenav-e13 .sidenav-name {
+  font-weight: 600;
+}
+
+
+/* === Master E13 Dashboard Scope === */
+.scope-card {
+  background: white;
+  border: 1px solid var(--paper-deep, #d6cdb6);
+  border-radius: 6px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.2s;
+}
+.scope-card:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border-color: var(--green-primary, #1a4d3a);
+}
+.scope-card.is-active {
+  border-left: 4px solid var(--green-primary, #1a4d3a);
+}
+.scope-card.is-not-audited {
+  opacity: 0.55;
+  background: var(--paper-deep, #f5efe2);
+}
+.scope-card.is-completed {
+  border-left: 4px solid var(--ok, #4a8a5e);
+  background: rgba(74, 138, 94, 0.04);
+}
+.scope-card.has-flags {
+  border-left: 4px solid var(--rose, #c87a5e);
+}
+.scope-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.scope-card-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.scope-card-name {
+  font-family: var(--serif);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink, #2d2a24);
+  flex: 1;
+  line-height: 1.3;
+}
+.scope-card-kod {
+  font-family: var(--mono);
+  font-size: 10px;
+  background: var(--paper-deep, #f5efe2);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: var(--ink-mute, #8b7355);
+  letter-spacing: 0.4px;
+}
+
+/* Progress bar */
+.scope-progress-wrap {
+  background: var(--paper-deep, #f5efe2);
+  border-radius: 3px;
+  overflow: hidden;
+  height: 6px;
+  margin-top: 4px;
+}
+.scope-progress-bar {
+  height: 100%;
+  background: var(--green-primary, #1a4d3a);
+  transition: width 0.3s;
+}
+.scope-progress-bar.complete { background: var(--ok, #4a8a5e); }
+.scope-progress-bar.warn { background: var(--gold, #c8a951); }
+.scope-progress-bar.low { background: var(--rose, #c87a5e); }
+
+.scope-stats-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--ink-mute, #8b7355);
+  margin-top: 2px;
+}
+.scope-stats-row strong {
+  color: var(--ink, #2d2a24);
+  font-weight: 700;
+}
+.scope-flag-count {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 3px;
+  letter-spacing: 0.3px;
+}
+.scope-flag-count.ok { background: rgba(74, 138, 94, 0.15); color: #1a8a4f; }
+.scope-flag-count.warn { background: rgba(231, 195, 73, 0.2); color: #8a6f1a; }
+.scope-flag-count.danger { background: rgba(200, 122, 94, 0.2); color: #8a3f1a; }
+
+.scope-time-est {
+  font-size: 11px;
+  color: var(--ink-soft, #5e5347);
+  font-style: italic;
+  margin-top: 4px;
+}
+.scope-card-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.scope-btn {
+  flex: 1;
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: 1px solid var(--paper-deep, #d6cdb6);
+  background: white;
+  color: var(--ink, #2d2a24);
+  cursor: pointer;
+  font-family: var(--sans);
+  text-decoration: none;
+  text-align: center;
+  display: inline-block;
+  transition: all 0.15s;
+}
+.scope-btn:hover {
+  background: var(--green-primary, #1a4d3a);
+  color: white;
+  border-color: var(--green-primary, #1a4d3a);
+}
+.scope-btn.primary {
+  background: var(--green-primary, #1a4d3a);
+  color: white;
+  border-color: var(--green-primary, #1a4d3a);
+}
+.scope-btn.primary:hover {
+  background: var(--green-deep, #0a2c20);
+}
+.scope-btn.secondary {
+  background: var(--paper-deep, #f5efe2);
+  color: var(--ink-mute, #8b7355);
+}
+.scope-btn:disabled, .scope-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.scope-status-line {
+  font-size: 11px;
+  color: var(--ink-mute, #8b7355);
+  font-style: italic;
+}
+.scope-status-line.ready { color: var(--ok, #4a8a5e); font-weight: 600; }
+.scope-status-line.pending { color: var(--gold, #c8a951); font-weight: 600; }
+
+/* Overall summary */
+#dashboard-overall {
+  font-family: var(--sans);
+}
+#dashboard-overall .ds-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: center;
+}
+#dashboard-overall .ds-stat {
+  display: flex;
+  flex-direction: column;
+}
+#dashboard-overall .ds-stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--ink-mute, #8b7355);
+  letter-spacing: 0.5px;
+}
+#dashboard-overall .ds-stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: var(--serif);
+  color: var(--green-deep, #0a2c20);
+}
+
+
+/* === Master E13 Iter 3 — Toolbar, Print, Validation === */
+.e13-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  background: var(--paper-deep, #f5efe2);
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  border-left: 3px solid var(--green-primary, #1a4d3a);
+}
+.e13-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  border-radius: 4px;
+  border: 1px solid var(--paper-deep, #d6cdb6);
+  background: white;
+  color: var(--ink, #2d2a24);
+  cursor: pointer;
+  font-family: var(--sans);
+  font-weight: 500;
+  transition: all 0.15s;
+}
+.e13-btn:hover {
+  background: var(--green-primary, #1a4d3a);
+  color: white;
+  border-color: var(--green-primary, #1a4d3a);
+}
+.e13-btn-primary {
+  background: var(--green-primary, #1a4d3a);
+  color: white;
+  border-color: var(--green-primary, #1a4d3a);
+  font-weight: 600;
+}
+.e13-btn-primary:hover {
+  background: var(--green-deep, #0a2c20);
+}
+.e13-btn-secondary {
+  background: white;
+}
+.e13-toolbar-info {
+  flex: 1;
+  font-size: 11px;
+  color: var(--ink-mute, #8b7355);
+  font-style: italic;
+  margin-left: 8px;
+}
+
+/* Validation result */
+.validation-result {
+  margin-top: 16px;
+  padding: 14px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.validation-result.ok {
+  background: rgba(74, 138, 94, 0.1);
+  border-left: 3px solid var(--ok, #4a8a5e);
+  color: #1a4d3a;
+}
+.validation-result.warn {
+  background: rgba(231, 195, 73, 0.15);
+  border-left: 3px solid var(--gold, #c8a951);
+  color: #5a4d10;
+}
+.validation-result.error {
+  background: rgba(200, 122, 94, 0.12);
+  border-left: 3px solid var(--rose, #c87a5e);
+  color: #5a2010;
+}
+.validation-result h4 {
+  margin: 0 0 8px 0;
+  font-family: var(--serif);
+  font-size: 15px;
+}
+.validation-result ul {
+  margin: 4px 0 0 24px;
+  padding: 0;
+}
+.validation-result li {
+  margin: 4px 0;
+}
+
+/* Save indicator */
+#save-indicator {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--green-deep, #0a2c20);
+  color: white;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+#save-indicator.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Print stylesheet — E13 na 1 stronę A4 */
+@media print {
+  /* Ukryj wszystko poza E13 */
+  body * {
+    visibility: hidden;
+  }
+  #etap-13, #etap-13 * {
+    visibility: visible;
+  }
+  #etap-13 {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+  /* Ukryj toolbar + dashboard wrapper przy druku */
+  .e13-toolbar, #scope-dashboard-wrapper, #e13-summary, .group-info,
+  .validation-result, #global-toolbar {
+    display: none !important;
+  }
+  /* Sidenav */
+  nav, .sidenav, .header, .footer {
+    display: none !important;
+  }
+  /* Tabela na druku */
+  .scope-matrix {
+    font-size: 10pt;
+    page-break-inside: avoid;
+  }
+  .scope-matrix th, .scope-matrix td {
+    padding: 4pt 6pt;
+  }
+  .scope-status-badge { display: none; }
+  .scope-desc { font-size: 8pt; }
+  .scope-matrix .row-cat-header td {
+    background: #1a4d3a !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .scope-select {
+    border: none;
+    background: transparent !important;
+    font-size: 9pt;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  /* SCOPE-V2-OTHER textarea */
+  textarea {
+    border: 1px solid #999 !important;
+    background: white !important;
+  }
+  /* Strona */
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+}
+
+/* === Global Toolbar (Eksport/Import/Print/Validate) — globalny pod headerem === */
+.global-toolbar {
+  background: linear-gradient(135deg, var(--paper-deep, #f5efe2) 0%, var(--paper, #faf6ec) 100%);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 0 0 20px 0;
+  border: 1px solid var(--paper-deep, #d6cdb6);
+  border-left: 4px solid var(--green-primary, #1a4d3a);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.global-toolbar-title {
+  font-family: var(--serif);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--green-deep, #0a2c20);
+  margin-bottom: 10px;
+}
+.global-toolbar-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.global-toolbar-info {
+  font-size: 12px;
+  color: var(--ink-soft, #5e5347);
+  line-height: 1.5;
+  font-style: italic;
+}
+.global-toolbar-info strong {
+  font-style: normal;
+  color: var(--green-deep, #0a2c20);
+}
+
+/* === KRS lookup field (E0) === */
+.krs-lookup-field {
+  background: linear-gradient(135deg, var(--paper-deep, #ebe3d0) 0%, var(--paper, #f5efe0) 100%);
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-left: 3px solid var(--gold, #c8a951);
+}
+.krs-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--gold, #c8a951);
+  color: white;
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-left: 6px;
+  letter-spacing: 0.3px;
+  vertical-align: middle;
+}
+.krs-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.krs-input {
+  flex: 1;
+  font-family: var(--mono, Consolas, monospace);
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+.krs-fetch-btn {
+  padding: 8px 16px;
+  background: var(--green-primary, #1a4d3a);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: var(--sans);
+  transition: all 0.15s;
+}
+.krs-fetch-btn:hover {
+  background: var(--green-deep, #0a2c20);
+}
+.krs-fetch-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+#krs-status {
+  margin-top: 8px;
+  font-size: 12px;
+  min-height: 0;
+}
+#krs-status.show {
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+#krs-status.ok {
+  background: rgba(74, 138, 94, 0.12);
+  border-left: 3px solid var(--ok, #4a8a5e);
+  color: #1a4d3a;
+}
+#krs-status.error {
+  background: rgba(200, 122, 94, 0.12);
+  border-left: 3px solid var(--rose, #c87a5e);
+  color: #5a2010;
+}
+#krs-status.loading {
+  background: rgba(231, 195, 73, 0.15);
+  border-left: 3px solid var(--gold, #c8a951);
+  color: #5a4d10;
+}
+.krs-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--paper-deep, #d6cdb6);
+  border-top-color: var(--green-primary, #1a4d3a);
+  border-radius: 50%;
+  animation: krs-spin 0.8s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+@keyframes krs-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Highlight pól wypełnionych z KRS — pulsuje 3 razy */
+.krs-filled {
+  animation: krs-highlight 2s ease-out 3;
+  background: #fffbed !important;
+}
+@keyframes krs-highlight {
+  0%   { background: #fffbed; box-shadow: 0 0 0 0 rgba(231, 195, 73, 0.5); }
+  50%  { background: #fff4d0; box-shadow: 0 0 0 6px rgba(231, 195, 73, 0); }
+  100% { background: #fffbed; box-shadow: 0 0 0 0 rgba(231, 195, 73, 0); }
+}
+
+
+/* === Meta + Profile audytu (refaktor B) === */
+
+/* Confidence indicators (włączane przez agenta) */
+[data-confidence="low"]::before { content: "🔴"; display: none; font-size: 12px; margin-right: 4px; }
+[data-confidence="medium"]::before { content: "🟡"; display: none; font-size: 12px; margin-right: 4px; }
+[data-confidence="high"]::before, [data-confidence="measured"]::before { 
+  content: "🟢"; display: none; font-size: 12px; margin-right: 4px;
+}
+body.show-confidence [data-confidence="low"]::before,
+body.show-confidence [data-confidence="medium"]::before,
+body.show-confidence [data-confidence="high"]::before,
+body.show-confidence [data-confidence="measured"]::before { display: inline; }
+
+/* Phases (kolorowe ramki - tylko gdy włączone) */
+body.show-phases [data-phase="client"] { border-left: 3px solid var(--ok, #4a8a5e); }
+body.show-phases [data-phase="agent"] { border-left: 3px solid var(--gold, #c8a951); }
+body.show-phases [data-phase="consultant"] { border-left: 3px solid #5b8db3; }
+
+/* Profile audytu - kolorowanie field wg wybranego profilu */
+/* Domyślnie: pole nie ma kolorowania profilu */
+[data-audit-profile] {
+  /* baseline */
+}
+
+/* Gdy aktywny profil — pola MUST są zielone, OPTIONAL są wyszarzone */
+body.profile-active [data-audit-profile] {
+  background-color: rgba(245, 239, 224, 0.3);
+}
+body.profile-active .field-must {
+  border-left: 4px solid var(--ok, #4a8a5e) !important;
+  background-color: rgba(74, 138, 94, 0.05) !important;
+}
+body.profile-active .field-must::after {
+  content: " ✓ MUST";
+  font-size: 9px;
+  color: var(--ok, #4a8a5e);
+  font-weight: bold;
+  margin-left: 4px;
+}
+body.profile-active .field-optional {
+  opacity: 0.55;
+  border-left: 4px solid var(--paper-deep, #ebe3d0);
+}
+body.profile-active .field-optional::after {
+  content: " (opt)";
+  font-size: 9px;
+  color: var(--ink-mute, #8b7355);
+  margin-left: 4px;
+}
+
+/* Panel wyboru profilu w Master */
+.profile-selector-panel {
+  background: linear-gradient(135deg, var(--paper-deep, #ebe3d0) 0%, var(--paper, #f5efe0) 100%);
+  border: 2px solid var(--gold, #c8a951);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 20px 0;
+}
+.profile-selector-panel h3 {
+  margin: 0 0 8px 0;
+  color: var(--green-deep, #1a4d3a);
+  font-family: var(--serif);
+  font-size: 16px;
+}
+.profile-selector-panel .profile-desc {
+  font-size: 12px;
+  color: var(--ink-soft, #5e5347);
+  margin-bottom: 12px;
+}
+.profile-selector-panel .profile-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+.profile-option {
+  border: 2px solid var(--paper-deep, #d6cdb6);
+  border-radius: 6px;
+  padding: 10px 12px;
+  cursor: pointer;
+  background: white;
+  transition: all 0.15s;
+}
+.profile-option:hover { border-color: var(--gold, #c8a951); }
+.profile-option.selected {
+  border-color: var(--green-primary, #1a4d3a);
+  background: rgba(74, 138, 94, 0.08);
+}
+.profile-option input[type="radio"] { margin-right: 6px; }
+.profile-option .profile-name {
+  font-weight: 700;
+  color: var(--green-deep, #1a4d3a);
+  font-size: 13px;
+}
+.profile-option .profile-meta {
+  font-size: 11px;
+  color: var(--ink-mute, #8b7355);
+  margin-top: 4px;
+}
+.profile-option.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.profile-option.disabled .profile-name::after {
+  content: " (wkrótce)";
+  font-size: 10px;
+  color: var(--gold, #c8a951);
+}
+
+.profile-stats {
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: white;
+  border-radius: 4px;
+  font-size: 12px;
+  display: none;
+}
+body.profile-active .profile-stats { display: block; }
 </style>
 
 <div class="save-indicator" id="save-indicator">Zapisano</div>
@@ -666,6 +1379,7 @@ body { margin: 0; }
     <li class="sidenav-item" data-target="etap-10"><span class="sidenav-num mono">E10</span><span class="sidenav-name">EnMS</span><span class="sidenav-count mono" data-count-for="etap-10">0/8</span></li>
     <li class="sidenav-item" data-target="etap-11"><span class="sidenav-num mono">E11</span><span class="sidenav-name">Kontekst</span><span class="sidenav-count mono" data-count-for="etap-11">0/12</span></li>
     <li class="sidenav-item" data-target="etap-12"><span class="sidenav-num mono">E12</span><span class="sidenav-name">Historia</span><span class="sidenav-count mono" data-count-for="etap-12">0/10</span></li>
+        <li class="sidenav-item sidenav-e13" data-target="etap-13"><span class="sidenav-num mono">E13</span><span class="sidenav-name">Zakres audytu ★</span><span class="sidenav-count mono" data-count-for="etap-13">0/18</span></li>
   </ul>
   <div style="padding: 16px 12px 8px;">
     <button id="btn-save-now" onclick="masterManualSave()" style="
@@ -683,6 +1397,28 @@ body { margin: 0; }
 
 <!-- ====== MAIN CONTENT ====== -->
 <main class="main">
+
+  <div class="global-toolbar" id="global-toolbar">
+    <div class="global-toolbar-title">📋 Operacje na całym formularzu Master:</div>
+    <div class="global-toolbar-buttons">
+      <button type="button" id="btn-export-excel" class="e13-btn e13-btn-primary" title="Pobierz cały formularz Master (E0-E13) + dane audytowanych scope w jednym pliku Excel — wydrukuj i wypełnij ręcznie na obiekcie">
+        📊 Eksport całego Master do Excel
+      </button>
+      <label class="e13-btn e13-btn-secondary" for="file-import-excel" title="Wczytaj wypełniony plik Excel z powrotem do formularza (nadpisuje obecne dane)">
+        📤 Import z Excel
+        <input type="file" id="file-import-excel" accept=".xlsx,.xls" style="display:none;">
+      </label>
+      <button type="button" id="btn-print-e13" class="e13-btn e13-btn-secondary" title="Wydruk samej macierzy E13 (zakres audytu) na 1 stronę A4">
+        🖨 Drukuj E13 (zakres)
+      </button>
+      <button type="button" id="btn-validate" class="e13-btn e13-btn-secondary" title="Sprawdź kompletność wyboru zakresu audytu w E13">
+        ✓ Waliduj zakres E13
+      </button>
+    </div>
+    <div class="global-toolbar-info">
+      💡 <strong>Eksport</strong> generuje plik z pełnym formularzem Master (wszystkie etapy E0-E13) + wszystkimi audytowanymi scope w osobnych zakładkach. Klient drukuje, wypełnia ręcznie na obiekcie, potem wraca do biura i klika <strong>Import</strong> aby wczytać dane z powrotem.
+    </div>
+  </div>
 
   <!-- ====== HEADER ====== -->
   <header class="header">
@@ -727,7 +1463,45 @@ body { margin: 0; }
 
     <div class="section-body">
 
-      <div class="group">
+      <div class="profile-selector-panel" id="audit-profile-selector">
+  <h3>🎯 Profil audytu energetycznego</h3>
+  <div class="profile-desc">
+    Wybierz profil audytu — system pokoloruje pola wymagane (zielone <strong>MUST</strong>) 
+    i opcjonalne (wyszarzone <em>opt</em>). Możesz zmienić profil w każdej chwili.
+  </div>
+  <div class="profile-options">
+    <label class="profile-option" data-profile="eed">
+      <input type="radio" name="audit-profile" value="eed" onchange="enesaSetAuditProfile('eed')">
+      <div class="profile-name">EED minimum</div>
+      <div class="profile-meta">~600 pól · ~3 dni · 30-80 tys. PLN<br>Audyt obowiązkowy co 4 lata (Art. 36)</div>
+    </label>
+    <label class="profile-option disabled" data-profile="white-cert" title="Wkrótce dostępne">
+      <input type="radio" name="audit-profile" value="white-cert" disabled>
+      <div class="profile-name">Białe Certyfikaty</div>
+      <div class="profile-meta">~400 pól · ~2 dni · 15-40 tys. PLN<br>Świadectwa Efektywności Energetycznej</div>
+    </label>
+    <label class="profile-option" data-profile="iso50001">
+      <input type="radio" name="audit-profile" value="iso50001" onchange="enesaSetAuditProfile('iso50001')">
+      <div class="profile-name">ISO 50001:2018 § 6.3</div>
+      <div class="profile-meta">~1500 pól · ~7 dni · 80-180 tys. PLN<br>Pełny przegląd energetyczny ISO 50001</div>
+    </label>
+    <label class="profile-option disabled" data-profile="full-map" title="Wkrótce dostępne">
+      <input type="radio" name="audit-profile" value="full-map" disabled>
+      <div class="profile-name">Pełna Mapa Energetyczna</div>
+      <div class="profile-meta">~3500 pól · ~14 dni · 250-500 tys. PLN<br>ISO 50001 + ISO 50002 + CSRD</div>
+    </label>
+    <label class="profile-option disabled" data-profile="custom" title="Wkrótce dostępne">
+      <input type="radio" name="audit-profile" value="custom" disabled>
+      <div class="profile-name">Custom</div>
+      <div class="profile-meta">wariant · audytor wybiera scope</div>
+    </label>
+  </div>
+  <div class="profile-stats" id="profile-stats-display">
+    Wybierz profil powyżej aby zobaczyć statystyki MUST/optional dla pól.
+  </div>
+</div>
+
+<div class="group">
         <div class="group-title">Identyfikacja klienta</div>
         <div class="group-desc">Dane formalne firmy klienta — z KRS / wpisu CEIDG / faktury</div>
 
@@ -3524,6 +4298,585 @@ body { margin: 0; }
     </div>
   </section>
 
+  <section class="section" id="etap-13">
+    <div class="section-head">
+      <div>
+        <div class="section-eyebrow">ETAP 13 ★</div>
+        <h2 class="section-title serif">Zakres audytu — instalacje i systemy</h2>
+        <p class="section-desc">Macierz instalacji występujących w zakładzie + zaznaczenie które są <strong>audytowane w tym przeglądzie</strong>. 18 pozycji w 5 kategoriach + pole "Inne". Wybór tutaj steruje <strong>dashboardem scope</strong> (pokazującym status każdego formularza scope) i <strong>linkami do plików HTML</strong>. Zalecenie PN-EN 16247-1: identyfikacja i opis SEU (Significant Energy Users).</p>
+      </div>
+      <div class="section-meta">
+        <div class="section-progress" data-etap="etap-13">0 / 18</div>
+        <div style="font-size: 11px; color: var(--ink-mute); margin-top: 4px;">wybranych instalacji</div>
+      </div>
+    </div>
+
+    <div class="section-body">
+
+      <div class="group-info">
+        <strong>Jak wypełnić macierz E13:</strong>
+        <ul>
+          <li><strong>"Występuje?"</strong> — czy ta instalacja istnieje w zakładzie (niezależnie od audytu)</li>
+          <li><strong>"Audytowana?"</strong> — czy ta instalacja jest objęta <strong>tym audytem energetycznym</strong></li>
+          <li>Można mieć instalację która <strong>występuje, ale nie jest audytowana</strong> (np. CHP planowane, ale poza zakresem tego audytu)</li>
+          <li>Dla instalacji audytowanych — w dashboardzie poniżej będą widoczne <strong>linki do formularzy scope</strong> z postępem</li>
+          <li>Pole "Inne" — wolny tekst dla niestandardowych instalacji (np. spalarnia odpadów, biogazownia, elektroliza wodoru)</li>
+        </ul>
+      </div>
+
+      <div class="scope-matrix-wrapper">
+        <table class="scope-matrix">
+          <thead>
+            <tr>
+              <th class="th-scope-kod" style="width: 80px;">Kod</th>
+              <th class="th-scope-name">Instalacja / system</th>
+              <th class="th-scope-exist" style="width: 130px;">Występuje?</th>
+              <th class="th-scope-audit" style="width: 130px;">Audytowana?</th>
+            </tr>
+          </thead>
+          <tbody>
+            
+        <tr class="row-cat-header">
+          <td colspan="4">
+            <strong>KATEGORIA A — WYTWARZANIE / produkcja energii i ciepła</strong>
+          </td>
+        </tr>
+        <tr data-scope-kod="BO">
+          <td class="td-scope-kod"><strong class="mono">BO</strong></td>
+          <td class="td-scope-name">
+            <strong>Kotłownia centralna</strong>
+            <div class="scope-desc">Gaz / olej / węgiel / biomasa · MCP/LCP</div>
+            <span class="scope-status-badge status-ready">✓ gotowy</span>
+          </td>
+          <td class="td-scope-exist">
+            <select class="scope-select" data-id="SCOPE-V1-BO-EXIST" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>nie wiem</option>
+            </select>
+          </td>
+          <td class="td-scope-audit">
+            <select class="scope-select" data-id="SCOPE-V1-BO-AUDIT" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>w planach</option>
+            </select>
+          </td>
+        </tr>
+        <tr data-scope-kod="LH">
+          <td class="td-scope-kod"><strong class="mono">LH</strong></td>
+          <td class="td-scope-name">
+            <strong>Lokalne ogrzewanie</strong>
+            <div class="scope-desc">Promienniki, aerotermy, podłogowe — bilans cieplny hal</div>
+            <span class="scope-status-badge status-ready">✓ gotowy</span>
+          </td>
+          <td class="td-scope-exist">
+            <select class="scope-select" data-id="SCOPE-V1-LH-EXIST" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>nie wiem</option>
+            </select>
+          </td>
+          <td class="td-scope-audit">
+            <select class="scope-select" data-id="SCOPE-V1-LH-AUDIT" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>w planach</option>
+            </select>
+          </td>
+        </tr>
+        <tr data-scope-kod="CHP">
+          <td class="td-scope-kod"><strong class="mono">CHP</strong></td>
+          <td class="td-scope-name">
+            <strong>Kogeneracja CHP</strong>
+            <div class="scope-desc">Silniki gazowe, turbiny parowe, ORC, mikroturbiny</div>
+            <span class="scope-status-badge status-pending">⏳ planowane</span>
+          </td>
+          <td class="td-scope-exist">
+            <select class="scope-select" data-id="SCOPE-V1-CHP-EXIST" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>nie wiem</option>
+            </select>
+          </td>
+          <td class="td-scope-audit">
+            <select class="scope-select" data-id="SCOPE-V1-CHP-AUDIT" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>w planach</option>
+            </select>
+          </td>
+        </tr>
+        <tr data-scope-kod="HP">
+          <td class="td-scope-kod"><strong class="mono">HP</strong></td>
+          <td class="td-scope-name">
+            <strong>Pompy ciepła</strong>
+            <div class="scope-desc">Komercyjne, przemysłowe wysokoT do pary 150°C</div>
+            <span class="scope-status-badge status-pending">⏳ planowane</span>
+          </td>
+          <td class="td-scope-exist">
+            <select class="scope-select" data-id="SCOPE-V1-HP-EXIST" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>nie wiem</option>
+            </select>
+          </td>
+          <td class="td-scope-audit">
+            <select class="scope-select" data-id="SCOPE-V1-HP-AUDIT" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>w planach</option>
+            </select>
+          </td>
+        </tr>
+        <tr data-scope-kod="PV">
+          <td class="td-scope-kod"><strong class="mono">PV</strong></td>
+          <td class="td-scope-name">
+            <strong>Fotowoltaika + magazyny EE</strong>
+            <div class="scope-desc">PV + BESS, autokonsumpcja, sprzedaż nadwyżek</div>
+            <span class="scope-status-badge status-pending">⏳ planowane</span>
+          </td>
+          <td class="td-scope-exist">
+            <select class="scope-select" data-id="SCOPE-V1-PV-EXIST" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>nie wiem</option>
+            </select>
+          </td>
+          <td class="td-scope-audit">
+            <select class="scope-select" data-id="SCOPE-V1-PV-AUDIT" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>w planach</option>
+            </select>
+          </td>
+        </tr>
+        <tr data-scope-kod="ST">
+          <td class="td-scope-kod"><strong class="mono">ST</strong></td>
+          <td class="td-scope-name">
+            <strong>Solar thermal</strong>
+            <div class="scope-desc">Kolektory słoneczne — CWU/proces</div>
+            <span class="scope-status-badge status-pending">⏳ planowane</span>
+          </td>
+          <td class="td-scope-exist">
+            <select class="scope-select" data-id="SCOPE-V1-ST-EXIST" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>nie wiem</option>
+            </select>
+          </td>
+          <td class="td-scope-audit">
+            <select class="scope-select" data-id="SCOPE-V1-ST-AUDIT" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>w planach</option>
+            </select>
+          </td>
+        </tr>
+        <tr data-scope-kod="DH">
+          <td class="td-scope-kod"><strong class="mono">DH</strong></td>
+          <td class="td-scope-name">
+            <strong>Ciepło sieciowe</strong>
+            <div class="scope-desc">Odbiorca / dostawca z miejskiej sieci ciepłowniczej</div>
+            <span class="scope-status-badge status-pending">⏳ planowane</span>
+          </td>
+          <td class="td-scope-exist">
+            <select class="scope-select" data-id="SCOPE-V1-DH-EXIST" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>nie wiem</option>
+            </select>
+          </td>
+          <td class="td-scope-audit">
+            <select class="scope-select" data-id="SCOPE-V1-DH-AUDIT" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>w planach</option>
+            </select>
+          </td>
+        </tr>
+        <tr data-scope-kod="TES">
+          <td class="td-scope-kod"><strong class="mono">TES</strong></td>
+          <td class="td-scope-name">
+            <strong>Magazyny ciepła (TES)</strong>
+            <div class="scope-desc">Bufory, akumulatory parowe (Ruths), BTES — bufor dla CHP/PV</div>
+            <span class="scope-status-badge status-pending">⏳ planowane</span>
+          </td>
+          <td class="td-scope-exist">
+            <select class="scope-select" data-id="SCOPE-V1-TES-EXIST" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>nie wiem</option>
+            </select>
+          </td>
+          <td class="td-scope-audit">
+            <select class="scope-select" data-id="SCOPE-V1-TES-AUDIT" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>w planach</option>
+            </select>
+          </td>
+        </tr>
+        <tr class="row-cat-header">
+          <td colspan="4">
+            <strong>KATEGORIA B — DYSTRYBUCJA / odbiorniki energii</strong>
+          </td>
+        </tr>
+        <tr data-scope-kod="CA">
+          <td class="td-scope-kod"><strong class="mono">CA</strong></td>
+          <td class="td-scope-name">
+            <strong>Sprężone powietrze</strong>
+            <div class="scope-desc">Sprężarki, sieć CA, osuszacze, zbiorniki</div>
+            <span class="scope-status-badge status-ready">✓ gotowy</span>
+          </td>
+          <td class="td-scope-exist">
+            <select class="scope-select" data-id="SCOPE-V1-CA-EXIST" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>nie wiem</option>
+            </select>
+          </td>
+          <td class="td-scope-audit">
+            <select class="scope-select" data-id="SCOPE-V1-CA-AUDIT" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>w planach</option>
+            </select>
+          </td>
+        </tr>
+        <tr data-scope-kod="AHU">
+          <td class="td-scope-kod"><strong class="mono">AHU</strong></td>
+          <td class="td-scope-name">
+            <strong>Wentylacja</strong>
+            <div class="scope-desc">Centrale AHU, klimatyzacja procesowa</div>
+            <span class="scope-status-badge status-ready">✓ gotowy</span>
+          </td>
+          <td class="td-scope-exist">
+            <select class="scope-select" data-id="SCOPE-V1-AHU-EXIST" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>nie wiem</option>
+            </select>
+          </td>
+          <td class="td-scope-audit">
+            <select class="scope-select" data-id="SCOPE-V1-AHU-AUDIT" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>w planach</option>
+            </select>
+          </td>
+        </tr>
+        <tr data-scope-kod="RC">
+          <td class="td-scope-kod"><strong class="mono">RC</strong></td>
+          <td class="td-scope-name">
+            <strong>Chłodnictwo + AC komfortu</strong>
+            <div class="scope-desc">Chillery, NH3/CO2, komory chłodnicze, klimatyzacja komfortu</div>
+            <span class="scope-status-badge status-ready">✓ gotowy</span>
+          </td>
+          <td class="td-scope-exist">
+            <select class="scope-select" data-id="SCOPE-V1-RC-EXIST" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>nie wiem</option>
+            </select>
+          </td>
+          <td class="td-scope-audit">
+            <select class="scope-select" data-id="SCOPE-V1-RC-AUDIT" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>w planach</option>
+            </select>
+          </td>
+        </tr>
+        <tr data-scope-kod="LIGHT">
+          <td class="td-scope-kod"><strong class="mono">LIGHT</strong></td>
+          <td class="td-scope-name">
+            <strong>Oświetlenie ⭐</strong>
+            <div class="scope-desc">Wewnętrzne (hale, biura) + zewnętrzne (parkingi, place)</div>
+            <span class="scope-status-badge status-pending">⏳ planowane</span>
+          </td>
+          <td class="td-scope-exist">
+            <select class="scope-select" data-id="SCOPE-V1-LIGHT-EXIST" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>nie wiem</option>
+            </select>
+          </td>
+          <td class="td-scope-audit">
+            <select class="scope-select" data-id="SCOPE-V1-LIGHT-AUDIT" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>w planach</option>
+            </select>
+          </td>
+        </tr>
+        <tr data-scope-kod="EE">
+          <td class="td-scope-kod"><strong class="mono">EE</strong></td>
+          <td class="td-scope-name">
+            <strong>Stacje EE / Trafostacje</strong>
+            <div class="scope-desc">SN/nN, kompensacja mocy biernej, jakość EE</div>
+            <span class="scope-status-badge status-pending">⏳ planowane</span>
+          </td>
+          <td class="td-scope-exist">
+            <select class="scope-select" data-id="SCOPE-V1-EE-EXIST" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>nie wiem</option>
+            </select>
+          </td>
+          <td class="td-scope-audit">
+            <select class="scope-select" data-id="SCOPE-V1-EE-AUDIT" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>w planach</option>
+            </select>
+          </td>
+        </tr>
+        <tr data-scope-kod="STEAM">
+          <td class="td-scope-kod"><strong class="mono">STEAM</strong></td>
+          <td class="td-scope-name">
+            <strong>Sieci pary procesowej</strong>
+            <div class="scope-desc">Rozbudowane sieci międzywydziałowe (warunkowo dla dużych zakładów)</div>
+            <span class="scope-status-badge status-pending">⏳ planowane</span>
+          </td>
+          <td class="td-scope-exist">
+            <select class="scope-select" data-id="SCOPE-V1-STEAM-EXIST" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>nie wiem</option>
+            </select>
+          </td>
+          <td class="td-scope-audit">
+            <select class="scope-select" data-id="SCOPE-V1-STEAM-AUDIT" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>w planach</option>
+            </select>
+          </td>
+        </tr>
+        <tr class="row-cat-header">
+          <td colspan="4">
+            <strong>KATEGORIA C — TECHNOLOGIA / procesy produkcyjne</strong>
+          </td>
+        </tr>
+        <tr data-scope-kod="TECH">
+          <td class="td-scope-kod"><strong class="mono">TECH</strong></td>
+          <td class="td-scope-name">
+            <strong>Procesy technologiczne ★</strong>
+            <div class="scope-desc">Silniki, pompy, piece, suszarnie, młyny, prasy, reaktory, walcownie (decyzja arch. po LIGHT+CHP)</div>
+            <span class="scope-status-badge status-pending">⏳ planowane</span>
+          </td>
+          <td class="td-scope-exist">
+            <select class="scope-select" data-id="SCOPE-V1-TECH-EXIST" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>nie wiem</option>
+            </select>
+          </td>
+          <td class="td-scope-audit">
+            <select class="scope-select" data-id="SCOPE-V1-TECH-AUDIT" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>w planach</option>
+            </select>
+          </td>
+        </tr>
+        <tr class="row-cat-header">
+          <td colspan="4">
+            <strong>KATEGORIA D — TRANSPORT</strong>
+          </td>
+        </tr>
+        <tr data-scope-kod="TRANS">
+          <td class="td-scope-kod"><strong class="mono">TRANS</strong></td>
+          <td class="td-scope-name">
+            <strong>Transport wewnątrzzakładowy</strong>
+            <div class="scope-desc">Wózki widłowe, AGV, suwnice, podajniki</div>
+            <span class="scope-status-badge status-pending">⏳ planowane</span>
+          </td>
+          <td class="td-scope-exist">
+            <select class="scope-select" data-id="SCOPE-V1-TRANS-EXIST" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>nie wiem</option>
+            </select>
+          </td>
+          <td class="td-scope-audit">
+            <select class="scope-select" data-id="SCOPE-V1-TRANS-AUDIT" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>w planach</option>
+            </select>
+          </td>
+        </tr>
+        <tr data-scope-kod="FLEET">
+          <td class="td-scope-kod"><strong class="mono">FLEET</strong></td>
+          <td class="td-scope-name">
+            <strong>Flota pojazdów + EV</strong>
+            <div class="scope-desc">Osobowe, dostawcze, ciężarowe + stacje ładowania EV</div>
+            <span class="scope-status-badge status-pending">⏳ planowane</span>
+          </td>
+          <td class="td-scope-exist">
+            <select class="scope-select" data-id="SCOPE-V1-FLEET-EXIST" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>nie wiem</option>
+            </select>
+          </td>
+          <td class="td-scope-audit">
+            <select class="scope-select" data-id="SCOPE-V1-FLEET-AUDIT" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>w planach</option>
+            </select>
+          </td>
+        </tr>
+        <tr class="row-cat-header">
+          <td colspan="4">
+            <strong>KATEGORIA E — BUDYNKI</strong>
+          </td>
+        </tr>
+        <tr data-scope-kod="TIB">
+          <td class="td-scope-kod"><strong class="mono">TIB</strong></td>
+          <td class="td-scope-name">
+            <strong>Termoizolacja budynków</strong>
+            <div class="scope-desc">Przegrody, dach, okna, infiltracja powietrza</div>
+            <span class="scope-status-badge status-pending">⏳ planowane</span>
+          </td>
+          <td class="td-scope-exist">
+            <select class="scope-select" data-id="SCOPE-V1-TIB-EXIST" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>nie wiem</option>
+            </select>
+          </td>
+          <td class="td-scope-audit">
+            <select class="scope-select" data-id="SCOPE-V1-TIB-AUDIT" data-source="" data-confidence="" data-phase="client" data-iso="6.3.d" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="true" data-audit-profile="eed,white-cert,iso50001,full-map" data-ai-prompt="EXIST = czy instalacja istnieje w zakładzie. AUDIT = czy klient chce ją audytować w tym projekcie. Razem definiują zakres audytu.">
+              <option value="">— wybierz —</option>
+              <option>TAK</option>
+              <option>NIE</option>
+              <option>w planach</option>
+            </select>
+          </td>
+        </tr>
+            
+            <!-- Kategoria F — INNE (wolne pole) -->
+            <tr class="row-cat-header">
+              <td colspan="4">
+                <strong>KATEGORIA F — INNE / niestandardowe</strong>
+              </td>
+            </tr>
+            <tr>
+              <td class="td-scope-kod"><strong class="mono">OTHER</strong></td>
+              <td class="td-scope-name" colspan="3">
+                <strong>Inne instalacje — opisz w polu poniżej</strong>
+                <div class="scope-desc">np. spalarnia odpadów, biogazownia, elektroliza wodoru, magazyny H2, instalacje membranowe</div>
+                <textarea class="field-input" data-id="SCOPE-V2-OTHER" placeholder="Wpisz każdą niestandardową instalację w osobnej linii (Enter)" style="margin-top: 8px; min-height: 60px; width: 100%;" data-source="" data-confidence="" data-phase="client" data-iso="" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="false" data-audit-profile="eed,iso50001,full-map" data-ai-prompt="Dodatkowe scope poza listą + cel audytu + program dotacji."></textarea>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Podsumowanie wyboru -->
+      <div class="group" style="background: var(--green-bg, #e6efe2); border-left: 3px solid var(--green-primary, #1a4d3a); margin-top: 24px;">
+        <div class="group-title" style="color: var(--green-deep, #0a2c20);">📊 Podsumowanie wyboru</div>
+        <div id="e13-summary" style="font-size: 13px; line-height: 1.7;">
+          <p>Wpisz wybory powyżej — podsumowanie pojawi się automatycznie.</p>
+        </div>
+      </div>
+
+      <!-- DASHBOARD SCOPE — placeholder iter 2 -->
+            <!-- DASHBOARD SCOPE — iter 2 -->
+      <div class="group" id="scope-dashboard-wrapper" style="background: var(--paper, white); border-left: 3px solid var(--green-primary, #1a4d3a); margin-top: 24px;">
+        <div class="group-title" style="display: flex; align-items: center; justify-content: space-between;">
+          <span style="color: var(--green-deep, #0a2c20);">📊 Dashboard Scope — status formularzy</span>
+          <button type="button" id="dashboard-refresh-btn" style="background: var(--green-primary, #1a4d3a); color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; font-family: var(--sans);">↻ Odśwież</button>
+        </div>
+        <div class="group-desc" style="margin-bottom: 16px;">
+          Karty pokazują postęp wypełniania scope wybranych jako "Audytowana? = TAK". Status jest czytany na żywo z localStorage przeglądarki.
+        </div>
+
+        <!-- Główny dashboard summary -->
+        <div id="dashboard-overall" style="background: var(--green-soft, #c8d5c2); padding: 14px 18px; border-radius: 4px; margin-bottom: 16px; font-size: 13px;">
+          <p>Ładowanie...</p>
+        </div>
+
+        <!-- Siatka kart 18 scope -->
+        <div id="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px;">
+          <!-- karty generowane dynamicznie -->
+        </div>
+
+      </div>
+
+      <!-- Cel / uzasadnienie zakresu -->
+      <div class="group" style="margin-top: 24px;">
+        <div class="group-title">Cel i uzasadnienie zakresu audytu</div>
+        <div class="field-list">
+          <div class="field">
+            <div class="field-head">
+              <span class="field-id mono">SCOPE-V3-CEL</span>
+              <span class="field-label">Powód wyboru zakresu audytu</span>
+            </div>
+            <textarea class="field-input field-textarea" data-id="SCOPE-V3-CEL" placeholder="np. EED — obowiązkowy audyt co 4 lata zgodnie z ustawą o efektywności energetycznej · Przygotowanie do certyfikacji ISO 50001 · Wniosek o Białe Certyfikaty · Wymóg Banku przed inwestycją · CSRD/ESRS raportowanie · Strategia dekarbonizacji · ..." style="min-height: 80px;" data-source="" data-confidence="" data-phase="client" data-iso="" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="false" data-audit-profile="eed,iso50001,full-map" data-ai-prompt="Dodatkowe scope poza listą + cel audytu + program dotacji."></textarea>
+            <span class="field-hint">★ SCOPE-V3-CEL · Główne uzasadnienie audytu wpływa na zakres rekomendacji końcowych</span>
+          </div>
+
+          <div class="field">
+            <div class="field-head">
+              <span class="field-id mono">SCOPE-V4-PROG</span>
+              <span class="field-label">Planowany termin zakończenia audytu</span>
+            </div>
+            <input type="date" class="field-input" data-id="SCOPE-V4-PROG" data-source="" data-confidence="" data-phase="client" data-iso="" data-iso50002="50002-1:6.2" data-eed="zal.II.1" data-required="false" data-audit-profile="eed,iso50001,full-map" data-ai-prompt="Dodatkowe scope poza listą + cel audytu + program dotacji.">
+            <span class="field-hint">★ SCOPE-V4-PROG · Deadline na ukończenie wszystkich scope (PN-EN 16247-1: 2-12 miesięcy typowo)</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+</main>
+
+
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
 
 </main>
 
@@ -4506,6 +5859,1858 @@ bindAllFields();
 loadSavedData();
 rebuildMacierz();      // odbuduj macierz E6 z aktualnym stanem nazw
 updateZuzyciaSums();   // przeliczy statystyki E8 po załadowaniu
+
+
+
+// === E13 / PROFILE / DASHBOARD NEW FUNCTIONS ===
+function updateE13Summary() {
+  const summaryEl = document.getElementById('e13-summary');
+  if (!summaryEl) return;
+
+  let nExist = 0, nAudit = 0, nNotAudit = 0;
+  const auditList = [];
+  const existList = [];
+
+  SCOPE_KODY_E13.forEach(kod => {
+    const exist = (document.querySelector(`[data-id="SCOPE-V1-${kod}-EXIST"]`) || {}).value || '';
+    const audit = (document.querySelector(`[data-id="SCOPE-V1-${kod}-AUDIT"]`) || {}).value || '';
+    if (exist === 'TAK') {
+      nExist++;
+      existList.push(kod);
+    }
+    if (audit === 'TAK') {
+      nAudit++;
+      auditList.push(kod);
+    } else if (exist === 'TAK' && audit && audit !== 'TAK') {
+      nNotAudit++;
+    }
+  });
+
+  let html = '';
+  if (nExist === 0 && nAudit === 0) {
+    html = '<p style="color: var(--ink-mute);">Wpisz wybory w macierzy powyżej — podsumowanie pojawi się automatycznie.</p>';
+  } else {
+    html = `
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+        <div>
+          <div style="font-size: 11px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.5px;">Występuje w zakładzie</div>
+          <div style="font-size: 22px; font-weight: 700; color: var(--green-deep, #1a4d3a); font-family: var(--serif);">${nExist} <span style="font-size: 13px; font-weight: 400; color: var(--ink-mute);">/ 18 instalacji</span></div>
+          ${existList.length > 0 ? `<div style="font-size: 11px; color: var(--ink-soft); margin-top: 4px;">${existList.join(', ')}</div>` : ''}
+        </div>
+        <div>
+          <div style="font-size: 11px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.5px;">Objęte audytem</div>
+          <div style="font-size: 22px; font-weight: 700; color: var(--gold, #c8a951); font-family: var(--serif);">${nAudit} <span style="font-size: 13px; font-weight: 400; color: var(--ink-mute);">/ ${nExist} występujących</span></div>
+          ${auditList.length > 0 ? `<div style="font-size: 11px; color: var(--ink-soft); margin-top: 4px;">${auditList.join(', ')}</div>` : ''}
+        </div>
+        <div>
+          <div style="font-size: 11px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.5px;">Występuje, ale poza audytem</div>
+          <div style="font-size: 22px; font-weight: 700; color: var(--rose, #c87a5e); font-family: var(--serif);">${nNotAudit} <span style="font-size: 13px; font-weight: 400; color: var(--ink-mute);">instalacji</span></div>
+          <div style="font-size: 11px; color: var(--ink-soft); margin-top: 4px; font-style: italic;">np. planowane lub poza zakresem</div>
+        </div>
+      </div>
+      <p style="margin-top: 16px; font-size: 12px; color: var(--ink-soft);">
+        💡 <strong>Następny krok:</strong> Dashboard scope (iter 2) pokaże status każdego z ${nAudit} audytowanych formularzy z linkami do plików HTML.
+      </p>
+    `;
+  }
+  summaryEl.innerHTML = html;
+}
+
+// Bind handler dla SCOPE-V1-* fields
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    document.querySelectorAll('[data-id^="SCOPE-V1-"]').forEach(el => {
+      el.addEventListener('change', () => {
+        updateE13Summary();
+        // Iter 2: też odśwież dashboard
+        if (typeof buildDashboard === 'function') buildDashboard();
+      });
+    });
+    updateE13Summary();
+  }, 200);
+});
+
+
+
+
+// ============================================================
+// === E13 DASHBOARD SCOPE — iter 2 ============================
+// ============================================================
+
+// Konfiguracja każdego scope: kod → {prefix, name, file, expectedFields, icon, status}
+const SCOPE_CONFIG = {
+  // Kategoria A — Wytwarzanie
+  'BO':    { prefix: 'boilers:', name: 'Kotłownia centralna',     file: 'ENESA_Formularz_HTML_Kotly_v1_0.html',  expected: 320, icon: '🔥', cat: 'A', status: 'ready' },
+  'LH':    { prefix: 'lh:',      name: 'Lokalne ogrzewanie',      file: 'ENESA_Formularz_HTML_LH_v2_0-6.html',   expected: 180, icon: '🌡', cat: 'A', status: 'ready' },
+  'CHP':   { prefix: 'chp:',     name: 'Kogeneracja CHP',         file: '',                                        expected: 250, icon: '⚡', cat: 'A', status: 'pending' },
+  'HP':    { prefix: 'hp:',      name: 'Pompy ciepła',            file: '',                                        expected: 220, icon: '♨',  cat: 'A', status: 'pending' },
+  'PV':    { prefix: 'pv:',      name: 'Fotowoltaika + BESS',     file: '',                                        expected: 280, icon: '☀',  cat: 'A', status: 'pending' },
+  'ST':    { prefix: 'st:',      name: 'Solar thermal',           file: '',                                        expected: 150, icon: '🌞', cat: 'A', status: 'pending' },
+  'DH':    { prefix: 'dh:',      name: 'Ciepło sieciowe',         file: '',                                        expected: 100, icon: '🔗', cat: 'A', status: 'pending' },
+  'TES':   { prefix: 'tes:',     name: 'Magazyny ciepła',         file: '',                                        expected: 130, icon: '📦', cat: 'A', status: 'pending' },
+  // Kategoria B — Dystrybucja
+  'CA':    { prefix: 'ca:',      name: 'Sprężone powietrze',      file: 'ENESA_Formularz_HTML_CA_v1_0.html',     expected: 200, icon: '💨', cat: 'B', status: 'ready' },
+  'AHU':   { prefix: 'ahu:',     name: 'Wentylacja',              file: 'ENESA_Formularz_HTML_AHU_v1_0-4.html',  expected: 220, icon: '🌬', cat: 'B', status: 'ready' },
+  'RC':    { prefix: 'rc:',      name: 'Chłodnictwo + AC',        file: 'ENESA_Formularz_HTML_RC_v1_0.html',     expected: 330, icon: '❄',  cat: 'B', status: 'ready' },
+  'LIGHT': { prefix: 'light:',   name: 'Oświetlenie',             file: '',                                        expected: 200, icon: '💡', cat: 'B', status: 'pending' },
+  'EE':    { prefix: 'ee:',      name: 'Stacje EE / Trafostacje', file: '',                                        expected: 200, icon: '⚡', cat: 'B', status: 'pending' },
+  'STEAM': { prefix: 'steam:',   name: 'Sieci pary procesowej',   file: '',                                        expected: 180, icon: '♨',  cat: 'B', status: 'pending' },
+  // Kategoria C — Technologia
+  'TECH':  { prefix: 'tech:',    name: 'Procesy technologiczne',  file: '',                                        expected: 250, icon: '⚙',  cat: 'C', status: 'pending' },
+  // Kategoria D — Transport
+  'TRANS': { prefix: 'trans:',   name: 'Transport wewn.',         file: '',                                        expected: 150, icon: '🚜', cat: 'D', status: 'pending' },
+  'FLEET': { prefix: 'fleet:',   name: 'Flota + EV',              file: '',                                        expected: 200, icon: '🚛', cat: 'D', status: 'pending' },
+  // Kategoria E — Budynki
+  'TIB':   { prefix: 'tib:',     name: 'Termoizolacja',           file: '',                                        expected: 180, icon: '🏢', cat: 'E', status: 'pending' },
+};
+
+// Średni czas pracy audytora na pole (minuty)
+const MIN_PER_FIELD = 0.4;  // ~25s średnio
+
+function calcScopeProgress(prefix, expected) {
+  // Liczy ile pól w localStorage zaczyna się od prefix:
+  // i ma niepustą wartość (≠ "" i ≠ null)
+  let filled = 0;
+  let totalKeys = 0;
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(prefix)) {
+        totalKeys++;
+        const val = localStorage.getItem(key);
+        if (val !== null && val !== '' && val !== '0' && val !== 'undefined') {
+          // Pomijamy klucze meta (zaczynające się od _meta lub _n_)
+          const subkey = key.substring(prefix.length);
+          if (subkey.startsWith('_')) continue;
+          filled++;
+        }
+      }
+    }
+  } catch (e) {
+    return { filled: 0, total: expected, pct: 0, totalKeys: 0 };
+  }
+  const pct = expected > 0 ? Math.min(100, Math.round((filled / expected) * 100)) : 0;
+  return { filled, total: expected, pct, totalKeys };
+}
+
+function calcScopeFlagCount(prefix) {
+  // Heurystycznie: szukamy kluczy zawierających "FLAG" lub "F1", "F2"... itd.
+  // Realnie: scope ma własną logikę flag, więc czytamy zapisane wyniki
+  let count = 0;
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(prefix) && key.includes('FLAG')) {
+        const val = localStorage.getItem(key);
+        if (val === 'true' || val === 'TAK' || val === 'AKTYWNA') count++;
+      }
+    }
+  } catch (e) {}
+  return count;
+}
+
+function getScopeAuditState(kod) {
+  // Czy scope jest "audytowany" w E13?
+  const exist = (document.querySelector(`[data-id="SCOPE-V1-${kod}-EXIST"]`) || {}).value || '';
+  const audit = (document.querySelector(`[data-id="SCOPE-V1-${kod}-AUDIT"]`) || {}).value || '';
+  return {
+    exist: exist === 'TAK',
+    audit: audit === 'TAK',
+    raw: { exist, audit }
+  };
+}
+
+
+function buildScopeCard(kod, cfg, state, progress, flagCount) {
+  // Określamy stan karty
+  let cardClass = 'scope-card';
+  let statusLabel = '';
+  let statusClass = '';
+  let progressBarClass = '';
+  let timeEstHtml = '';
+  let actionsHtml = '';
+
+  // Logika stanu
+  if (!state.audit) {
+    if (state.exist) {
+      cardClass += ' is-not-audited';
+      statusLabel = '⊘ Występuje, ale poza audytem';
+      statusClass = 'pending';
+    } else if (state.raw.exist === 'NIE') {
+      cardClass += ' is-not-audited';
+      statusLabel = '— Nie występuje w zakładzie';
+      statusClass = '';
+    } else {
+      statusLabel = '◌ Nie wybrano w E13';
+      statusClass = '';
+    }
+  } else {
+    // Audytowane — sprawdzamy postęp
+    cardClass += ' is-active';
+    if (cfg.status === 'pending' && !cfg.file) {
+      statusLabel = '⏳ Scope w przygotowaniu';
+      statusClass = 'pending';
+    } else if (progress.pct >= 95) {
+      cardClass += ' is-completed';
+      statusLabel = '✓ Ukończony';
+      statusClass = 'ready';
+      progressBarClass = 'complete';
+    } else if (progress.pct >= 50) {
+      statusLabel = '◐ W trakcie';
+      progressBarClass = 'warn';
+    } else if (progress.pct > 0) {
+      statusLabel = '◔ Rozpoczęty';
+      progressBarClass = 'low';
+    } else {
+      statusLabel = '○ Nierozpoczęty';
+      progressBarClass = 'low';
+    }
+    if (flagCount > 0) {
+      cardClass += ' has-flags';
+    }
+  }
+
+  // Czas oczekiwany (min × pola pozostałe)
+  if (state.audit && cfg.file) {
+    const remaining = Math.max(0, cfg.expected - progress.filled);
+    const minRemain = Math.round(remaining * 0.4);
+    if (minRemain >= 60) {
+      const hours = Math.floor(minRemain / 60);
+      const mins = minRemain % 60;
+      timeEstHtml = `~${hours}h ${mins}min do końca`;
+    } else if (minRemain > 0) {
+      timeEstHtml = `~${minRemain}min do końca`;
+    } else if (progress.pct >= 95) {
+      timeEstHtml = '✓ Wszystkie pola wypełnione';
+    }
+  }
+
+  // Akcje
+  if (state.audit && cfg.file) {
+    actionsHtml = `<a class="scope-btn primary" href="${cfg.file}" target="_blank">▶ Otwórz</a>`;
+  } else if (state.audit && cfg.status === 'pending') {
+    actionsHtml = `<button class="scope-btn disabled" disabled>⏳ Buduj scope</button>`;
+  } else if (state.exist && !state.audit) {
+    actionsHtml = `<button class="scope-btn secondary disabled" disabled>Poza audytem</button>`;
+  } else {
+    actionsHtml = `<button class="scope-btn secondary disabled" disabled>Wybierz w E13</button>`;
+  }
+
+  // Flagi
+  let flagHtml = '';
+  if (flagCount > 0) {
+    flagHtml = `<span class="scope-flag-count danger">🔴 ${flagCount} flag</span>`;
+  } else if (state.audit && progress.pct >= 50) {
+    flagHtml = `<span class="scope-flag-count ok">🟢 OK</span>`;
+  }
+
+  return `
+    <div class="${cardClass}" data-scope-kod="${kod}">
+      <div class="scope-card-head">
+        <span class="scope-card-icon">${cfg.icon}</span>
+        <div class="scope-card-name">${cfg.name}</div>
+        <span class="scope-card-kod">${kod}</span>
+      </div>
+      <div class="scope-status-line ${statusClass}">${statusLabel}</div>
+      ${state.audit ? `
+        <div class="scope-progress-wrap">
+          <div class="scope-progress-bar ${progressBarClass}" style="width: ${progress.pct}%"></div>
+        </div>
+        <div class="scope-stats-row">
+          <span><strong>${progress.filled}</strong>/${cfg.expected} pól (${progress.pct}%)</span>
+          ${flagHtml}
+        </div>
+        ${timeEstHtml ? `<div class="scope-time-est">${timeEstHtml}</div>` : ''}
+      ` : ''}
+      <div class="scope-card-actions">
+        ${actionsHtml}
+      </div>
+    </div>
+  `;
+}
+
+function buildDashboardOverall(cards, state) {
+  const overallEl = document.getElementById('dashboard-overall');
+  if (!overallEl) return;
+
+  const nAudit = cards.filter(c => c.audit).length;
+  const nReady = cards.filter(c => c.audit && c.cfg.status === 'ready').length;
+  const nCompleted = cards.filter(c => c.audit && c.cfg.status === 'ready' && c.progress.pct >= 95).length;
+  const nInProgress = cards.filter(c => c.audit && c.cfg.status === 'ready' && c.progress.pct > 0 && c.progress.pct < 95).length;
+  const nNotStarted = cards.filter(c => c.audit && c.cfg.status === 'ready' && c.progress.pct === 0).length;
+  const nPending = cards.filter(c => c.audit && c.cfg.status === 'pending').length;
+
+  // Σ czasu pozostałego
+  let totalRemainMin = 0;
+  cards.forEach(c => {
+    if (c.audit && c.cfg.file) {
+      const remaining = Math.max(0, c.cfg.expected - c.progress.filled);
+      totalRemainMin += remaining * 0.4;
+    }
+  });
+  const totalH = Math.floor(totalRemainMin / 60);
+  const totalM = Math.round(totalRemainMin % 60);
+
+  // Σ flag
+  const totalFlags = cards.reduce((sum, c) => sum + c.flagCount, 0);
+
+  if (nAudit === 0) {
+    overallEl.innerHTML = '<p style="color: var(--ink-mute, #8b7355); margin: 0;">Wybierz instalacje "Audytowana? = TAK" w macierzy powyżej, aby zobaczyć dashboard.</p>';
+    return;
+  }
+
+  overallEl.innerHTML = `
+    <div class="ds-row">
+      <div class="ds-stat">
+        <span class="ds-stat-label">Audytowanych</span>
+        <span class="ds-stat-value">${nAudit}</span>
+      </div>
+      <div class="ds-stat">
+        <span class="ds-stat-label">✓ Ukończone</span>
+        <span class="ds-stat-value" style="color: var(--ok, #4a8a5e);">${nCompleted}</span>
+      </div>
+      <div class="ds-stat">
+        <span class="ds-stat-label">◐ W trakcie</span>
+        <span class="ds-stat-value" style="color: var(--gold, #c8a951);">${nInProgress}</span>
+      </div>
+      <div class="ds-stat">
+        <span class="ds-stat-label">○ Nierozpoczęte</span>
+        <span class="ds-stat-value" style="color: var(--rose, #c87a5e);">${nNotStarted}</span>
+      </div>
+      ${nPending > 0 ? `
+        <div class="ds-stat">
+          <span class="ds-stat-label">⏳ Scope nieukończony</span>
+          <span class="ds-stat-value" style="color: var(--ink-mute, #8b7355);">${nPending}</span>
+        </div>
+      ` : ''}
+      <div class="ds-stat">
+        <span class="ds-stat-label">⏱ Czas do końca</span>
+        <span class="ds-stat-value">${totalH > 0 ? totalH + 'h ' : ''}${totalM}min</span>
+      </div>
+      ${totalFlags > 0 ? `
+        <div class="ds-stat">
+          <span class="ds-stat-label">🔴 Łącznie flag</span>
+          <span class="ds-stat-value" style="color: var(--rose, #c87a5e);">${totalFlags}</span>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function buildDashboard() {
+  const grid = document.getElementById('dashboard-grid');
+  if (!grid) return;
+
+  grid.innerHTML = '';
+
+  const cards = [];
+  // Iterujemy po SCOPE_KODY_E13 (kolejność z iter 1)
+  SCOPE_KODY_E13.forEach(kod => {
+    const cfg = SCOPE_CONFIG[kod];
+    if (!cfg) return;
+    const state = getScopeAuditState(kod);
+    const progress = calcScopeProgress(cfg.prefix, cfg.expected);
+    const flagCount = calcScopeFlagCount(cfg.prefix);
+    cards.push({ kod, cfg, state, progress, flagCount, audit: state.audit });
+    grid.innerHTML += buildScopeCard(kod, cfg, state, progress, flagCount);
+  });
+
+  buildDashboardOverall(cards, null);
+}
+
+// Reactive: zmiana SCOPE-V1-* odświeża dashboard
+function bindDashboardReactive() {
+  document.querySelectorAll('[data-id^="SCOPE-V1-"]').forEach(el => {
+    el.addEventListener('change', () => {
+      buildDashboard();
+    });
+  });
+  // Refresh button
+  const btn = document.getElementById('dashboard-refresh-btn');
+  if (btn) {
+    btn.addEventListener('click', () => {
+      buildDashboard();
+    });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    if (typeof buildDashboard === 'function') {
+      buildDashboard();
+      bindDashboardReactive();
+    }
+  }, 300);
+});
+
+
+
+
+// ============================================================
+// === E13 ITER 3 — Excel Export, Import, Print, Validation ===
+// ============================================================
+
+// Lista scope w SCOPE_CONFIG (już zdefiniowana w iter 2)
+// Funkcja showSaveIndicator już istnieje w Master (oryginalna)
+
+
+// ============================================================
+// EKSPORT DO EXCEL
+// ============================================================
+async function exportFormToExcel() {
+  if (typeof ExcelJS === 'undefined') {
+    alert('⚠ Biblioteka ExcelJS nie jest załadowana. Sprawdź połączenie internetowe.');
+    return;
+  }
+
+  showSaveIndicator('📊 Generuję plik Excel...');
+
+  try {
+    // === Paleta ENESA ===
+    const COLOR_GREEN_DEEP = 'FF1A4D3A';
+    const COLOR_GREEN_LIGHT = 'FFC8D5C2';
+    const COLOR_PAPER = 'FFF5EFE0';
+    const COLOR_PAPER_DEEP = 'FFEBE3D0';
+    const COLOR_GOLD = 'FFA87F2A';
+    const COLOR_WHITE = 'FFFFFFFF';
+    const COLOR_INK = 'FF1A1612';
+
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'ENESA';
+    wb.created = new Date();
+
+    // Mapa nazw zakładek dla etapów Master (wzorzec ENESA_Formularz_AUDYT_GLOBAL_v1_0.xlsx)
+    const ETAP_TABS = {
+      'etap-0':  'E0_Audyt',
+      'etap-1':  'E1_Zakres',
+      'etap-2':  'E2_Zaklad',
+      'etap-3':  'E3_Procesy',
+      'etap-4':  'E4_Wydzialy',
+      'etap-5':  'E5_Hale',
+      'etap-6':  'E6_Macierz',
+      'etap-7':  'E7_Nosniki',
+      'etap-8':  'E8_Zuzycia',
+      'etap-9':  'E9_Zmienne',
+      'etap-10': 'E10_EnMS',
+      'etap-11': 'E11_Kontekst',
+      'etap-12': 'E12_Historia',
+      'etap-13': 'E13_Zakres_audytu',
+    };
+
+    const klient = enesaStorage.get(STORAGE_PREFIX + 'AUD-V1-NAZWA') || '(brak)';
+
+    // Helper: aplikuje style do całego rzędu
+    function styleRow(row, opts) {
+      opts = opts || {};
+      if (opts.height) row.height = opts.height;
+      row.eachCell({ includeEmpty: true }, (cell) => {
+        if (opts.font) cell.font = opts.font;
+        if (opts.fill) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: opts.fill } };
+        if (opts.alignment) cell.alignment = opts.alignment;
+        if (opts.border) cell.border = opts.border;
+      });
+    }
+
+    // Helper: thin border dla całego zakresu
+    const thinBorder = {
+      top: { style: 'thin', color: { argb: 'FFD6CDB6' } },
+      left: { style: 'thin', color: { argb: 'FFD6CDB6' } },
+      bottom: { style: 'thin', color: { argb: 'FFD6CDB6' } },
+      right: { style: 'thin', color: { argb: 'FFD6CDB6' } },
+    };
+
+    // Helper: render header zakładki etapu (wiersze 1-5)
+    function renderEtapHeader(ws, eyebrow, title, desc, headerColumns) {
+      const cols = headerColumns.length;
+      const lastCol = String.fromCharCode(64 + cols);
+
+      // Wiersz 1: POUFNE
+      ws.getCell('A1').value = 'POUFNE — WEWNĘTRZNY DOKUMENT PROJEKTOWY ENESA · Nie udostępniać poza zespołem projektu';
+      ws.mergeCells('A1:' + lastCol + '1');
+      ws.getRow(1).height = 18;
+      ws.getCell('A1').font = { name: 'Calibri', size: 8, color: { argb: COLOR_GOLD } };
+      ws.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR_PAPER_DEEP } };
+      ws.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
+
+      // Wiersz 2: ETAP nagłówek
+      ws.getCell('A2').value = eyebrow + ' · ' + title.toUpperCase();
+      ws.mergeCells('A2:' + lastCol + '2');
+      ws.getRow(2).height = 32;
+      ws.getCell('A2').font = { name: 'Calibri', size: 14, bold: true, color: { argb: COLOR_WHITE } };
+      ws.getCell('A2').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR_GREEN_DEEP } };
+      ws.getCell('A2').alignment = { horizontal: 'center', vertical: 'middle' };
+
+      // Wiersz 3: opis
+      ws.getCell('A3').value = desc;
+      ws.mergeCells('A3:' + lastCol + '3');
+      ws.getRow(3).height = 22;
+      ws.getCell('A3').font = { name: 'Calibri', size: 10, color: { argb: COLOR_GREEN_DEEP } };
+      ws.getCell('A3').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR_PAPER } };
+      ws.getCell('A3').alignment = { horizontal: 'center', vertical: 'middle' };
+
+      // Wiersz 4: pusty (separator)
+
+      // Wiersz 5: header kolumn
+      headerColumns.forEach((h, i) => {
+        const cell = ws.getCell(5, i + 1);
+        cell.value = h;
+        cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: COLOR_WHITE } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR_GREEN_DEEP } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        cell.border = thinBorder;
+      });
+      ws.getRow(5).height = 28;
+    }
+
+    // Helper: render wiersz grupy (▼ separator)
+    function renderGroupRow(ws, rowIdx, title, lastCol) {
+      ws.getCell('A' + rowIdx).value = '  ▼  ' + title.toUpperCase();
+      ws.mergeCells('A' + rowIdx + ':' + lastCol + rowIdx);
+      ws.getCell('A' + rowIdx).font = { name: 'Calibri', size: 11, bold: true, color: { argb: COLOR_GREEN_DEEP } };
+      ws.getCell('A' + rowIdx).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR_PAPER_DEEP } };
+      ws.getCell('A' + rowIdx).alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+      ws.getRow(rowIdx).height = 24;
+    }
+
+    // Helper: render wiersz pola
+    function renderFieldRow(ws, rowIdx, fid, question, kto, hint, val, unit) {
+      ws.getCell('A' + rowIdx).value = fid;
+      ws.getCell('A' + rowIdx).font = { name: 'Consolas', size: 9, color: { argb: COLOR_INK } };
+      ws.getCell('A' + rowIdx).alignment = { vertical: 'middle' };
+
+      ws.getCell('B' + rowIdx).value = question;
+      ws.getCell('B' + rowIdx).font = { name: 'Calibri', size: 10 };
+      ws.getCell('B' + rowIdx).alignment = { vertical: 'middle', wrapText: true };
+
+      ws.getCell('C' + rowIdx).value = kto;
+      ws.getCell('C' + rowIdx).font = { name: 'Calibri', size: 9, bold: true, color: { argb: COLOR_GREEN_DEEP } };
+      ws.getCell('C' + rowIdx).alignment = { horizontal: 'center', vertical: 'middle' };
+
+      ws.getCell('D' + rowIdx).value = hint;
+      ws.getCell('D' + rowIdx).font = { name: 'Calibri', size: 9, color: { argb: COLOR_INK } };
+      ws.getCell('D' + rowIdx).alignment = { vertical: 'middle', wrapText: true };
+
+      ws.getCell('E' + rowIdx).value = val;
+      ws.getCell('E' + rowIdx).font = { name: 'Calibri', size: 11, bold: !!val, color: { argb: COLOR_GREEN_DEEP } };
+      ws.getCell('E' + rowIdx).alignment = { vertical: 'middle' };
+      ws.getCell('E' + rowIdx).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFBED' } };  // very light gold
+
+      ws.getCell('F' + rowIdx).value = unit || '—';
+      ws.getCell('F' + rowIdx).font = { name: 'Calibri', size: 9, color: { argb: COLOR_INK } };
+      ws.getCell('F' + rowIdx).alignment = { horizontal: 'center', vertical: 'middle' };
+
+      // Border
+      for (let c = 1; c <= 6; c++) {
+        ws.getCell(rowIdx, c).border = thinBorder;
+      }
+
+      // Row height auto - dłuższe pytania/hinty zwiększają wysokość
+      const lenMax = Math.max((question || '').length, (hint || '').length);
+      if (lenMax > 50) {
+        ws.getRow(rowIdx).height = Math.min(60, 18 + Math.floor(lenMax / 50) * 14);
+      } else {
+        ws.getRow(rowIdx).height = 22;
+      }
+    }
+
+    // ============================================================
+    // === Zakładka 1: Spis treści
+    // ============================================================
+    const wsToc = wb.addWorksheet('Spis treści');
+    wsToc.columns = [
+      { width: 8 }, { width: 40 }, { width: 80 }, { width: 22 },
+    ];
+
+    // Wiersz 1: POUFNE
+    wsToc.getCell('A1').value = 'POUFNE — WEWNĘTRZNY DOKUMENT PROJEKTOWY ENESA';
+    wsToc.mergeCells('A1:C1');
+    wsToc.getRow(1).height = 18;
+    wsToc.getCell('A1').font = { name: 'Calibri', size: 8, color: { argb: COLOR_GOLD } };
+    wsToc.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR_PAPER_DEEP } };
+    wsToc.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
+
+    // Wiersz 2: tytuł
+    wsToc.getCell('A2').value = 'ENESA Audyt Energetyczny — FORMULARZ GLOBALNY (Master) · v1.1';
+    wsToc.mergeCells('A2:C2');
+    wsToc.getRow(2).height = 40;
+    wsToc.getCell('A2').font = { name: 'Calibri', size: 16, bold: true, color: { argb: COLOR_WHITE } };
+    wsToc.getCell('A2').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR_GREEN_DEEP } };
+    wsToc.getCell('A2').alignment = { horizontal: 'center', vertical: 'middle' };
+
+    // Wiersz 3: subtytuł
+    wsToc.getCell('A3').value = 'Audyt energetyczny + EnMS Foundation (ISO 50001 § 4-6) · 14 zakładek (E0-E13) · Eksport: ' + new Date().toLocaleString('pl-PL');
+    wsToc.mergeCells('A3:C3');
+    wsToc.getRow(3).height = 26;
+    wsToc.getCell('A3').font = { name: 'Calibri', size: 11, color: { argb: COLOR_GREEN_DEEP } };
+    wsToc.getCell('A3').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR_PAPER } };
+    wsToc.getCell('A3').alignment = { horizontal: 'center', vertical: 'middle' };
+
+    // Wiersz 5: Klient
+    wsToc.getCell('A5').value = 'Klient:';
+    wsToc.getCell('A5').font = { bold: true, color: { argb: COLOR_GREEN_DEEP } };
+    wsToc.getCell('B5').value = klient;
+    wsToc.getCell('B5').font = { bold: true, size: 12 };
+
+    // Wiersz 7: Workflow
+    wsToc.getCell('A7').value = 'WORKFLOW WYPEŁNIANIA:';
+    wsToc.getCell('A7').font = { bold: true, color: { argb: COLOR_GREEN_DEEP } };
+    const workflow = [
+      '1. PRE-WORK (klient): EM zbiera dokumenty, wypełnia E0/E1 (dane obiektywne)',
+      '2. SESJA OTWIERAJĄCA (Konsultant + EM, 4h): wypełnienie E2-E12 (kontekst, procesy, wydziały)',
+      '3. POST-WORK (Konsultant): konsolidacja, gap analysis ISO 50001, plan scope (E13)',
+      '4. SESJA SCOPE (Konsultant + KIER UR): delegacja wypełniania scope formularzy',
+      '5. WERYFIKACJA (Konsultant): kontrola spójności, raport audytu',
+    ];
+    workflow.forEach((line, i) => {
+      wsToc.getCell('A' + (8 + i)).value = line;
+      wsToc.mergeCells('A' + (8 + i) + ':C' + (8 + i));
+    });
+
+    // Wiersz 14: Tabela zakładek
+    wsToc.getCell('A14').value = 'ZAKŁADKI:';
+    wsToc.getCell('A14').font = { bold: true, color: { argb: COLOR_GREEN_DEEP } };
+
+    const tocHeaderRow = 15;
+    ['#', 'NAZWA ETAPU', 'OPIS', 'POSTĘP'].forEach((h, i) => {
+      const cell = wsToc.getCell(tocHeaderRow, i + 1);
+      cell.value = h;
+      cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: COLOR_WHITE } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR_GREEN_DEEP } };
+      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+      cell.border = thinBorder;
+    });
+    wsToc.getRow(tocHeaderRow).height = 24;
+
+    // Zbieramy info o sekcjach z DOM
+    const sections = [];
+    document.querySelectorAll('section.section[id^="etap-"]').forEach(sec => {
+      const id = sec.id;
+      const eyebrow = (sec.querySelector('.section-eyebrow') || {}).textContent || '';
+      const title = (sec.querySelector('.section-title') || {}).textContent || '';
+      const desc = (sec.querySelector('.section-desc') || {}).textContent || '';
+      const progressEl = sec.querySelector('.section-progress');
+      const progress = progressEl ? progressEl.textContent.trim() : '';
+      sections.push({ id, eyebrow, title, desc, progress, element: sec });
+    });
+
+    let r = tocHeaderRow + 1;
+    sections.forEach(s => {
+      const tabName = ETAP_TABS[s.id] || s.id;
+      wsToc.getCell(r, 1).value = s.eyebrow.replace('ETAP ', 'E').trim();
+      wsToc.getCell(r, 2).value = tabName + ' · ' + s.title.trim();
+      wsToc.getCell(r, 3).value = s.desc.trim().substring(0, 150);
+      wsToc.getCell(r, 4).value = s.progress;
+      for (let c = 1; c <= 4; c++) wsToc.getCell(r, c).border = thinBorder;
+      wsToc.getCell(r, 1).font = { bold: true, name: 'Consolas', size: 10 };
+      wsToc.getCell(r, 4).alignment = { horizontal: 'center' };
+      wsToc.getRow(r).height = 22;
+      r++;
+    });
+
+    // Sekcja zakładek scope
+    r += 1;
+    wsToc.getCell(r, 1).value = 'AUDYTOWANE SCOPE (z E13):';
+    wsToc.getCell(r, 1).font = { bold: true, color: { argb: COLOR_GREEN_DEEP } };
+    r++;
+
+    const auditedScopes = [];
+    SCOPE_KODY_E13.forEach(kod => {
+      const audit = (enesaStorage.get(STORAGE_PREFIX + 'SCOPE-V1-' + kod + '-AUDIT') || '');
+      const cfg = SCOPE_CONFIG[kod];
+      if (audit === 'TAK') {
+        auditedScopes.push(kod);
+        const sheetName = (kod + '_' + cfg.name).substring(0, 31).replace(/[\\\/\?\*\[\]]/g, '_');
+        wsToc.getCell(r, 1).value = cfg.icon;
+        wsToc.getCell(r, 1).alignment = { horizontal: 'center' };
+        wsToc.getCell(r, 2).value = sheetName;
+        wsToc.getCell(r, 3).value = cfg.name;
+        for (let c = 1; c <= 4; c++) wsToc.getCell(r, c).border = thinBorder;
+        r++;
+      }
+    });
+    if (auditedScopes.length === 0) {
+      wsToc.getCell(r, 1).value = '(brak audytowanych scope — zaznacz w E13)';
+      wsToc.mergeCells('A' + r + ':C' + r);
+      wsToc.getCell(r, 1).font = { italic: true, color: { argb: COLOR_GOLD } };
+    }
+
+    // ============================================================
+    // === Per etap (E0-E13) ===
+    // ============================================================
+    const headerCols = ['ID pola', 'PYTANIE', 'KTO', 'HINT / objaśnienie', 'WARTOŚĆ', 'JEDNOSTKA'];
+
+    sections.forEach(s => {
+      const tabName = ETAP_TABS[s.id] || s.id;
+      const safeTabName = tabName.substring(0, 31).replace(/[\\\/\?\*\[\]]/g, '_');
+      const ws = wb.addWorksheet(safeTabName);
+
+      // Szerokości kolumn
+      ws.columns = [
+        { width: 22 },  // ID
+        { width: 50 },  // PYTANIE
+        { width: 8 },   // KTO
+        { width: 60 },  // HINT
+        { width: 25 },  // WARTOŚĆ
+        { width: 12 },  // JEDNOSTKA
+      ];
+
+      // Header (wiersze 1-5)
+      renderEtapHeader(ws, s.eyebrow.trim(), s.title.trim(), s.desc.trim(), headerCols);
+
+      // Wiersze danych zaczynają się od 6
+      let rowIdx = 6;
+      const seenIds = new Set();
+
+      // Iterujemy po grupach
+      const groups = s.element.querySelectorAll('.group');
+      groups.forEach(grp => {
+        const grpTitle = (grp.querySelector('.group-title') || {}).textContent || '';
+        if (grpTitle.trim()) {
+          renderGroupRow(ws, rowIdx, grpTitle.trim(), 'F');
+          rowIdx++;
+        }
+
+        // Pola w grupie
+        grp.querySelectorAll('.field').forEach(f => {
+          const inputEl = f.querySelector('[data-id]');
+          if (!inputEl) return;
+          const fid = inputEl.dataset.id;
+          if (seenIds.has(fid)) return;
+          seenIds.add(fid);
+
+          const qEl = f.querySelector('.field-q');
+          const ktoEl = f.querySelector('.kto-cell .tag, .tag');
+          const unitEl = f.querySelector('.field-unit');
+          const hintEl = f.querySelector('.field-hint');
+
+          const question = qEl ? qEl.textContent.trim() : '';
+          const kto = ktoEl ? ktoEl.textContent.trim() : '';
+          const hint = hintEl ? hintEl.textContent.trim() : '';
+          const unit = unitEl ? unitEl.textContent.trim() : '';
+          const val = enesaStorage.get(STORAGE_PREFIX + fid) || '';
+
+          renderFieldRow(ws, rowIdx, fid, question, kto, hint, val, unit);
+          rowIdx++;
+        });
+      });
+
+      // Pola spoza grup (np. macierz E13 SCOPE)
+      const allFields = s.element.querySelectorAll('[data-id]');
+      const ungrouped = Array.from(allFields).filter(el => !seenIds.has(el.dataset.id));
+      if (ungrouped.length > 0 && groups.length > 0) {
+        renderGroupRow(ws, rowIdx, 'POZOSTAŁE POLA', 'F');
+        rowIdx++;
+      }
+
+      ungrouped.forEach(el => {
+        const fid = el.dataset.id;
+        if (seenIds.has(fid)) return;
+        seenIds.add(fid);
+
+        let question = '';
+        let hint = '';
+        let kto = '';
+        let unit = '';
+
+        const closestRow = el.closest('tr');
+        const closestField = el.closest('.field');
+
+        if (closestRow) {
+          // Pole w tabeli (np. macierz E13 lub E4 wydziały)
+          const cells = closestRow.cells;
+          if (cells && cells.length > 0) {
+            const firstCell = cells[0].textContent.trim();
+            const secondCell = cells[1] ? cells[1].textContent.trim() : '';
+            question = firstCell + (secondCell && secondCell !== firstCell ? ' — ' + secondCell.substring(0, 60) : '');
+          }
+        } else if (closestField) {
+          const qEl = closestField.querySelector('.field-q');
+          const hintEl = closestField.querySelector('.field-hint');
+          const ktoEl = closestField.querySelector('.tag');
+          const unitEl = closestField.querySelector('.field-unit');
+          question = qEl ? qEl.textContent.trim() : '';
+          hint = hintEl ? hintEl.textContent.trim() : '';
+          kto = ktoEl ? ktoEl.textContent.trim() : '';
+          unit = unitEl ? unitEl.textContent.trim() : '';
+        }
+
+        const val = enesaStorage.get(STORAGE_PREFIX + fid) || '';
+        renderFieldRow(ws, rowIdx, fid, question, kto, hint, val, unit);
+        rowIdx++;
+      });
+    });
+
+    // ============================================================
+    // === Zakładki per audytowany scope (uproszczona struktura)
+    // ============================================================
+    auditedScopes.forEach(kod => {
+      const cfg = SCOPE_CONFIG[kod];
+      const sheetName = (kod + '_' + cfg.name).substring(0, 31).replace(/[\\\/\?\*\[\]]/g, '_');
+      const ws = wb.addWorksheet(sheetName);
+      ws.columns = [{ width: 30 }, { width: 50 }];
+
+      // Header
+      ws.getCell('A1').value = 'POUFNE — Scope ' + kod + ' (' + cfg.name + ')';
+      ws.mergeCells('A1:B1');
+      ws.getRow(1).height = 18;
+      ws.getCell('A1').font = { name: 'Calibri', size: 8, color: { argb: COLOR_GOLD } };
+      ws.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR_PAPER_DEEP } };
+      ws.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
+
+      ws.getCell('A2').value = 'SCOPE ' + kod + ' · ' + cfg.name;
+      ws.mergeCells('A2:B2');
+      ws.getRow(2).height = 32;
+      ws.getCell('A2').font = { name: 'Calibri', size: 14, bold: true, color: { argb: COLOR_WHITE } };
+      ws.getCell('A2').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR_GREEN_DEEP } };
+      ws.getCell('A2').alignment = { horizontal: 'center', vertical: 'middle' };
+
+      ws.getCell('A3').value = 'Plik: ' + (cfg.file || '(scope w przygotowaniu)') + ' · Storage prefix: ' + cfg.prefix;
+      ws.mergeCells('A3:B3');
+      ws.getRow(3).height = 22;
+      ws.getCell('A3').font = { name: 'Calibri', size: 10, color: { argb: COLOR_GREEN_DEEP } };
+      ws.getCell('A3').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR_PAPER } };
+      ws.getCell('A3').alignment = { horizontal: 'center', vertical: 'middle' };
+
+      // Header tabeli (wiersz 5)
+      ['ID pola', 'WARTOŚĆ'].forEach((h, i) => {
+        const cell = ws.getCell(5, i + 1);
+        cell.value = h;
+        cell.font = { bold: true, color: { argb: COLOR_WHITE } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR_GREEN_DEEP } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.border = thinBorder;
+      });
+      ws.getRow(5).height = 24;
+
+      // Dane
+      const keys = [];
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith(cfg.prefix)) keys.push(key);
+        }
+      } catch (e) {}
+      keys.sort();
+
+      let r2 = 6;
+      let dataCount = 0;
+      keys.forEach(k => {
+        const fid = k.substring(cfg.prefix.length);
+        if (fid.startsWith('_')) return;
+        const val = localStorage.getItem(k) || '';
+        ws.getCell('A' + r2).value = fid;
+        ws.getCell('A' + r2).font = { name: 'Consolas', size: 9 };
+        ws.getCell('A' + r2).border = thinBorder;
+        ws.getCell('B' + r2).value = val;
+        ws.getCell('B' + r2).font = { name: 'Calibri', size: 11, bold: !!val, color: { argb: COLOR_GREEN_DEEP } };
+        ws.getCell('B' + r2).border = thinBorder;
+        ws.getCell('B' + r2).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFBED' } };
+        r2++;
+        dataCount++;
+      });
+
+      if (dataCount === 0) {
+        ws.getCell('A' + r2).value = '(brak danych — scope nie był wypełniany w tej przeglądarce)';
+        ws.mergeCells('A' + r2 + ':B' + r2);
+        ws.getCell('A' + r2).font = { italic: true, color: { argb: COLOR_GOLD } };
+        ws.getCell('A' + r2).alignment = { horizontal: 'center' };
+      }
+    });
+
+    // === Zapis pliku ===
+    const buf = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const fileName = 'ENESA_Audyt_' + (klient || 'zaklad').replace(/[^a-zA-Z0-9_-]/g, '_') + '_' + new Date().toISOString().slice(0,10) + '.xlsx';
+
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+
+    showSaveIndicator('✓ Wyeksportowano: ' + fileName);
+
+  } catch (err) {
+    console.error('Excel export error:', err);
+    alert('⚠ Błąd eksportu: ' + err.message);
+  }
+}
+
+
+// ============================================================
+// IMPORT Z EXCEL
+// ============================================================
+function importFromExcel(file) {
+  if (typeof XLSX === 'undefined') {
+    alert('⚠ Biblioteka SheetJS nie jest załadowana.');
+    return;
+  }
+  if (!file) return;
+
+  if (!confirm(
+    '⚠ Import nadpisze obecne dane w przeglądarce!\n\n' +
+    'Plik: ' + file.name + '\n' +
+    'Wczyta dane do localStorage prefixów: master:, ' +
+    'oraz wszystkich scope (boilers:, rc:, ca:, ahu:, lh:, ...)\n\n' +
+    'Czy kontynuować?'
+  )) return;
+
+  // Mapa zakładek na storage
+  const ETAP_TABS = {
+    'E0_Audyt': true,    'E1_Zakres': true,    'E2_Zaklad': true,
+    'E3_Procesy': true,  'E4_Wydzialy': true,  'E5_Hale': true,
+    'E6_Macierz': true,  'E7_Nosniki': true,   'E8_Zuzycia': true,
+    'E9_Zmienne': true,  'E10_EnMS': true,     'E11_Kontekst': true,
+    'E12_Historia': true,'E13_Zakres_audytu': true,
+  };
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+
+      let totalImported = 0;
+      let scopesImported = [];
+      let etapowImported = 0;
+
+      // === Import zakładek E0_..E13_ — wszystkie do master: ===
+      wb.SheetNames.forEach(sheetName => {
+        if (ETAP_TABS[sheetName]) {
+          const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { header: 1, defval: '' });
+          // Header tabeli jest w wierszu 5 (index 4): ['ID pola', 'PYTANIE', 'KTO', 'HINT', 'WARTOŚĆ', 'JEDNOSTKA']
+          // Dane od wiersza 6 (index 5)
+          let imported = 0;
+          for (let i = 5; i < rows.length; i++) {
+            const row = rows[i];
+            if (!row[0]) continue;
+            const fid = String(row[0]).trim();
+            // Pomijamy nagłówki grup (zaczynają się od ▼)
+            if (fid.startsWith('▼') || fid.startsWith('  ▼')) continue;
+            // WARTOŚĆ jest w kolumnie 5 (index 4)
+            const val = row[4] !== undefined ? String(row[4]) : '';
+            if (fid && val !== '') {
+              enesaStorage.set(STORAGE_PREFIX + fid, val);
+              imported++;
+            }
+          }
+          if (imported > 0) etapowImported++;
+          totalImported += imported;
+        }
+      });
+
+      // === Import zakładek scope (BO_, RC_, CA_, ...) ===
+      Object.keys(SCOPE_CONFIG).forEach(kod => {
+        const cfg = SCOPE_CONFIG[kod];
+        const sheetNames = wb.SheetNames.filter(n => n.startsWith(kod + '_'));
+        sheetNames.forEach(sheetName => {
+          const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { header: 1, defval: '' });
+          let imported = 0;
+          // Pomijamy 5 pierwszych wierszy (tytuł, plik, prefix, pusty, header)
+          for (let i = 5; i < rows.length; i++) {
+            const row = rows[i];
+            if (!row[0]) continue;
+            const fid = String(row[0]).trim();
+            const val = row[1] !== undefined ? String(row[1]) : '';
+            if (fid && !fid.startsWith('(')) {
+              localStorage.setItem(cfg.prefix + fid, val);
+              imported++;
+            }
+          }
+          if (imported > 0) {
+            scopesImported.push(kod + ' (' + imported + ' pól)');
+            totalImported += imported;
+          }
+        });
+      });
+
+      const msg = '✓ Wczytano ' + totalImported + ' pól z pliku.\n\n' +
+                  'Etapy Master z danymi: ' + etapowImported + '\n' +
+                  (scopesImported.length > 0 ? 'Scope: ' + scopesImported.join(', ') + '\n' : '') +
+                  '\nOdświeżam stronę aby zobaczyć dane...';
+      alert(msg);
+      setTimeout(() => location.reload(), 500);
+
+    } catch (err) {
+      console.error('Excel import error:', err);
+      alert('⚠ Błąd importu: ' + err.message + '\n\nSprawdź czy plik to zgodny eksport ENESA.');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+
+// ============================================================
+// PRINT E13 — używa CSS @media print
+// ============================================================
+function printE13() {
+  // Przewiń do E13 przed drukiem
+  const e13 = document.getElementById('etap-13');
+  if (e13) e13.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setTimeout(() => window.print(), 300);
+}
+
+
+// ============================================================
+// WALIDACJA ZAKRESU AUDYTU
+// ============================================================
+function validateAuditScope() {
+  const issues = [];
+  const warnings = [];
+  const successes = [];
+
+  // 1. Sprawdź SCOPE-V3-CEL
+  const cel = (document.querySelector('[data-id="SCOPE-V3-CEL"]') || {}).value || '';
+  if (!cel.trim()) {
+    issues.push('Pole <strong>SCOPE-V3-CEL</strong> (Cel audytu) jest puste — wymagane uzasadnienie zakresu (EED / ISO 50001 / Białe Certyfikaty / Bank / CSRD)');
+  } else if (cel.length < 20) {
+    warnings.push('Pole <strong>SCOPE-V3-CEL</strong> jest bardzo krótkie (' + cel.length + ' znaków) — zalecam pełniejsze uzasadnienie');
+  } else {
+    successes.push('Cel audytu wpisany (' + cel.length + ' znaków)');
+  }
+
+  // 2. Sprawdź SCOPE-V4-PROG (data w przyszłości)
+  const termin = (document.querySelector('[data-id="SCOPE-V4-PROG"]') || {}).value || '';
+  if (!termin) {
+    warnings.push('Pole <strong>SCOPE-V4-PROG</strong> (Planowany termin) jest puste — zalecane wpisanie deadline');
+  } else {
+    const terminDate = new Date(termin);
+    const now = new Date();
+    if (terminDate < now) {
+      warnings.push('Termin <strong>' + termin + '</strong> jest w przeszłości — sprawdź czy poprawny');
+    } else {
+      const diffDays = Math.round((terminDate - now) / (1000 * 60 * 60 * 24));
+      if (diffDays < 30) {
+        warnings.push('Termin <strong>' + termin + '</strong> za ' + diffDays + ' dni — krótki czas (audyt PN-EN 16247 typowo 2-12 mies.)');
+      } else {
+        successes.push('Termin: ' + termin + ' (za ' + diffDays + ' dni)');
+      }
+    }
+  }
+
+  // 3. Sprawdź czy ≥1 instalacja audytowana
+  let nAudit = 0;
+  const auditList = [];
+  SCOPE_KODY_E13.forEach(kod => {
+    const audit = (document.querySelector('[data-id="SCOPE-V1-' + kod + '-AUDIT"]') || {}).value || '';
+    if (audit === 'TAK') {
+      nAudit++;
+      auditList.push(kod);
+    }
+  });
+  if (nAudit === 0) {
+    issues.push('Żadna instalacja nie jest oznaczona jako "Audytowana? = TAK" — wybierz w macierzy E13');
+  } else {
+    successes.push('Audytowanych instalacji: <strong>' + nAudit + '</strong> (' + auditList.join(', ') + ')');
+  }
+
+  // 4. Sprawdź czy każdy audytowany scope ma EXIST=TAK
+  SCOPE_KODY_E13.forEach(kod => {
+    const exist = (document.querySelector('[data-id="SCOPE-V1-' + kod + '-EXIST"]') || {}).value || '';
+    const audit = (document.querySelector('[data-id="SCOPE-V1-' + kod + '-AUDIT"]') || {}).value || '';
+    if (audit === 'TAK' && exist !== 'TAK') {
+      warnings.push('Scope <strong>' + kod + '</strong> jest oznaczony jako audytowany, ale "Występuje?" = "' + (exist || 'puste') + '" — sprawdź spójność');
+    }
+  });
+
+  // 5. Sprawdź obecność scope dla których nie ma jeszcze formularza
+  const auditedPending = [];
+  SCOPE_KODY_E13.forEach(kod => {
+    const audit = (document.querySelector('[data-id="SCOPE-V1-' + kod + '-AUDIT"]') || {}).value || '';
+    if (audit === 'TAK' && SCOPE_CONFIG[kod] && SCOPE_CONFIG[kod].status === 'pending') {
+      auditedPending.push(kod);
+    }
+  });
+  if (auditedPending.length > 0) {
+    warnings.push('Audytowane scope, których formularze są jeszcze w przygotowaniu: <strong>' + auditedPending.join(', ') + '</strong>');
+  }
+
+  // 6. Sprawdź podstawowe pola Master (Klient + Audytor)
+  const klient = enesaStorage.get(STORAGE_PREFIX + 'AUD-V1-NAZWA') || '';
+  if (!klient.trim()) {
+    issues.push('Pole <strong>AUD-V1-NAZWA</strong> (Nazwa zakładu) puste — uzupełnij w E0');
+  } else {
+    successes.push('Nazwa zakładu: <strong>' + klient + '</strong>');
+  }
+
+  // === Render wyników ===
+  // Wyniki walidacji wyświetlamy wewnątrz sekcji E13 (a nie obok globalnego toolbar)
+  const e13Section = document.getElementById('etap-13');
+  const e13Body = e13Section ? e13Section.querySelector('.section-body') : null;
+  let resultEl = document.getElementById('validation-result');
+  if (!resultEl) {
+    resultEl = document.createElement('div');
+    resultEl.id = 'validation-result';
+    if (e13Body) {
+      // Wstawiamy jako pierwszy element w E13 body
+      e13Body.insertBefore(resultEl, e13Body.firstChild);
+    }
+  }
+
+  if (issues.length === 0 && warnings.length === 0) {
+    resultEl.className = 'validation-result ok';
+    resultEl.innerHTML = '<h4>✓ Walidacja zakresu — OK</h4>' +
+                        '<ul>' + successes.map(s => '<li>' + s + '</li>').join('') + '</ul>';
+  } else if (issues.length === 0) {
+    resultEl.className = 'validation-result warn';
+    resultEl.innerHTML = '<h4>⚠ Walidacja — uwagi (' + warnings.length + ')</h4>' +
+                        '<p><strong>Sukces:</strong></p><ul>' + successes.map(s => '<li>' + s + '</li>').join('') + '</ul>' +
+                        '<p style="margin-top:10px"><strong>Uwagi:</strong></p><ul>' + warnings.map(w => '<li>' + w + '</li>').join('') + '</ul>';
+  } else {
+    resultEl.className = 'validation-result error';
+    resultEl.innerHTML = '<h4>✗ Walidacja — błędy (' + issues.length + ')</h4>' +
+                        '<p><strong>Krytyczne:</strong></p><ul>' + issues.map(i => '<li>' + i + '</li>').join('') + '</ul>' +
+                        (warnings.length > 0 ? '<p style="margin-top:10px"><strong>Uwagi:</strong></p><ul>' + warnings.map(w => '<li>' + w + '</li>').join('') + '</ul>' : '') +
+                        (successes.length > 0 ? '<p style="margin-top:10px"><strong>Pozytywne:</strong></p><ul>' + successes.map(s => '<li>' + s + '</li>').join('') + '</ul>' : '');
+  }
+
+  resultEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+
+// ============================================================
+// Bind handlers
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const btnExport = document.getElementById('btn-export-excel');
+    const btnPrint = document.getElementById('btn-print-e13');
+    const btnValidate = document.getElementById('btn-validate');
+    const fileImport = document.getElementById('file-import-excel');
+
+    if (btnExport) btnExport.addEventListener('click', exportFormToExcel);
+    if (btnPrint) btnPrint.addEventListener('click', printE13);
+    if (btnValidate) btnValidate.addEventListener('click', validateAuditScope);
+    if (fileImport) fileImport.addEventListener('change', (e) => {
+      const f = e.target.files[0];
+      if (f) importFromExcel(f);
+      e.target.value = '';  // reset
+    });
+  }, 400);
+});
+
+
+
+// ============================================================
+// === KRS Lookup — auto-pobieranie danych firmy z Open API MS ===
+// ============================================================
+
+const KRS_API_URL = 'https://api-krs.ms.gov.pl/api/krs/OdpisAktualny/';
+
+function showKrsStatus(type, html) {
+  const el = document.getElementById('krs-status');
+  if (!el) return;
+  el.className = 'show ' + type;
+  el.innerHTML = html;
+}
+
+function clearKrsStatus() {
+  const el = document.getElementById('krs-status');
+  if (!el) return;
+  el.className = '';
+  el.innerHTML = '';
+}
+
+function highlightKrsFilled(fieldId) {
+  const el = document.querySelector('[data-id="' + fieldId + '"]');
+  if (!el) return;
+  el.classList.add('krs-filled');
+  setTimeout(() => el.classList.remove('krs-filled'), 6500);
+}
+
+function setMasterField(fieldId, value) {
+  if (value === null || value === undefined || value === '') return false;
+  const el = document.querySelector('[data-id="' + fieldId + '"]');
+  if (!el) return false;
+  el.value = value;
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+  el.dispatchEvent(new Event('change', { bubbles: true }));
+  if (typeof enesaStorage !== 'undefined') {
+    enesaStorage.set(STORAGE_PREFIX + fieldId, String(value));
+  }
+  highlightKrsFilled(fieldId);
+  return true;
+}
+
+function buildAdresFromKRS(adresObj) {
+  if (!adresObj) return '';
+  const parts = [];
+  if (adresObj.ulica) {
+    let ulica = adresObj.ulica;
+    if (adresObj.nrDomu) {
+      ulica += ' ' + adresObj.nrDomu;
+      if (adresObj.nrLokalu) ulica += '/' + adresObj.nrLokalu;
+    }
+    parts.push(ulica);
+  }
+  const miasto = (adresObj.kodPocztowy ? adresObj.kodPocztowy + ' ' : '') + (adresObj.miejscowosc || '');
+  if (miasto.trim()) parts.push(miasto.trim());
+  return parts.join(', ');
+}
+
+function validateNIP(nip) {
+  if (!/^\d{10}$/.test(nip)) return false;
+  const weights = [6, 5, 7, 2, 3, 4, 5, 6, 7];
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += parseInt(nip[i], 10) * weights[i];
+  const checksum = sum % 11;
+  return checksum === parseInt(nip[9], 10);
+}
+
+async function fetchKRSData() {
+  const input = document.querySelector('[data-id="AUD-V0-KRS"]');
+  const btn = document.getElementById('btn-krs-fetch');
+  if (!input || !btn) return;
+
+  let krs = (input.value || '').trim().replace(/[\s-]/g, '');
+
+  if (!krs) {
+    showKrsStatus('error', '⚠ Wpisz numer KRS w polu powyżej');
+    return;
+  }
+  if (!/^\d{10}$/.test(krs)) {
+    showKrsStatus('error', '⚠ KRS musi być <strong>10-cyfrowym numerem</strong> (np. 0000752649). Wpisałeś: ' + krs.length + ' znaków.');
+    return;
+  }
+
+  // Wykrycie NIP
+  if (krs[0] !== '0') {
+    let msg = '⚠ To wygląda na <strong>NIP, nie KRS</strong> (KRS zaczyna się od zer).<br>';
+    if (validateNIP(krs)) {
+      msg += '✅ Numer NIP poprawny — wpisałem go do pola NIP poniżej.<br>';
+      setMasterField('AUD-V2-NIP', krs);
+    } else {
+      msg += '⚠ Numer nie jest też poprawnym NIP-em (zła suma kontrolna).<br>';
+    }
+    msg += '📋 Aby pobrać dane firmy, znajdź jej KRS: <a href="https://wyszukiwarka-krs.ms.gov.pl/" target="_blank" rel="noopener" style="color: var(--green-deep);">otwórz wyszukiwarkę MS ↗</a>';
+    showKrsStatus('error', msg);
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Pobieram...';
+  showKrsStatus('loading',
+    '<span class="krs-spinner"></span> <strong>Pobieranie z Open API KRS Ministerstwa Sprawiedliwości...</strong>'
+  );
+
+  const url = KRS_API_URL + krs + '?rejestr=P&format=json';
+  const startTime = performance.now();
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      mode: 'cors',
+      headers: { 'Accept': 'application/json' }
+    });
+    const elapsed = (performance.now() - startTime).toFixed(0);
+
+    if (!response.ok) {
+      let msg = '';
+      if (response.status === 404) {
+        msg = '❌ <strong>KRS ' + krs + ' nie istnieje</strong> w rejestrze przedsiębiorców (rejestr=P).<br>' +
+              'Sprawdź numer lub wyszukaj firmę: <a href="https://wyszukiwarka-krs.ms.gov.pl/" target="_blank" rel="noopener">wyszukiwarka MS ↗</a>';
+      } else if (response.status === 429) {
+        msg = '⏱ <strong>Limit zapytań</strong> — odczekaj kilka minut i spróbuj ponownie.';
+      } else if (response.status >= 500) {
+        msg = '🔧 <strong>Serwer KRS chwilowo niedostępny</strong> (HTTP ' + response.status + '). Spróbuj za chwilę.';
+      } else {
+        msg = '❌ Błąd HTTP <strong>' + response.status + '</strong> — ' + response.statusText;
+      }
+      showKrsStatus('error', msg);
+      return;
+    }
+
+    const data = await response.json();
+    const odpis = data.odpis || data;
+    const dane = odpis.dane || odpis;
+    const dzial1 = dane.dzial1 || {};
+    const dzial3 = dane.dzial3 || {};
+
+    const podmiot = dzial1.danePodmiotu || {};
+    const identyfikatory = podmiot.identyfikatory || {};
+    const siedziba = dzial1.siedzibaIAdres || {};
+    const adresObj = siedziba.adres || {};
+    const pkdGlowny = ((dzial3.przedmiotDzialalnosci || {}).przedmiotPrzewazajacejDzialalnosci || [])[0] || {};
+
+    const filled = [];
+    if (setMasterField('AUD-V1-NAZWA', podmiot.nazwa)) filled.push('Nazwa');
+    if (setMasterField('AUD-V2-NIP', identyfikatory.nip)) filled.push('NIP');
+    if (setMasterField('AUD-V3-REGON', identyfikatory.regon)) filled.push('REGON');
+    const adresStr = buildAdresFromKRS(adresObj);
+    if (adresStr && setMasterField('AUD-V4-ADRES', adresStr)) filled.push('Adres');
+    if (pkdGlowny.kodPKD) {
+      const pkdStr = pkdGlowny.kodPKD + (pkdGlowny.opis ? ' (' + pkdGlowny.opis + ')' : '');
+      if (setMasterField('AUD-V5-PKD', pkdStr)) filled.push('PKD');
+    }
+
+    if (filled.length === 0) {
+      showKrsStatus('error',
+        '⚠ KRS znaleziony, ale odpowiedź nie zawiera spodziewanych pól. <br>' +
+        'Sprawdź ręcznie na <a href="https://wyszukiwarka-krs.ms.gov.pl/" target="_blank" rel="noopener">wyszukiwarce MS ↗</a>'
+      );
+      return;
+    }
+
+    const formaPrawna = podmiot.formaPrawna ? ' · ' + podmiot.formaPrawna : '';
+    showKrsStatus('ok',
+      '✅ <strong>Pobrano dane z KRS w ' + elapsed + 'ms</strong>' + formaPrawna + '<br>' +
+      'Wypełniono: <strong>' + filled.join(', ') + '</strong>. Sprawdź wypełnione pola (lekko żółte tło, pulsują przez 6s).'
+    );
+
+  } catch (err) {
+    const elapsed = (performance.now() - startTime).toFixed(0);
+    const isCors = err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'));
+    showKrsStatus('error',
+      '❌ <strong>' + (isCors ? 'Brak połączenia z API KRS' : 'Błąd zapytania') + '</strong> (po ' + elapsed + 'ms)<br>' +
+      (isCors ?
+        'Sprawdź połączenie internetowe. Możesz wpisać dane ręcznie poniżej.' :
+        err.message)
+    );
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🔍 Pobierz dane';
+  }
+}
+
+// Bind handlers
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const btn = document.getElementById('btn-krs-fetch');
+    const input = document.querySelector('[data-id="AUD-V0-KRS"]');
+    if (btn) btn.addEventListener('click', fetchKRSData);
+    if (input) {
+      input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          fetchKRSData();
+        }
+      });
+      input.addEventListener('input', (e) => {
+        const cleaned = e.target.value.replace(/\D/g, '').substring(0, 10);
+        if (cleaned !== e.target.value) e.target.value = cleaned;
+        if (cleaned.length === 10 && cleaned[0] === '0') {
+          clearTimeout(window._krsAutoFetchTimer);
+          window._krsAutoFetchTimer = setTimeout(() => fetchKRSData(), 400);
+        } else if (cleaned.length < 10) {
+          clearKrsStatus();
+        }
+      });
+    }
+  }, 400);
+});
+
+
+
+
+// ============================================================
+// === Meta-warstwa + Profile audytu (refaktor B) ============
+// ============================================================
+
+const AUDIT_PROFILES = {
+  'eed': {
+    name: 'EED minimum',
+    description: 'Audyt obowiązkowy co 4 lata (Art. 36 Ustawy o efekt. energet., PN-EN 16247)',
+    fields_estimate: '~600',
+    duration_estimate: '~3 dni',
+    price_range: '30-80 tys. PLN',
+    enabled: true
+  },
+  'white-cert': {
+    name: 'Białe Certyfikaty',
+    description: 'Audyt dla zwrotu URE (Świadectwa Efektywności Energetycznej)',
+    fields_estimate: '~400',
+    duration_estimate: '~2 dni',
+    price_range: '15-40 tys. PLN',
+    enabled: false  // TODO później
+  },
+  'iso50001': {
+    name: 'ISO 50001:2018 § 6.3',
+    description: 'Pełny przegląd energetyczny dla certyfikacji ISO 50001 (EnPI + EnB + opportunities)',
+    fields_estimate: '~1500',
+    duration_estimate: '~7 dni',
+    price_range: '80-180 tys. PLN',
+    enabled: true
+  },
+  'full-map': {
+    name: 'Pełna Mapa Energetyczna',
+    description: 'ISO 50001 + ISO 50002 Level 3 + CSRD/ESRS, pełna dekarbonizacja',
+    fields_estimate: '~3500',
+    duration_estimate: '~14 dni',
+    price_range: '250-500 tys. PLN',
+    enabled: false
+  },
+  'custom': {
+    name: 'Custom (audytor wybiera)',
+    description: 'Audytor ENESA wybiera scope ad-hoc pod indywidualne potrzeby',
+    fields_estimate: 'wariant',
+    duration_estimate: 'wariant',
+    price_range: 'wariant',
+    enabled: false
+  }
+};
+
+const PROFILE_STATE_KEY = 'enesa_audit_profile';
+
+window.enesaSetAuditProfile = function(profile) {
+  if (!AUDIT_PROFILES[profile]) {
+    console.error('Unknown profile:', profile);
+    return false;
+  }
+  if (!AUDIT_PROFILES[profile].enabled) {
+    console.warn('Profile not yet enabled:', profile);
+    return false;
+  }
+  
+  // Zapis do localStorage
+  try { localStorage.setItem(PROFILE_STATE_KEY, profile); } catch(e) {}
+  
+  // Pokoloruj pola
+  document.querySelectorAll('[data-audit-profile]').forEach(el => {
+    el.classList.remove('field-must', 'field-optional');
+    const profiles = (el.dataset.auditProfile || '').split(',').filter(p => p);
+    if (profiles.includes(profile)) {
+      el.classList.add('field-must');
+    } else if (profiles.length > 0) {
+      el.classList.add('field-optional');
+    }
+  });
+  
+  document.body.classList.add('profile-active');
+  document.body.dataset.activeProfile = profile;
+  
+  // Update statystyki
+  enesaUpdateProfileStats();
+  
+  // Update UI selector (jeśli jest)
+  document.querySelectorAll('.profile-option').forEach(opt => {
+    opt.classList.toggle('selected', opt.dataset.profile === profile);
+    const radio = opt.querySelector('input[type="radio"]');
+    if (radio) radio.checked = (opt.dataset.profile === profile);
+  });
+  
+  return true;
+};
+
+window.enesaClearAuditProfile = function() {
+  try { localStorage.removeItem(PROFILE_STATE_KEY); } catch(e) {}
+  document.body.classList.remove('profile-active');
+  delete document.body.dataset.activeProfile;
+  document.querySelectorAll('[data-audit-profile]').forEach(el => {
+    el.classList.remove('field-must', 'field-optional');
+  });
+};
+
+window.enesaUpdateProfileStats = function() {
+  const profile = document.body.dataset.activeProfile;
+  if (!profile) return;
+  
+  const allFields = document.querySelectorAll('[data-audit-profile]');
+  let mustCount = 0, mustFilled = 0;
+  
+  allFields.forEach(el => {
+    const profiles = (el.dataset.auditProfile || '').split(',').filter(p => p);
+    if (profiles.includes(profile)) {
+      mustCount++;
+      if (el.value) mustFilled++;
+    }
+  });
+  
+  const pct = mustCount > 0 ? Math.round(mustFilled / mustCount * 100) : 0;
+  const statsEl = document.getElementById('profile-stats-display');
+  if (statsEl) {
+    const profInfo = AUDIT_PROFILES[profile];
+    statsEl.innerHTML = `
+      <strong>📊 Profil: ${profInfo.name}</strong> · 
+      Wypełnione MUST: <strong>${mustFilled}/${mustCount} (${pct}%)</strong> · 
+      Szac. czas: ${profInfo.duration_estimate} · 
+      Zakres cenowy: ${profInfo.price_range}
+    `;
+  }
+};
+
+window.enesaSetFieldMeta = function(fieldId, source, confidence) {
+  const el = document.querySelector('[data-id="' + fieldId + '"]');
+  if (!el) return false;
+  if (source !== undefined) el.dataset.source = source;
+  if (confidence !== undefined) el.dataset.confidence = confidence;
+  return true;
+};
+
+window.enesaGetFieldsByPhase = function(phase) {
+  return Array.from(document.querySelectorAll('[data-phase="' + phase + '"]'))
+    .map(el => ({
+      id: el.dataset.id,
+      value: el.value,
+      filled: !!el.value,
+      source: el.dataset.source,
+      confidence: el.dataset.confidence,
+      iso: el.dataset.iso,
+      iso50002: el.dataset.iso50002,
+      eed: el.dataset.eed,
+      required: el.dataset.required === 'true',
+      profiles: (el.dataset.auditProfile || '').split(',').filter(p => p),
+      aiPrompt: el.dataset.aiPrompt
+    }));
+};
+
+window.enesaGetProgressStats = function() {
+  const all = document.querySelectorAll('[data-phase]');
+  const stats = {
+    total: all.length,
+    by_phase: { client: { total: 0, filled: 0 }, agent: { total: 0, filled: 0 }, consultant: { total: 0, filled: 0 } },
+    by_source: { '': 0, client: 0, agent: 0, consultant: 0, measured: 0 },
+    by_profile: { eed: 0, 'white-cert': 0, iso50001: 0, 'full-map': 0 },
+    iso50001_required_filled: 0,
+    iso50001_required_total: 0,
+    eed_required_filled: 0,
+    eed_required_total: 0
+  };
+  all.forEach(el => {
+    const phase = el.dataset.phase;
+    const filled = !!el.value;
+    if (stats.by_phase[phase]) {
+      stats.by_phase[phase].total++;
+      if (filled) stats.by_phase[phase].filled++;
+    }
+    const src = el.dataset.source || '';
+    if (stats.by_source.hasOwnProperty(src)) stats.by_source[src]++;
+    
+    const profiles = (el.dataset.auditProfile || '').split(',').filter(p => p);
+    profiles.forEach(p => { if (stats.by_profile[p] !== undefined) stats.by_profile[p]++; });
+    
+    if (el.dataset.required === 'true' && el.dataset.iso) {
+      stats.iso50001_required_total++;
+      if (filled) stats.iso50001_required_filled++;
+    }
+    if (el.dataset.required === 'true' && el.dataset.eed) {
+      stats.eed_required_total++;
+      if (filled) stats.eed_required_filled++;
+    }
+  });
+  return stats;
+};
+
+window.enesaShowConfidence = function(show) {
+  if (show) document.body.classList.add('show-confidence');
+  else document.body.classList.remove('show-confidence');
+};
+
+window.enesaShowPhases = function(show) {
+  if (show) document.body.classList.add('show-phases');
+  else document.body.classList.remove('show-phases');
+};
+
+// Restore profile na starcie
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    let saved = null;
+    try { saved = localStorage.getItem(PROFILE_STATE_KEY); } catch(e) {}
+    if (saved && AUDIT_PROFILES[saved] && AUDIT_PROFILES[saved].enabled) {
+      enesaSetAuditProfile(saved);
+    }
+    
+    // Update stats co 2s
+    setInterval(enesaUpdateProfileStats, 2000);
+  }, 500);
+});
+
+console.log('[ENESA Meta+Profile] Layer ready. Helpers:');
+console.log('  enesaSetAuditProfile("eed"|"iso50001")  — wybierz profil');
+console.log('  enesaClearAuditProfile()                — wyczyść profil');
+console.log('  enesaGetProgressStats()                 — statystyki');
+console.log('  enesaGetFieldsByPhase("client")         — pola fazy');
+console.log('  enesaShowConfidence(true)               — pokaż 🟢🟡🔴');
+console.log('  enesaShowPhases(true)                   — pokaż kolorowe ramki');
+
+
+
+// ============================================================
+// === Helper dla dynamicznie tworzonych pól ==================
+// Patchuje funkcje createElement i pozwala stosować meta na lotnie
+// ============================================================
+
+// Tabela reguł dla dynamicznych pól (uproszczona — tylko ZUZ i MAC)
+const ENESA_DYNAMIC_RULES = [
+  {
+    test: function(id) { return /^ZUZ-M\d+-(EE|GAZ|CIEPLO|OLEJ|LPG|LNG|PARA|BIO|PV)$/.test(id); },
+    meta: {
+      phase: 'client', iso: '6.3.a', iso50002: '50002-1:6.4', eed: 'zal.II.2',
+      required: 'true',
+      profiles: 'eed,white-cert,iso50001,full-map',
+      aiPrompt: 'Zużycie nośnika w danym miesiącu — z faktur. Bilans 12-36 mies. daje Energy Baseline (EnB).'
+    }
+  },
+  {
+    test: function(id) { return /^ZUZ-M\d+-ROK$/.test(id); },
+    meta: {
+      phase: 'client', iso: '6.3.a', iso50002: '50002-1:6.4', eed: 'zal.II.2',
+      required: 'true',
+      profiles: 'eed,white-cert,iso50001,full-map',
+      aiPrompt: 'Rok dla danego miesiąca bilansu (np. 2022, 2023, 2024).'
+    }
+  },
+  {
+    test: function(id) { return /^MAC-H\d+-W\d+$/.test(id); },
+    meta: {
+      phase: 'client', iso: '6.3.d', iso50002: '50002-1:6.4', eed: 'zal.II.3',
+      required: 'false',
+      profiles: 'iso50001,full-map',
+      aiPrompt: 'Macierz przypisania hala-wydział: który wydział działa w której hali.'
+    }
+  }
+];
+
+// Funkcja stosująca meta na pojedynczy input
+window.enesaApplyMetaToInput = function(input, fieldId) {
+  if (!input || !fieldId) return;
+  fieldId = fieldId || (input.dataset && input.dataset.id);
+  if (!fieldId) return;
+  
+  // Już ma meta?
+  if (input.dataset.phase) return;
+  
+  // Szukaj reguły
+  for (const rule of ENESA_DYNAMIC_RULES) {
+    if (rule.test(fieldId)) {
+      const m = rule.meta;
+      input.dataset.source = '';
+      input.dataset.confidence = '';
+      input.dataset.phase = m.phase;
+      input.dataset.iso = m.iso;
+      input.dataset.iso50002 = m.iso50002;
+      input.dataset.eed = m.eed;
+      input.dataset.required = m.required;
+      input.dataset.auditProfile = m.profiles;
+      input.dataset.aiPrompt = m.aiPrompt;
+      
+      // Jeśli jest aktywny profil — pokoloruj
+      const activeProfile = document.body.dataset.activeProfile;
+      if (activeProfile) {
+        const profiles = m.profiles.split(',').filter(p => p);
+        if (profiles.includes(activeProfile)) {
+          input.classList.add('field-must');
+        } else if (profiles.length > 0) {
+          input.classList.add('field-optional');
+        }
+      }
+      return;
+    }
+  }
+  
+  // Default fallback
+  input.dataset.source = '';
+  input.dataset.confidence = '';
+  input.dataset.phase = 'client';
+  input.dataset.iso = '';
+  input.dataset.iso50002 = '50002-1:6.4';
+  input.dataset.eed = '';
+  input.dataset.required = 'false';
+  input.dataset.auditProfile = 'full-map';
+  input.dataset.aiPrompt = 'Wypełnij na podstawie własnej wiedzy.';
+};
+
+// MutationObserver: gdy w DOM pojawią się nowe inputy z data-id — automatycznie stosuj meta
+(function() {
+  const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mut) {
+      mut.addedNodes.forEach(function(node) {
+        if (node.nodeType === 1) {  // Element
+          // Sam node?
+          if (node.dataset && node.dataset.id && !node.dataset.phase) {
+            enesaApplyMetaToInput(node, node.dataset.id);
+          }
+          // Dzieci
+          if (node.querySelectorAll) {
+            node.querySelectorAll('[data-id]').forEach(function(el) {
+              if (!el.dataset.phase) {
+                enesaApplyMetaToInput(el, el.dataset.id);
+              }
+            });
+          }
+        }
+      });
+    });
+  });
+  
+  // Start gdy DOM gotowy
+  if (document.body) {
+    observer.observe(document.body, { childList: true, subtree: true });
+  } else {
+    document.addEventListener('DOMContentLoaded', function() {
+      observer.observe(document.body, { childList: true, subtree: true });
+    });
+  }
+  
+  // Także po DOMContentLoaded — przejdź przez istniejące pola
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+      document.querySelectorAll('[data-id]').forEach(function(el) {
+        if (!el.dataset.phase && el.dataset.id) {
+          enesaApplyMetaToInput(el, el.dataset.id);
+        }
+      });
+    }, 1000);
+    
+    // I po 3 sekundach (na wypadek jak buildZuzyciaTable jest opóźnione)
+    setTimeout(function() {
+      let added = 0;
+      document.querySelectorAll('[data-id]').forEach(function(el) {
+        if (!el.dataset.phase && el.dataset.id) {
+          enesaApplyMetaToInput(el, el.dataset.id);
+          added++;
+        }
+      });
+      if (added > 0) console.log('[ENESA Meta] Late-applied meta to ' + added + ' dynamic fields');
+    }, 3000);
+  });
+})();
+
+console.log('[ENESA Dynamic Meta] MutationObserver active');
+
+
+
+// ============================================================
+// === Walidator zgodności ISO 50001 / EED / ISO 50002 ========
+// ============================================================
+
+window.enesaValidateCompliance = function(profile) {
+  profile = profile || document.body.dataset.activeProfile || 'iso50001';
+  
+  const allFields = document.querySelectorAll('[data-audit-profile]');
+  const stats = {
+    profile: profile,
+    total_must: 0,
+    filled_must: 0,
+    iso50001: { total: 0, filled: 0, missing: [] },
+    eed: { total: 0, filled: 0, missing: [] },
+    iso50002: { total: 0, filled: 0, missing: [] }
+  };
+  
+  allFields.forEach(function(el) {
+    const profiles = (el.dataset.auditProfile || '').split(',').filter(function(p) { return p; });
+    if (!profiles.includes(profile)) return;
+    
+    stats.total_must++;
+    const filled = !!el.value;
+    if (filled) stats.filled_must++;
+    
+    if (el.dataset.iso) {
+      stats.iso50001.total++;
+      if (filled) stats.iso50001.filled++;
+      else stats.iso50001.missing.push({ id: el.dataset.id, klauzula: el.dataset.iso });
+    }
+    if (el.dataset.eed) {
+      stats.eed.total++;
+      if (filled) stats.eed.filled++;
+      else stats.eed.missing.push({ id: el.dataset.id, klauzula: el.dataset.eed });
+    }
+    if (el.dataset.iso50002) {
+      stats.iso50002.total++;
+      if (filled) stats.iso50002.filled++;
+      else stats.iso50002.missing.push({ id: el.dataset.id, klauzula: el.dataset.iso50002 });
+    }
+  });
+  
+  // Zaokrąglenia
+  stats.percent_must = stats.total_must > 0 ? Math.round(stats.filled_must / stats.total_must * 100) : 0;
+  stats.iso50001.percent = stats.iso50001.total > 0 ? Math.round(stats.iso50001.filled / stats.iso50001.total * 100) : 0;
+  stats.eed.percent = stats.eed.total > 0 ? Math.round(stats.eed.filled / stats.eed.total * 100) : 0;
+  stats.iso50002.percent = stats.iso50002.total > 0 ? Math.round(stats.iso50002.filled / stats.iso50002.total * 100) : 0;
+  
+  return stats;
+};
+
+window.enesaShowComplianceReport = function(profile) {
+  const stats = enesaValidateCompliance(profile);
+  
+  let html = '<div class="compliance-report">';
+  html += '<h3>📋 Raport zgodności — Profil: <strong>' + (AUDIT_PROFILES[stats.profile] ? AUDIT_PROFILES[stats.profile].name : stats.profile) + '</strong></h3>';
+  
+  // Łącznie
+  const overallColor = stats.percent_must >= 90 ? '#4a8a5e' : (stats.percent_must >= 50 ? '#c8a951' : '#c87a5e');
+  html += '<div class="comp-summary" style="border-left: 4px solid ' + overallColor + '; padding: 12px; background: rgba(245,239,224,0.5); margin: 12px 0;">';
+  html += '<strong>Łącznie pól MUST:</strong> ' + stats.filled_must + ' / ' + stats.total_must + ' (' + stats.percent_must + '%)';
+  if (stats.percent_must >= 90) {
+    html += ' <span style="color: #4a8a5e;">✓ Audyt formalnie kompletny</span>';
+  } else if (stats.percent_must >= 50) {
+    html += ' <span style="color: #c8a951;">⚠ Wymaga uzupełnień</span>';
+  } else {
+    html += ' <span style="color: #c87a5e;">✗ Audyt formalnie niekompletny</span>';
+  }
+  html += '</div>';
+  
+  // Per norma
+  html += '<table style="width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px;">';
+  html += '<thead><tr style="background: var(--paper-deep);">';
+  html += '<th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--gold);">Norma</th>';
+  html += '<th style="padding: 8px; text-align: center; border-bottom: 2px solid var(--gold);">Wypełnione</th>';
+  html += '<th style="padding: 8px; text-align: center; border-bottom: 2px solid var(--gold);">%</th>';
+  html += '<th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--gold);">Status</th>';
+  html += '</tr></thead><tbody>';
+  
+  function row(name, st) {
+    const pct = st.percent;
+    const status = pct >= 90 ? '<span style="color:#4a8a5e">✓ Zgodne</span>' : 
+                   (pct >= 50 ? '<span style="color:#c8a951">⚠ Częściowe</span>' : 
+                    '<span style="color:#c87a5e">✗ Brakuje</span>');
+    return '<tr>' +
+      '<td style="padding:8px;"><strong>' + name + '</strong></td>' +
+      '<td style="padding:8px; text-align:center;">' + st.filled + ' / ' + st.total + '</td>' +
+      '<td style="padding:8px; text-align:center;">' + pct + '%</td>' +
+      '<td style="padding:8px;">' + status + '</td></tr>';
+  }
+  
+  html += row('ISO 50001:2018 § 6.3', stats.iso50001);
+  html += row('Polska Ustawa o Efekt. Energet.', stats.eed);
+  html += row('ISO 50002:2025', stats.iso50002);
+  html += '</tbody></table>';
+  
+  // Lista brakujących pól (top 20)
+  const missing50001 = stats.iso50001.missing.slice(0, 20);
+  if (missing50001.length > 0) {
+    html += '<details style="margin: 12px 0;"><summary style="cursor:pointer; font-weight:600;">Brakujące pola ISO 50001 (' + stats.iso50001.missing.length + ' total)</summary>';
+    html += '<ul style="font-size: 11px; margin: 8px 0; max-height: 200px; overflow-y: auto;">';
+    missing50001.forEach(function(m) {
+      html += '<li><code style="background: var(--paper-deep); padding: 1px 4px;">' + m.id + '</code> — <em>§ ' + m.klauzula + '</em></li>';
+    });
+    if (stats.iso50001.missing.length > 20) {
+      html += '<li>... i ' + (stats.iso50001.missing.length - 20) + ' więcej</li>';
+    }
+    html += '</ul></details>';
+  }
+  
+  const missingEED = stats.eed.missing.slice(0, 20);
+  if (missingEED.length > 0) {
+    html += '<details style="margin: 12px 0;"><summary style="cursor:pointer; font-weight:600;">Brakujące pola EED (' + stats.eed.missing.length + ' total)</summary>';
+    html += '<ul style="font-size: 11px; margin: 8px 0; max-height: 200px; overflow-y: auto;">';
+    missingEED.forEach(function(m) {
+      html += '<li><code style="background: var(--paper-deep); padding: 1px 4px;">' + m.id + '</code> — <em>' + m.klauzula + '</em></li>';
+    });
+    if (stats.eed.missing.length > 20) {
+      html += '<li>... i ' + (stats.eed.missing.length - 20) + ' więcej</li>';
+    }
+    html += '</ul></details>';
+  }
+  
+  html += '</div>';
+  
+  // Pokaż w modal lub przekaż do containera
+  let container = document.getElementById('compliance-report-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'compliance-report-container';
+    container.style.cssText = 'position:fixed; top:50px; right:20px; width:500px; max-height:80vh; overflow-y:auto; background:white; border:2px solid var(--gold); border-radius:8px; padding:16px; box-shadow:0 4px 20px rgba(0,0,0,0.2); z-index:9999;';
+    container.innerHTML = '<button onclick="document.getElementById(\'compliance-report-container\').remove()" style="position:absolute; top:8px; right:8px; background:transparent; border:none; cursor:pointer; font-size:20px;">×</button>';
+    document.body.appendChild(container);
+  }
+  container.innerHTML = '<button onclick="document.getElementById(\'compliance-report-container\').remove()" style="position:absolute; top:8px; right:8px; background:transparent; border:none; cursor:pointer; font-size:20px;">×</button>' + html;
+  
+  return stats;
+};
+
+console.log('[ENESA Validator] Ready. Use: enesaValidateCompliance("eed"|"iso50001"), enesaShowComplianceReport()');
 
 
 // === LARAVEL BLADE OVERRIDES ===
