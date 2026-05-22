@@ -2335,15 +2335,15 @@ body.show-all-sections nav .nav-link.nav-hidden-by-profile::after {
           </div>
           <div class="field-input-wrap">
             <div style="position:relative;">
-  <input type="text" class="field-input" data-id="ZAK-V2-LOK-ADRES" id="master-loc-adres-input" placeholder="ul. GĹ‚Ăłwna 12, 43-100 Tychy" autocomplete="off" oninput="masterLocDebouncedSearch(this.value)">
+  <input type="text" class="field-input" data-id="ZAK-V2-LOK-ADRES" id="master-loc-adres-input" placeholder="ul. Główna 12, 43-100 Tychy" autocomplete="off" oninput="masterLocDebouncedSearch(this.value)">
   <div id="master-loc-suggestions" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--paper-deep);border-radius:10px;box-shadow:0 6px 24px rgba(14,55,85,.12);z-index:300;max-height:240px;overflow-y:auto;display:none;margin-top:2px;"></div>
 </div>
 <div id="master-climate-status" style="display:none;font-size:11px;color:var(--green-deep);margin-top:5px;padding:5px 10px;background:var(--green-bg,#eef8f0);border-radius:6px;border:1px solid var(--green-light,#a8ddb8);line-height:1.5;"></div>
 <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
   <button type="button" onclick="masterLocForceAutoFill()" style="font-size:11px;padding:4px 10px;border:1px solid var(--green-light,#a8ddb8);border-radius:6px;background:var(--green-bg,#eef8f0);color:var(--green-deep,#1a5c3a);cursor:pointer;white-space:nowrap;font-family:inherit;">
-    đźŚˇ UzupeĹ‚nij klimat
+    Uzupełnij klimat
   </button>
-  <div class="field-hint" style="margin:0;">Fizyczna lokalizacja zakĹ‚adu â€” domyĹ›lnie adres siedziby. System uzupeĹ‚nia klimat automatycznie.</div>
+  <div class="field-hint" style="margin:0;">Fizyczna lokalizacja zakładu — domyślnie adres siedziby. System uzupełnia klimat automatycznie.</div>
 </div>
           </div>
           <div class="kto-cell"><span class="tag em">EM</span></div>
@@ -8455,7 +8455,7 @@ console.log('[ENESA Arch C v1.6] Załadowano: 7 nowych funkcji + tryb audytora +
 
 // === LARAVEL BLADE OVERRIDES ===
 
-// 1. Override enesaStorage.get â€” serwer FORM_DATA przed localStorage
+// 1. Override enesaStorage.get — serwer FORM_DATA przed localStorage
 const _origGet = enesaStorage.get.bind(enesaStorage);
 enesaStorage.get = function(key) {
   if (key && key.startsWith(STORAGE_PREFIX)) {
@@ -8467,7 +8467,7 @@ enesaStorage.get = function(key) {
   return _origGet(key);
 };
 
-// 2. Zaladuj FORM_DATA do pol DOM (loadSavedData uruchomil sie przed override)
+// 2. Załaduj FORM_DATA do pól DOM (loadSavedData uruchomił się przed override)
 (function loadFormDataIntoDom() {
   if (typeof FORM_DATA === 'undefined' || !FORM_DATA) return;
   let loaded = 0;
@@ -8483,7 +8483,7 @@ enesaStorage.get = function(key) {
   if (loaded > 0) updateAllProgress();
 })();
 
-// 3. Override scheduleAutoSave â€” zapis na serwer
+// 3. Override scheduleAutoSave — zapis na serwer
 const _origSchedule = scheduleAutoSave;
 scheduleAutoSave = function() {
   if (saveTimer) clearTimeout(saveTimer);
@@ -8509,7 +8509,7 @@ scheduleAutoSave = function() {
     }).then(r => r.json()).then(d => {
       showSaveIndicator('✓ Zapisano');
     }).catch(err => {
-      showSaveIndicator('Blad zapisu!');
+      showSaveIndicator('Błąd zapisu!');
       console.error('Save error:', err);
     });
   }, 800);
@@ -8587,7 +8587,7 @@ function fillAudytor() {
 }
 function showAuditorPicker() { fillAudytor(); }
 
-// 7. Klimat â€” auto-uzupelnienie
+// 7. Klimat — auto-uzupełnienie
 function masterClimateFieldsEmpty() {
   const zone = document.querySelector('[data-id="ZAK-V4-KLIMAT"]');
   const hdd  = document.querySelector('[data-id="ZAK-V5-HDD"]');
@@ -8605,17 +8605,17 @@ async function masterLocAutoFillIfNeeded() {
   if (!adresEl||!adresEl.value.trim()||!masterClimateFieldsEmpty()) return;
   const q = adresEl.value.trim();
   const statusEl = document.getElementById('master-climate-status');
-  if (statusEl) { statusEl.innerHTML = 'Szukam warunkow klimatycznych dla ' + q + '...'; statusEl.style.display='block'; }
+  if (statusEl) { statusEl.innerHTML = 'Szukam warunków klimatycznych dla ' + q + '...'; statusEl.style.display='block'; }
   try {
     const url = 'https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(q)+'&countrycodes=pl&addressdetails=1&format=json&limit=5';
     const resp = await fetch(url, {headers:{'Accept-Language':'pl'}});
     const results = await resp.json();
-    if (!results||!results.length) { if(statusEl) statusEl.innerHTML='Nie znaleziono lokalizacji â€” wpisz recznie.'; return; }
+    if (!results||!results.length) { if(statusEl) statusEl.innerHTML='Nie znaleziono lokalizacji — wpisz ręcznie.'; return; }
     const place = results.find(r=>['city','town','village','hamlet','suburb','municipality'].includes(r.type)||['city','town','village','hamlet'].includes(r.addresstype))||results[0];
     const addr = place.address||{};
     const cityName = addr.city||addr.town||addr.village||addr.hamlet||addr.suburb||place.display_name.split(',')[0];
     masterLocSelectPlace(place.lat, place.lon, cityName, addr.state||'', place.display_name);
-  } catch(e) { if(statusEl){statusEl.innerHTML='Blad polaczenia z geolokalizacja.';statusEl.style.display='block';} }
+  } catch(e) { if(statusEl){statusEl.innerHTML='Błąd połączenia z geolokalizacją.';statusEl.style.display='block';} }
 }
 const MASTER_CLIMATE_DB = [
   {name:'Bialystok',lat:53.1325,lon:23.1688,alt:148,hdd:3450,cdd:155,zone:'I'},
@@ -8682,7 +8682,7 @@ async function masterLocSearchNominatim(q){
         '<strong>'+cn+'</strong> <span style="color:#888;font-size:11px;">'+st+'</span></div>';
     }).join('');
     box.style.display='block';
-  }catch(e){box.innerHTML='<div style="padding:9px 14px;">Blad polaczenia.</div>';}
+  }catch(e){box.innerHTML='<div style="padding:9px 14px;">Błąd połączenia.</div>';}
 }
 function masterLocSelectPlace(lat,lon,cityName,stateName,displayName){
   const box=document.getElementById('master-loc-suggestions');
