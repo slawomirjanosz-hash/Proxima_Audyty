@@ -86,17 +86,47 @@
         .co-empty { text-align:center; padding:24px; color:var(--ink-mute); font-size:13px; }
         .co-tile-item { display:flex; flex-direction:column; }
         .co-tile-item .company-tile { flex:1; }
-        #co-tiles-view.list-mode .company-tiles { grid-template-columns:1fr; gap:8px; }
-        #co-tiles-view.list-mode .company-tile { padding:12px 14px; }
+        #co-tiles-view.list-mode .company-tiles { display:block; margin-top:0; }
+        #co-tiles-view.list-mode .co-tile-item { margin:0; }
+        #co-tiles-view.list-mode .company-tile {
+            display:grid;
+            grid-template-columns:minmax(220px, 2fr) minmax(280px, 3fr);
+            align-items:center;
+            gap:12px;
+            padding:8px 12px;
+            border-radius:0;
+            border-left:none;
+            border-right:none;
+            box-shadow:none;
+            background:#fff;
+        }
+        #co-tiles-view.list-mode .company-tile:hover { box-shadow:none; background:var(--green-bg); }
+        #co-tiles-view.list-mode .tile-name { font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        #co-tiles-view.list-mode .tile-meta { flex-direction:row; gap:10px; align-items:center; white-space:nowrap; overflow:hidden; }
+        #co-tiles-view.list-mode .tile-meta span { max-width:100%; overflow:hidden; text-overflow:ellipsis; }
+        #dash-sec-clients-funnel .dash-section-header { padding:8px 12px; }
+        #dash-sec-clients-funnel .dash-section-body { padding-top:10px; }
         .co-tile-assign-btn { border:none; border-top:1px solid var(--paper-deep); background:transparent; padding:8px 14px; cursor:pointer; font-size:12px; font-weight:700; color:var(--green-primary); display:flex; justify-content:space-between; align-items:center; width:100%; text-align:left; transition:background .15s; font-family:var(--sans); }
         .co-tile-assign-btn:hover { background:var(--green-bg); }
-        .ai-summary-mini {
+        .ai-summary-compact {
             margin-top:10px;
-            text-align:right;
+            padding:7px 10px;
+            border:1px solid var(--paper-deep);
+            border-radius:6px;
+            background:var(--paper-soft);
+            display:grid;
+            grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));
+            gap:6px;
+            font-family:var(--mono);
+        }
+        .ai-summary-compact .ai-item {
             font-size:10px;
             color:var(--ink-mute);
-            opacity:.85;
-            font-family:var(--mono);
+            line-height:1.35;
+        }
+        .ai-summary-compact .ai-item strong {
+            color:var(--green-deep);
+            font-size:11px;
         }
         .ai-token-badge {
             display:inline-flex; align-items:center; gap:3px; background:var(--green-bg);
@@ -340,7 +370,7 @@
                 <div class="dash-section-body">
                     <div id="co-tiles-view" style="display:flex; flex-direction:column; gap:12px;">
                         <div>
-                            <div style="background:#16a34a; color:#fff; border-radius:8px; padding:8px 12px; font-size:13px; font-weight:800; margin-bottom:8px;">Klienci z audytami w toku ({{ $salesFunnel['audits_in_progress']->count() }})</div>
+                            <div style="background:var(--green-primary); color:var(--paper); border-radius:8px; padding:7px 11px; font-size:13px; font-weight:800; margin-bottom:8px;">Klienci z audytami w toku ({{ $salesFunnel['audits_in_progress']->count() }})</div>
                             <div class="company-tiles">
                                 @forelse ($salesFunnel['audits_in_progress'] as $company)
                                     @php $coSearch = strtolower($company->name . ' ' . ($company->city ?? '')); @endphp
@@ -360,7 +390,7 @@
                         </div>
 
                         <div>
-                            <div style="background:#22c55e; color:#fff; border-radius:8px; padding:8px 12px; font-size:13px; font-weight:800; margin-bottom:8px;">Klienci z ofertą ({{ $salesFunnel['offer_sent']->count() }})</div>
+                            <div style="background:var(--gold); color:var(--paper); border-radius:8px; padding:7px 11px; font-size:13px; font-weight:800; margin-bottom:8px;">Klienci z ofertą ({{ $salesFunnel['offer_sent']->count() }})</div>
                             <div class="company-tiles">
                                 @forelse ($salesFunnel['offer_sent'] as $company)
                                     @php $coSearch = strtolower($company->name . ' ' . ($company->city ?? '')); @endphp
@@ -377,7 +407,7 @@
                         </div>
 
                         <div>
-                            <div style="background:#0ea5e9; color:#fff; border-radius:8px; padding:8px 12px; font-size:13px; font-weight:800; margin-bottom:8px;">Klienci nowe leady ({{ $salesFunnel['leads']->count() }})</div>
+                            <div style="background:var(--green-deep); color:var(--paper); border-radius:8px; padding:7px 11px; font-size:13px; font-weight:800; margin-bottom:8px;">Klienci nowe leady ({{ $salesFunnel['leads']->count() }})</div>
                             <div class="company-tiles">
                                 @forelse ($salesFunnel['leads'] as $company)
                                     @php $coSearch = strtolower($company->name . ' ' . ($company->city ?? '')); @endphp
@@ -394,7 +424,7 @@
                         </div>
 
                         <div>
-                            <div style="background:#64748b; color:#fff; border-radius:8px; padding:8px 12px; font-size:13px; font-weight:800; margin-bottom:8px;">Klienci oczekujący na dołączenie do systemu ({{ $pendingRegistrations->count() }})</div>
+                            <div style="background:var(--ink-mute); color:var(--paper); border-radius:8px; padding:7px 11px; font-size:13px; font-weight:800; margin-bottom:8px;">Klienci oczekujący na dołączenie do systemu ({{ $pendingRegistrations->count() }})</div>
                             <div class="company-tiles">
                                 @forelse ($pendingRegistrations as $reg)
                                     @php $coSearch = strtolower($reg->name . ' ' . ($reg->city ?? '')); @endphp
@@ -420,8 +450,12 @@
         @endif
 
         @if ($aiSummary['total'] > 0)
-            <div class="ai-summary-mini">
-                AI: {{ number_format($aiSummary['total']) }} tok. (in: {{ number_format($aiSummary['input']) }}, out: {{ number_format($aiSummary['output']) }}) · ~{{ number_format($aiSummary['cost_pln'], 2) }} zł
+            <div class="ai-summary-compact">
+                <div class="ai-item"><strong>{{ number_format($aiSummary['total']) }}</strong><br>tokeny AI</div>
+                <div class="ai-item"><strong>{{ number_format($aiSummary['input']) }}</strong><br>wejściowe</div>
+                <div class="ai-item"><strong>{{ number_format($aiSummary['output']) }}</strong><br>wyjściowe</div>
+                <div class="ai-item"><strong>{{ number_format($aiSummary['cost_pln'], 2) }} zł</strong><br>koszt szacunkowy</div>
+                <div class="ai-item"><strong>${{ number_format($aiSummary['cost_usd'], 4) }}</strong><br>USD</div>
             </div>
         @endif
     </section>
