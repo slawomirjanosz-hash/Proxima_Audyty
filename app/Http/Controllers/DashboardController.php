@@ -43,7 +43,12 @@ class DashboardController extends Controller
 
         $hasActiveAudit = static function (Company $company) use ($activeAuditStatuses): bool {
             return $company->energyAudits->contains(static function (EnergyAudit $audit) use ($activeAuditStatuses): bool {
-                return in_array((string) $audit->status, $activeAuditStatuses, true);
+                if (in_array((string) $audit->status, $activeAuditStatuses, true)) {
+                    return true;
+                }
+
+                // If an audit is already assigned in company audit tab, treat it as "audit in progress".
+                return $audit->auditor_id !== null;
             });
         };
 

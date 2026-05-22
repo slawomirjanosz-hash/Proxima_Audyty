@@ -65,8 +65,7 @@
         .dash-section.open .dash-chevron { transform:rotate(180deg); }
         .co-controls { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; padding:10px 0 4px; }
         .co-search-wrap { flex:1; min-width:180px; max-width:380px; position:relative; }
-        .co-search-wrap::before { content:'🔍'; position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:12px; pointer-events:none; }
-        .co-search-wrap input { width:100%; padding:8px 12px 8px 32px; border:1px solid var(--paper-deep); border-radius:5px; font-size:13px; background:white; box-sizing:border-box; outline:none; font-family:var(--sans); }
+        .co-search-wrap input { width:100%; padding:8px 12px; border:1px solid var(--paper-deep); border-radius:5px; font-size:13px; background:white; box-sizing:border-box; outline:none; font-family:var(--sans); }
         .co-search-wrap input:focus { border-color:var(--green-primary); box-shadow:0 0 0 2px rgba(46,125,92,.12); }
         .co-view-btns { display:flex; gap:4px; }
         .co-view-btn { padding:7px 14px; border:1px solid var(--paper-deep); border-radius:5px; font-size:13px; font-weight:600; cursor:pointer; background:var(--paper-soft); color:var(--green-deep); transition:.15s; font-family:var(--sans); }
@@ -87,16 +86,18 @@
         .co-empty { text-align:center; padding:24px; color:var(--ink-mute); font-size:13px; }
         .co-tile-item { display:flex; flex-direction:column; }
         .co-tile-item .company-tile { flex:1; }
+        #co-tiles-view.list-mode .company-tiles { grid-template-columns:1fr; gap:8px; }
+        #co-tiles-view.list-mode .company-tile { padding:12px 14px; }
         .co-tile-assign-btn { border:none; border-top:1px solid var(--paper-deep); background:transparent; padding:8px 14px; cursor:pointer; font-size:12px; font-weight:700; color:var(--green-primary); display:flex; justify-content:space-between; align-items:center; width:100%; text-align:left; transition:background .15s; font-family:var(--sans); }
         .co-tile-assign-btn:hover { background:var(--green-bg); }
-        .ai-summary-bar {
-            display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px;
-            margin-top:14px; padding:14px 16px; background:var(--green-bg);
-            border:1px solid var(--green-light); border-radius:8px;
+        .ai-summary-mini {
+            margin-top:10px;
+            text-align:right;
+            font-size:10px;
+            color:var(--ink-mute);
+            opacity:.85;
+            font-family:var(--mono);
         }
-        .ai-stat { text-align:center; }
-        .ai-stat-val { font-size:18px; font-weight:700; color:var(--green-deep); line-height:1.2; font-family:var(--serif); }
-        .ai-stat-lbl { font-size:11px; color:var(--ink-mute); margin-top:2px; font-family:var(--mono); }
         .ai-token-badge {
             display:inline-flex; align-items:center; gap:3px; background:var(--green-bg);
             border:1px solid var(--green-light); color:var(--green-deep);
@@ -116,36 +117,7 @@
             </div>
         </div>
 
-        @if ($aiSummary['total'] > 0)
-        <div class="ai-summary-bar">
-            <div class="ai-stat">
-                <div class="ai-stat-val">{{ number_format($aiSummary['total']) }}</div>
-                <div class="ai-stat-lbl">🤖 Tokeny AI łącznie</div>
-            </div>
-            <div class="ai-stat">
-                <div class="ai-stat-val">{{ number_format($aiSummary['input']) }}</div>
-                <div class="ai-stat-lbl">⬆ Tokeny wejściowe</div>
-            </div>
-            <div class="ai-stat">
-                <div class="ai-stat-val">{{ number_format($aiSummary['output']) }}</div>
-                <div class="ai-stat-lbl">⬇ Tokeny wyjściowe</div>
-            </div>
-            <div class="ai-stat">
-                <div class="ai-stat-val">${{ number_format($aiSummary['cost_usd'], 4) }}</div>
-                <div class="ai-stat-lbl">💵 Koszt USD (szacunek)</div>
-            </div>
-            <div class="ai-stat">
-                <div class="ai-stat-val">{{ number_format($aiSummary['cost_pln'], 2) }} zł</div>
-                <div class="ai-stat-lbl">💰 Koszt PLN (~3,85 USD/PLN)</div>
-            </div>
-            <div class="ai-stat" style="align-self:center;">
-                <div style="font-size:10px; color:#8a9bbf; line-height:1.5;">
-                    Model: Claude Haiku 4.5<br>
-                    $0.80/1M in · $4.00/1M out
-                </div>
-            </div>
-        </div>
-        @endif
+
 
         @if ($orphanInquiries > 0)
             <div class="orphan-card">
@@ -351,7 +323,14 @@
             <div class="dash-section open" id="dash-sec-clients-funnel">
                 <div class="dash-section-header" onclick="dashToggle('dash-sec-clients-funnel')">
                     <h2>🏢 Podział klientów</h2>
-                    <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="display:flex; align-items:center; gap:8px;" onclick="event.stopPropagation();">
+                        <div class="co-search-wrap" style="width:260px; max-width:260px;">
+                            <input type="search" id="co-search" placeholder="Szukaj firmy lub miasta..." oninput="filterCompanies(this.value)" autocomplete="off">
+                        </div>
+                        <div class="co-view-btns">
+                            <button id="co-btn-tiles" type="button" class="co-view-btn active" onclick="setCoView('tiles'); event.stopPropagation();">⊞ Kafelki</button>
+                            <button id="co-btn-list" type="button" class="co-view-btn" onclick="setCoView('list'); event.stopPropagation();">☰ Lista</button>
+                        </div>
                         <span style="background:#e0f2fe; border:1px solid #bae6fd; color:#0369a1; font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px;">
                             {{ $companies->count() + $pendingRegistrations->count() }} łącznie
                         </span>
@@ -359,13 +338,7 @@
                     </div>
                 </div>
                 <div class="dash-section-body">
-                    <div class="co-controls" style="margin-bottom:10px;">
-                        <div class="co-search-wrap" style="max-width:420px;">
-                            <input type="search" id="co-search" placeholder="Szukaj firmy lub miasta…" oninput="filterCompanies(this.value)" autocomplete="off">
-                        </div>
-                    </div>
-
-                    <div style="display:flex; flex-direction:column; gap:12px;">
+                    <div id="co-tiles-view" style="display:flex; flex-direction:column; gap:12px;">
                         <div>
                             <div style="background:#16a34a; color:#fff; border-radius:8px; padding:8px 12px; font-size:13px; font-weight:800; margin-bottom:8px;">Klienci z audytami w toku ({{ $salesFunnel['audits_in_progress']->count() }})</div>
                             <div class="company-tiles">
@@ -445,6 +418,12 @@
                 </div>{{-- /dash-section-body --}}
             </div>{{-- /dash-section --}}
         @endif
+
+        @if ($aiSummary['total'] > 0)
+            <div class="ai-summary-mini">
+                AI: {{ number_format($aiSummary['total']) }} tok. (in: {{ number_format($aiSummary['input']) }}, out: {{ number_format($aiSummary['output']) }}) · ~{{ number_format($aiSummary['cost_pln'], 2) }} zł
+            </div>
+        @endif
     </section>
 
 <script>
@@ -463,15 +442,12 @@ function setCoView(v) {
     coCurrentView = v;
     localStorage.setItem('dashboard-co-view', v);
     var tilesEl = document.getElementById('co-tiles-view');
-    var tableEl = document.getElementById('co-table-view');
     var btnTiles = document.getElementById('co-btn-tiles');
-    var btnTable = document.getElementById('co-btn-table');
-    if (!tilesEl || !tableEl) return;
-    tilesEl.style.display = (v === 'tiles') ? '' : 'none';
-    tableEl.style.display = (v === 'table') ? '' : 'none';
+    var btnList = document.getElementById('co-btn-list');
+    if (!tilesEl) return;
+    tilesEl.classList.toggle('list-mode', v === 'list');
     btnTiles.classList.toggle('active', v === 'tiles');
-    btnTable.classList.toggle('active', v === 'table');
-    // re-run filter so empty state updates correctly
+    if (btnList) btnList.classList.toggle('active', v === 'list');
     var q = document.getElementById('co-search');
     if (q) filterCompanies(q.value);
 }
@@ -479,7 +455,6 @@ function setCoView(v) {
 // ── Live search ───────────────────────────────────────────────
 function filterCompanies(q) {
     q = (q || '').toLowerCase().trim();
-    // Tiles
     var tiles = document.querySelectorAll('.co-tile-item');
     var tileCount = 0;
     tiles.forEach(function(el) {
@@ -489,45 +464,6 @@ function filterCompanies(q) {
     });
     var tilesEmpty = document.getElementById('co-tiles-empty');
     if (tilesEmpty) tilesEmpty.style.display = tileCount === 0 ? '' : 'none';
-    // Table rows
-    var rows = document.querySelectorAll('#co-table-body .co-row');
-    var rowCount = 0;
-    rows.forEach(function(el) {
-        var show = !q || el.dataset.search.includes(q);
-        el.style.display = show ? '' : 'none';
-        if (show) rowCount++;
-    });
-    var tableEmpty = document.getElementById('co-table-empty');
-    if (tableEmpty) tableEmpty.style.display = rowCount === 0 ? '' : 'none';
-}
-
-// ── Table sort ────────────────────────────────────────────────
-var coSortCol = -1, coSortDir = 1;
-
-function sortCoTable(col) {
-    var tbody = document.getElementById('co-table-body');
-    if (!tbody) return;
-    var rows = Array.from(tbody.querySelectorAll('.co-row'));
-    if (coSortCol === col) {
-        coSortDir *= -1;
-    } else {
-        coSortCol = col;
-        coSortDir = 1;
-    }
-    rows.sort(function(a, b) {
-        var av = (a.querySelectorAll('td')[col].dataset.val || '').trim();
-        var bv = (b.querySelectorAll('td')[col].dataset.val || '').trim();
-        var an = parseFloat(av), bn = parseFloat(bv);
-        if (!isNaN(an) && !isNaN(bn)) return (an - bn) * coSortDir;
-        return av.localeCompare(bv, 'pl') * coSortDir;
-    });
-    rows.forEach(function(r) { tbody.appendChild(r); });
-    document.querySelectorAll('#co-table th.sortable').forEach(function(th) {
-        th.classList.remove('sort-asc', 'sort-desc');
-        if (parseInt(th.dataset.col) === coSortCol) {
-            th.classList.add(coSortDir === 1 ? 'sort-asc' : 'sort-desc');
-        }
-    });
 }
 
 // ── Init ──────────────────────────────────────────────────────
@@ -604,31 +540,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
 
-                    // Flash table row
-                    const row = document.querySelector('.co-row[data-company-id="' + id + '"]');
-                    if (row) {
-                        row.classList.add('chat-incoming-row');
-                        row.dataset.unread = String(newCount);
-                        row.addEventListener('animationend', function () {
-                            row.classList.remove('chat-incoming-row');
-                        }, { once: true });
-                    }
                 }
 
                 _knownCounts[id] = newCount;
             });
-
-            // Update total badge
-            const total = parseInt(data.total || 0, 10);
-            const badge = document.getElementById('dash-chat-unread-total');
-            if (badge) {
-                if (total > 0) {
-                    badge.textContent = '💬 ' + total + ' nieprzeczytanych';
-                    badge.style.display = '';
-                } else {
-                    badge.style.display = 'none';
-                }
-            }
 
             if (anyNew) {
                 flashTitle('💬 Nowa wiadomość!');
