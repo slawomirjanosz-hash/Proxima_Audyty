@@ -6248,6 +6248,10 @@ updateZuzyciaSums();   // przeliczy statystyki E8 po załadowaniu
 
 
 // === E13 / PROFILE / DASHBOARD NEW FUNCTIONS ===
+const SCOPE_KODY_E13 = ['BO','LH','CHP','HP','PV','ST','DH','TES',
+                        'CA','AHU','RC','LIGHT','EE','STEAM',
+                        'TECH','TRANS','FLEET','TIB'];
+
 function updateE13Summary() {
   const summaryEl = document.getElementById('e13-summary');
   if (!summaryEl) return;
