@@ -157,109 +157,7 @@
             </div>
         @endif
 
-        <div class="dash-section open" id="dash-sec-sales-funnel">
-            <div class="dash-section-header" onclick="dashToggle('dash-sec-sales-funnel')">
-                <h2>🧭 Lejek sprzedażowy firm</h2>
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <span style="background:#e0f2fe; border:1px solid #bae6fd; color:#0369a1; font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px;">
-                        {{ $companies->count() }} firm łącznie
-                    </span>
-                    <span class="dash-chevron">▼</span>
-                </div>
-            </div>
-            <div class="dash-section-body">
-                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px;">
-                    <div style="border:1px solid #c7d2fe; border-radius:10px; background:#eef2ff; padding:12px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                            <strong style="color:#3730a3;">1. Leady</strong>
-                            <span style="background:#c7d2fe; color:#312e81; border-radius:999px; padding:2px 8px; font-size:11px; font-weight:700;">{{ $salesFunnel['leads']->count() }}</span>
-                        </div>
-                        @forelse($salesFunnel['leads']->take(8) as $leadCompany)
-                            <div style="font-size:12px; margin-bottom:4px;"><a href="{{ route('firma.show', $leadCompany) }}" style="color:#312e81; text-decoration:none;">• {{ $leadCompany->name }}</a></div>
-                        @empty
-                            <div style="font-size:12px; color:#6b7280;">Brak leadów.</div>
-                        @endforelse
-                    </div>
 
-                    <div style="border:1px solid #fcd34d; border-radius:10px; background:#fffbeb; padding:12px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                            <strong style="color:#92400e;">2. Oferta wysłana</strong>
-                            <span style="background:#fde68a; color:#78350f; border-radius:999px; padding:2px 8px; font-size:11px; font-weight:700;">{{ $salesFunnel['offer_sent']->count() }}</span>
-                        </div>
-                        @forelse($salesFunnel['offer_sent']->take(8) as $offerCompany)
-                            <div style="font-size:12px; margin-bottom:4px;"><a href="{{ route('firma.show', $offerCompany) }}" style="color:#78350f; text-decoration:none;">• {{ $offerCompany->name }}</a></div>
-                        @empty
-                            <div style="font-size:12px; color:#6b7280;">Brak firm z ofertą.</div>
-                        @endforelse
-                    </div>
-
-                    <div style="border:1px solid #86efac; border-radius:10px; background:#ecfdf3; padding:12px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                            <strong style="color:#166534;">3. Audyty w toku</strong>
-                            <span style="background:#bbf7d0; color:#14532d; border-radius:999px; padding:2px 8px; font-size:11px; font-weight:700;">{{ $salesFunnel['audits_in_progress']->count() }}</span>
-                        </div>
-                        @forelse($salesFunnel['audits_in_progress']->take(8) as $auditCompany)
-                            <div style="font-size:12px; margin-bottom:4px;"><a href="{{ route('firma.show', $auditCompany) }}" style="color:#14532d; text-decoration:none;">• {{ $auditCompany->name }}</a></div>
-                        @empty
-                            <div style="font-size:12px; color:#6b7280;">Brak firm z audytem w toku.</div>
-                        @endforelse
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        @if ($pendingRegistrations->isNotEmpty())
-            <div class="dash-section" id="dash-sec-registrations">
-                <div class="dash-section-header" onclick="dashToggle('dash-sec-registrations')">
-                    <h2>⏳ Oczekujące rejestracje firm</h2>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span class="pending-badge">{{ $pendingRegistrations->count() }} {{ $pendingRegistrations->count() === 1 ? 'wniosek' : ($pendingRegistrations->count() < 5 ? 'wnioski' : 'wniosków') }}</span>
-                        <span class="dash-chevron">▼</span>
-                    </div>
-                </div>
-                <div class="dash-section-body">
-                <p style="margin:0 0 10px; font-size:12px; color:#92400e;">Firmy, które złożyły wniosek rejestracyjny — zaakceptuj lub odrzuć każdy wniosek.</p>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Firma</th>
-                            <th>NIP</th>
-                            <th>Osoba kontaktowa</th>
-                            <th>Miasto</th>
-                            <th>Telefon</th>
-                            <th>E-mail</th>
-                            <th>Data zgłoszenia</th>
-                            <th style="width:160px;">Akcja</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($pendingRegistrations as $reg)
-                            <tr>
-                                <td style="font-weight:700;">{{ $reg->name }}</td>
-                                <td style="font-family:monospace; font-size:13px;">{{ $reg->nip }}</td>
-                                <td>{{ trim(($reg->first_name ?? '') . ' ' . ($reg->last_name ?? '')) ?: '—' }}</td>
-                                <td>{{ $reg->city ?? '—' }}</td>
-                                <td>{{ $reg->phone }}</td>
-                                <td>{{ $reg->email }}</td>
-                                <td style="font-size:12px; color:#5a7390;">{{ $reg->created_at->format('d.m.Y H:i') }}</td>
-                                <td>
-                                    <form method="POST" action="{{ route('register.accept', $reg->id) }}" style="display:inline">
-                                        @csrf
-                                        <button type="submit" class="btn-accept" onclick="return confirm('Dodać firmę {{ addslashes($reg->name) }} do systemu?')">✅ Akceptuj</button>
-                                    </form>
-                                    <form method="POST" action="{{ route('register.destroy', $reg->id) }}" style="display:inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn-reject" onclick="return confirm('Odrzucić wniosek firmy {{ addslashes($reg->name) }}?')">🗑 Usuń</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-                </div>{{-- /dash-section-body --}}
-            </div>{{-- /dash-section --}}
-        @endif
 
         {{-- Audit assignment is per-company (inside each company tile) --}}
         {{-- REMOVED global assign section --}}
@@ -445,171 +343,105 @@
             </div>
         </div>{{-- /dash-sec-assign-audit --}}
 
-        @if ($companies->isEmpty())
+        @if ($companies->isEmpty() && $pendingRegistrations->isEmpty())
             <div style="padding:32px; text-align:center; color:#9ab4c5; border:1px dashed #d5e0ea; border-radius:12px; margin-top:14px; font-size:14px;">
-                Brak firm w systemie. Dodaj firmy w Ustawieniach.
+                Brak klientów do wyświetlenia.
             </div>
         @else
-            @php $totalUnread = $unreadChatByCompany->sum(); @endphp
-            <div class="dash-section open" id="dash-sec-tiles">
-                <div class="dash-section-header" onclick="dashToggle('dash-sec-tiles')">
-                    <h2>🏢 Firmy klientów</h2>
+            <div class="dash-section open" id="dash-sec-clients-funnel">
+                <div class="dash-section-header" onclick="dashToggle('dash-sec-clients-funnel')">
+                    <h2>🏢 Podział klientów</h2>
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <span id="co-count-badge" style="background:#e0f2fe; border:1px solid #bae6fd; color:#0369a1; font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px;">
-                            {{ $companies->count() }} {{ $companies->count() === 1 ? 'firma' : ($companies->count() < 5 ? 'firmy' : 'firm') }}
+                        <span style="background:#e0f2fe; border:1px solid #bae6fd; color:#0369a1; font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px;">
+                            {{ $companies->count() + $pendingRegistrations->count() }} łącznie
                         </span>
-                        <span id="dash-chat-unread-total"
-                              style="background:#fef3c7; border:1px solid #fbbf24; color:#92400e; font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px; {{ $totalUnread > 0 ? '' : 'display:none;' }}">💬 {{ $totalUnread }} nieprzeczytanych</span>
                         <span class="dash-chevron">▼</span>
                     </div>
                 </div>
                 <div class="dash-section-body">
-
-                    {{-- Controls: wyszukiwarka + przełącznik widoku --}}
-                    <div class="co-controls">
-                        <div class="co-search-wrap">
-                            <input type="search" id="co-search" placeholder="Szukaj firmy, miasta, opiekuna…" oninput="filterCompanies(this.value)" autocomplete="off">
-                        </div>
-                        <div class="co-view-btns">
-                            <button id="co-btn-tiles" class="co-view-btn active" onclick="setCoView('tiles')">⊞ Kafelki</button>
-                            <button id="co-btn-table" class="co-view-btn" onclick="setCoView('table')">☰ Tabela</button>
+                    <div class="co-controls" style="margin-bottom:10px;">
+                        <div class="co-search-wrap" style="max-width:420px;">
+                            <input type="search" id="co-search" placeholder="Szukaj firmy lub miasta…" oninput="filterCompanies(this.value)" autocomplete="off">
                         </div>
                     </div>
 
-                    {{-- WIDOK: KAFELKI --}}
-                    <div id="co-tiles-view">
-                        <div class="company-tiles">
-                            @foreach ($companies as $company)
-                                @php
-                                    $inquiryCount  = (int) ($newInquiriesByCompany[$company->id] ?? 0);
-                                    $acceptedCount = (int) ($acceptedOffersByCompany[$company->id] ?? 0);
-                                    $unreadChat    = (int) ($unreadChatByCompany[$company->id] ?? 0);
-                                    $auditCount    = $company->energyAudits->count();
-                                    if ($acceptedCount > 0)    $tileClass = 'has-offer-accepted';
-                                    elseif ($inquiryCount > 0) $tileClass = 'has-inquiry';
-                                    elseif ($unreadChat > 0)   $tileClass = 'has-unread-chat';
-                                    else                       $tileClass = '';
-                                    $coSearch = strtolower($company->name . ' ' . ($company->city ?? '') . ' ' . ($company->auditor?->name ?? '') . ' ' . ($company->client?->name ?? ''));
-                                    $compTokens = $tokensByCompany[$company->id] ?? null;
-                                @endphp
-                                <div class="co-tile-item"
-                                     data-search="{{ $coSearch }}"
-                                     data-company-id="{{ $company->id }}"
-                                     data-unread="{{ $unreadChat }}">
-                                    <a href="{{ route('firma.show', $company) }}"
-                                       class="company-tile {{ $tileClass }}"
-                                       style="text-decoration:none; color:inherit;">
-                                        <div class="tile-header">
-                                            <span class="tile-name">{{ $company->name }}</span>
-                                            @if ($acceptedCount > 0)
-                                                <span class="tile-badge-action" style="background:#d1fae5; border-color:#16a34a; color:#065f46;">✅ Przydziel audyt</span>
-                                            @elseif ($inquiryCount > 0)
-                                                <span class="tile-badge-action">⚡ Wymaga działania</span>
-                                            @endif
+                    <div style="display:flex; flex-direction:column; gap:12px;">
+                        <div>
+                            <div style="background:#16a34a; color:#fff; border-radius:8px; padding:8px 12px; font-size:13px; font-weight:800; margin-bottom:8px;">Klienci z audytami w toku ({{ $salesFunnel['audits_in_progress']->count() }})</div>
+                            <div class="company-tiles">
+                                @forelse ($salesFunnel['audits_in_progress'] as $company)
+                                    @php $coSearch = strtolower($company->name . ' ' . ($company->city ?? '')); @endphp
+                                    <div class="co-tile-item" data-search="{{ $coSearch }}" data-company-id="{{ $company->id }}" data-unread="0">
+                                        <a href="{{ route('firma.show', $company) }}" class="company-tile" style="text-decoration:none; color:inherit;">
+                                            <div class="tile-header"><span class="tile-name">{{ $company->name }}</span></div>
+                                            <div class="tile-meta">
+                                                @if ($company->city)<span>📍 {{ $company->city }}</span>@endif
+                                                <span>📋 {{ $company->energyAudits->count() }} {{ $company->energyAudits->count() === 1 ? 'audyt' : ($company->energyAudits->count() < 5 ? 'audyty' : 'audytów') }}</span>
+                                            </div>
+                                        </a>
+                                    </div>
+                                @empty
+                                    <div class="co-empty" style="display:block;">Brak klientów w tej sekcji.</div>
+                                @endforelse
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="background:#22c55e; color:#fff; border-radius:8px; padding:8px 12px; font-size:13px; font-weight:800; margin-bottom:8px;">Klienci z ofertą ({{ $salesFunnel['offer_sent']->count() }})</div>
+                            <div class="company-tiles">
+                                @forelse ($salesFunnel['offer_sent'] as $company)
+                                    @php $coSearch = strtolower($company->name . ' ' . ($company->city ?? '')); @endphp
+                                    <div class="co-tile-item" data-search="{{ $coSearch }}" data-company-id="{{ $company->id }}" data-unread="0">
+                                        <a href="{{ route('firma.show', $company) }}" class="company-tile" style="text-decoration:none; color:inherit;">
+                                            <div class="tile-header"><span class="tile-name">{{ $company->name }}</span></div>
+                                            <div class="tile-meta">@if ($company->city)<span>📍 {{ $company->city }}</span>@endif</div>
+                                        </a>
+                                    </div>
+                                @empty
+                                    <div class="co-empty" style="display:block;">Brak klientów w tej sekcji.</div>
+                                @endforelse
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="background:#0ea5e9; color:#fff; border-radius:8px; padding:8px 12px; font-size:13px; font-weight:800; margin-bottom:8px;">Klienci nowe leady ({{ $salesFunnel['leads']->count() }})</div>
+                            <div class="company-tiles">
+                                @forelse ($salesFunnel['leads'] as $company)
+                                    @php $coSearch = strtolower($company->name . ' ' . ($company->city ?? '')); @endphp
+                                    <div class="co-tile-item" data-search="{{ $coSearch }}" data-company-id="{{ $company->id }}" data-unread="0">
+                                        <a href="{{ route('firma.show', $company) }}" class="company-tile" style="text-decoration:none; color:inherit;">
+                                            <div class="tile-header"><span class="tile-name">{{ $company->name }}</span></div>
+                                            <div class="tile-meta">@if ($company->city)<span>📍 {{ $company->city }}</span>@endif</div>
+                                        </a>
+                                    </div>
+                                @empty
+                                    <div class="co-empty" style="display:block;">Brak klientów w tej sekcji.</div>
+                                @endforelse
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="background:#64748b; color:#fff; border-radius:8px; padding:8px 12px; font-size:13px; font-weight:800; margin-bottom:8px;">Klienci oczekujący na dołączenie do systemu ({{ $pendingRegistrations->count() }})</div>
+                            <div class="company-tiles">
+                                @forelse ($pendingRegistrations as $reg)
+                                    @php $coSearch = strtolower($reg->name . ' ' . ($reg->city ?? '')); @endphp
+                                    <div class="co-tile-item" data-search="{{ $coSearch }}" data-unread="0">
+                                        <div class="company-tile">
+                                            <div class="tile-header"><span class="tile-name">{{ $reg->name }}</span></div>
+                                            <div class="tile-meta">
+                                                @if ($reg->city)<span>📍 {{ $reg->city }}</span>@endif
+                                                <span>🕒 {{ $reg->created_at->format('d.m.Y H:i') }}</span>
+                                            </div>
                                         </div>
-                                        <div class="tile-meta">
-                                            @if ($company->city)
-                                                <span>📍 {{ $company->city }}</span>
-                                            @endif
-                                            @if ($company->auditor)
-                                                <span>👤 {{ $company->auditor->name }}</span>
-                                            @endif
-                                            @if ($company->client)
-                                                <span>🔐 Klient: {{ $company->client->name }}</span>
-                                            @endif
-                                            @if ($unreadChat > 0)
-                                                <span style="color:#0369a1; font-weight:700;" data-unread-label>💬 {{ $unreadChat }} {{ $unreadChat === 1 ? 'nowa wiadomość' : ($unreadChat < 5 ? 'nowe wiadomości' : 'nowych wiadomości') }}</span>
-                                            @else
-                                                <span style="color:#0369a1; font-weight:700; display:none;" data-unread-label></span>
-                                            @endif
-                                            @if ($auditCount > 0)
-                                                <span>📋 {{ $auditCount }} {{ $auditCount === 1 ? 'audyt' : ($auditCount < 5 ? 'audyty' : 'audytów') }}</span>
-                                            @endif
-                                            @if ($compTokens && $compTokens['total'] > 0)
-                                                <span>
-                                                    <span class="ai-token-badge">🤖 {{ number_format($compTokens['total']) }} tok · {{ number_format($compTokens['cost_pln'], 2) }} zł</span>
-                                                </span>
-                                            @endif
-                                        </div>
-                                        @if ($acceptedCount > 0)
-                                            <div class="tile-inquiry-alert" style="background:#d1fae5; border-color:#16a34a; color:#065f46;">
-                                                ✅ Klient zaakceptował ofertę — przydziel audyt!
-                                            </div>
-                                        @elseif ($inquiryCount > 0)
-                                            <div class="tile-inquiry-alert">
-                                                📬 {{ $inquiryCount }} nowe {{ $inquiryCount === 1 ? 'zapytanie' : ($inquiryCount < 5 ? 'zapytania' : 'zapytań') }} oczekuje na decyzję
-                                            </div>
-                                        @elseif ($unreadChat > 0)
-                                            <div class="tile-inquiry-alert" style="background:#e0f2fe; border-color:#7dd3fc; color:#0369a1;">
-                                                💬 Klient wysłał {{ $unreadChat }} {{ $unreadChat === 1 ? 'wiadomość' : ($unreadChat < 5 ? 'wiadomości' : 'wiadomości') }} — kliknij by odpowiedzieć
-                                            </div>
-                                        @endif
-                                    </a>
-                                </div>{{-- /co-tile-item --}}
-                            @endforeach
+                                    </div>
+                                @empty
+                                    <div class="co-empty" style="display:block;">Brak oczekujących zgłoszeń.</div>
+                                @endforelse
+                            </div>
                         </div>
-                        <div id="co-tiles-empty" class="co-empty" style="display:none;">Brak wyników dla wpisanej frazy.</div>
                     </div>
 
-                    {{-- WIDOK: TABELA --}}
-                    <div id="co-table-view" style="display:none; overflow-x:auto;">
-                        <table class="co-tbl" id="co-table">
-                            <thead>
-                                <tr>
-                                    <th class="sortable" data-col="0" onclick="sortCoTable(0)">Status</th>
-                                    <th class="sortable" data-col="1" onclick="sortCoTable(1)">Firma</th>
-                                    <th class="sortable" data-col="2" onclick="sortCoTable(2)">Miasto</th>
-                                    <th class="sortable" data-col="3" onclick="sortCoTable(3)">Opiekun</th>
-                                    <th class="sortable" data-col="4" onclick="sortCoTable(4)">Klient</th>
-                                    <th class="sortable" data-col="5" onclick="sortCoTable(5)" style="text-align:center;">Audyty</th>
-                                    <th class="sortable" data-col="6" onclick="sortCoTable(6)" style="text-align:right;">Tokeny AI</th>
-                                    <th>Akcja</th>
-                                </tr>
-                            </thead>
-                            <tbody id="co-table-body">
-                                @foreach ($companies as $company)
-                                    @php
-                                        $inquiryCount  = (int) ($newInquiriesByCompany[$company->id] ?? 0);
-                                        $acceptedCount = (int) ($acceptedOffersByCompany[$company->id] ?? 0);
-                                        $unreadChat    = (int) ($unreadChatByCompany[$company->id] ?? 0);
-                                        $auditCount    = $company->energyAudits->count();
-                                        $statusPrio    = $acceptedCount > 0 ? 3 : ($inquiryCount > 0 ? 2 : ($unreadChat > 0 ? 1 : 0));
-                                        $coSearch = strtolower($company->name . ' ' . ($company->city ?? '') . ' ' . ($company->auditor?->name ?? '') . ' ' . ($company->client?->name ?? ''));
-                                        $compTokens = $tokensByCompany[$company->id] ?? null;
-                                    @endphp
-                                    <tr class="co-row" data-search="{{ $coSearch }}" data-company-id="{{ $company->id }}" data-unread="{{ $unreadChat }}">
-                                        <td data-val="{{ $statusPrio }}">
-                                            @if ($acceptedCount > 0)
-                                                <span class="co-status-badge st-accepted">✅ Przydziel audyt</span>
-                                            @elseif ($inquiryCount > 0)
-                                                <span class="co-status-badge st-inquiry">⚡ Zapytanie</span>
-                                            @elseif ($unreadChat > 0)
-                                                <span class="co-status-badge st-chat">💬 Czat</span>
-                                            @else
-                                                <span style="color:#c5d4df; font-size:12px;">—</span>
-                                            @endif
-                                        </td>
-                                        <td data-val="{{ $company->name }}" style="font-weight:700; color:#0f2330;">{{ $company->name }}</td>
-                                        <td data-val="{{ $company->city ?? '' }}">{{ $company->city ?? '—' }}</td>
-                                        <td data-val="{{ $company->auditor?->name ?? '' }}">{{ $company->auditor?->name ?? '—' }}</td>
-                                        <td data-val="{{ $company->client?->name ?? '' }}">{{ $company->client?->name ?? '—' }}</td>
-                                        <td data-val="{{ $auditCount }}" style="text-align:center; color:{{ $auditCount > 0 ? '#0f2330' : '#c5d4df' }};">{{ $auditCount ?: '—' }}</td>
-                                        <td data-val="{{ $compTokens ? $compTokens['total'] : 0 }}" style="text-align:right;">
-                                            @if ($compTokens && $compTokens['total'] > 0)
-                                                <span class="ai-token-badge">{{ number_format($compTokens['total']) }}</span><br>
-                                                <span style="font-size:10px; color:#6b8294;">{{ number_format($compTokens['cost_pln'], 2) }} zł</span>
-                                            @else
-                                                <span class="ai-token-badge zero">—</span>
-                                            @endif
-                                        </td>
-                                        <td><a href="{{ route('firma.show', $company) }}" class="co-row-link">Otwórz →</a></td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                        <div id="co-table-empty" class="co-empty" style="display:none;">Brak wyników dla wpisanej frazy.</div>
-                    </div>
-
+                    <div id="co-tiles-empty" class="co-empty" style="display:none; margin-top:10px;">Brak wyników dla wpisanej frazy.</div>
                 </div>{{-- /dash-section-body --}}
             </div>{{-- /dash-section --}}
         @endif
