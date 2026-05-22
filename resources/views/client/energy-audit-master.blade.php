@@ -67,6 +67,8 @@ if (isset($currentUser) && $currentUser) {
 <div style="background:#0f2330;color:#ccc;padding:8px 20px;font-size:13px;">Tryb podgl&#261;du &#8212; dane nie s&#261; przypisane do konkretnej firmy</div>
 @endif
 
+<div class="mode-enesa-banner">⚠ TRYB AUDYTORA ENESA — wszystkie pola widoczne · używaj tylko jeśli jesteś z zespołu audytowego</div>
+
 <style>
 
 /* === ENESA palette - identyczna jak w LH HTML === */
@@ -1350,14 +1352,372 @@ body.profile-active .field-optional::after {
   display: none;
 }
 body.profile-active .profile-stats { display: block; }
+
+/* ============================================================ */
+/* === ARCHITEKTURA C v1.6 — wybór typu audytu + ukrywanie === */
+/* ============================================================ */
+
+/* Ekran startowy - karty wyboru audytu */
+.audit-type-selector {
+  background: linear-gradient(135deg, var(--paper-deep, #ebe3d0) 0%, var(--paper, #f5efe0) 100%);
+  border: 2px solid var(--gold, #c8a951);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 20px 0;
+}
+.audit-type-selector h2 {
+  font-family: var(--serif);
+  font-size: 22px;
+  color: var(--green-deep);
+  margin: 0 0 8px 0;
+}
+.audit-type-selector .selector-subtitle {
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin-bottom: 20px;
+}
+.audit-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.audit-card {
+  background: white;
+  border: 2px solid var(--paper-deep);
+  border-radius: 8px;
+  padding: 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+.audit-card:hover:not(.disabled) {
+  border-color: var(--gold);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(168, 127, 42, 0.15);
+}
+.audit-card.selected {
+  border-color: var(--green-primary);
+  background: linear-gradient(135deg, rgba(46, 125, 92, 0.05) 0%, white 100%);
+  box-shadow: 0 2px 8px rgba(46, 125, 92, 0.2);
+}
+.audit-card.selected::before {
+  content: '✓';
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  background: var(--green-primary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+.audit-card.disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: var(--paper-deep);
+}
+.audit-card .audit-card-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: var(--gold);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-bottom-right-radius: 6px;
+  letter-spacing: 0.5px;
+}
+.audit-card .audit-card-name {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--green-deep);
+  margin: 8px 0 4px 0;
+}
+.audit-card .audit-card-desc {
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.4;
+  margin-bottom: 14px;
+  flex-grow: 1;
+}
+.audit-card .audit-card-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding: 10px;
+  background: var(--paper);
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+.audit-card .audit-card-stat {
+  display: flex;
+  flex-direction: column;
+}
+.audit-card .audit-card-stat-label {
+  font-size: 9px;
+  color: var(--ink-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.audit-card .audit-card-stat-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.audit-card .audit-card-stat-value.field-count {
+  font-family: var(--mono);
+  color: var(--green-primary);
+  font-size: 15px;
+}
+.audit-card .audit-card-button {
+  padding: 8px 14px;
+  background: var(--green-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+  width: 100%;
+  font-family: var(--sans);
+}
+.audit-card.selected .audit-card-button {
+  background: var(--green-deep);
+}
+.audit-card.selected .audit-card-button::after {
+  content: ' — Wybrano';
+}
+.audit-card.disabled .audit-card-button {
+  background: var(--ink-mute);
+  cursor: not-allowed;
+}
+
+/* Pasek narzędzi */
+.audit-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--paper-deep);
+  flex-wrap: wrap;
+}
+.audit-actions button {
+  padding: 8px 14px;
+  background: white;
+  border: 1px solid var(--paper-deep);
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-family: var(--sans);
+}
+.audit-actions button:hover {
+  border-color: var(--gold);
+  color: var(--ink);
+}
+
+/* Tabela porównawcza */
+.audit-comparison-table {
+  margin-top: 20px;
+  display: none;
+}
+.audit-comparison-table.visible {
+  display: block;
+}
+.audit-comparison-table table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 6px;
+  overflow: hidden;
+  font-size: 12px;
+}
+.audit-comparison-table th,
+.audit-comparison-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--paper-deep);
+}
+.audit-comparison-table th {
+  background: var(--paper-deep);
+  font-weight: 600;
+  color: var(--green-deep);
+}
+.audit-comparison-table .check {
+  color: var(--ok);
+  font-weight: bold;
+  text-align: center;
+}
+.audit-comparison-table .cross {
+  color: var(--rose);
+  text-align: center;
+}
+
+/* TRYB AUDYTORA ENESA */
+body.mode-enesa {
+  /* Tryb audytora ma wszystko widoczne */
+}
+.mode-enesa-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(90deg, var(--rose) 0%, var(--gold) 50%, var(--rose) 100%);
+  color: white;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  z-index: 10000;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  display: none;
+}
+body.mode-enesa .mode-enesa-banner {
+  display: block;
+}
+body.mode-enesa {
+  padding-top: 28px;
+}
+body.mode-enesa nav, 
+body.mode-enesa .layout {
+  margin-top: 28px;
+}
+
+/* UKRYWANIE pól i sekcji spoza profilu */
+/* Domyślnie nic nie ukryte (profil-active musi być włączony) */
+
+body.profile-active.profile-eed [data-audit-profile]:not([data-audit-profile*="eed"]),
+body.profile-active.profile-white-cert [data-audit-profile]:not([data-audit-profile*="white-cert"]),
+body.profile-active.profile-iso50001 [data-audit-profile]:not([data-audit-profile*="iso50001"]),
+body.profile-active.profile-full-map [data-audit-profile]:not([data-audit-profile*="full-map"]),
+body.profile-active.profile-custom [data-audit-profile]:not([data-audit-profile*="custom"]) {
+  display: none !important;
+}
+
+/* W trybie audytora - NIE ukrywaj nic, ale wyszarz pola spoza profilu */
+body.mode-enesa.profile-active [data-audit-profile] {
+  display: revert !important;
+}
+body.mode-enesa.profile-active.profile-eed [data-audit-profile]:not([data-audit-profile*="eed"]),
+body.mode-enesa.profile-active.profile-iso50001 [data-audit-profile]:not([data-audit-profile*="iso50001"]),
+body.mode-enesa.profile-active.profile-full-map [data-audit-profile]:not([data-audit-profile*="full-map"]) {
+  opacity: 0.4;
+  background: rgba(0,0,0,0.02);
+}
+
+/* Sekcje (etap-N) bez aktywnych pól - chowamy całą sekcję */
+section.section.section-hidden-by-profile {
+  display: none !important;
+}
+/* W trybie "pokaż wszystko" - sekcje wracają z oznaczeniem */
+body.show-all-sections section.section.section-hidden-by-profile {
+  display: block !important;
+  position: relative;
+  border: 2px dashed var(--gold);
+  background: rgba(168, 127, 42, 0.03);
+}
+body.show-all-sections section.section.section-hidden-by-profile::before {
+  content: '👁️ PODGLĄD — sekcja spoza Twojego profilu audytu (tylko do wglądu, nie wypełniaj)';
+  position: sticky;
+  top: 0;
+  display: block;
+  padding: 8px 16px;
+  background: var(--gold);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 100;
+  margin: -1px;
+}
+
+/* Menu boczne - chowanie linków do sekcji */
+nav .nav-link.nav-hidden-by-profile {
+  display: none;
+}
+body.show-all-sections nav .nav-link.nav-hidden-by-profile {
+  display: block;
+  opacity: 0.6;
+  border-left: 3px dashed var(--gold);
+}
+body.show-all-sections nav .nav-link.nav-hidden-by-profile::after {
+  content: ' 👁️';
+  font-size: 11px;
+}
+
+/* Pasek "Pokaż wszystko" w menu */
+.show-all-toggle {
+  margin: 12px 8px;
+  padding: 8px 12px;
+  background: var(--paper-deep);
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  width: calc(100% - 16px);
+  font-family: var(--sans);
+  color: var(--ink-soft);
+}
+.show-all-toggle:hover {
+  background: var(--gold);
+  color: white;
+}
+.show-all-toggle.active {
+  background: var(--gold);
+  color: white;
+}
+.show-all-toggle.active::before {
+  content: '👁️ ';
+}
+
+/* Progress bar v1.6 - per profil */
+.audit-progress-info {
+  margin: 10px 8px;
+  padding: 8px 12px;
+  background: var(--paper);
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--ink-soft);
+  border-left: 3px solid var(--green-primary);
+}
+.audit-progress-info .progress-line {
+  font-weight: 600;
+  color: var(--green-deep);
+  font-size: 13px;
+  font-family: var(--mono);
+}
+.audit-progress-info .progress-bar-bg {
+  height: 6px;
+  background: var(--paper-deep);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 6px 0 4px 0;
+}
+.audit-progress-info .progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green-light), var(--green-primary));
+  transition: width 0.3s;
+}
+
+/* ============================================================ */
+
+
 </style>
 
 <div class="save-indicator" id="save-indicator">Zapisano</div>
 
 <div class="enesa-form-body">
 
-
-<div class="save-indicator" id="save-indicator">Zapisano lokalnie</div>
 
 <!-- ====== SIDENAV ====== -->
 <nav class="sidenav">
@@ -1462,6 +1822,31 @@ body.profile-active .profile-stats { display: block; }
     </div>
 
     <div class="section-body">
+
+
+<div class="audit-type-selector" id="audit-type-selector">
+  <h2>🎯 Wybierz typ audytu energetycznego</h2>
+  <div class="selector-subtitle">
+    Wybierz audyt który najlepiej odpowiada Twoim potrzebom. Liczba pól, czas i cena są szacunkowe — możesz w każdej chwili zmienić wybór.
+  </div>
+  
+  <div class="audit-cards" id="audit-cards-container">
+    <!-- Karty zostaną wygenerowane przez JS na bazie AUDIT_PROFILES -->
+  </div>
+  
+  <div class="audit-actions">
+    <button type="button" onclick="enesaToggleComparisonTable()">📊 Porównaj profile</button>
+    <button type="button" onclick="enesaClearAuditProfile()">↺ Wyczyść wybór</button>
+    <button type="button" onclick="enesaShowAllSections()" id="show-all-btn-startup">👁️ Pokaż wszystkie pola (podgląd)</button>
+  </div>
+  
+  <div class="audit-comparison-table" id="audit-comparison-table">
+    <!-- Tabela porównawcza wygenerowana przez JS -->
+  </div>
+</div>
+
+
+
 
       <div class="profile-selector-panel" id="audit-profile-selector">
   <h3>🎯 Profil audytu energetycznego</h3>
@@ -7711,6 +8096,377 @@ window.enesaShowComplianceReport = function(profile) {
 };
 
 console.log('[ENESA Validator] Ready. Use: enesaValidateCompliance("eed"|"iso50001"), enesaShowComplianceReport()');
+
+
+// ============================================================
+// === ARCHITEKTURA C v1.6 — funkcje dynamiczne ===============
+// ============================================================
+
+/**
+ * Renderuje karty wyboru typu audytu na podstawie AUDIT_PROFILES.
+ * Wywoływana przy starcie strony.
+ */
+function renderAuditCards() {
+  const container = document.getElementById('audit-cards-container');
+  if (!container) return;
+  
+  const currentProfile = enesaStorage.get('enesa_audit_profile');
+  let html = '';
+  
+  // Kolejność kart — od najtańszych do najdroższych
+  const order = ['eed', 'white-cert', 'iso50001', 'full-map', 'custom'];
+  
+  order.forEach(function(profileKey) {
+    const profile = AUDIT_PROFILES[profileKey];
+    if (!profile) return;
+    
+    const isSelected = currentProfile === profileKey;
+    const isDisabled = !profile.enabled;
+    const cssClasses = ['audit-card'];
+    if (isSelected) cssClasses.push('selected');
+    if (isDisabled) cssClasses.push('disabled');
+    
+    // Liczymy realne pola dla tego profilu (z całego DOMu)
+    const fieldsCount = countFieldsForProfile(profileKey);
+    
+    // Badge dla rekomendowanych
+    let badge = '';
+    if (profileKey === 'eed') badge = '<div class="audit-card-badge">Obowiązkowy</div>';
+    else if (profileKey === 'iso50001') badge = '<div class="audit-card-badge">Rekomendowany</div>';
+    
+    html += '<div class="' + cssClasses.join(' ') + '" data-profile="' + profileKey + '" onclick="enesaSelectAuditFromCard(\'' + profileKey + '\')">';
+    html += badge;
+    html += '<div class="audit-card-name">' + profile.name + '</div>';
+    html += '<div class="audit-card-desc">' + profile.description + '</div>';
+    html += '<div class="audit-card-stats">';
+    html += '<div class="audit-card-stat"><span class="audit-card-stat-label">Pól</span><span class="audit-card-stat-value field-count">' + (fieldsCount > 0 ? fieldsCount : profile.fields_estimate) + '</span></div>';
+    html += '<div class="audit-card-stat"><span class="audit-card-stat-label">Czas</span><span class="audit-card-stat-value">' + profile.duration_estimate + '</span></div>';
+    html += '<div class="audit-card-stat"><span class="audit-card-stat-label">Cena</span><span class="audit-card-stat-value">' + profile.price_range + '</span></div>';
+    html += '<div class="audit-card-stat"><span class="audit-card-stat-label">Status</span><span class="audit-card-stat-value">' + (isDisabled ? 'Wkrótce' : 'Dostępny') + '</span></div>';
+    html += '</div>';
+    html += '<button type="button" class="audit-card-button">' + (isSelected ? 'Wybrano' : (isDisabled ? 'Niedostępny' : 'Wybierz')) + '</button>';
+    html += '</div>';
+  });
+  
+  container.innerHTML = html;
+}
+
+/**
+ * Wybór profilu z karty — wywołuje istniejącą enesaSetAuditProfile i odświeża karty.
+ */
+function enesaSelectAuditFromCard(profileKey) {
+  const profile = AUDIT_PROFILES[profileKey];
+  if (!profile || !profile.enabled) return;
+  
+  // Wywołaj istniejącą funkcję
+  enesaSetAuditProfile(profileKey);
+  
+  // Odśwież karty (oznaczenie wybranego)
+  renderAuditCards();
+  
+  // Pokaż info dla użytkownika
+  setTimeout(function() {
+    updateProgressInfo();
+    applyProfileSectionVisibility(profileKey);
+  }, 100);
+}
+
+/**
+ * Liczy liczbę pól w DOM dla danego profilu.
+ */
+function countFieldsForProfile(profileKey) {
+  const allFields = document.querySelectorAll('[data-audit-profile]');
+  let count = 0;
+  allFields.forEach(function(el) {
+    const profiles = (el.dataset.auditProfile || '').split(',').filter(function(p) { return p.trim(); });
+    if (profiles.includes(profileKey)) count++;
+  });
+  return count;
+}
+
+/**
+ * Aplikuje widoczność sekcji (etap-N) — sekcje BEZ pól dla profilu są chowane.
+ */
+function applyProfileSectionVisibility(profileKey) {
+  // Tryb audytora — nie chowamy nic
+  if (document.body.classList.contains('mode-enesa')) {
+    document.querySelectorAll('section.section').forEach(function(s) {
+      s.classList.remove('section-hidden-by-profile');
+    });
+    document.querySelectorAll('nav .nav-link, nav a').forEach(function(a) {
+      a.classList.remove('nav-hidden-by-profile');
+    });
+    return;
+  }
+  
+  // Bez aktywnego profilu — nie chowamy
+  if (!profileKey) {
+    document.querySelectorAll('section.section').forEach(function(s) {
+      s.classList.remove('section-hidden-by-profile');
+    });
+    return;
+  }
+  
+  // Dla każdej sekcji etap-N sprawdź czy ma jakiekolwiek pole dla tego profilu
+  document.querySelectorAll('section.section[id^="etap-"]').forEach(function(section) {
+    const sectionId = section.id;  // np. "etap-5"
+    
+    // Sekcja E0 (audit-type-selector) zawsze widoczna
+    if (sectionId === 'etap-0') {
+      section.classList.remove('section-hidden-by-profile');
+      return;
+    }
+    
+    const fieldsInSection = section.querySelectorAll('[data-audit-profile]');
+    let hasMatchingField = false;
+    fieldsInSection.forEach(function(f) {
+      const profs = (f.dataset.auditProfile || '').split(',').filter(function(p) { return p.trim(); });
+      if (profs.includes(profileKey)) hasMatchingField = true;
+    });
+    
+    if (hasMatchingField) {
+      section.classList.remove('section-hidden-by-profile');
+    } else {
+      section.classList.add('section-hidden-by-profile');
+    }
+    
+    // Aktualizuj odpowiedni link w menu bocznym
+    const navLinks = document.querySelectorAll('nav a[href="#' + sectionId + '"], nav .nav-link[data-target="' + sectionId + '"]');
+    navLinks.forEach(function(link) {
+      if (hasMatchingField) {
+        link.classList.remove('nav-hidden-by-profile');
+      } else {
+        link.classList.add('nav-hidden-by-profile');
+      }
+    });
+  });
+}
+
+/**
+ * Przełącza widoczność tabeli porównawczej profili.
+ */
+function enesaToggleComparisonTable() {
+  const table = document.getElementById('audit-comparison-table');
+  if (!table) return;
+  
+  if (table.classList.contains('visible')) {
+    table.classList.remove('visible');
+    return;
+  }
+  
+  // Wygeneruj zawartość
+  let html = '<table><thead><tr><th>Cecha</th>';
+  const profileKeys = Object.keys(AUDIT_PROFILES);
+  profileKeys.forEach(function(k) {
+    html += '<th>' + AUDIT_PROFILES[k].name + '</th>';
+  });
+  html += '</tr></thead><tbody>';
+  
+  // Wiersz: liczba pól
+  html += '<tr><td>Liczba pól (orientacyjnie)</td>';
+  profileKeys.forEach(function(k) {
+    const real = countFieldsForProfile(k);
+    html += '<td>' + (real > 0 ? real : AUDIT_PROFILES[k].fields_estimate) + '</td>';
+  });
+  html += '</tr>';
+  
+  // Wiersz: czas
+  html += '<tr><td>Czas trwania audytu</td>';
+  profileKeys.forEach(function(k) {
+    html += '<td>' + AUDIT_PROFILES[k].duration_estimate + '</td>';
+  });
+  html += '</tr>';
+  
+  // Wiersz: cena
+  html += '<tr><td>Orientacyjna cena</td>';
+  profileKeys.forEach(function(k) {
+    html += '<td>' + AUDIT_PROFILES[k].price_range + '</td>';
+  });
+  html += '</tr>';
+  
+  // Wiersz: dostępność
+  html += '<tr><td>Dostępność</td>';
+  profileKeys.forEach(function(k) {
+    html += '<td class="' + (AUDIT_PROFILES[k].enabled ? 'check' : 'cross') + '">' + 
+            (AUDIT_PROFILES[k].enabled ? '✓ Dostępny' : '— Wkrótce') + '</td>';
+  });
+  html += '</tr>';
+  
+  // Wiersz: opis
+  html += '<tr><td>Opis</td>';
+  profileKeys.forEach(function(k) {
+    html += '<td style="font-size:11px">' + AUDIT_PROFILES[k].description + '</td>';
+  });
+  html += '</tr>';
+  
+  html += '</tbody></table>';
+  
+  table.innerHTML = html;
+  table.classList.add('visible');
+}
+
+/**
+ * Przełącza tryb "pokaż wszystko" — odsłania sekcje spoza profilu.
+ */
+function enesaShowAllSections() {
+  const body = document.body;
+  if (body.classList.contains('show-all-sections')) {
+    body.classList.remove('show-all-sections');
+    const toggle = document.querySelector('.show-all-toggle');
+    if (toggle) toggle.classList.remove('active');
+  } else {
+    body.classList.add('show-all-sections');
+    const toggle = document.querySelector('.show-all-toggle');
+    if (toggle) toggle.classList.add('active');
+  }
+}
+
+/**
+ * Aktualizuje progress info w menu bocznym.
+ */
+function updateProgressInfo() {
+  const container = document.getElementById('audit-progress-info');
+  if (!container) return;
+  
+  const profile = enesaStorage.get('enesa_audit_profile');
+  if (!profile) {
+    container.innerHTML = '<div style="font-size:11px;color:var(--ink-mute)">Wybierz typ audytu aby zobaczyć postęp</div>';
+    return;
+  }
+  
+  const profileName = AUDIT_PROFILES[profile] ? AUDIT_PROFILES[profile].name : profile;
+  const totalFields = countFieldsForProfile(profile);
+  
+  // Liczymy wypełnione pola dla tego profilu
+  let filledFields = 0;
+  document.querySelectorAll('[data-audit-profile]').forEach(function(el) {
+    const profs = (el.dataset.auditProfile || '').split(',').filter(function(p) { return p.trim(); });
+    if (profs.includes(profile) && el.value && el.value.toString().trim()) {
+      filledFields++;
+    }
+  });
+  
+  const pct = totalFields > 0 ? Math.round(filledFields / totalFields * 100) : 0;
+  
+  container.innerHTML = 
+    '<div style="font-size:10px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Postęp · ' + profileName + '</div>' +
+    '<div class="progress-line">' + filledFields + ' / ' + totalFields + ' pól (' + pct + '%)</div>' +
+    '<div class="progress-bar-bg"><div class="progress-bar-fill" style="width:' + pct + '%"></div></div>' +
+    '<div style="font-size:10px;color:var(--ink-mute)">Aktualizuje się w trakcie wypełniania</div>';
+}
+
+/**
+ * Inicjalizacja architektury C — wywoływana po DOMContentLoaded.
+ */
+function initArchitectureC() {
+  // 1. Sprawdź URL — czy tryb audytora?
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('mode') === 'enesa') {
+    document.body.classList.add('mode-enesa');
+    console.log('[ENESA Arch C] Tryb audytora WŁĄCZONY');
+  }
+  
+  // 2. Renderuj karty wyboru audytu
+  renderAuditCards();
+  
+  // 3. Aplikuj widoczność sekcji dla aktualnie wybranego profilu
+  const currentProfile = enesaStorage.get('enesa_audit_profile');
+  if (currentProfile) {
+    applyProfileSectionVisibility(currentProfile);
+  }
+  
+  // 4. Wstaw progress info w menu bocznym (przed pierwszym linkiem)
+  const nav = document.querySelector('nav');
+  if (nav && !document.getElementById('audit-progress-info')) {
+    const progressDiv = document.createElement('div');
+    progressDiv.id = 'audit-progress-info';
+    progressDiv.className = 'audit-progress-info';
+    nav.insertBefore(progressDiv, nav.firstChild);
+    updateProgressInfo();
+  }
+  
+  // 5. Dodaj przycisk "Pokaż wszystko" w menu bocznym
+  if (nav && !document.querySelector('.show-all-toggle')) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'show-all-toggle';
+    btn.textContent = '👁️ Pokaż wszystkie sekcje';
+    btn.onclick = enesaShowAllSections;
+    nav.insertBefore(btn, nav.firstChild);
+  }
+  
+  // 6. Aktualizuj progress przy każdej zmianie pola
+  document.body.addEventListener('input', function(e) {
+    if (e.target.dataset && e.target.dataset.auditProfile) {
+      // Debounce
+      clearTimeout(window._progressUpdateTimer);
+      window._progressUpdateTimer = setTimeout(updateProgressInfo, 500);
+    }
+  });
+  
+  console.log('[ENESA Arch C] Inicjalizacja zakończona');
+}
+
+// Uruchom po załadowaniu DOMa
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initArchitectureC);
+} else {
+  setTimeout(initArchitectureC, 100);
+}
+
+// Eksport
+window.enesaSelectAuditFromCard = enesaSelectAuditFromCard;
+window.enesaToggleComparisonTable = enesaToggleComparisonTable;
+window.enesaShowAllSections = enesaShowAllSections;
+window.renderAuditCards = renderAuditCards;
+window.applyProfileSectionVisibility = applyProfileSectionVisibility;
+window.updateProgressInfo = updateProgressInfo;
+window.countFieldsForProfile = countFieldsForProfile;
+
+console.log('[ENESA Arch C v1.6] Załadowano: 7 nowych funkcji + tryb audytora + dynamiczne ukrywanie');
+
+
+
+// Wrapper dla enesaSetAuditProfile aby automatycznie aplikował widoczność sekcji
+(function() {
+  if (typeof window.enesaSetAuditProfile === 'function' && !window._enesaSetAuditProfileWrapped) {
+    const original = window.enesaSetAuditProfile;
+    window.enesaSetAuditProfile = function(profileKey) {
+      original.call(this, profileKey);
+      setTimeout(function() {
+        if (typeof applyProfileSectionVisibility === 'function') {
+          applyProfileSectionVisibility(profileKey);
+        }
+        if (typeof updateProgressInfo === 'function') {
+          updateProgressInfo();
+        }
+        if (typeof renderAuditCards === 'function') {
+          renderAuditCards();
+        }
+      }, 50);
+    };
+    window._enesaSetAuditProfileWrapped = true;
+    console.log('[ENESA Arch C] enesaSetAuditProfile wrapped');
+  }
+  if (typeof window.enesaClearAuditProfile === 'function' && !window._enesaClearWrapped) {
+    const orig = window.enesaClearAuditProfile;
+    window.enesaClearAuditProfile = function() {
+      orig.call(this);
+      setTimeout(function() {
+        document.querySelectorAll('section.section').forEach(function(s) {
+          s.classList.remove('section-hidden-by-profile');
+        });
+        document.querySelectorAll('.nav-hidden-by-profile').forEach(function(n) {
+          n.classList.remove('nav-hidden-by-profile');
+        });
+        if (typeof renderAuditCards === 'function') renderAuditCards();
+        if (typeof updateProgressInfo === 'function') updateProgressInfo();
+      }, 50);
+    };
+    window._enesaClearWrapped = true;
+  }
+})();
+
 
 
 // === LARAVEL BLADE OVERRIDES ===
