@@ -613,30 +613,31 @@ body { margin: 0; }
 .status-error { color: var(--rose); font-weight: 600; }
 .status-warning { color: var(--gold); font-weight: 600; }
 
+/* === Save indicator — mały toast prawy górny róg === */
 .save-indicator {
   position: fixed;
-  top: 16px;
-  right: 24px;
-  background: var(--green-deep);
-  color: var(--paper);
-  padding: 8px 14px;
+  top: 12px;
+  right: 16px;
+  background: rgba(26,77,58,0.92);
+  color: #d4edda;
+  padding: 5px 10px;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   opacity: 0;
-  transform: translateY(-10px);
-  transition: all 0.3s ease;
-  z-index: 100;
+  transform: translateY(-6px);
+  transition: opacity 0.25s, transform 0.25s;
+  z-index: 10001;
   pointer-events: none;
+  white-space: nowrap;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
 }
 .save-indicator.show {
   opacity: 1;
   transform: translateY(0);
-}
-.save-indicator::before {
-  content: '✓ ';
-  color: var(--ok-light);
-  font-weight: 700;
 }
 
 /* === Flag KPI (czerwone flagi) === */

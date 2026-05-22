@@ -597,31 +597,31 @@ body { margin: 0; }
 .status-error { color: var(--rose); font-weight: 600; }
 .status-warning { color: var(--gold); font-weight: 600; }
 
-/* === Save indicator (top-right corner) === */
+/* === Save indicator — mały toast prawy górny róg === */
 .save-indicator {
   position: fixed;
-  top: 16px;
-  right: 24px;
-  background: var(--green-deep);
-  color: var(--paper);
-  padding: 8px 14px;
+  top: 12px;
+  right: 16px;
+  background: rgba(26,77,58,0.92);
+  color: #d4edda;
+  padding: 5px 10px;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   opacity: 0;
-  transform: translateY(-10px);
-  transition: all 0.3s ease;
-  z-index: 100;
+  transform: translateY(-6px);
+  transition: opacity 0.25s, transform 0.25s;
+  z-index: 10001;
   pointer-events: none;
+  white-space: nowrap;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
 }
 .save-indicator.show {
   opacity: 1;
   transform: translateY(0);
-}
-.save-indicator::before {
-  content: '✓ ';
-  color: var(--ok-light);
-  font-weight: 700;
 }
 
 /* === Responsive === */
@@ -1015,27 +1015,7 @@ body { margin: 0; }
   margin: 4px 0;
 }
 
-/* Save indicator */
-#save-indicator {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  background: var(--green-deep, #0a2c20);
-  color: white;
-  padding: 10px 18px;
-  border-radius: 6px;
-  font-size: 13px;
-  z-index: 9999;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.2s, transform 0.2s;
-  pointer-events: none;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-}
-#save-indicator.show {
-  opacity: 1;
-  transform: translateY(0);
-}
+/* Save indicator — nadpisany przez .save-indicator w górnej sekcji CSS */
 
 /* Print stylesheet — E13 na 1 stronę A4 */
 @media print {
@@ -8527,7 +8507,7 @@ scheduleAutoSave = function() {
       headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF},
       body: JSON.stringify({fields: data, completion_percent: pct, company_id: COMPANY_ID})
     }).then(r => r.json()).then(d => {
-      showSaveIndicator('Zapisano (' + Object.keys(data).filter(k=>!k.startsWith('_')).length + ' pol)');
+      showSaveIndicator('✓ Zapisano');
     }).catch(err => {
       showSaveIndicator('Blad zapisu!');
       console.error('Save error:', err);
