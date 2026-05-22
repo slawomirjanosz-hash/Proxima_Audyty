@@ -65,6 +65,53 @@
                     </div>
                 </div>
 
+                <div class="dashboard-section" data-section-id="company-funnel" draggable="true">
+                    <div class="dashboard-section-header">
+                        <h3 class="dashboard-section-title">🧭 Lejek firm (Lead → Oferta → Audyt)</h3>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <button type="button" class="crm-collapse-btn" onclick="toggleSection('company-funnel')" title="Zwiń/Rozwiń">▼</button>
+                            <span class="dashboard-drag-handle" title="Przeciągnij sekcję">↕ Przesuń</span>
+                        </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:10px;">
+                        <div style="border:1px solid #c7d2fe; border-radius:10px; background:#eef2ff; padding:10px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <strong style="color:#3730a3;">Leady</strong>
+                                <span style="background:#c7d2fe; color:#312e81; border-radius:999px; padding:2px 8px; font-size:11px; font-weight:700;">{{ $companyFunnel['leads']->count() }}</span>
+                            </div>
+                            @forelse($companyFunnel['leads']->take(6) as $leadCompany)
+                                <div style="font-size:12px; margin-bottom:4px;">• {{ $leadCompany->name }}</div>
+                            @empty
+                                <div class="muted" style="font-size:12px;">Brak leadów.</div>
+                            @endforelse
+                        </div>
+
+                        <div style="border:1px solid #fcd34d; border-radius:10px; background:#fffbeb; padding:10px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <strong style="color:#92400e;">Oferta</strong>
+                                <span style="background:#fde68a; color:#78350f; border-radius:999px; padding:2px 8px; font-size:11px; font-weight:700;">{{ $companyFunnel['offer_sent']->count() }}</span>
+                            </div>
+                            @forelse($companyFunnel['offer_sent']->take(6) as $offerCompany)
+                                <div style="font-size:12px; margin-bottom:4px;">• {{ $offerCompany->name }}</div>
+                            @empty
+                                <div class="muted" style="font-size:12px;">Brak firm na etapie oferty.</div>
+                            @endforelse
+                        </div>
+
+                        <div style="border:1px solid #86efac; border-radius:10px; background:#ecfdf3; padding:10px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <strong style="color:#166534;">Audyty w toku</strong>
+                                <span style="background:#bbf7d0; color:#14532d; border-radius:999px; padding:2px 8px; font-size:11px; font-weight:700;">{{ $companyFunnel['audits_in_progress']->count() }}</span>
+                            </div>
+                            @forelse($companyFunnel['audits_in_progress']->take(6) as $auditCompany)
+                                <div style="font-size:12px; margin-bottom:4px;">• {{ $auditCompany->name }}</div>
+                            @empty
+                                <div class="muted" style="font-size:12px;">Brak aktywnych audytów.</div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+
                 <div class="dashboard-section" data-section-id="funnel" draggable="true">
                     <div class="dashboard-section-header">
                         <h3 class="dashboard-section-title">💼 Lejek Sprzedażowy</h3>
@@ -308,6 +355,22 @@
                     <button type="button" onclick="showCompanyModal()">➕ Dodaj Firmę</button>
                 </div>
             </div>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:8px; margin-bottom:10px;">
+                <div style="padding:10px; border-radius:10px; background:#eef2ff; border:1px solid #c7d2fe;">
+                    <div style="font-size:12px; color:#3730a3; font-weight:700;">Leady</div>
+                    <div style="font-size:24px; font-weight:800; color:#312e81;">{{ $companyFunnel['leads']->count() }}</div>
+                </div>
+                <div style="padding:10px; border-radius:10px; background:#fffbeb; border:1px solid #fcd34d;">
+                    <div style="font-size:12px; color:#92400e; font-weight:700;">Oferta</div>
+                    <div style="font-size:24px; font-weight:800; color:#78350f;">{{ $companyFunnel['offer_sent']->count() }}</div>
+                </div>
+                <div style="padding:10px; border-radius:10px; background:#ecfdf3; border:1px solid #86efac;">
+                    <div style="font-size:12px; color:#166534; font-weight:700;">Audyty w toku</div>
+                    <div style="font-size:24px; font-weight:800; color:#14532d;">{{ $companyFunnel['audits_in_progress']->count() }}</div>
+                </div>
+            </div>
+
             <table>
                 <thead>
                     <tr>

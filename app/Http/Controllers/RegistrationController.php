@@ -11,6 +11,7 @@ use App\Mail\RegistrationRejectedMail;
 use App\Mail\WelcomeClientMail;
 use App\Models\ClientRegistration;
 use App\Models\Company;
+use App\Models\CrmCompany;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -119,7 +120,9 @@ class RegistrationController extends Controller
 
         unset($validated['accepted_terms']);
 
-        ClientRegistration::create($validated);
+        $registration = ClientRegistration::create($validated);
+
+        $this->upsertCrmLeadFromRegistration($registration);
 
         try {
             Mail::to($validated['email'])->send(new RegistrationReceivedMail(
@@ -176,6 +179,8 @@ class RegistrationController extends Controller
         // Link user as primary client of the company
         $company->update(['client_id' => $user->id]);
         $company->assignedUsers()->syncWithoutDetaching([$user->id]);
+
+        $this->promoteCrmLeadAfterAcceptance($reg, $company);
 
         $reg->update(['status' => 'accepted']);
 
@@ -236,5 +241,108 @@ class RegistrationController extends Controller
         $checkDigit = $sum % 11;
 
         return $checkDigit < 10 && $checkDigit === (int) $nip[9];
+    }
+
+    private function upsertCrmLeadFromRegistration(ClientRegistration $registration): void
+    {
+        $nip = preg_replace('/\D+/', '', (string) $registration->nip);
+
+        $crmCompany = CrmCompany::query()
+            ->when($nip !== '', function ($query) use ($nip): void {
+                $query->where('nip', $nip);
+            }, function ($query) use ($registration): void {
+                $query->where('email', (string) $registration->email);
+            })
+            ->orWhere(function ($query) use ($registration): void {
+                $query->where('name', Company::normalizeLegalForm((string) $registration->name));
+                $query->whereNull('deleted_at');
+            })
+            ->first();
+
+        $name = Company::normalizeLegalForm((string) $registration->name);
+        $notes = trim('Lead z rejestracji WWW. Kontakt: ' . trim((string) $registration->first_name . ' ' . (string) $registration->last_name));
+
+        if (! $crmCompany) {
+            CrmCompany::create([
+                'name' => $name,
+                'short_name' => (string) ($registration->short_name ?: mb_substr($name, 0, 12)),
+                'nip' => $nip !== '' ? $nip : null,
+                'email' => $registration->email,
+                'phone' => $registration->phone,
+                'address' => $registration->street,
+                'city' => $registration->city,
+                'postal_code' => $registration->postal_code,
+                'country' => 'Polska',
+                'type' => 'potencjalny',
+                'status' => 'aktywny',
+                'notes' => $notes,
+                'source' => 'rejestracja_www',
+            ]);
+
+            return;
+        }
+
+        $updates = [
+            'name' => $crmCompany->name ?: $name,
+            'short_name' => $crmCompany->short_name ?: (string) ($registration->short_name ?: mb_substr($name, 0, 12)),
+            'nip' => $crmCompany->nip ?: ($nip !== '' ? $nip : null),
+            'email' => $crmCompany->email ?: $registration->email,
+            'phone' => $crmCompany->phone ?: $registration->phone,
+            'address' => $crmCompany->address ?: $registration->street,
+            'city' => $crmCompany->city ?: $registration->city,
+            'postal_code' => $crmCompany->postal_code ?: $registration->postal_code,
+            'country' => $crmCompany->country ?: 'Polska',
+            'status' => $crmCompany->status ?: 'aktywny',
+            'source' => $crmCompany->source ?: 'rejestracja_www',
+        ];
+
+        if (blank($crmCompany->notes)) {
+            $updates['notes'] = $notes;
+        }
+
+        if ($crmCompany->type !== 'klient') {
+            $updates['type'] = 'potencjalny';
+        }
+
+        $crmCompany->update($updates);
+    }
+
+    private function promoteCrmLeadAfterAcceptance(ClientRegistration $registration, Company $company): void
+    {
+        $nip = preg_replace('/\D+/', '', (string) $registration->nip);
+
+        $crmCompany = CrmCompany::query()
+            ->when($nip !== '', function ($query) use ($nip): void {
+                $query->where('nip', $nip);
+            }, function ($query) use ($registration): void {
+                $query->where('email', (string) $registration->email);
+            })
+            ->orWhere('name', Company::normalizeLegalForm((string) $registration->name))
+            ->first();
+
+        if ($crmCompany) {
+            $crmCompany->update([
+                'type' => 'klient',
+                'status' => 'aktywny',
+                'system_company_id' => $company->id,
+            ]);
+            return;
+        }
+
+        CrmCompany::create([
+            'name' => (string) $company->name,
+            'short_name' => (string) ($company->short_name ?: mb_substr((string) $company->name, 0, 12)),
+            'nip' => $company->nip,
+            'email' => $company->email,
+            'phone' => $company->phone,
+            'address' => $company->street,
+            'city' => $company->city,
+            'postal_code' => $company->postal_code,
+            'country' => 'Polska',
+            'type' => 'klient',
+            'status' => 'aktywny',
+            'source' => 'system',
+            'system_company_id' => $company->id,
+        ]);
     }
 }

@@ -157,6 +157,57 @@
             </div>
         @endif
 
+        <div class="dash-section open" id="dash-sec-sales-funnel">
+            <div class="dash-section-header" onclick="dashToggle('dash-sec-sales-funnel')">
+                <h2>🧭 Lejek sprzedażowy firm</h2>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="background:#e0f2fe; border:1px solid #bae6fd; color:#0369a1; font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px;">
+                        {{ $companies->count() }} firm łącznie
+                    </span>
+                    <span class="dash-chevron">▼</span>
+                </div>
+            </div>
+            <div class="dash-section-body">
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px;">
+                    <div style="border:1px solid #c7d2fe; border-radius:10px; background:#eef2ff; padding:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <strong style="color:#3730a3;">1. Leady</strong>
+                            <span style="background:#c7d2fe; color:#312e81; border-radius:999px; padding:2px 8px; font-size:11px; font-weight:700;">{{ $salesFunnel['leads']->count() }}</span>
+                        </div>
+                        @forelse($salesFunnel['leads']->take(8) as $leadCompany)
+                            <div style="font-size:12px; margin-bottom:4px;"><a href="{{ route('firma.show', $leadCompany) }}" style="color:#312e81; text-decoration:none;">• {{ $leadCompany->name }}</a></div>
+                        @empty
+                            <div style="font-size:12px; color:#6b7280;">Brak leadów.</div>
+                        @endforelse
+                    </div>
+
+                    <div style="border:1px solid #fcd34d; border-radius:10px; background:#fffbeb; padding:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <strong style="color:#92400e;">2. Oferta wysłana</strong>
+                            <span style="background:#fde68a; color:#78350f; border-radius:999px; padding:2px 8px; font-size:11px; font-weight:700;">{{ $salesFunnel['offer_sent']->count() }}</span>
+                        </div>
+                        @forelse($salesFunnel['offer_sent']->take(8) as $offerCompany)
+                            <div style="font-size:12px; margin-bottom:4px;"><a href="{{ route('firma.show', $offerCompany) }}" style="color:#78350f; text-decoration:none;">• {{ $offerCompany->name }}</a></div>
+                        @empty
+                            <div style="font-size:12px; color:#6b7280;">Brak firm z ofertą.</div>
+                        @endforelse
+                    </div>
+
+                    <div style="border:1px solid #86efac; border-radius:10px; background:#ecfdf3; padding:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <strong style="color:#166534;">3. Audyty w toku</strong>
+                            <span style="background:#bbf7d0; color:#14532d; border-radius:999px; padding:2px 8px; font-size:11px; font-weight:700;">{{ $salesFunnel['audits_in_progress']->count() }}</span>
+                        </div>
+                        @forelse($salesFunnel['audits_in_progress']->take(8) as $auditCompany)
+                            <div style="font-size:12px; margin-bottom:4px;"><a href="{{ route('firma.show', $auditCompany) }}" style="color:#14532d; text-decoration:none;">• {{ $auditCompany->name }}</a></div>
+                        @empty
+                            <div style="font-size:12px; color:#6b7280;">Brak firm z audytem w toku.</div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+        </div>
+
         @if ($pendingRegistrations->isNotEmpty())
             <div class="dash-section" id="dash-sec-registrations">
                 <div class="dash-section-header" onclick="dashToggle('dash-sec-registrations')">

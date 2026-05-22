@@ -13,6 +13,7 @@ use App\Models\CrmStage;
 use App\Models\CrmTask;
 use App\Models\CrmTaskChange;
 use App\Models\Company;
+use App\Models\EnergyAudit;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -35,7 +36,49 @@ class CrmController extends Controller
             $closedStageSlugs = ['wygrana', 'przegrana'];
         }
 
-        $companies = CrmCompany::with(['owner', 'customerType', 'systemCompany'])->latest()->take(120)->get();
+        $companies = CrmCompany::with([
+            'owner',
+            'customerType',
+            'systemCompany.energyAudits',
+            'systemCompany.offers',
+        ])
+            ->withCount('deals')
+            ->latest()
+            ->take(120)
+            ->get();
+
+        $activeAuditStatuses = EnergyAudit::ACTIVE_STATUSES;
+        $crmFunnelAuditsInProgress = $companies
+            ->filter(static function (CrmCompany $company) use ($activeAuditStatuses): bool {
+                if (! $company->systemCompany) {
+                    return false;
+                }
+
+                return $company->systemCompany->energyAudits->contains(static function (EnergyAudit $audit) use ($activeAuditStatuses): bool {
+                    return in_array((string) $audit->status, $activeAuditStatuses, true);
+                });
+            })
+            ->values();
+
+        $crmFunnelOfferSent = $companies
+            ->filter(static function (CrmCompany $company) use ($crmFunnelAuditsInProgress): bool {
+                if ($crmFunnelAuditsInProgress->contains('id', $company->id)) {
+                    return false;
+                }
+
+                $hasSystemOffer = $company->systemCompany && $company->systemCompany->offers->isNotEmpty();
+                $hasDeal = ((int) $company->deals_count) > 0;
+
+                return $hasSystemOffer || $hasDeal;
+            })
+            ->values();
+
+        $crmFunnelLeads = $companies
+            ->filter(static function (CrmCompany $company) use ($crmFunnelAuditsInProgress, $crmFunnelOfferSent): bool {
+                return ! $crmFunnelAuditsInProgress->contains('id', $company->id)
+                    && ! $crmFunnelOfferSent->contains('id', $company->id);
+            })
+            ->values();
 
         $deals = CrmDeal::with(['company', 'assignedUsers', 'owner', 'user'])
             ->where(function ($query) use ($userId): void {
@@ -123,6 +166,11 @@ class CrmController extends Controller
             'customerTypes' => CrmCustomerType::orderBy('name')->get(),
             'users' => User::whereIn('role', ['admin', 'auditor'])->orderBy('name')->get(),
             'stats' => $stats,
+            'companyFunnel' => [
+                'audits_in_progress' => $crmFunnelAuditsInProgress,
+                'offer_sent' => $crmFunnelOfferSent,
+                'leads' => $crmFunnelLeads,
+            ],
         ]);
     }
 
@@ -795,6 +843,14 @@ class CrmController extends Controller
 
             if (blank($crmCompany->source)) {
                 $updates['source'] = 'system';
+            }
+
+            if ($crmCompany->type !== 'klient') {
+                $updates['type'] = 'klient';
+            }
+
+            if (blank($crmCompany->status)) {
+                $updates['status'] = 'aktywny';
             }
 
             if ($updates !== []) {

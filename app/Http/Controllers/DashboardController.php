@@ -21,7 +21,9 @@ class DashboardController extends Controller
 
     public function index(): View
     {
-        $companies = Company::with(['client', 'auditor', 'assignedUsers', 'energyAudits'])->orderBy('name')->get();
+        $companies = Company::with(['client', 'auditor', 'assignedUsers', 'energyAudits', 'offers'])
+            ->orderBy('name')
+            ->get();
 
         // Group new inquiries by company_id for quick lookup
         $newInquiriesByCompany = ClientInquiry::where('status', 'new')
@@ -36,6 +38,38 @@ class DashboardController extends Controller
             ->selectRaw('company_id, count(*) as cnt')
             ->groupBy('company_id')
             ->pluck('cnt', 'company_id');
+
+        $activeAuditStatuses = EnergyAudit::ACTIVE_STATUSES;
+
+        $hasActiveAudit = static function (Company $company) use ($activeAuditStatuses): bool {
+            return $company->energyAudits->contains(static function (EnergyAudit $audit) use ($activeAuditStatuses): bool {
+                return in_array((string) $audit->status, $activeAuditStatuses, true);
+            });
+        };
+
+        $salesFunnelAuditsInProgress = $companies
+            ->filter(static fn (Company $company): bool => $hasActiveAudit($company))
+            ->values();
+
+        $salesFunnelOfferSent = $companies
+            ->filter(static function (Company $company) use ($hasActiveAudit, $acceptedOffersByCompany): bool {
+                if ($hasActiveAudit($company)) {
+                    return false;
+                }
+
+                $hasAcceptedOfferFromInquiry = (int) ($acceptedOffersByCompany[$company->id] ?? 0) > 0;
+                $hasAnyOffer = $company->offers->isNotEmpty();
+
+                return $hasAcceptedOfferFromInquiry || $hasAnyOffer;
+            })
+            ->values();
+
+        $salesFunnelLeads = $companies
+            ->filter(static function (Company $company) use ($salesFunnelAuditsInProgress, $salesFunnelOfferSent): bool {
+                return ! $salesFunnelAuditsInProgress->contains('id', $company->id)
+                    && ! $salesFunnelOfferSent->contains('id', $company->id);
+            })
+            ->values();
 
         // Count inquiries without a company (user has no company assigned)
         $orphanInquiries = ClientInquiry::where('status', 'new')
@@ -115,6 +149,11 @@ class DashboardController extends Controller
             'companies'               => $companies,
             'newInquiriesByCompany'   => $newInquiriesByCompany,
             'acceptedOffersByCompany' => $acceptedOffersByCompany,
+            'salesFunnel'             => [
+                'audits_in_progress' => $salesFunnelAuditsInProgress,
+                'offer_sent'         => $salesFunnelOfferSent,
+                'leads'              => $salesFunnelLeads,
+            ],
             'orphanInquiries'         => $orphanInquiries,
             'pendingRegistrations'    => $pendingRegistrations,
             'unreadChatByCompany'     => $unreadChatByCompany,
