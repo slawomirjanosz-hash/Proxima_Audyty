@@ -113,7 +113,7 @@
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div>
             <h3 style="margin:0 0 4px;font-size:16px;color:#1A4D3A;">Szablon HTML oferty</h3>
-            <p style="margin:0;font-size:12px;color:var(--ink-mute);">Znaczniki <code style="background:#f3f8f7;padding:1px 5px;border-radius:4px;">{{"{{"}}pole{{"}}"}}</code> zostaną zastąpione danymi oferty.</p>
+            <p style="margin:0;font-size:12px;color:var(--ink-mute);">Znaczniki <code style="background:#f3f8f7;padding:1px 5px;border-radius:4px;">{{"{{"}}pole{!! '}}' !!}</code> zostaną zastąpione danymi oferty.</p>
         </div>
         <button type="button" onclick="refreshPreview()" class="ot-btn ot-btn-blue" style="font-size:13px;padding:7px 14px;">↻ Odśwież podgląd</button>
     </div>
@@ -121,7 +121,7 @@
     <div class="placeholder-tags" style="margin-bottom:10px;">
         <strong style="font-size:11px;color:var(--ink-mute);align-self:center;margin-right:4px;">Wstaw:</strong>
         @foreach(['offer_title','offer_number','offer_date','auditor_hours','customer_name','customer_nip','customer_address','customer_postal_code','customer_city','customer_phone','customer_email','description','items_table','distance_km','km_rate','travel_hours','hour_rate','travel_cost','total_price','payment_terms'] as $ph)
-        <span onclick="insertPlaceholder('{{"{{"}}{{ $ph }}{{"}}"}}')">{{"{{"}}{{ $ph }}{{"}}"}}</span>
+        <span onclick="insertPlaceholder('{{"{{"}}{{ $ph }}{!! '}}' !!}')">{{"{{"}}{{ $ph }}{!! '}}' !!}</span>
         @endforeach
     </div>
 

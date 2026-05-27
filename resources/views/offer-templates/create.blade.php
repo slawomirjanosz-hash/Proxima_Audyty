@@ -137,7 +137,7 @@
             'distance_km','km_rate','travel_hours','hour_rate','travel_cost',
             'total_price','payment_terms'
         ] as $ph)
-        <span onclick="insertPlaceholder('{{"{{"}}{{ $ph }}{{"}}"}}')">{{"{{"}}{{ $ph }}{{"}}"}}</span>
+        <span onclick="insertPlaceholder('{{"{{"}}{{ $ph }}{!! '}}' !!}')">{{"{{"}}{{ $ph }}{!! '}}' !!}</span>
         @endforeach
     </div>
 
