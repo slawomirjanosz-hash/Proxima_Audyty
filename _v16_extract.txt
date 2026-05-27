@@ -1,0 +1,10 @@
+﻿=== AUDIT-TYPE-SELECTOR HTML ===
+Length: 946 chars
+Lines: 19
+First 200 chars: <div class="audit-type-selector" id="audit-type-selector">
+  <h2>­čÄ» Wybierz typ audytu energetycznego</h2>
+  <div class="selector-subtitle">
+    Wybierz audyt kt├│ry najlepiej odpowiada Twoim potrze
+
+In v1_4: NO
+

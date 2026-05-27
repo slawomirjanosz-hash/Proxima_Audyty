@@ -1,0 +1,440 @@
+﻿=== NEW CSS RULES IN V1.6 (43 rules) ===
+body.profile-active .profile-stats { display: block; }
+
+/* ============================================================ */
+/* === ARCHITEKTURA C v1.6 ÔÇö wyb├│r typu audytu + ukrywanie === */
+/* ============================================================ */
+
+/* Ekran startowy - karty wyboru audytu */
+.audit-type-selector {
+  background: linear-gradient(135deg, var(--paper-deep, #ebe3d0) 0%, var(--paper, #f5efe0) 100%);
+  border: 2px solid var(--gold, #c8a951);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 20px 0;
+}
+
+.audit-type-selector h2 {
+  font-family: var(--serif);
+  font-size: 22px;
+  color: var(--green-deep);
+  margin: 0 0 8px 0;
+}
+
+.audit-type-selector .selector-subtitle {
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin-bottom: 20px;
+}
+
+.audit-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.audit-card {
+  background: white;
+  border: 2px solid var(--paper-deep);
+  border-radius: 8px;
+  padding: 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.audit-card:hover:not(.disabled) {
+  border-color: var(--gold);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(168, 127, 42, 0.15);
+}
+
+.audit-card.selected {
+  border-color: var(--green-primary);
+  background: linear-gradient(135deg, rgba(46, 125, 92, 0.05) 0%, white 100%);
+  box-shadow: 0 2px 8px rgba(46, 125, 92, 0.2);
+}
+
+.audit-card.selected::before {
+  content: 'Ôťô';
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  background: var(--green-primary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.audit-card.disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: var(--paper-deep);
+}
+
+.audit-card .audit-card-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: var(--gold);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-bottom-right-radius: 6px;
+  letter-spacing: 0.5px;
+}
+
+.audit-card .audit-card-name {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--green-deep);
+  margin: 8px 0 4px 0;
+}
+
+.audit-card .audit-card-desc {
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.4;
+  margin-bottom: 14px;
+  flex-grow: 1;
+}
+
+.audit-card .audit-card-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding: 10px;
+  background: var(--paper);
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.audit-card .audit-card-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.audit-card .audit-card-stat-label {
+  font-size: 9px;
+  color: var(--ink-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.audit-card .audit-card-stat-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.audit-card .audit-card-stat-value.field-count {
+  font-family: var(--mono);
+  color: var(--green-primary);
+  font-size: 15px;
+}
+
+.audit-card .audit-card-button {
+  padding: 8px 14px;
+  background: var(--green-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+  width: 100%;
+  font-family: var(--sans);
+}
+
+.audit-card.selected .audit-card-button {
+  background: var(--green-deep);
+}
+
+.audit-card.selected .audit-card-button::after {
+  content: ' ÔÇö Wybrano';
+}
+
+.audit-card.disabled .audit-card-button {
+  background: var(--ink-mute);
+  cursor: not-allowed;
+}
+
+/* Pasek narz─Ödzi */
+.audit-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--paper-deep);
+  flex-wrap: wrap;
+}
+
+.audit-actions button {
+  padding: 8px 14px;
+  background: white;
+  border: 1px solid var(--paper-deep);
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-family: var(--sans);
+}
+
+.audit-actions button:hover {
+  border-color: var(--gold);
+  color: var(--ink);
+}
+
+/* Tabela por├│wnawcza */
+.audit-comparison-table {
+  margin-top: 20px;
+  display: none;
+}
+
+.audit-comparison-table.visible {
+  display: block;
+}
+
+.audit-comparison-table table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 6px;
+  overflow: hidden;
+  font-size: 12px;
+}
+
+.audit-comparison-table th,
+.audit-comparison-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--paper-deep);
+}
+
+.audit-comparison-table th {
+  background: var(--paper-deep);
+  font-weight: 600;
+  color: var(--green-deep);
+}
+
+.audit-comparison-table .check {
+  color: var(--ok);
+  font-weight: bold;
+  text-align: center;
+}
+
+.audit-comparison-table .cross {
+  color: var(--rose);
+  text-align: center;
+}
+
+/* TRYB AUDYTORA ENESA */
+body.mode-enesa {
+  /* Tryb audytora ma wszystko widoczne */
+}
+
+.mode-enesa-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(90deg, var(--rose) 0%, var(--gold) 50%, var(--rose) 100%);
+  color: white;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  z-index: 10000;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  display: none;
+}
+
+body.mode-enesa .mode-enesa-banner {
+  display: block;
+}
+
+body.mode-enesa {
+  padding-top: 28px;
+}
+
+body.mode-enesa nav, 
+body.mode-enesa .layout {
+  margin-top: 28px;
+}
+
+/* UKRYWANIE p├│l i sekcji spoza profilu */
+/* Domy┼Ťlnie nic nie ukryte (profil-active musi by─ç w┼é─ůczony) */
+
+body.profile-active.profile-eed [data-audit-profile]:not([data-audit-profile*="eed"]),
+body.profile-active.profile-white-cert [data-audit-profile]:not([data-audit-profile*="white-cert"]),
+body.profile-active.profile-iso50001 [data-audit-profile]:not([data-audit-profile*="iso50001"]),
+body.profile-active.profile-full-map [data-audit-profile]:not([data-audit-profile*="full-map"]),
+body.profile-active.profile-custom [data-audit-profile]:not([data-audit-profile*="custom"]) {
+  display: none !important;
+}
+
+/* W trybie audytora - NIE ukrywaj nic, ale wyszarz pola spoza profilu */
+body.mode-enesa.profile-active [data-audit-profile] {
+  display: revert !important;
+}
+
+body.mode-enesa.profile-active.profile-eed [data-audit-profile]:not([data-audit-profile*="eed"]),
+body.mode-enesa.profile-active.profile-iso50001 [data-audit-profile]:not([data-audit-profile*="iso50001"]),
+body.mode-enesa.profile-active.profile-full-map [data-audit-profile]:not([data-audit-profile*="full-map"]) {
+  opacity: 0.4;
+  background: rgba(0,0,0,0.02);
+}
+
+/* Sekcje (etap-N) bez aktywnych p├│l - chowamy ca┼é─ů sekcj─Ö */
+section.section.section-hidden-by-profile {
+  display: none !important;
+}
+/* W trybie "poka┼╝ wszystko" - sekcje wracaj─ů z oznaczeniem */
+body.show-all-sections section.section.section-hidden-by-profile {
+  display: block !important;
+  position: relative;
+  border: 2px dashed var(--gold);
+  background: rgba(168, 127, 42, 0.03);
+}
+
+body.show-all-sections section.section.section-hidden-by-profile::before {
+  content: '­čĹü´ŞĆ PODGL─äD ÔÇö sekcja spoza Twojego profilu audytu (tylko do wgl─ůdu, nie wype┼éniaj)';
+  position: sticky;
+  top: 0;
+  display: block;
+  padding: 8px 16px;
+  background: var(--gold);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 100;
+  margin: -1px;
+}
+
+/* Menu boczne - chowanie link├│w do sekcji */
+nav .nav-link.nav-hidden-by-profile {
+  display: none;
+}
+
+body.show-all-sections nav .nav-link.nav-hidden-by-profile {
+  display: block;
+  opacity: 0.6;
+  border-left: 3px dashed var(--gold);
+}
+
+body.show-all-sections nav .nav-link.nav-hidden-by-profile::after {
+  content: ' ­čĹü´ŞĆ';
+  font-size: 11px;
+}
+
+/* Pasek "Poka┼╝ wszystko" w menu */
+.show-all-toggle {
+  margin: 12px 8px;
+  padding: 8px 12px;
+  background: var(--paper-deep);
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  width: calc(100% - 16px);
+  font-family: var(--sans);
+  color: var(--ink-soft);
+}
+
+.show-all-toggle:hover {
+  background: var(--gold);
+  color: white;
+}
+
+.show-all-toggle.active {
+  background: var(--gold);
+  color: white;
+}
+
+.show-all-toggle.active::before {
+  content: '­čĹü´ŞĆ ';
+}
+
+/* Progress bar v1.6 - per profil */
+.audit-progress-info {
+  margin: 10px 8px;
+  padding: 8px 12px;
+  background: var(--paper);
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--ink-soft);
+  border-left: 3px solid var(--green-primary);
+}
+
+.audit-progress-info .progress-line {
+  font-weight: 600;
+  color: var(--green-deep);
+  font-size: 13px;
+  font-family: var(--mono);
+}
+
+.audit-progress-info .progress-bar-bg {
+  height: 6px;
+  background: var(--paper-deep);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 6px 0 4px 0;
+}
+
+.audit-progress-info .progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green-light), var(--green-primary));
+  transition: width 0.3s;
+}
+
+/* ============================================================ */
+
+
+
+=== NEW JS FUNCTIONS IN V1.6 (13) ===
+  - loadSavedIntoDOM
+  - masterManualSave
+  - masterClimateFieldsEmpty
+  - masterLocAutoFillIfNeeded
+  - masterLocForceAutoFill
+  - renderAuditCards
+  - enesaSelectAuditFromCard
+  - countFieldsForProfile
+  - applyProfileSectionVisibility
+  - enesaToggleComparisonTable
+  - enesaShowAllSections
+  - updateProgressInfo
+  - initArchitectureC
+
+=== KEY FUNCTION CHANGES ===
+  enesaSetAuditProfile: v1.4=NO v1.6=NO
+  buildScopeCard: v1.4=YES v1.6=YES
+  updateE13Summary: v1.4=YES v1.6=YES
+  loadSavedData: v1.4=YES v1.6=YES
+  scheduleAutoSave: v1.4=YES v1.6=YES
+
+=== NEW HTML IDs IN V1.6 (5) ===
+  - #audit-type-selector
+  - #audit-cards-container
+  - #show-all-btn-startup
+  - #audit-comparison-table
+  - #' + id + '
+
+=== PROFILE SCREEN PRESENCE ===
+  startup-screen in v16: NO
+  profile-cards in v16: NO
+  compare-table in v16: NO
+  ?mode=enesa in v16: NO
+  show-all-sections in v16: YES

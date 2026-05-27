@@ -1,0 +1,126 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class OfferTemplate extends Model
+{
+    protected $fillable = [
+        'name',
+        'type_code',
+        'description',
+        'html_content',
+        'default_km_rate',
+        'default_hour_rate',
+        'default_auditor_hours',
+        'default_items',
+        'is_active',
+        'created_by',
+    ];
+
+    protected $casts = [
+        'default_items'  => 'array',
+        'is_active'      => 'boolean',
+        'default_km_rate'      => 'float',
+        'default_hour_rate'    => 'float',
+        'default_auditor_hours' => 'float',
+    ];
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function offers(): HasMany
+    {
+        return $this->hasMany(Offer::class);
+    }
+
+    /** Generate final HTML by replacing placeholders with offer data. */
+    public function renderForOffer(array $data): string
+    {
+        $html = $this->html_content ?? '';
+
+        // Build items table HTML
+        $itemsHtml = $this->buildItemsTable($data['items'] ?? []);
+
+        // Travel cost
+        $distKm      = (float) ($data['distance_km'] ?? 0);
+        $kmRate      = (float) ($data['km_rate'] ?? $this->default_km_rate);
+        $travelH     = (float) ($data['travel_hours'] ?? 0);
+        $hourRate    = (float) ($data['hour_rate'] ?? $this->default_hour_rate);
+        $travelCost  = ($distKm * $kmRate * 2) + ($travelH * $hourRate * 2);
+
+        $paymentHtml = '';
+        foreach ($data['payment_terms'] ?? [] as $pt) {
+            $paymentHtml .= '<li>' . e($pt['description'] ?? '') . ($pt['percent'] ? ' (' . $pt['percent'] . '%)' : '') . ($pt['deadline'] ? ' — ' . $pt['deadline'] : '') . '</li>';
+        }
+        $paymentHtml = $paymentHtml ? '<ul>' . $paymentHtml . '</ul>' : '<p>Płatność na podstawie faktury VAT, 14 dni od wystawienia.</p>';
+
+        $map = [
+            '{{offer_number}}'        => e($data['offer_number'] ?? ''),
+            '{{offer_title}}'         => e($data['offer_title'] ?? ''),
+            '{{offer_date}}'          => $data['offer_date'] ?? '',
+            '{{customer_name}}'       => e($data['customer_name'] ?? ''),
+            '{{customer_nip}}'        => e($data['customer_nip'] ?? ''),
+            '{{customer_address}}'    => e($data['customer_address'] ?? ''),
+            '{{customer_postal_code}}'=> e($data['customer_postal_code'] ?? ''),
+            '{{customer_city}}'       => e($data['customer_city'] ?? ''),
+            '{{customer_phone}}'      => e($data['customer_phone'] ?? ''),
+            '{{customer_email}}'      => e($data['customer_email'] ?? ''),
+            '{{description}}'         => $data['description'] ?? '',
+            '{{items_table}}'         => $itemsHtml,
+            '{{distance_km}}'         => number_format($distKm, 1, ',', ' '),
+            '{{km_rate}}'             => number_format($kmRate, 2, ',', ' '),
+            '{{travel_hours}}'        => number_format($travelH, 1, ',', ' '),
+            '{{hour_rate}}'           => number_format($hourRate, 2, ',', ' '),
+            '{{travel_cost}}'         => number_format($travelCost, 2, ',', ' '),
+            '{{total_price}}'         => number_format((float)($data['total_price'] ?? 0), 2, ',', ' '),
+            '{{auditor_hours}}'       => number_format((float)($data['auditor_hours'] ?? $this->default_auditor_hours), 1, ',', ' '),
+            '{{payment_terms}}'       => $paymentHtml,
+        ];
+
+        return str_replace(array_keys($map), array_values($map), $html);
+    }
+
+    private function buildItemsTable(array $allItems): string
+    {
+        if (empty($allItems)) {
+            return '<p style="color:#888;font-style:italic;">Brak pozycji.</p>';
+        }
+
+        $rows  = '';
+        $total = 0;
+        foreach ($allItems as $i => $item) {
+            $val    = (float) ($item['value'] ?? 0);
+            $total += $val;
+            $rows  .= '<tr>'
+                . '<td style="padding:8px 10px;border-bottom:1px solid #e4edf3;text-align:center;">' . ($i + 1) . '</td>'
+                . '<td style="padding:8px 10px;border-bottom:1px solid #e4edf3;font-weight:600;">' . e($item['name'] ?? '') . '</td>'
+                . '<td style="padding:8px 10px;border-bottom:1px solid #e4edf3;color:#555;">' . e($item['type'] ?? '') . '</td>'
+                . '<td style="padding:8px 10px;border-bottom:1px solid #e4edf3;text-align:center;">' . ($item['quantity'] ?? 1) . '</td>'
+                . '<td style="padding:8px 10px;border-bottom:1px solid #e4edf3;text-align:right;">' . number_format((float)($item['price'] ?? 0), 2, ',', ' ') . ' zł</td>'
+                . '<td style="padding:8px 10px;border-bottom:1px solid #e4edf3;text-align:right;font-weight:700;">' . number_format($val, 2, ',', ' ') . ' zł</td>'
+                . '</tr>';
+        }
+
+        return '<table style="width:100%;border-collapse:collapse;font-size:13px;">'
+            . '<thead><tr>'
+            . '<th style="background:#1A4D3A;color:#fff;padding:10px;text-align:center;width:40px;">Nr</th>'
+            . '<th style="background:#1A4D3A;color:#fff;padding:10px;text-align:left;">Nazwa pozycji</th>'
+            . '<th style="background:#1A4D3A;color:#fff;padding:10px;text-align:left;">Opis / Typ</th>'
+            . '<th style="background:#1A4D3A;color:#fff;padding:10px;text-align:center;width:60px;">Ilość</th>'
+            . '<th style="background:#1A4D3A;color:#fff;padding:10px;text-align:right;width:110px;">Cena jedn.</th>'
+            . '<th style="background:#1A4D3A;color:#fff;padding:10px;text-align:right;width:110px;">Wartość</th>'
+            . '</tr></thead>'
+            . '<tbody>' . $rows . '</tbody>'
+            . '<tfoot><tr>'
+            . '<td colspan="5" style="padding:10px;text-align:right;font-weight:700;background:#1A4D3A;color:#fff;font-size:14px;">Razem (netto)</td>'
+            . '<td style="padding:10px;text-align:right;font-weight:800;font-size:15px;background:#1A4D3A;color:#fff;">' . number_format($total, 2, ',', ' ') . ' zł</td>'
+            . '</tr></tfoot>'
+            . '</table>';
+    }
+}

@@ -287,21 +287,6 @@ class DiagnosticsController extends Controller
                 'EnergyAudit::count()' => static fn () => EnergyAudit::count() . ' audytów w tabeli',
 
                 'energy_audits company_id nullable?' => static function () {
-                    $driver = DB::getDriverName();
-                    if ($driver === 'sqlite') {
-                        // SQLite: PRAGMA table_info
-                        $cols = DB::select("PRAGMA table_info('energy_audits')");
-                        $col  = collect($cols)->firstWhere('name', 'company_id');
-                        if (! $col) {
-                            throw new \RuntimeException('Kolumna company_id nie istnieje w energy_audits');
-                        }
-                        $nullable = (int) $col->notnull === 0;
-                        if (! $nullable) {
-                            throw new \RuntimeException('company_id NOT NULL – migracja nullable nie została wykonana');
-                        }
-                        return 'OK – company_id jest nullable (sqlite)';
-                    }
-                    // MySQL / PostgreSQL
                     $col = DB::selectOne(
                         "SELECT IS_NULLABLE, COLUMN_TYPE FROM information_schema.COLUMNS
                          WHERE TABLE_SCHEMA = DATABASE()
@@ -374,24 +359,11 @@ class DiagnosticsController extends Controller
             }
         }
 
-        // ─── Mail configuration info ───────────────────────────────────────
-        $mailConfig = [
-            'mailer'       => config('mail.default', 'n/a'),
-            'host'         => config('mail.mailers.smtp.host', 'n/a'),
-            'port'         => config('mail.mailers.smtp.port', 'n/a'),
-            'scheme'       => config('mail.mailers.smtp.scheme', config('mail.mailers.smtp.encryption', 'n/a')),
-            'username'     => config('mail.mailers.smtp.username', 'n/a'),
-            'from_address' => config('mail.from.address', 'n/a'),
-            'from_name'    => config('mail.from.name', 'n/a'),
-            'password_set' => ! empty(config('mail.mailers.smtp.password')),
-        ];
-
         return view('diagnostics.index', compact(
             'dbOk', 'dbError', 'dbDriver',
             'tableStatus', 'migrationOutput', 'migrationError', 'pendingCount',
             'recentErrors', 'sysInfo', 'columnChecks', 'crmProbe', 'crmProbeError',
-            'auditsProbe', 'auditsProbeError',
-            'mailConfig'
+            'auditsProbe', 'auditsProbeError'
         ));
     }
 
@@ -430,110 +402,5 @@ class DiagnosticsController extends Controller
         }
 
         return back()->with('cache_output', implode("\n", $output));
-    }
-
-    /**
-     * Test mail connectivity and optionally send a test message (POST).
-     * Steps: 1) verify config, 2) TCP socket test on configured port,
-     *         3) TCP socket test on fallback port 587, 4) send via Laravel Mail.
-     */
-    public function testMail(Request $request)
-    {
-        $steps   = [];
-        $target  = filter_var($request->input('to_email', ''), FILTER_VALIDATE_EMAIL)
-            ? $request->input('to_email')
-            : null;
-
-        // 1. Read effective config
-        $mailer   = config('mail.default', 'log');
-        $host     = config('mail.mailers.smtp.host', '');
-        $port     = (int) config('mail.mailers.smtp.port', 465);
-        $username = config('mail.mailers.smtp.username', '');
-        $password = config('mail.mailers.smtp.password', '');
-        $scheme   = config('mail.mailers.smtp.scheme', config('mail.mailers.smtp.encryption', ''));
-
-        $steps[] = [
-            'label' => 'Aktywny mailer (MAIL_MAILER)',
-            'ok'    => $mailer !== 'log',
-            'detail'=> $mailer . ($mailer === 'log' ? ' — ⚠ maile idą TYLKO do logów, nie są wysyłane!' : ' — OK'),
-        ];
-
-        // Helper: TCP socket test
-        $socketTest = function (string $h, int $p, string $sc): array {
-            $prefix = ($sc === 'ssl' || $sc === 'smtps') ? 'ssl://' : '';
-            $errno = 0; $errstr = '';
-            $t0 = microtime(true);
-            $fp = @fsockopen($prefix . $h, $p, $errno, $errstr, 8);
-            $ms = round((microtime(true) - $t0) * 1000);
-            if ($fp) { fclose($fp); return ['ok' => true, 'ms' => $ms, 'error' => '']; }
-            return ['ok' => false, 'ms' => $ms, 'error' => "errno={$errno}: {$errstr}"];
-        };
-
-        // 2. Socket test on configured port
-        if ($mailer === 'smtp' && $host) {
-            $r = $socketTest($host, $port, $scheme);
-            $steps[] = [
-                'label'  => "Połączenie TCP z {$host}:{$port} (skonfigurowany)",
-                'ok'     => $r['ok'],
-                'detail' => $r['ok']
-                    ? "✅ Połączono ({$r['ms']} ms)"
-                    : "❌ Zablokowane ({$r['ms']} ms): {$r['error']}" . ($r['ms'] > 7000 ? ' — port zablokowany przez firewall!' : ''),
-            ];
-
-            // 3. Fallback test: port 587 (STARTTLS)
-            if (!$r['ok'] && $port !== 587) {
-                $r587 = $socketTest($host, 587, 'tls');
-                $steps[] = [
-                    'label'  => "Połączenie TCP z {$host}:587 (fallback STARTTLS)",
-                    'ok'     => $r587['ok'],
-                    'detail' => $r587['ok']
-                        ? "✅ Port 587 działa! Zmień MAIL_PORT=587 i MAIL_SCHEME=tls w zmiennych Railway."
-                        : "❌ Port 587 też zablokowany ({$r587['ms']} ms). Railway blokuje wychodzące SMTP — wymagany Resend lub inny HTTP API.",
-                ];
-            }
-
-            // 4. If both ports blocked, recommend Resend
-            if (!$r['ok']) {
-                $port587Works = isset($r587) && $r587['ok'];
-                if (!$port587Works) {
-                    $steps[] = [
-                        'label'  => '💡 Zalecenie',
-                        'ok'     => false,
-                        'detail' => 'Railway blokuje SMTP (porty 465 i 587). Wymagane przejście na serwis oparty na HTTP API: Resend (resend.com) — darmowy do 3000 maili/mc, Laravel ma wbudowany driver. Instrukcja poniżej na tej stronie.',
-                    ];
-                }
-            }
-        }
-
-        // 5. Send test mail (only if target provided)
-        if ($target) {
-            $sendOk    = false;
-            $sendError = '';
-            $elapsed   = 0;
-            $t0        = microtime(true);
-            try {
-                \Illuminate\Support\Facades\Mail::raw(
-                    'To jest testowa wiadomość z systemu ENESA. Jeśli ją widzisz — konfiguracja e-mail działa poprawnie.',
-                    function ($msg) use ($target) {
-                        $msg->to($target)
-                            ->subject('[ENESA] Test połączenia e-mail — ' . now()->format('Y-m-d H:i:s'));
-                    }
-                );
-                $elapsed = round((microtime(true) - $t0) * 1000);
-                $sendOk  = true;
-            } catch (Throwable $e) {
-                $elapsed   = round((microtime(true) - $t0) * 1000);
-                $sendError = $e->getMessage();
-            }
-            $steps[] = [
-                'label'  => "Wysyłka testowego maila na {$target}",
-                'ok'     => $sendOk,
-                'detail' => $sendOk
-                    ? "✅ Wysłano pomyślnie ({$elapsed} ms) — sprawdź skrzynkę i folder SPAM"
-                    : "❌ Błąd ({$elapsed} ms): {$sendError}",
-            ];
-        }
-
-        return response()->json(['steps' => $steps]);
     }
 }

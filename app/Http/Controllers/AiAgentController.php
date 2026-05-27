@@ -39,53 +39,6 @@ class AiAgentController extends Controller
     }
 
     /**
-     * AJAX: znajdź lub utwórz rozmowę i zwróć JSON z historią.
-     * Używane przez modal inline na stronie klienta.
-     */
-    public function storeAjax(Request $request): JsonResponse
-    {
-        $request->validate([
-            'context_type' => ['nullable', 'string', 'in:general,energy_audit,iso50001,offer,compressor_room,boiler_room,drying_room,buildings,technological_processes,bc_general,bc_compressor_room,bc_boiler_room,bc_drying_room,bc_buildings,bc_technological_processes'],
-        ]);
-
-        $contextType = $request->input('context_type', 'general');
-
-        // Reuse existing active conversation of this type, or create new one
-        $conversation = AiConversation::where('user_id', auth()->id())
-            ->where('context_type', $contextType)
-            ->where('status', 'active')
-            ->latest()
-            ->first();
-
-        if (! $conversation) {
-            try {
-                $conversation = $this->agent->startConversation(
-                    userId: auth()->id(),
-                    contextType: $contextType,
-                );
-            } catch (\Throwable $e) {
-                report($e);
-                return response()->json(['error' => 'Nie udało się uruchomić rozmowy.'], 500);
-            }
-        }
-
-        $messages = $conversation->messages()
-            ->orderBy('created_at')
-            ->get()
-            ->map(fn($m) => [
-                'id'         => $m->id,
-                'role'       => $m->role,
-                'content'    => $m->content,
-                'created_at' => $m->created_at->format('d.m.Y H:i'),
-            ]);
-
-        return response()->json([
-            'conversation_id' => $conversation->id,
-            'messages'        => $messages,
-        ]);
-    }
-
-    /**
      * Startuje nową konwersację i przekierowuje do czatu.
      */
     public function store(Request $request)
@@ -152,54 +105,9 @@ class AiAgentController extends Controller
                 'line'      => $e->getLine(),
             ]);
 
-            $msg         = $e->getMessage();
-            $isRateLimit = str_contains(strtolower($msg), 'rate limit') || str_contains($msg, 'rate_limit');
-            $retryAfter  = null;
-            if ($isRateLimit && preg_match('/retry after (\d+) seconds?/i', $msg, $m)) {
-                $retryAfter = (int) $m[1];
-            }
-
-            return response()->json([
-                'success'      => false,
-                'rate_limited' => $isRateLimit,
-                'retry_after'  => $retryAfter ?? ($isRateLimit ? 30 : null),
-                'error'        => $isRateLimit
-                    ? 'Asystent jest chwilowo przeci\u0105\u017cony (limit API). Ponawianie za ' . ($retryAfter ?? 30) . ' sekund.'
-                    : 'B\u0142\u0105d po\u0142\u0105czenia z asystentem.',
-            ], $isRateLimit ? 429 : 500);
-        }
-    }
-
-    /**
-     * Analiza załączonego pliku / zdjęcia tabliczki znamionowej przez AI.
-     */
-    public function analyzeFile(Request $request, AiConversation $aiConversation): JsonResponse
-    {
-        abort_unless($aiConversation->user_id === auth()->id(), 403);
-
-        $request->validate([
-            'file'    => ['required', 'file', 'max:10240', 'mimes:jpeg,jpg,png,gif,webp,pdf,txt,csv'],
-            'message' => ['nullable', 'string', 'max:2000'],
-        ]);
-
-        try {
-            $response = $this->agent->analyzeFileContent(
-                $aiConversation,
-                $request->file('file'),
-                $request->input('message', '')
-            );
-
-            return response()->json(['success' => true, 'response' => $response]);
-        } catch (\Throwable $e) {
-            \Log::error('AiAgentController::analyzeFile failed', [
-                'exception' => $e->getMessage(),
-                'file'      => $e->getFile(),
-                'line'      => $e->getLine(),
-            ]);
-
             return response()->json([
                 'success' => false,
-                'error'   => 'Błąd analizy pliku: ' . $e->getMessage(),
+                'error'   => 'Błąd połączenia z asystentem: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -342,35 +250,6 @@ class AiAgentController extends Controller
         $filename = 'protokol-' . str($aiConversation->title)->slug() . '-' . $aiConversation->id . '.pdf';
 
         return $pdf->download($filename);
-    }
-
-    /**
-     * Podgląd protokołu inline (do wyświetlenia w przeglądarce/iframe).
-     */
-    public function streamPdf(AiConversation $aiConversation)
-    {
-        abort_unless($this->canAccessConversation($aiConversation), 403);
-
-        if (empty($aiConversation->protocol_data)) {
-            return redirect()->route('ai.protocol', $aiConversation)
-                ->with('error', 'Najpierw wygeneruj protokół.');
-        }
-
-        $context = $aiConversation->contextModel();
-        $company = null;
-        if ($context && method_exists($context, 'company')) {
-            $company = $context->company;
-        }
-
-        $pdf = Pdf::loadView('ai.protocol-pdf', [
-            'conversation' => $aiConversation,
-            'protocol'     => $aiConversation->protocol_data,
-            'company'      => $company,
-        ])->setPaper('a4');
-
-        $filename = 'protokol-' . str($aiConversation->title)->slug() . '-' . $aiConversation->id . '.pdf';
-
-        return $pdf->stream($filename);
     }
 
     /**

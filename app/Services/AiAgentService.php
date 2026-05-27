@@ -4,11 +4,8 @@ namespace App\Services;
 
 use App\Models\AiConversation;
 use App\Models\AiMessage;
-use Illuminate\Http\UploadedFile;
 use Prism\Prism\Facades\Prism;
 use Prism\Prism\Enums\Provider;
-use Prism\Prism\ValueObjects\Media\Document;
-use Prism\Prism\ValueObjects\Media\Image;
 use Prism\Prism\ValueObjects\Messages\UserMessage;
 use Prism\Prism\ValueObjects\Messages\AssistantMessage;
 use Prism\Prism\ValueObjects\Messages\SystemMessage;
@@ -38,15 +35,13 @@ class AiAgentService
      */
     public function getSystemPrompt(string $contextType = 'general'): string
     {
-        $formattingRule = "\n\nBEZWZGLĘDNA ZASADA FORMATOWANIA: Nigdy nie używaj gwiazdek (*), hashów (#), podkreśleń (_) ani żadnych innych znaczników Markdown. Pisz wyłącznie czystym tekstem. Liczby i wyniki podawaj w formacie: \"nazwa parametru: wartość jednostka\" — bez żadnych ozdobników.";
-
         // Check for custom training prompt saved by admin
         $customPrompt = \App\Models\SystemSetting::get("ai_agent_prompt_{$contextType}");
         if (!empty(trim((string) ($customPrompt ?? '')))) {
-            return (string) $customPrompt . $formattingRule;
+            return (string) $customPrompt;
         }
 
-        return $this->getDefaultSystemPrompt($contextType) . $formattingRule;
+        return $this->getDefaultSystemPrompt($contextType);
     }
 
     /**
@@ -142,12 +137,6 @@ SCRIPT;
 SKRYPT AUDYTU ISO 50001:
 Przeprowadź klienta przez wymagania systemu zarządzania energią zgodnie z normą ISO 50001:2018.
 
-WAŻNE: Jeśli w systemowym bloku "DANE ZEBRANE OD KLIENTA" są już odpowiedzi na pytania z poniższych
-etapów — POMIŃ te pytania. Pytaj tylko o brakujące informacje lub proś o doprecyzowanie
-gdy odpowiedź jest niepełna. Nie powtarzaj pytań które klient już wypełnił w kwestionariuszu
-lub formularzu krokowym. Jeśli klient ma niekompletną ankietę, powiedz że może wrócić
-do kwestionariusza (przycisk "Edytuj kwestionariusz ISO 50001" widoczny nad rozmową).
-
 ETAP 1 — KONTEKST ORGANIZACJI (rozdział 4 normy):
 - Pytaj o: branżę i profil działalności firmy
 - Pytaj o: liczbę pracowników i lokalizacje/oddziały objęte systemem
@@ -204,13 +193,6 @@ SCRIPT;
 
 SKRYPT AUDYTU SPRĘŻARKOWNI:
 Przeprowadź klienta przez zbieranie danych niezbędnych do audytu energetycznego sprężarkowni.
-
-WAŻNE — DANE Z ANKIETY WSTĘPNEJ:
-Jeśli w bloku "DANE ZEBRANE OD KLIENTA" są już dane z ankiety sprężarkowni — TRAKTUJ JE JAKO ZNANE.
-NIE pytaj ponownie o żadne dane które tam widnieją (nawet przybliżone).
-Pytaj WYŁĄCZNIE o dane których tam brakuje lub które są niejasne/puste.
-Jeśli klient ma niekompletną ankietę, powiedz mu że może wrócić do ankiety i ją uzupełnić
-(przycisk "Edytuj ankietę sprężarkowni" widoczny nad rozmową).
 
 ETAP 1 — IDENTYFIKACJA INSTALACJI:
 - Pytaj o: liczbę i rodzaje sprężarek (śrubowe, tłokowe, odśrodkowe, spiralne)
@@ -813,28 +795,12 @@ SCRIPT;
         // Zbuduj historię dla Prisma
         $history = $this->buildMessageHistory($conversation);
 
-        // Build system prompt — inject questionnaire answers when available
-        $contextType = $conversation->context_type ?? 'general';
-        $systemPrompt = $this->getSystemPrompt($contextType);
-        if ($conversation->context_id !== null) {
-            $auditWithQuestionnaire = null;
-            if ($contextType === 'iso50001') {
-                $auditWithQuestionnaire = \App\Models\Iso50001Audit::find($conversation->context_id)
-                    ?? \App\Models\EnergyAudit::find($conversation->context_id);
-            } elseif (in_array($contextType, ['compressor_room', 'energy_audit', 'boiler_room', 'drying_room', 'buildings', 'technological_processes'], true)) {
-                $auditWithQuestionnaire = \App\Models\EnergyAudit::find($conversation->context_id);
-            }
-            if ($auditWithQuestionnaire && ! empty($auditWithQuestionnaire->questionnaire_answers)) {
-                $systemPrompt .= $this->buildQuestionnaireContext($auditWithQuestionnaire);
-            }
-        }
-
-        // Wywołaj Claude przez Prism (z automatycznym retry przy rate limit)
-        $response = $this->withRetry(fn() => Prism::text()
+        // Wywołaj Claude przez Prism
+        $response = Prism::text()
             ->using(Provider::Anthropic, 'claude-haiku-4-5-20251001')
-            ->withSystemPrompt($systemPrompt)
+            ->withSystemPrompt($this->getSystemPrompt($conversation->context_type ?? 'general'))
             ->withMessages($history)
-            ->generate());
+            ->generate();
 
         $assistantText = $response->text;
 
@@ -869,42 +835,21 @@ SCRIPT;
             'status'       => 'active',
         ]);
 
-        // Build system prompt — inject questionnaire answers when available
-        $systemPrompt = $this->getSystemPrompt($contextType);
-        if ($contextId !== null) {
-            $auditWithQuestionnaire = null;
-            if ($contextType === 'iso50001') {
-                $auditWithQuestionnaire = \App\Models\Iso50001Audit::find($contextId)
-                    ?? \App\Models\EnergyAudit::find($contextId);
-            } elseif (in_array($contextType, ['compressor_room', 'energy_audit', 'boiler_room', 'drying_room', 'buildings', 'technological_processes'], true)) {
-                $auditWithQuestionnaire = \App\Models\EnergyAudit::find($contextId);
-            }
-            if ($auditWithQuestionnaire && ! empty($auditWithQuestionnaire->questionnaire_answers)) {
-                $systemPrompt .= $this->buildQuestionnaireContext($auditWithQuestionnaire);
-            }
-        }
-
         // Pierwsze przywitanie
         $greetingPrompt = match(app()->getLocale()) {
-            'en' => 'Greet the client briefly. Review the pre-filled questionnaire data in the system block "DANE ZEBRANE OD KLIENTA". Confirm what key facts you already have (list them concisely). Then identify what critical information is MISSING or incomplete — pick the single most important gap and ask ONLY that ONE question. Do NOT ask about data already provided.',
-            'de' => 'Begrüßen Sie den Kunden kurz. Prüfen Sie die Fragebogendaten im Block "DANE ZEBRANE OD KLIENTA". Bestätigen Sie die bekannten Schlüsselfakten (kurz auflisten). Identifizieren Sie dann die wichtigste fehlende Information und stellen Sie genau EINE Frage dazu.',
-            'fr' => 'Saluez brièvement le client. Examinez les données du questionnaire dans le bloc "DANE ZEBRANE OD KLIENTA". Confirmez les faits clés connus (liste concise). Identifiez ensuite le manque le plus important et posez UNE SEULE question à ce sujet.',
-            'es' => 'Salude al cliente brevemente. Revise los datos del cuestionario en el bloque "DANE ZEBRANE OD KLIENTA". Confirme los hechos clave conocidos (lista concisa). Luego identifique la información más importante que falta y haga solo UNA pregunta al respecto.',
-            default => implode(' ', [
-                'Przywitaj się z klientem.',
-                'Przejrzyj dane z bloku "DANE ZEBRANE OD KLIENTA" — jeśli blok istnieje, wymień klientowi konkretne kluczowe fakty które już posiadasz (np. moc sprężarek, ciśnienie robocze, zużycie energii).',
-                'Jeśli danych z ankiety brak lub są bardzo skąpe — powiedz o tym i wyjaśnij że można wrócić do ankiety i ją uzupełnić.',
-                'Następnie zidentyfikuj JEDNĄ najważniejszą brakującą lub niepełną informację i zadaj TYLKO to jedno pytanie.',
-                'Absolutnie nie pytaj ponownie o dane które już zostały podane. Nie wymieniaj listy pytań — tylko jedno.',
-            ]),
+            'en' => 'Greet the client and briefly explain what we will do together. Ask the first question to start collecting data.',
+            'de' => 'Begrüßen Sie den Kunden und erklären Sie kurz, was wir gemeinsam tun werden. Stellen Sie die erste Frage, um mit der Datenerfassung zu beginnen.',
+            'fr' => 'Saluez le client et expliquez brièvement ce que nous allons faire ensemble. Posez la première question pour commencer la collecte de données.',
+            'es' => 'Salude al cliente y explique brevemente lo que haremos juntos. Haga la primera pregunta para comenzar a recopilar datos.',
+            default => 'Przywitaj się z klientem i wyjaśnij krótko co razem zrobimy. Zadaj pierwsze pytanie żeby zacząć zbieranie danych.',
         };
 
         try {
-            $greeting = $this->withRetry(fn() => Prism::text()
+            $greeting = Prism::text()
                 ->using(Provider::Anthropic, 'claude-haiku-4-5-20251001')
-                ->withSystemPrompt($systemPrompt)
+                ->withSystemPrompt($this->getSystemPrompt($contextType))
                 ->withPrompt($greetingPrompt)
-                ->generate());
+                ->generate();
 
             $greetingText = $greeting->text;
         } catch (\Throwable $e) {
@@ -951,243 +896,6 @@ SCRIPT;
             ->generate();
 
         return $response->text;
-    }
-
-    /**
-     * Builds a questionnaire context block to inject into the system prompt.
-     * Aggregates data from: questionnaire answers, Iso50001Audit step answers, EnergyAudit data_payload.
-     */
-    private function buildQuestionnaireContext(\App\Models\Iso50001Audit|\App\Models\EnergyAudit $audit): string
-    {
-        $sections = [];
-        $companyName = '';
-
-        // ── Etykiety dla ankiety sprężarkowni ─────────────────────────────────
-        $compressorLabels = [
-            'REQ-00-IMIE'  => 'Imię i nazwisko',
-            'REQ-00-STAN'  => 'Stanowisko',
-            'REQ-00-DZIAL' => 'Dział',
-            'REQ-00-ZAKLAD'=> 'Zakład / lokalizacja',
-            'CTX-01-BR'    => 'Branża',
-            'CTX-02-ZM'    => 'Liczba zmian',
-            'CTX-03-DNI'   => 'Dni robocze/rok',
-            'CTX-04-KRYT'  => 'Procesy krytyczne',
-            'CTX-05-PLAN'  => 'Plany inwestycyjne',
-            'E3-PCIS'      => 'Ciśnienie robocze [bar]',
-            'E3-PMIN'      => 'Min. ciśnienie u odbiorców [bar]',
-            'E3-SFC'       => 'Jednostkowy pobór mocy SFC [kW/(m³/min)]',
-            'E3-EE'        => 'Roczne zużycie energii [kWh/rok]',
-            'E3-KOST'      => 'Koszt energii [zł/kWh]',
-            'E3-LICZNIK'   => 'Podlicznik energii',
-            'E3-WYDAJ'     => 'Wydajność instalacji [Nm³/h]',
-            'E3-PIN'       => 'Ciśnienie zasysania [bar]',
-            'EZ-NAP'       => 'Napięcie zasilania',
-            'EZ-PMOC'      => 'Łączna moc zainstalowana [kW]',
-            'EZ-PMOW'      => 'Moc zamówiona [kW/kVA]',
-            'EZ-COS'       => 'Współczynnik mocy cosφ',
-            'EZ-KOSTZ'     => 'Roczny koszt energii [zł/rok]',
-            'EZ-TAR'       => 'Taryfa energetyczna',
-            'UZ-OSUSZ'     => 'Typ osuszacza',
-            'UZ-PROSY'     => 'Punkt rosy [°C]',
-            'UZ-ISO'       => 'Klasa czystości ISO 8573',
-            'UZ-EE'        => 'Zużycie energii przez osuszacze [kWh/rok]',
-            'UZ-ZBIOR'     => 'Pojemność zbiornika buforowego',
-            'UZ-PZBIOR'    => 'Ciśnienie w zbiorniku [bar]',
-            'UZ-INNE'      => 'Inne elementy uzdatniania',
-            'SD-DLG'       => 'Długość sieci dystrybucji [m]',
-            'SD-ROK'       => 'Wiek sieci / rok budowy',
-            'SD-MAT'       => 'Materiał rur',
-            'SD-LEAK'      => 'Test nieszczelności',
-            'SD-NIESZ'     => 'Poziom nieszczelności [%]',
-            'SD-MON'       => 'Monitoring ciśnienia w sieci',
-            'SD-UW'        => 'Problemy z siecią',
-            'OD-GLOWNI'    => 'Główni odbiorcy sprężonego powietrza',
-            'OD-ZAP'       => 'Całkowite zapotrzebowanie [Nm³/h]',
-            'OD-PROF'      => 'Profil obciążenia',
-            'OD-KLASY'     => 'Wymagane klasy czystości',
-            'EX-SEK'       => 'Sterowanie sekwencyjne',
-            'EX-BMS'       => 'BMS/SCADA',
-            'EX-BUDZ'      => 'Budżet modernizacji [PLN]',
-            'EX-ROI'       => 'Oczekiwany czas zwrotu',
-            'EX-CEL'       => 'Cel audytu',
-            'EX-UW'        => 'Dodatkowe uwagi',
-        ];
-
-        // ── 1. Kwestionariusz wstępny (questionnaire_answers) ─────────────────
-        $qAnswers = (array) ($audit->questionnaire_answers ?? []);
-        if (!empty($qAnswers)) {
-            // Extract compressors table first
-            $compressors = [];
-            if (!empty($qAnswers['_compressors']) && is_array($qAnswers['_compressors'])) {
-                $compressors = $qAnswers['_compressors'];
-            }
-
-            // Try ISO questionnaire labels first, then compressor labels
-            $isoQuestions = \App\Models\Iso50001QuestionnaireQuestion::query()
-                ->active()
-                ->orderBy('sort_order')
-                ->get()
-                ->keyBy('question_code');
-
-            $lines = [];
-            foreach ($qAnswers as $code => $value) {
-                if ($code === '_compressors') continue;
-                if (is_array($value)) continue;
-                $value = trim((string) $value);
-                if ($value === '') {
-                    continue;
-                }
-                if (isset($isoQuestions[$code])) {
-                    $label = $isoQuestions[$code]->question_text;
-                } elseif (isset($compressorLabels[$code])) {
-                    $label = $compressorLabels[$code];
-                } else {
-                    $label = $code;
-                }
-                $lines[] = "  [{$code}] {$label}: {$value}";
-            }
-
-            if (!empty($lines)) {
-                $sections[] = "ANKIETA WSTĘPNA (wypełniona przez klienta przed rozmową):\n" . implode("\n", $lines);
-            }
-
-            // Compressors table
-            if (!empty($compressors)) {
-                $colLabels = [
-                    'nr_inw' => 'Nr inw.', 'lokalizacja' => 'Lokalizacja',
-                    'producent' => 'Producent', 'model' => 'Model', 'typ' => 'Typ',
-                    'moc_kw' => 'Moc [kW]', 'wydajnosc' => 'Wydajność [m³/min]',
-                    'pmax' => 'Pmax [bar]', 'rok' => 'Rok prod.',
-                    'klasa_ie' => 'Klasa IE', 'stan' => 'Stan tech.',
-                    'serwis' => 'Ostatni serwis', 'motogodz' => 'Motogodziny',
-                    'godz_dobe' => 'Godz./dobę', 'obciazenie' => 'Obciążenie [%]',
-                    'tryb' => 'Tryb pracy', 'sterowanie' => 'Sterowanie',
-                    'chlodzenie' => 'Chłodzenie', 'recyrk' => 'Recyrkulacja ciepła',
-                ];
-                $compLines = ["  INWENTARYZACJA SPRĘŻAREK:"];
-                foreach ($compressors as $i => $row) {
-                    $nr = $i + 1;
-                    $rowParts = [];
-                    foreach ($colLabels as $col => $label) {
-                        $v = trim((string) ($row[$col] ?? ''));
-                        if ($v !== '') $rowParts[] = "{$label}: {$v}";
-                    }
-                    if (!empty($rowParts)) {
-                        $compLines[] = "  Sprężarka #{$nr}: " . implode(', ', $rowParts);
-                    }
-                }
-                if (count($compLines) > 1) {
-                    $sections[] = implode("\n", $compLines);
-                }
-            }
-
-            $companyName = trim((string) ($qAnswers['A1'] ?? ''));
-        }
-
-        // ── 2. Formularz krokowy ISO 50001 (Iso50001Audit->answers) ──────────
-        if ($audit instanceof \App\Models\Iso50001Audit) {
-            $stepAnswers = (array) ($audit->answers ?? []);
-            if (!empty($stepAnswers)) {
-                $template = \App\Models\Iso50001Template::query()->first();
-                $steps = $template
-                    ? \App\Support\Iso50001TemplateDefinition::normalizeSteps((array) $template->steps)
-                    : \App\Support\Iso50001TemplateDefinition::defaultSteps();
-
-                // Build label map: stepKey.fieldName => label
-                $labelMap = [];
-                foreach ($steps as $step) {
-                    $key = (string) ($step['key'] ?? '');
-                    foreach ((array) ($step['fields'] ?? []) as $field) {
-                        $fieldName = (string) ($field['name'] ?? '');
-                        $label = (string) ($field['label'] ?? $fieldName);
-                        if ($key !== '' && $fieldName !== '') {
-                            $labelMap["{$key}.{$fieldName}"] = $label;
-                        }
-                    }
-                }
-
-                $lines = [];
-                foreach ($stepAnswers as $stepKey => $fields) {
-                    if (!is_array($fields)) {
-                        continue;
-                    }
-                    foreach ($fields as $fieldName => $value) {
-                        $value = trim((string) $value);
-                        if ($value === '') {
-                            continue;
-                        }
-                        $label = $labelMap["{$stepKey}.{$fieldName}"] ?? "{$stepKey}.{$fieldName}";
-                        $lines[] = "  {$label}: {$value}";
-                    }
-                }
-
-                if (!empty($lines)) {
-                    $sections[] = "FORMULARZ AUDYTU ISO 50001 — kroki wypełnione przez klienta:\n" . implode("\n", $lines);
-                }
-            }
-        }
-
-        // ── 3. EnergyAudit data_payload (dane z sekcji audytu) ───────────────
-        if ($audit instanceof \App\Models\EnergyAudit) {
-            $payload = (array) ($audit->data_payload ?? []);
-            if (!empty($payload)) {
-                $lines = [];
-                foreach ($payload as $sectionId => $sectionData) {
-                    if (!is_array($sectionData)) {
-                        continue;
-                    }
-                    // tasks
-                    if (!empty($sectionData['tasks']) && is_array($sectionData['tasks'])) {
-                        foreach ($sectionData['tasks'] as $taskName => $done) {
-                            if ($done) {
-                                $lines[] = "  Zadanie: {$taskName}: TAK";
-                            }
-                        }
-                    }
-                    // field values
-                    if (!empty($sectionData['fields']) && is_array($sectionData['fields'])) {
-                        foreach ($sectionData['fields'] as $field) {
-                            $name = (string) ($field['name'] ?? '');
-                            $value = trim((string) ($field['value'] ?? ''));
-                            if ($name !== '' && $value !== '') {
-                                $unit = isset($field['unit']) && $field['unit'] !== '' ? " {$field['unit']}" : '';
-                                $lines[] = "  {$name}: {$value}{$unit}";
-                            }
-                        }
-                    }
-                }
-
-                if (!empty($lines)) {
-                    $sections[] = "DANE AUDYTU (uzupełnione przez audytora/administratora):\n" . implode("\n", $lines);
-                }
-            }
-        }
-
-        if (empty($sections)) {
-            return '';
-        }
-
-        $allData = implode("\n\n", $sections);
-        $companyExample = $companyName !== '' ? $companyName : 'firma klienta';
-
-        return "\n\n" .
-               "╔══════════════════════════════════════════════════════════════╗\n" .
-               "║  DANE ZEBRANE OD KLIENTA — OBOWIĄZUJĄCE ZASADY ROZMOWY       ║\n" .
-               "╚══════════════════════════════════════════════════════════════╝\n" .
-               "PONIŻSZE INFORMACJE ZOSTAŁY JUŻ PODANE PRZEZ KLIENTA LUB AUDYTORA.\n\n" .
-               $allData . "\n\n" .
-               "═══════════════════════════════════════════════════════════════\n" .
-               "BEZWZGLĘDNE ZASADY — OBOWIĄZUJĄ PRZEZ CAŁĄ ROZMOWĘ:\n" .
-               "1. ZAKAZ POWTARZANIA: Nie pytaj o żadne dane wymienione powyżej.\n" .
-               "   Klient je już podał — pytanie o to ponownie jest błędem.\n" .
-               "2. DOPYTYWANIE DOZWOLONE: Możesz poprosić o doprecyzowanie lub\n" .
-               "   rozwinięcie konkretnej odpowiedzi jeśli jest niepełna lub niejednoznaczna.\n" .
-               "3. NOWE PYTANIA: Pytaj wyłącznie o tematy których NIE MA w danych powyżej.\n" .
-               "4. NAWIĄZUJ DO DANYCH: Odwołuj się do zebranych informacji\n" .
-               "   (np. \"Widzę, że Wasza firma to {$companyExample} — na tej podstawie...\").\n" .
-               "5. GDY DANE SĄ KOMPLETNE: Jeśli powyższe dane wystarczają do analizy,\n" .
-               "   przejdź do wniosków i rekomendacji zamiast kontynuować pytania.\n" .
-               "═══════════════════════════════════════════════════════════════\n";
     }
 
     /**
@@ -1442,112 +1150,11 @@ PROMPT,
         $conversation->update(['protocol_data' => $protocol]);
     }
 
-    /**
-     * Analizuje przesłany plik (zdjęcie tabliczki znamionowej, PDF, CSV, TXT).
-     * Wysyła zawartość do Claude, który odczytuje dane i pyta o potwierdzenie.
-     * Zapisuje wiadomości do bazy i zwraca odpowiedź asystenta.
-     */
-    public function analyzeFileContent(AiConversation $conversation, UploadedFile $file, string $userNote = ''): string
-    {
-        $mimeType = $file->getMimeType() ?? 'application/octet-stream';
-        $fileName = $file->getClientOriginalName();
-        $isImage  = str_starts_with($mimeType, 'image/');
-        $isPdf    = $mimeType === 'application/pdf';
-
-        // Display message saved to DB (short, readable)
-        $userDisplayMessage = $userNote
-            ? $userNote . ' [załączono: ' . $fileName . ']'
-            : ($isImage ? 'Przesłano zdjęcie: ' . $fileName : 'Przesłano plik: ' . $fileName);
-
-        // Build existing conversation history (excluding the new message)
-        $history = $this->buildMessageHistory($conversation);
-
-        if ($isImage) {
-            $analysisPrompt =
-                ($userNote ? $userNote . "\n\n" : '') .
-                "Przeanalizuj to zdjęcie (tabliczka znamionowa lub dokument techniczny). " .
-                "Wylistuj WSZYSTKIE widoczne dane techniczne: model, producent, moc [kW/W], napięcie [V], " .
-                "prąd [A], częstotliwość [Hz], prędkość obrotowa [rpm], nr seryjny, rok produkcji, " .
-                "klasa ochrony IP, klasa izolacji, certyfikaty i wszelkie inne parametry. " .
-                "Następnie zapytaj: czy odczytane dane są poprawne i mogę je zapisać do protokołu, " .
-                "czy należy coś poprawić?";
-
-            $base64       = base64_encode(file_get_contents($file->getRealPath()));
-            $imageContent = Image::fromBase64($base64, $mimeType);
-            $prismMessage = new UserMessage($analysisPrompt, [$imageContent]);
-
-        } elseif ($isPdf) {
-            $base64   = base64_encode(file_get_contents($file->getRealPath()));
-            $document = Document::fromBase64($base64, 'application/pdf', $fileName);
-
-            $analysisPrompt =
-                ($userNote ? $userNote . "\n\n" : '') .
-                "Przeanalizuj załączony dokument PDF '{$fileName}'. " .
-                "Wylistuj WSZYSTKIE odczytane dane techniczne, parametry urządzeń, zużycia energii, " .
-                "wartości mierzone i wszelkie inne istotne informacje. " .
-                "Następnie zapytaj: czy odczytane dane są poprawne i mogę je zapisać do protokołu, " .
-                "czy należy coś poprawić?";
-
-            $prismMessage = new UserMessage($analysisPrompt, [$document]);
-
-        } else {
-            // Text / CSV — read content directly
-            $fileContent  = file_get_contents($file->getRealPath());
-            $truncated    = mb_substr((string) $fileContent, 0, 8000);
-
-            $analysisPrompt =
-                "Użytkownik przesłał plik '{$fileName}'." .
-                ($userNote ? " Dodatkowa wiadomość: {$userNote}" : '') .
-                "\n\nZawartość pliku:\n" . $truncated .
-                "\n\nDokładnie przeanalizuj powyższe dane. Wylistuj wszystkie odczytane informacje " .
-                "techniczne, parametry i ważne wartości. Następnie zapytaj: czy te dane są poprawne " .
-                "i mogę je zapisać do protokołu, czy należy coś poprawić?";
-
-            $prismMessage = new UserMessage($analysisPrompt);
-        }
-
-        $history[] = $prismMessage;
-
-        $response = Prism::text()
-            ->using(Provider::Anthropic, 'claude-haiku-4-5-20251001')
-            ->withSystemPrompt($this->getSystemPrompt($conversation->context_type ?? 'general'))
-            ->withMessages($history)
-            ->generate();
-
-        $assistantText = $response->text;
-
-        // Save user message (display version) and assistant reply
-        $conversation->messages()->create([
-            'role'    => 'user',
-            'content' => $userDisplayMessage,
-        ]);
-
-        $conversation->messages()->create([
-            'role'     => 'assistant',
-            'content'  => $assistantText,
-            'metadata' => [
-                'model'         => 'claude-haiku-4-5-20251001',
-                'file_analysis' => true,
-                'file_name'     => $fileName,
-                'file_type'     => $mimeType,
-            ],
-        ]);
-
-        return $assistantText;
-    }
-
-    private function buildMessageHistory(AiConversation $conversation, int $maxMessages = 40): array
+    private function buildMessageHistory(AiConversation $conversation): array
     {
         $messages = [];
 
-        $allMsgs = $conversation->messages()->orderBy('created_at')->get();
-        // Limit context size to avoid rate-limit token spikes on long conversations.
-        // Keep first message (AI greeting) + the most recent (maxMessages-1) messages.
-        if ($allMsgs->count() > $maxMessages) {
-            $allMsgs = $allMsgs->take(1)->concat($allMsgs->slice(-($maxMessages - 1)));
-        }
-
-        foreach ($allMsgs as $msg) {
+        foreach ($conversation->messages()->orderBy('created_at')->get() as $msg) {
             $messages[] = match ($msg->role) {
                 'user'      => new UserMessage($msg->content),
                 'assistant' => new AssistantMessage($msg->content),
@@ -1558,57 +1165,19 @@ PROMPT,
         return array_filter($messages);
     }
 
-    /**
-     * Wraps a Prism generate() call with automatic retry on provider rate-limit errors.
-     * Sleeps for the requested seconds (capped at 30 s) and retries once.
-     */
-    private function withRetry(callable $fn, int $maxRetries = 1): mixed
-    {
-        $attempt = 0;
-        while (true) {
-            try {
-                return $fn();
-            } catch (\Throwable $e) {
-                $retryAfter = $this->parseRateLimitRetryAfter($e->getMessage());
-                if ($retryAfter !== null && $attempt < $maxRetries && $retryAfter <= 30) {
-                    $attempt++;
-                    \Log::info('AI rate limit — retrying after ' . $retryAfter . 's', ['attempt' => $attempt]);
-                    sleep($retryAfter + 1);
-                    continue;
-                }
-                throw $e;
-            }
-        }
-    }
-
-    /**
-     * Detects an Anthropic rate-limit error and parses the wait time.
-     * Returns seconds to wait, or null if not a rate-limit error.
-     */
-    private function parseRateLimitRetryAfter(string $message): ?int
-    {
-        if (!str_contains(strtolower($message), 'rate limit') && !str_contains($message, 'rate_limit')) {
-            return null;
-        }
-        if (preg_match('/retry after (\d+) seconds?/i', $message, $m)) {
-            return (int) $m[1];
-        }
-        return 15; // fallback: wait 15 s when no explicit time given
-    }
-
     private function defaultTitle(string $contextType): string
     {
         return match ($contextType) {
             'energy_audit'            => 'Audyt energetyczny — ' . now()->format('d.m.Y'),
             'iso50001'                => 'ISO 50001 — ' . now()->format('d.m.Y'),
             'offer'                   => 'Oferta — ' . now()->format('d.m.Y'),
-            'compressor_room'         => 'Kompresory — ' . now()->format('d.m.Y'),
+            'compressor_room'         => 'Sprężarkownia — ' . now()->format('d.m.Y'),
             'boiler_room'             => 'Kotłownia — ' . now()->format('d.m.Y'),
             'drying_room'             => 'Suszarnia — ' . now()->format('d.m.Y'),
             'buildings'               => 'Budynki — ' . now()->format('d.m.Y'),
             'technological_processes' => 'Procesy technologiczne — ' . now()->format('d.m.Y'),
             'bc_general'                  => 'Białe certyfikaty — ' . now()->format('d.m.Y'),
-            'bc_compressor_room'          => 'BC Kompresory — ' . now()->format('d.m.Y'),
+            'bc_compressor_room'          => 'BC Sprężarkownia — ' . now()->format('d.m.Y'),
             'bc_boiler_room'              => 'BC Kotłownia — ' . now()->format('d.m.Y'),
             'bc_drying_room'              => 'BC Suszarnia — ' . now()->format('d.m.Y'),
             'bc_buildings'                => 'BC Budynki — ' . now()->format('d.m.Y'),

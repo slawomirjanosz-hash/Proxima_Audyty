@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AuditsController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\OffersController;
+use App\Http\Controllers\OfferTemplatesController;
 use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\EnergyAuditMasterController;
@@ -297,8 +298,22 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/{offer}/edytuj',    [OffersController::class, 'edit'])       ->name('edit');
         Route::put('/{offer}',           [OffersController::class, 'update'])     ->name('update');
         Route::delete('/{offer}',        [OffersController::class, 'destroy'])    ->name('destroy');
-        Route::get('/{offer}/pdf',       [OffersController::class, 'generatePdf'])->name('generatePdf');
-        Route::get('/{offer}/word',      [OffersController::class, 'generateWord'])->name('generateWord');
+        Route::get('/{offer}/pdf',             [OffersController::class, 'generatePdf'])   ->name('generatePdf');
+        Route::get('/{offer}/word',            [OffersController::class, 'generateWord'])  ->name('generateWord');
+        Route::get('/{offer}/podglad-html',    [OffersController::class, 'previewHtml'])   ->name('previewHtml');
+        Route::post('/{offer}/regeneruj-html', [OffersController::class, 'regenerateHtml'])->name('regenerateHtml');
+    });
+
+    // ── Szablony ofert ───────────────────────────────────────────────────────
+    Route::middleware('role:admin,auditor')->prefix('szablony-ofert')->name('offer-templates.')->group(function () {
+        Route::get('/',                        [OfferTemplatesController::class, 'index'])  ->name('index');
+        Route::get('/nowy',                    [OfferTemplatesController::class, 'create']) ->name('create');
+        Route::post('/',                       [OfferTemplatesController::class, 'store'])  ->name('store');
+        Route::get('/{offerTemplate}/edytuj',  [OfferTemplatesController::class, 'edit'])   ->name('edit');
+        Route::put('/{offerTemplate}',         [OfferTemplatesController::class, 'update']) ->name('update');
+        Route::delete('/{offerTemplate}',      [OfferTemplatesController::class, 'destroy'])->name('destroy');
+        Route::get('/{offerTemplate}/podglad', [OfferTemplatesController::class, 'preview'])->name('preview');
+        Route::get('/{offerTemplate}/api',     [OfferTemplatesController::class, 'apiGet']) ->name('api-get');
     });
 
     // ── Zapytania klientów ───────────────────────────────────────────────

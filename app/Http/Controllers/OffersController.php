@@ -6,6 +6,7 @@ use App\Models\ClientInquiry;
 use App\Models\CrmCompany;
 use App\Models\CrmDeal;
 use App\Models\Offer;
+use App\Models\OfferTemplate;
 use Illuminate\Http\Request;
 use App\Mail\OfferSentMail;
 use Illuminate\Support\Facades\DB;
@@ -38,9 +39,10 @@ class OffersController extends Controller
 
     public function create(Request $request)
     {
-        $nextNumber = $this->generateOfferNumber();
-        $crmDeals = CrmDeal::orderBy('name')->get();
+        $nextNumber   = $this->generateOfferNumber();
+        $crmDeals     = CrmDeal::orderBy('name')->get();
         $crmCompanies = CrmCompany::orderBy('name')->get();
+        $offerTemplates = OfferTemplate::where('is_active', true)->orderBy('name')->get();
 
         $prefill = null;
         if ($request->filled('from_company')) {
@@ -51,7 +53,7 @@ class OffersController extends Controller
             ? ClientInquiry::find($request->integer('inquiry_id'))
             : null;
 
-        return view('offers.create', compact('nextNumber', 'crmDeals', 'crmCompanies', 'prefill', 'fromInquiry'));
+        return view('offers.create', compact('nextNumber', 'crmDeals', 'crmCompanies', 'prefill', 'fromInquiry', 'offerTemplates'));
     }
 
     public function store(Request $request)
@@ -86,12 +88,13 @@ class OffersController extends Controller
 
     public function edit(Offer $offer)
     {
-        $crmDeals = CrmDeal::orderBy('name')->get();
-        $crmCompanies = CrmCompany::orderBy('name')->get();
-        $backUrl = $offer->company_id
+        $crmDeals       = CrmDeal::orderBy('name')->get();
+        $crmCompanies   = CrmCompany::orderBy('name')->get();
+        $offerTemplates = OfferTemplate::where('is_active', true)->orderBy('name')->get();
+        $backUrl        = $offer->company_id
             ? route('firma.show', $offer->company_id)
             : route('offers.index');
-        return view('offers.edit', compact('offer', 'crmDeals', 'crmCompanies', 'backUrl'));
+        return view('offers.edit', compact('offer', 'crmDeals', 'crmCompanies', 'backUrl', 'offerTemplates'));
     }
 
     public function update(Request $request, Offer $offer)
@@ -194,29 +197,90 @@ class OffersController extends Controller
 
     public function generatePdf(Offer $offer)
     {
-        $coverHtml = view('offers.cover', compact('offer'))->render();
-        $printHtml = view('offers.print', compact('offer'))->render();
-
-        // Inject cover before the main content with a forced page break
-        // We strip the </body></html> from cover and prepend it to print's <body>
-        $combined = $coverHtml . '<div style="page-break-after:always;"></div>' . $printHtml;
-
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($combined)
-            ->setOptions([
-                'isHtml5ParserEnabled' => true,
-                'isRemoteEnabled'      => false,
-                'defaultFont'          => 'DejaVu Sans',
-                'defaultPaperSize'     => 'a4',
-                'chroot'               => public_path(),
-            ]);
+        if ($offer->html_content) {
+            // Use the template-generated HTML directly
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($offer->html_content)
+                ->setOptions([
+                    'isHtml5ParserEnabled' => true,
+                    'isRemoteEnabled'      => false,
+                    'defaultFont'          => 'DejaVu Sans',
+                    'defaultPaperSize'     => 'a4',
+                    'chroot'               => public_path(),
+                ]);
+        } else {
+            $coverHtml = view('offers.cover', compact('offer'))->render();
+            $printHtml = view('offers.print', compact('offer'))->render();
+            $combined  = $coverHtml . '<div style="page-break-after:always;"></div>' . $printHtml;
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($combined)
+                ->setOptions([
+                    'isHtml5ParserEnabled' => true,
+                    'isRemoteEnabled'      => false,
+                    'defaultFont'          => 'DejaVu Sans',
+                    'defaultPaperSize'     => 'a4',
+                    'chroot'               => public_path(),
+                ]);
+        }
         return $pdf->download('oferta-' . ($offer->offer_number ?: $offer->id) . '.pdf');
+    }
+
+    public function previewHtml(Offer $offer)
+    {
+        if ($offer->html_content) {
+            return response($offer->html_content, 200, ['Content-Type' => 'text/html']);
+        }
+        $html = view('offers.print', compact('offer'))->render();
+        return response($html, 200, ['Content-Type' => 'text/html']);
+    }
+
+    public function regenerateHtml(Offer $offer)
+    {
+        $template = $offer->offerTemplate;
+        if (!$template) {
+            return back()->with('error', 'Oferta nie ma przypisanego szablonu.');
+        }
+
+        $allItems = array_merge(
+            $offer->services ?? [],
+            $offer->works ?? [],
+            $offer->materials ?? [],
+            ...array_map(fn($cs) => $cs['items'] ?? [], $offer->custom_sections ?? [])
+        );
+
+        $paymentTermsRaw = is_array($offer->payment_terms) ? $offer->payment_terms : [];
+        $htmlContent = $template->renderForOffer([
+            'offer_number'         => $offer->offer_number,
+            'offer_title'          => $offer->offer_title,
+            'offer_date'           => $offer->offer_date?->format('Y-m-d'),
+            'customer_name'        => $offer->customer_name,
+            'customer_nip'         => $offer->customer_nip,
+            'customer_address'     => $offer->customer_address,
+            'customer_postal_code' => $offer->customer_postal_code,
+            'customer_city'        => $offer->customer_city,
+            'customer_phone'       => $offer->customer_phone,
+            'customer_email'       => $offer->customer_email,
+            'description'          => $offer->offer_description,
+            'items'                => $allItems,
+            'distance_km'          => $offer->distance_km ?? 0,
+            'km_rate'              => $offer->km_rate ?? $template->default_km_rate,
+            'travel_hours'         => $offer->travel_hours ?? 0,
+            'hour_rate'            => $offer->hour_rate ?? $template->default_hour_rate,
+            'travel_cost'          => $offer->travel_cost ?? 0,
+            'total_price'          => $offer->total_price,
+            'auditor_hours'        => $offer->auditor_hours ?? $template->default_auditor_hours,
+            'payment_terms'        => $paymentTermsRaw,
+        ]);
+
+        $offer->update(['html_content' => $htmlContent]);
+        return back()->with('status', 'HTML oferty został wygenerowany z szablonu.');
     }
 
     public function generateWord(Offer $offer)
     {
-        $html = view('offers.print', ['offer' => $offer, 'forWord' => true])->render();
+        $html = $offer->html_content
+            ? $offer->html_content
+            : view('offers.print', ['offer' => $offer, 'forWord' => true])->render();
         return response($html, 200, [
-            'Content-Type' => 'application/vnd.ms-word',
+            'Content-Type'        => 'application/vnd.ms-word',
             'Content-Disposition' => 'attachment; filename="oferta-' . ($offer->offer_number ?: $offer->id) . '.doc"',
         ]);
     }
@@ -274,34 +338,89 @@ class OffersController extends Controller
             $grandTotal += $this->sumItems($cs['items'] ?? []);
         }
 
-        $profitAmount = (float) $request->input('profit_amount', 0);
-        $totalPrice   = $grandTotal + $profitAmount;
+        $profitAmount  = (float) $request->input('profit_amount', 0);
+        $totalPrice    = $grandTotal + $profitAmount;
+
+        // Travel costs
+        $distKm        = (float) ($request->input('distance_km', 0));
+        $kmRate        = (float) ($request->input('km_rate', 1.5));
+        $travelHours   = (float) ($request->input('travel_hours', 0));
+        $hourRate      = (float) ($request->input('hour_rate', 80));
+        $travelCost    = ($distKm * $kmRate * 2) + ($travelHours * $hourRate * 2);
+
+        $templateId    = $request->input('offer_template_id') ?: null;
+        $auditorHours  = (float) ($request->input('auditor_hours', 0));
+
+        // Flatten all items for HTML generation
+        $allItems = array_merge($services, $works, $materials);
+        foreach ($customSections as $cs) {
+            $allItems = array_merge($allItems, $cs['items'] ?? []);
+        }
+
+        // Generate HTML from template if selected
+        $htmlContent = null;
+        if ($templateId) {
+            $template = OfferTemplate::find($templateId);
+            if ($template) {
+                $paymentTermsRaw = $request->input('payment_terms') ?: [];
+                $htmlContent = $template->renderForOffer([
+                    'offer_number'         => $request->input('offer_number'),
+                    'offer_title'          => $request->input('offer_title'),
+                    'offer_date'           => $request->input('offer_date') ?: now()->toDateString(),
+                    'customer_name'        => $request->input('customer_name'),
+                    'customer_nip'         => $request->input('customer_nip'),
+                    'customer_address'     => $request->input('customer_address'),
+                    'customer_postal_code' => $request->input('customer_postal_code'),
+                    'customer_city'        => $request->input('customer_city'),
+                    'customer_phone'       => $request->input('customer_phone'),
+                    'customer_email'       => $request->input('customer_email'),
+                    'description'          => $request->input('offer_description'),
+                    'items'                => $allItems,
+                    'distance_km'          => $distKm,
+                    'km_rate'              => $kmRate,
+                    'travel_hours'         => $travelHours,
+                    'hour_rate'            => $hourRate,
+                    'travel_cost'          => $travelCost,
+                    'total_price'          => $totalPrice + $travelCost,
+                    'auditor_hours'        => $auditorHours,
+                    'payment_terms'        => is_array($paymentTermsRaw) ? $paymentTermsRaw : [],
+                ]);
+            }
+        }
 
         return [
-            'offer_number'        => $request->input('offer_number'),
-            'offer_title'         => $request->input('offer_title'),
-            'offer_date'          => $request->input('offer_date') ?: null,
-            'offer_description'   => $request->input('offer_description'),
-            'services'            => $services ?: null,
-            'works'               => $works ?: null,
-            'materials'           => $materials ?: null,
-            'custom_sections'     => $customSections ?: null,
-            'total_price'         => $totalPrice,
-            'status'              => $request->input('status', 'portfolio'),
-            'crm_deal_id'         => $request->input('crm_deal_id') ?: null,
-            'customer_name'       => $request->input('customer_name'),
-            'customer_nip'        => $request->input('customer_nip'),
-            'customer_address'    => $request->input('customer_address'),
-            'customer_city'       => $request->input('customer_city'),
-            'customer_postal_code'=> $request->input('customer_postal_code'),
-            'customer_phone'      => $request->input('customer_phone'),
-            'customer_email'      => $request->input('customer_email'),
-            'profit_percent'      => (float) $request->input('profit_percent', 0),
-            'profit_amount'       => $profitAmount,
-            'schedule_enabled'    => $request->boolean('schedule_enabled'),
-            'schedule'            => $request->input('schedule') ?: null,
-            'payment_terms'       => $request->input('payment_terms') ?: null,
-            'show_unit_prices'    => $request->boolean('show_unit_prices', true),
+            'offer_number'         => $request->input('offer_number'),
+            'offer_title'          => $request->input('offer_title'),
+            'offer_date'           => $request->input('offer_date') ?: null,
+            'offer_description'    => $request->input('offer_description'),
+            'html_content'         => $htmlContent,
+            'services'             => $services ?: null,
+            'works'                => $works ?: null,
+            'materials'            => $materials ?: null,
+            'custom_sections'      => $customSections ?: null,
+            'total_price'          => $totalPrice,
+            'status'               => $request->input('status', 'portfolio'),
+            'crm_deal_id'          => $request->input('crm_deal_id') ?: null,
+            'offer_template_id'    => $templateId,
+            'customer_name'        => $request->input('customer_name'),
+            'customer_nip'         => $request->input('customer_nip'),
+            'customer_address'     => $request->input('customer_address'),
+            'customer_city'        => $request->input('customer_city'),
+            'customer_postal_code' => $request->input('customer_postal_code'),
+            'customer_phone'       => $request->input('customer_phone'),
+            'customer_email'       => $request->input('customer_email'),
+            'profit_percent'       => (float) $request->input('profit_percent', 0),
+            'profit_amount'        => $profitAmount,
+            'schedule_enabled'     => $request->boolean('schedule_enabled'),
+            'schedule'             => $request->input('schedule') ?: null,
+            'payment_terms'        => $request->input('payment_terms') ?: null,
+            'show_unit_prices'     => $request->boolean('show_unit_prices', true),
+            'km_rate'              => $kmRate ?: null,
+            'hour_rate'            => $hourRate ?: null,
+            'distance_km'          => $distKm ?: null,
+            'travel_hours'         => $travelHours ?: null,
+            'travel_cost'          => $travelCost ?: null,
+            'auditor_hours'        => $auditorHours ?: null,
         ];
     }
 
@@ -310,10 +429,7 @@ class OffersController extends Controller
         $cleaned = array_map(function ($item) {
             foreach (['price', 'catalog_price', 'value'] as $field) {
                 if (isset($item[$field])) {
-                    // Strip all non-numeric characters except comma, period, and minus sign
-                    // This correctly handles Polish locale non-breaking spaces (\xc2\xa0)
                     $raw = preg_replace('/[^\d,\.\-]/', '', (string) $item[$field]);
-                    // Replace comma decimal separator with period (Polish format: 55000,00)
                     $raw = str_replace(',', '.', $raw);
                     $item[$field] = (float) $raw;
                 }

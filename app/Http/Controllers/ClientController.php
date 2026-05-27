@@ -8,8 +8,6 @@ use App\Models\ClientChatMessage;
 use App\Models\ClientInquiry;
 use App\Models\Company;
 use App\Models\EnergyAudit;
-use App\Models\EnergyAuditMasterData;
-use App\Models\Iso50001QuestionnaireQuestion;
 use App\Models\Offer;
 use App\Models\SystemSetting;
 use Illuminate\Http\JsonResponse;
@@ -85,17 +83,17 @@ class ClientController extends Controller
         ]);
     }
 
-    public function storeInquiry(Request $request): \Illuminate\Http\Response|RedirectResponse|JsonResponse
+    public function storeInquiry(Request $request): RedirectResponse
     {
         $user = $request->user();
         $auditTypeOptions = $this->buildAuditTypeOptions()->keyBy('value');
 
         $validated = $request->validate([
-            'audit_type' => ['nullable', 'string', Rule::in(array_merge([''], $auditTypeOptions->keys()->all()))],
-            'message'       => ['required', 'string', 'max:2000'],
+            'audit_type' => ['required', 'string', Rule::in($auditTypeOptions->keys()->all())],
+            'message'       => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $selectedType = $auditTypeOptions->get($validated['audit_type'] ?? '');
+        $selectedType = $auditTypeOptions->get($validated['audit_type']);
         $auditTypeId = $selectedType['id'] ?? null;
         $auditTypeName = (string) ($selectedType['name'] ?? '');
 
@@ -114,10 +112,6 @@ class ClientController extends Controller
             'status'          => 'new',
         ]);
 
-        if ($request->expectsJson()) {
-            return response()->json(['success' => true], 201);
-        }
-
         return back()->with('inquiry_status', 'Zapytanie zostało wysłane. Skontaktujemy się z Tobą wkrótce.');
     }
 
@@ -125,8 +119,8 @@ class ClientController extends Controller
     {
         return collect([
             // ── Audyty energetyczne ──────────────────────────────
-            ['value' => 'agent:general',                  'id' => null, 'name' => 'Audyty Energetyczne całego zakładu', 'category' => 'energy'],
-            ['value' => 'agent:compressor_room',          'id' => null, 'name' => 'Kompresory',          'category' => 'energy'],
+            ['value' => 'agent:general',                  'id' => null, 'name' => 'Ogólnie',                'category' => 'energy'],
+            ['value' => 'agent:compressor_room',          'id' => null, 'name' => 'Sprężarkownia',          'category' => 'energy'],
             ['value' => 'agent:boiler_room',              'id' => null, 'name' => 'Kotłownia',              'category' => 'energy'],
             ['value' => 'agent:drying_room',              'id' => null, 'name' => 'Suszarnia',              'category' => 'energy'],
             ['value' => 'agent:buildings',                'id' => null, 'name' => 'Budynki',                'category' => 'energy'],
@@ -135,7 +129,7 @@ class ClientController extends Controller
             ['value' => 'agent:iso50001',                 'id' => null, 'name' => 'ISO 50001',              'category' => 'iso'],
             // ── Białe certyfikaty ────────────────────────────────
             ['value' => 'agent:bc_general',                  'id' => null, 'name' => 'Ogólnie',                'category' => 'white_cert'],
-            ['value' => 'agent:bc_compressor_room',          'id' => null, 'name' => 'Kompresory',          'category' => 'white_cert'],
+            ['value' => 'agent:bc_compressor_room',          'id' => null, 'name' => 'Sprężarkownia',          'category' => 'white_cert'],
             ['value' => 'agent:bc_boiler_room',              'id' => null, 'name' => 'Kotłownia',              'category' => 'white_cert'],
             ['value' => 'agent:bc_drying_room',              'id' => null, 'name' => 'Suszarnia',              'category' => 'white_cert'],
             ['value' => 'agent:bc_buildings',                'id' => null, 'name' => 'Budynki',                'category' => 'white_cert'],
@@ -259,31 +253,6 @@ class ClientController extends Controller
 
         $inquiry->update(['status' => 'offer_accepted']);
 
-        // Mark the linked offer as accepted
-        if ($inquiry->offer_id) {
-            \App\Models\Offer::where('id', $inquiry->offer_id)->update(['status' => 'accepted']);
-        }
-
-        // Auto-create a draft audit awaiting admin approval
-        if ($inquiry->company_id) {
-            $auditType = $inquiry->audit_type_id
-                ? \App\Models\AuditType::find($inquiry->audit_type_id)
-                : null;
-
-            $title = ($auditType ? $auditType->name : ($inquiry->audit_type_name ?? 'Audyt'))
-                . ' – ' . now()->year;
-
-            \App\Models\EnergyAudit::create([
-                'title'         => $title,
-                'audit_type_id' => $auditType?->id,
-                'audit_type'    => $auditType?->name ?? ($inquiry->audit_type_name ?? ''),
-                'agent_type'    => $auditType?->agent_type ?? 'general',
-                'company_id'    => $inquiry->company_id,
-                'status'        => 'oczekujący',
-                'data_payload'  => [],
-            ]);
-        }
-
         return back()->with('inquiry_status', 'Zaakceptowałeś ofertę. Nasz zespół wkrótce przydzieli Ci odpowiedni audyt.');
     }
 
@@ -311,38 +280,12 @@ class ClientController extends Controller
 
         abort_unless($company !== null, 404);
 
-        $isStaff = in_array($user->role->value, ['admin', 'auditor', 'super_admin']);
-        if (!$isStaff) {
-            // Verify client belongs to this company
-            $clientCompanyId = $user->company_id
-                ?? Company::where('client_id', $user->id)->value('id');
-            abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
-        }
+        // Verify client belongs to this company
+        $clientCompanyId = $user->company_id
+            ?? Company::where('client_id', $user->id)->value('id');
+        abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
 
         $agentType = $audit->agent_type ?: 'general';
-
-        // Redirect to questionnaire first for ISO 50001 audits
-        if ($agentType === 'iso50001' && ! $audit->questionnaire_completed) {
-            return redirect()->route('client.audit.iso.questionnaire', $audit)
-                ->with('status', 'Przed rozpoczęciem audytu wypełnij kwestionariusz wstępny.');
-        }
-
-        // Redirect to questionnaire first for compressor room audits
-        if ($agentType === 'compressor_room' && ! $audit->questionnaire_completed) {
-            return redirect()->route('client.audit.compressor.questionnaire', $audit)
-                ->with('status', 'Przed rozpoczęciem rozmowy wypełnij ankietę Kompresory — podaj co wiesz, resztę zbierze asystent AI.');
-        }
-
-        // Redirect to Master Form first for general energy audits
-        if ($agentType === 'general') {
-            $masterDone = \App\Models\EnergyAuditMasterData::where('company_id', $audit->company_id)
-                ->where('completion_percent', '>=', 30)
-                ->exists();
-            if (! $masterDone) {
-                return redirect()->route('client.audit.master')
-                    ->with('status', 'Przed rozpoczęciem audytu wypełnij ankietę Master — dane będą wykorzystane w całym audycie.');
-            }
-        }
 
         // Check if conversation already exists
         $existing = AiConversation::where([
@@ -371,297 +314,31 @@ class ClientController extends Controller
         return redirect()->route('client.audit.work', ['audit' => $audit->id, 'conversation' => $conversation->id]);
     }
 
-    public function showIsoQuestionnaire(EnergyAudit $audit): \Illuminate\View\View|\Illuminate\Http\RedirectResponse
-    {
-        $user = auth()->user();
-        $clientCompanyId = $user->company_id
-            ?? Company::where('client_id', $user->id)->value('id');
-        abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
-        abort_unless($audit->agent_type === 'iso50001', 404);
-
-        $questions = Iso50001QuestionnaireQuestion::query()
-            ->active()
-            ->orderBy('sort_order')
-            ->get()
-            ->groupBy('block_key');
-
-        $answers = (array) ($audit->questionnaire_answers ?? []);
-
-        $company = \App\Models\Company::find($audit->company_id);
-        $prefilled = [];
-        if ($company) {
-            if ($company->name) $prefilled['A1'] = $company->name;
-            if ($company->nip)  $prefilled['A2'] = $company->nip;
-            $addr = collect([$company->street, trim($company->postal_code . ' ' . $company->city)])->filter()->implode(', ');
-            if ($addr) $prefilled['A3'] = $addr;
-            if ($company->description) $prefilled['A7'] = $company->description;
-        }
-        $contact = collect([$user->name, $user->position, $user->email, $user->phone])->filter()->implode(', ');
-        if ($contact) $prefilled['A4'] = $contact;
-
-        return view('iso50001.questionnaire', [
-            'audit'       => $audit,
-            'questions'   => $questions,
-            'answers'     => $answers,
-            'prefilled'   => $prefilled,
-            'blockLabels' => Iso50001QuestionnaireQuestion::$blockLabels,
-            'saveRoute'   => route('client.audit.iso.questionnaire.save', $audit),
-            'backRoute'   => route('strefa-klienta'),
-        ]);
-    }
-
-    public function saveIsoQuestionnaire(Request $request, EnergyAudit $audit): \Illuminate\Http\RedirectResponse
-    {
-        $user = auth()->user();
-        $clientCompanyId = $user->company_id
-            ?? Company::where('client_id', $user->id)->value('id');
-        abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
-        abort_unless($audit->agent_type === 'iso50001', 404);
-
-        $raw = $request->input('answers', []);
-        $sanitized = [];
-        foreach ($raw as $code => $value) {
-            $code = preg_replace('/[^A-Za-z0-9_\-]/', '', (string) $code);
-            if ($code !== '') {
-                $sanitized[$code] = strip_tags(trim((string) $value));
-            }
-        }
-
-        // Save as draft (no completion flag)
-        if ($request->boolean('save_as_draft')) {
-            $audit->update(['questionnaire_answers' => $sanitized]);
-            return redirect()->route('client.audit.iso.questionnaire', $audit)
-                ->with('draft_saved', true);
-        }
-
-        // Require at least a few answers before marking as completed
-        $nonEmpty = array_filter($sanitized, fn($v) => trim($v) !== '');
-        if (count($nonEmpty) < 3) {
-            return redirect()->route('client.audit.iso.questionnaire', $audit)
-                ->with('draft_saved', false)
-                ->withErrors(['Wypełnij co najmniej kilka pól przed zapisaniem kwestionariusza.']);
-        }
-
-        $audit->update([
-            'questionnaire_answers'   => $sanitized,
-            'questionnaire_completed' => true,
-        ]);
-
-        return redirect()->route('client.audit.ai', $audit)
-            ->with('status', 'Kwestionariusz zapisany. Możesz teraz rozpocząć rozmowę z asystentem AI.');
-    }
-
-    public function showCompressorQuestionnaire(EnergyAudit $audit): \Illuminate\View\View|\Illuminate\Http\RedirectResponse
-    {
-        $user = auth()->user();
-        $isStaff = in_array($user->role->value, ['admin', 'auditor', 'super_admin']);
-        if (!$isStaff) {
-            $clientCompanyId = $user->company_id
-                ?? Company::where('client_id', $user->id)->value('id');
-            abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
-        }
-        abort_unless($audit->agent_type === 'compressor_room', 404);
-
-        // Mark questionnaire as reviewed by staff so the nav alert goes away
-        if ($isStaff && $audit->questionnaire_completed && is_null($audit->questionnaire_reviewed_at)) {
-            $audit->update(['questionnaire_reviewed_at' => now()]);
-        }
-
-        $answers = (array) ($audit->questionnaire_answers ?? []);
-        $company = Company::find($audit->company_id);
-
-        // Auto-fill empty fields with values inferred from company data
-        if ($company) {
-            $suggested = $this->inferQuestionnaireDefaults($company, $user);
-            foreach ($suggested as $key => $value) {
-                if (!isset($answers[$key]) || $answers[$key] === '' || $answers[$key] === null) {
-                    $answers[$key] = $value;
-                }
-            }
-        }
-
-        // Load chat messages for the floating widget (clients only)
-        $chatMessages = collect();
-        if (!$isStaff && $audit->company_id) {
-            $chatMessages = ClientChatMessage::where('company_id', $audit->company_id)
-                ->with('user')
-                ->oldest()
-                ->get();
-        }
-
-        return view('client.compressor-questionnaire', [
-            'audit'           => $audit,
-            'answers'         => $answers,
-            'company'         => $company,
-            'user'            => $user,
-            'chatMessages'    => $chatMessages,
-            'masterFormData'  => $audit->company_id
-                ? (EnergyAuditMasterData::where('company_id', $audit->company_id)->first()?->getFormDataSafe() ?? [])
-                : [],
-            'isStaff'         => $isStaff,
-        ]);
-    }
-
-    public function saveCompressorQuestionnaire(Request $request, EnergyAudit $audit): \Illuminate\Http\RedirectResponse
-    {
-        $user = auth()->user();
-        $isStaff = in_array($user->role->value, ['admin', 'auditor', 'super_admin']);
-        if (!$isStaff) {
-            $clientCompanyId = $user->company_id
-                ?? Company::where('client_id', $user->id)->value('id');
-            abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
-        }
-        abort_unless($audit->agent_type === 'compressor_room', 404);
-
-        $raw = $request->input('answers', []);
-        $sanitized = [];
-        foreach ($raw as $code => $value) {
-            $code = preg_replace('/[^A-Za-z0-9_\-\[\]]/', '', (string) $code);
-            if ($code !== '') {
-                if (is_array($value)) {
-                    $sanitized[$code] = array_map(fn($v) => strip_tags(trim((string) $v)), $value);
-                } else {
-                    $sanitized[$code] = strip_tags(trim((string) $value));
-                }
-            }
-        }
-
-        // Save compressors table separately
-        $compressors = $request->input('compressors', []);
-        $cleanCompressors = [];
-        foreach ($compressors as $row) {
-            if (!is_array($row)) continue;
-            $cleanRow = [];
-            foreach ($row as $k => $v) {
-                $k = preg_replace('/[^A-Za-z0-9_]/', '', (string) $k);
-                $cleanRow[$k] = strip_tags(trim((string) $v));
-            }
-            $cleanCompressors[] = $cleanRow;
-        }
-        if (!empty($cleanCompressors)) {
-            $sanitized['_compressors'] = $cleanCompressors;
-        }
-
-        if ($request->boolean('save_as_draft')) {
-            $audit->update(['questionnaire_answers' => $sanitized]);
-            return redirect()->route('client.audit.compressor.questionnaire', $audit)
-                ->with('draft_saved', true);
-        }
-
-        $nonEmpty = array_filter($sanitized, fn($v) => $v !== '' && $v !== [] && $v !== null);
-        if (count($nonEmpty) < 2) {
-            return redirect()->route('client.audit.compressor.questionnaire', $audit)
-                ->withErrors(['Wypełnij co najmniej kilka pól przed zapisaniem ankiety.']);
-        }
-
-        // If a client (re-)submits, clear the reviewed flag so auditor gets re-notified
-        $reviewedAt = $isStaff ? ($audit->questionnaire_reviewed_at ?? now()) : null;
-
-        $audit->update([
-            'questionnaire_answers'     => $sanitized,
-            'questionnaire_completed'   => true,
-            'questionnaire_reviewed_at' => $reviewedAt,
-        ]);
-
-        if ($isStaff) {
-            return redirect()->route('client.audit.ai', $audit)
-                ->with('status', 'Ankieta Kompresory zapisana przez audytora.');
-        }
-
-        return redirect()->route('client.audit.ai', $audit)
-            ->with('status', 'Ankieta Kompresory zapisana. Asystent AI zapozna się z danymi i zada tylko pytania uzupełniające.');
-    }
-
-    /**
-     * AJAX auto-save for the new Kompresory (CA) questionnaire.
-     * Accepts JSON: { fields: { "FIELD-ID": "value", ... }, completion_percent: N }
-     */
-    public function saveCompressorQuestionnaireAjax(Request $request, EnergyAudit $audit): \Illuminate\Http\JsonResponse
-    {
-        $user = auth()->user();
-        $isStaff = in_array($user->role->value, ['admin', 'auditor', 'super_admin']);
-        if (!$isStaff) {
-            $clientCompanyId = $user->company_id
-                ?? Company::where('client_id', $user->id)->value('id');
-            abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
-        }
-        abort_unless($audit->agent_type === 'compressor_room', 404);
-
-        $request->validate([
-            'fields'             => ['required', 'array'],
-            'completion_percent' => ['nullable', 'integer', 'min:0', 'max:100'],
-        ]);
-
-        // Sanitize: allow only string/numeric values
-        $incoming = collect($request->input('fields'))
-            ->filter(fn($v) => is_string($v) || is_numeric($v) || $v === null)
-            ->map(fn($v) => $v === null ? null : strip_tags(trim((string) $v)))
-            ->toArray();
-
-        // Merge with existing answers
-        $existing = (array) ($audit->questionnaire_answers ?? []);
-        foreach ($incoming as $key => $value) {
-            $key = preg_replace('/[^A-Za-z0-9_\-\[\]]/', '', (string) $key);
-            if ($key === '') continue;
-            if ($value === null || $value === '') {
-                unset($existing[$key]);
-            } else {
-                $existing[$key] = $value;
-            }
-        }
-
-        $completionPercent = $request->input('completion_percent');
-        $updateData = ['questionnaire_answers' => $existing];
-        if ($completionPercent !== null) {
-            $updateData['questionnaire_completed'] = $completionPercent >= 80;
-        }
-
-        $audit->update($updateData);
-
-        return response()->json([
-            'ok'  => true,
-            'saved' => count($incoming),
-            'total' => count($existing),
-        ]);
-    }
-
     public function auditWork(EnergyAudit $audit, AiConversation $conversation): \Illuminate\View\View
     {
         $user = auth()->user();
 
-        $isStaff = in_array($user->role->value, ['admin', 'auditor', 'super_admin']);
-        if (!$isStaff) {
-            // Verify client owns this audit
-            $clientCompanyId = $user->company_id
-                ?? Company::where('client_id', $user->id)->value('id');
-            abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
-            // Verify conversation belongs to this user
-            abort_unless((int) $conversation->user_id === $user->id, 403);
-        }
-        // Verify conversation belongs to this audit
+        // Verify client owns this audit
+        $clientCompanyId = $user->company_id
+            ?? Company::where('client_id', $user->id)->value('id');
+        abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
+
+        // Verify conversation belongs to user and this audit
+        abort_unless((int) $conversation->user_id === $user->id, 403);
         abort_unless((int) $conversation->context_id === $audit->id, 403);
 
         $messages = $conversation->messages()->orderBy('id')->get();
 
-        // Load chat messages for the floating widget (clients only)
-        $chatMessages = collect();
-        if (!$isStaff && $audit->company_id) {
-            $chatMessages = ClientChatMessage::where('company_id', $audit->company_id)
-                ->with('user')
-                ->oldest()
-                ->get();
-        }
-
         $agentLabels = [
-            'general'                 => 'Audyty Energetyczne całego zakładu',
-            'compressor_room' => 'Kompresory',
+            'general'                 => 'Ogólnie',
+            'compressor_room'         => 'Sprężarkownia',
             'boiler_room'             => 'Kotłownia',
             'drying_room'             => 'Suszarnia',
             'buildings'               => 'Budynki',
             'technological_processes' => 'Procesy technologiczne',
             'iso50001'                => 'ISO 50001',
             'bc_general'              => 'Białe certyfikaty — Ogólnie',
-            'bc_compressor_room' => 'Białe certyfikaty — Kompresory',
+            'bc_compressor_room'      => 'Białe certyfikaty — Sprężarkownia',
             'bc_boiler_room'          => 'Białe certyfikaty — Kotłownia',
             'bc_drying_room'          => 'Białe certyfikaty — Suszarnia',
             'bc_buildings'            => 'Białe certyfikaty — Budynki',
@@ -670,20 +347,17 @@ class ClientController extends Controller
 
         $agentLabel = $agentLabels[$conversation->context_type] ?? $conversation->context_type;
 
-        return view('client.audit-work', compact('audit', 'conversation', 'messages', 'agentLabel', 'chatMessages'));
+        return view('client.audit-work', compact('audit', 'conversation', 'messages', 'agentLabel'));
     }
 
     public function finishAuditAi(EnergyAudit $audit, AiConversation $conversation): RedirectResponse
     {
         $user = auth()->user();
 
-        $isStaff = in_array($user->role->value, ['admin', 'auditor', 'super_admin']);
-        if (!$isStaff) {
-            $clientCompanyId = $user->company_id
-                ?? Company::where('client_id', $user->id)->value('id');
-            abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
-            abort_unless((int) $conversation->user_id === $user->id, 403);
-        }
+        $clientCompanyId = $user->company_id
+            ?? Company::where('client_id', $user->id)->value('id');
+        abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
+        abort_unless((int) $conversation->user_id === $user->id, 403);
         abort_unless((int) $conversation->context_id === $audit->id, 403);
 
         try {
@@ -698,31 +372,6 @@ class ClientController extends Controller
 
         return redirect()->route('strefa-klienta')
             ->with('status', 'Audyt zakończony. Dane zostały zapisane i przekazane do analizy.');
-    }
-
-    /**
-     * Preview the Kompresory questionnaire without a specific audit (staff only).
-     * Renders in read-only/empty mode — no data is saved.
-     */
-    public function previewCompressorQuestionnaire(): \Illuminate\View\View
-    {
-        // Create a transient (unsaved) audit-like object for the view
-        $fakeAudit = new \App\Models\EnergyAudit([
-            'id'         => 0,
-            'agent_type' => 'compressor_room',
-            'title'      => 'Podgląd ankiety Kompresory',
-            'company_id' => null,
-        ]);
-
-        return view('client.compressor-questionnaire', [
-            'audit'          => $fakeAudit,
-            'answers'        => [],
-            'company'        => null,
-            'user'           => auth()->user(),
-            'chatMessages'   => collect(),
-            'masterFormData' => [],
-            'isStaff'        => true,
-        ]);
     }
 
     /**
@@ -779,185 +428,5 @@ class ClientController extends Controller
 
         return redirect()->route('client.audit.edit', $audit)
             ->with('status', 'Dane zostały zapisane. Asystent AI przeanalizował dane i dodał rekomendacje na dole strony.');
-    }
-
-    /**
-     * Scan a compressor nameplate image and return extracted fields as JSON.
-     */
-    public function scanCompressorNameplate(Request $request, EnergyAudit $audit): JsonResponse
-    {
-        $user    = $request->user();
-        $isStaff = in_array($user->role->value, ['admin', 'auditor', 'super_admin']);
-        if (!$isStaff) {
-            $clientCompanyId = $user->company_id
-                ?? Company::where('client_id', $user->id)->value('id');
-            abort_unless((int) $audit->company_id === (int) $clientCompanyId, 403);
-        }
-
-        $request->validate([
-            'file' => ['required', 'file', 'max:10240', 'mimes:jpeg,jpg,png,gif,webp'],
-        ]);
-
-        $file     = $request->file('file');
-        $mimeType = $file->getMimeType() ?? 'image/jpeg';
-        $base64   = base64_encode(file_get_contents($file->getRealPath()));
-
-        $prompt = <<<EOT
-Przeanalizuj to zdjęcie tabliczki znamionowej sprężarki powietrza.
-Wyodrębnij wszystkie dostępne dane techniczne i zwróć je WYŁĄCZNIE jako obiekt JSON.
-Nie dodawaj żadnego tekstu przed ani po — tylko czysty JSON.
-
-Format (użyj null gdy danego pola brak na tabliczce):
-{
-  "producent": "nazwa producenta",
-  "model": "model lub typ urządzenia",
-  "typ": "Śrubowa|Tłokowa|Odśrodkowa|Spiralna (scroll)|null",
-  "moc_kw": "moc w kW (sama liczba, np. 75)",
-  "wydajnosc": "wydajność np. 12.5 m³/min lub Nm³/h",
-  "pmax": "max ciśnienie w bar (sama liczba, np. 13)",
-  "rok": "rok produkcji (sama liczba, np. 2018)",
-  "klasa_ie": "IE1|IE2|IE3|IE4|IE5|null",
-  "nr_seryjny": "numer seryjny",
-  "napiecie": "napięcie np. 400V",
-  "prad": "prąd np. 135A",
-  "predkosc": "prędkość obrotowa np. 2950 rpm",
-  "opis": "krótki opis tego co odczytano z tabliczki (1-2 zdania po polsku)"
-}
-EOT;
-
-        try {
-            $imageContent = \Prism\Prism\ValueObjects\Media\Image::fromBase64($base64, $mimeType);
-
-            $response = \Prism\Prism\Facades\Prism::text()
-                ->using(\Prism\Prism\Enums\Provider::Anthropic, 'claude-haiku-4-5-20251001')
-                ->withSystemPrompt('Jesteś ekspertem od odczytu tabliczek znamionowych urządzeń przemysłowych. Odpowiadasz WYŁĄCZNIE poprawnym JSON bez markdown, bez komentarzy, bez tekstu poza nawiasami {}.')
-                ->withMessages([
-                    new \Prism\Prism\ValueObjects\Messages\UserMessage($prompt, [$imageContent]),
-                ])
-                ->generate();
-
-            $text = trim($response->text);
-            // Strip possible markdown code fences
-            $text = (string) preg_replace('/^```(?:json)?\s*/i', '', $text);
-            $text = (string) preg_replace('/\s*```$/m', '', $text);
-
-            $data = json_decode($text, true);
-            if (!is_array($data)) {
-                return response()->json(['success' => false, 'error' => 'Nie udało się odczytać danych z tabliczki — spróbuj wyraźniejszego zdjęcia.'], 422);
-            }
-
-            return response()->json(['success' => true, 'data' => $data]);
-
-        } catch (\Throwable $e) {
-            report($e);
-            return response()->json(['success' => false, 'error' => 'Błąd analizy zdjęcia: ' . $e->getMessage()], 500);
-        }
-    }
-
-    /**
-     * Infer reasonable questionnaire defaults from company data.
-     * Only fills keys that are empty in the existing answers array.
-     */
-    private function inferQuestionnaireDefaults(Company $company, \App\Models\User $user): array
-    {
-        $defaults = [];
-
-        // ── REQ-00-ZAKLAD: full plant address ──────────────────────────────
-        $locationParts = array_filter([
-            $company->name,
-            $company->street,
-            trim(($company->postal_code ?? '') . ' ' . ($company->city ?? '')),
-        ]);
-        if (!empty($locationParts)) {
-            $defaults['REQ-00-ZAKLAD'] = implode(', ', $locationParts);
-        } elseif ($company->city) {
-            $defaults['REQ-00-ZAKLAD'] = $company->city;
-        }
-
-        // ── CTX-01-BR: industry detected from company name / description ───
-        $searchText = mb_strtolower(
-            ($company->name ?? '') . ' ' . ($company->short_name ?? '') . ' ' . ($company->description ?? '')
-        );
-        $industry = $this->detectIndustry($searchText);
-        if ($industry) {
-            $defaults['CTX-01-BR'] = $industry;
-        }
-
-        // ── EZ-NAP: default voltage (400V 3-phase is universal in Polish industry) ─
-        $defaults['EZ-NAP'] = '400V / 3-fazowe';
-
-        return $defaults;
-    }
-
-    /**
-     * Detect likely industry from a lowercased company name/description.
-     */
-    private function detectIndustry(string $text): ?string
-    {
-        $map = [
-            'Motoryzacyjna' => [
-                'stellantis','toyota','volkswagen','audi','bmw','mercedes','fiat','ford',
-                'opel','renault','peugeot','citroën','citroen','seat','skoda','volvo',
-                'scania','man ','daf ','iveco','automotiv','motoryzac','automotive',
-                'stellant','magna ','faurecia','valeo ','continental','bosal','brembo',
-            ],
-            'Spożywcza' => [
-                'nestle','danone','unilever','kraft','heinz','cargill','bakoma','mlekpol',
-                'mlekovita','animex','indykpol','sokołów','sokolow','drosed','piekarni',
-                'cukrowi','browar','winiar','spożyw','żywność','zywnosc','mleczar',
-                'przetwor spożyw','zakłady mięsne','zakłady mleczar',
-            ],
-            'Chemiczna / Petrochemiczna' => [
-                'basf','dow chemical','bayer','azoty','orlen','lotos','shell',
-                'petrochemi','chemiczn','chemik','polimer','kauczuk','farb','lakier',
-                'gumow','synthos','ciech ','pulawy','anwil ',
-            ],
-            'Farmaceutyczna' => [
-                'pfizer','novartis','roche','polpharma','adamed','polfar','jelfa',
-                'bioton','pharma','farmaceu','medic','sanitas',
-            ],
-            'Elektroniczna / Elektryczna' => [
-                'siemens','philips','bosch','samsung','intel','dell','nvidia',
-                'elektronicz','elektryczn','transformator','kondensator','pcb ',
-                'semiconductor','półprzewod','electrolux','whirlpool','abb ',
-            ],
-            'Metalowa / Hutnicza' => [
-                'arcelor','kghm','huta ','stalown','stal ','metalo','hutniczn',
-                'odlewni','kuźni','kuzni','blachar','alumini','cynk ','miedzi',
-                'nikiel','impexmetal','stalprodukt','boryszew',
-            ],
-            'Papiernicza / Celulozowa' => [
-                'mondi','smurfit','ds smith','papier','celuloz','karton','tektur','opakow',
-            ],
-            'Tekstylna' => [
-                'textil','tekstyl','włókien','wlokien','tkanin','szwalnia','odzież','odziez',
-            ],
-            'Drzewna / Meblarska' => [
-                'ikea ','forte ','mebl','drewn','stolar','tartac','parkiet','kronospan',
-            ],
-            'Budowlana / Materiały budowlane' => [
-                'lafarge','cemex','heidelberg','budowlan','cement','beton','cegł',
-                'cegl','dachów','izolac','styropian','knauf','rigips',
-            ],
-            'Energetyka / Utilities' => [
-                'enea ','pge ','tauron','energa','innogy','elektrown',
-                'elektrociepł','elektrocieplow','ciepłown','cieplown','gazown',
-                'wodociąg','wodociag',
-            ],
-            'Logistyka / Magazynowanie' => [
-                'amazon','dhl ','dpd ','fedex','ups ','logistics','logistyk',
-                'magazyn','spedyc','transport',
-            ],
-        ];
-
-        foreach ($map as $industry => $keywords) {
-            foreach ($keywords as $kw) {
-                if (mb_strpos($text, $kw) !== false) {
-                    return $industry;
-                }
-            }
-        }
-
-        return null;
     }
 }

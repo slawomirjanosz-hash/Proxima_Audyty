@@ -12,6 +12,7 @@ class Offer extends Model
         'offer_title',
         'offer_date',
         'offer_description',
+        'html_content',
         'services',
         'works',
         'materials',
@@ -19,6 +20,7 @@ class Offer extends Model
         'total_price',
         'status',
         'crm_deal_id',
+        'offer_template_id',
         'company_id',
         'customer_name',
         'customer_nip',
@@ -33,19 +35,31 @@ class Offer extends Model
         'schedule',
         'payment_terms',
         'show_unit_prices',
+        'km_rate',
+        'hour_rate',
+        'distance_km',
+        'travel_hours',
+        'travel_cost',
+        'auditor_hours',
         'created_by',
     ];
 
     protected $casts = [
-        'services'       => 'array',
-        'works'          => 'array',
-        'materials'      => 'array',
-        'custom_sections'=> 'array',
-        'schedule'       => 'array',
-        'payment_terms'  => 'array',
+        'services'         => 'array',
+        'works'            => 'array',
+        'materials'        => 'array',
+        'custom_sections'  => 'array',
+        'schedule'         => 'array',
+        'payment_terms'    => 'array',
         'schedule_enabled' => 'boolean',
         'show_unit_prices' => 'boolean',
-        'offer_date'     => 'date',
+        'offer_date'       => 'date',
+        'km_rate'          => 'float',
+        'hour_rate'        => 'float',
+        'distance_km'      => 'float',
+        'travel_hours'     => 'float',
+        'travel_cost'      => 'float',
+        'auditor_hours'    => 'float',
     ];
 
     public function crmDeal(): BelongsTo
@@ -61,5 +75,10 @@ class Offer extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function offerTemplate(): BelongsTo
+    {
+        return $this->belongsTo(OfferTemplate::class);
     }
 }
