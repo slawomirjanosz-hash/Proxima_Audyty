@@ -1,0 +1,22 @@
+<?php
+
+namespace App\Filament\Resources\CrmActivityResource\Pages;
+
+use App\Filament\Resources\CrmActivityResource;
+use Filament\Actions;
+use Filament\Resources\Pages\EditRecord;
+
+class EditCrmActivity extends EditRecord
+{
+    protected static string $resource = CrmActivityResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [Actions\DeleteAction::make()];
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+}

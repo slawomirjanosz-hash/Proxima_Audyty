@@ -1,0 +1,16 @@
+<?php
+
+namespace App\Filament\Resources\CrmActivityResource\Pages;
+
+use App\Filament\Resources\CrmActivityResource;
+use Filament\Resources\Pages\CreateRecord;
+
+class CreateCrmActivity extends CreateRecord
+{
+    protected static string $resource = CrmActivityResource::class;
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+}
