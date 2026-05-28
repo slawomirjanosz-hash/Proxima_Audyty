@@ -63,7 +63,7 @@
                 </div>
             </div>
             <div class="at-card-body">
-                <a href="{{ route('offer-templates.index') }}?type=energetyczny" class="at-action">
+                <a href="{{ route('offer-templates.index', ['category' => 'energetyczny']) }}" class="at-action">
                     <span class="at-action-icon">📄</span>
                     <span class="at-action-label">Szablon oferty</span>
                     <span class="at-action-desc">Szablony dla audytów energetycznych</span>
@@ -96,7 +96,7 @@
                 </div>
             </div>
             <div class="at-card-body">
-                <a href="{{ route('offer-templates.index') }}?type=iso" class="at-action">
+                <a href="{{ route('offer-templates.index', ['category' => 'iso50001']) }}" class="at-action">
                     <span class="at-action-icon">📄</span>
                     <span class="at-action-label">Szablon oferty</span>
                     <span class="at-action-desc">Szablony dla audytów ISO 50001</span>
@@ -129,7 +129,7 @@
                 </div>
             </div>
             <div class="at-card-body">
-                <a href="{{ route('offer-templates.index') }}?type=bc" class="at-action">
+                <a href="{{ route('offer-templates.index', ['category' => 'biale_certyfikaty']) }}" class="at-action">
                     <span class="at-action-icon">📄</span>
                     <span class="at-action-label">Szablon oferty</span>
                     <span class="at-action-desc">Szablony dla białych certyfikatów</span>

@@ -7,16 +7,35 @@ use Illuminate\Http\Request;
 
 class OfferTemplatesController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $templates = OfferTemplate::withCount('offers')->latest()->get();
-        return view('offer-templates.index', compact('templates'));
+        $category = $request->input('category');
+        $validCategories = array_keys(OfferTemplate::CATEGORIES);
+
+        if (!$category || !in_array($category, $validCategories)) {
+            return redirect()->route('audits.index');
+        }
+
+        $templates = OfferTemplate::withCount('offers')
+            ->where('audit_category', $category)
+            ->latest()
+            ->get();
+
+        $categoryLabel = OfferTemplate::CATEGORIES[$category];
+
+        return view('offer-templates.index', compact('templates', 'category', 'categoryLabel'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
+        $category = $request->input('category');
+        $validCategories = array_keys(OfferTemplate::CATEGORIES);
+        if (!$category || !in_array($category, $validCategories)) {
+            return redirect()->route('audits.index');
+        }
+        $categoryLabel = OfferTemplate::CATEGORIES[$category];
         $defaultHtml = $this->defaultTemplateHtml();
-        return view('offer-templates.create', compact('defaultHtml'));
+        return view('offer-templates.create', compact('defaultHtml', 'category', 'categoryLabel'));
     }
 
     public function store(Request $request)
@@ -29,9 +48,12 @@ class OfferTemplatesController extends Controller
             'default_auditor_hours' => 'nullable|numeric|min:0',
         ]);
 
+        $category = $request->input('audit_category');
+
         OfferTemplate::create([
             'name'                  => $request->input('name'),
             'type_code'             => $request->input('type_code'),
+            'audit_category'        => $category,
             'description'           => $request->input('description'),
             'html_content'          => $request->input('html_content'),
             'default_km_rate'       => $request->input('default_km_rate', 1.50),
@@ -42,7 +64,7 @@ class OfferTemplatesController extends Controller
             'created_by'            => auth()->id(),
         ]);
 
-        return redirect()->route('offer-templates.index')
+        return redirect()->route('offer-templates.index', ['category' => $category])
             ->with('status', 'Szablon oferty został utworzony.');
     }
 
@@ -64,6 +86,7 @@ class OfferTemplatesController extends Controller
         $offerTemplate->update([
             'name'                  => $request->input('name'),
             'type_code'             => $request->input('type_code'),
+            'audit_category'        => $request->input('audit_category', $offerTemplate->audit_category),
             'description'           => $request->input('description'),
             'html_content'          => $request->input('html_content'),
             'default_km_rate'       => $request->input('default_km_rate', 1.50),
@@ -82,8 +105,9 @@ class OfferTemplatesController extends Controller
         if ($offerTemplate->offers()->exists()) {
             return back()->with('error', 'Nie można usunąć szablonu — istnieją oferty z tym szablonem.');
         }
+        $category = $offerTemplate->audit_category;
         $offerTemplate->delete();
-        return redirect()->route('offer-templates.index')
+        return redirect()->route('offer-templates.index', ['category' => $category])
             ->with('status', 'Szablon został usunięty.');
     }
 

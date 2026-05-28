@@ -33,7 +33,7 @@
     </div>
     <div style="display:flex;gap:8px;">
         <a href="{{ route('offer-templates.preview', $template) }}" target="_blank" class="ot-btn" style="background:#eff6ff;color:#1d4ed8;">👁 Podgląd</a>
-        <a href="{{ route('offer-templates.index') }}" class="ot-btn ot-btn-gray">← Wróć</a>
+        <a href="{{ route('offer-templates.index', ['category' => $template->audit_category]) }}" class="ot-btn ot-btn-gray">← Wróć</a>
     </div>
 </div>
 
@@ -48,6 +48,7 @@
 
 <form method="POST" action="{{ route('offer-templates.update', $template) }}" id="tpl-form">
 @csrf @method('PUT')
+<input type="hidden" name="audit_category" value="{{ $template->audit_category }}">
 
 {{-- PODSTAWOWE DANE --}}
 <div class="ot-panel">

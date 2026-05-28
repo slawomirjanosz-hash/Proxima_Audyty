@@ -50,6 +50,7 @@
 
 <form method="POST" action="{{ route('offer-templates.store') }}" id="tpl-form">
 @csrf
+<input type="hidden" name="audit_category" value="{{ $category }}">
 
 {{-- PODSTAWOWE DANE --}}
 <div class="ot-panel">
