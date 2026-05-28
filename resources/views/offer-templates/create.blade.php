@@ -1,4 +1,6 @@
 <x-layouts.app>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/theme/dracula.min.css">
 <style>
 .ot-panel { background:#fff; border:1px solid var(--paper-deep); border-radius:14px; padding:20px; margin-bottom:16px; }
 .ot-label { display:block; font-size:12px; font-weight:700; color:var(--ink-mute); margin-bottom:4px; text-transform:uppercase; letter-spacing:.4px; }
@@ -20,7 +22,8 @@
 .editor-col-header { background:#1a1a2e; color:#e2e8f0; padding:10px 16px; font-size:13px; font-weight:600; display:flex; align-items:center; justify-content:space-between; }
 .editor-col-header .tabs button { background:none; border:none; color:#94a3b8; cursor:pointer; font-size:13px; padding:4px 10px; border-radius:6px; margin-left:4px; }
 .editor-col-header .tabs button.active { background:#1A4D3A; color:#fff; }
-#html-textarea { flex:1; width:100%; height:100%; border:none; outline:none; resize:none; font-family:'Fira Code','Courier New',monospace; font-size:12.5px; line-height:1.6; padding:16px; background:#1e1e2e; color:#cdd6f4; tab-size:2; }
+.editor-col .CodeMirror { font-family:'Fira Code','Courier New',monospace; font-size:12.5px; line-height:1.6; height:556px; }
+.editor-col .CodeMirror-gutters { border-right:1px solid #3d3d5c; }
 #html-preview { flex:1; width:100%; height:100%; border:none; background:#fff; }
 .placeholder-tags { display:flex; flex-wrap:wrap; gap:6px; padding:10px 14px; background:#f8fafc; border-top:1px solid #e4edf3; }
 .placeholder-tags span { font-size:11px; font-family:monospace; background:#e0f2fe; color:#0369a1; padding:3px 8px; border-radius:5px; cursor:pointer; user-select:none; transition: background .15s; }
@@ -227,17 +230,43 @@
 </form>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/addon/edit/closetag.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/addon/edit/matchbrackets.min.js"></script>
 <script>
-// ─── Placeholder insert ───
-const htmlTa = document.getElementById('html-textarea');
+// ─── CodeMirror editor ───
+const editor = CodeMirror.fromTextArea(document.getElementById('html-textarea'), {
+    mode: 'htmlmixed',
+    theme: 'dracula',
+    lineNumbers: true,
+    lineWrapping: true,
+    autoCloseTags: true,
+    matchBrackets: true,
+    indentWithTabs: false,
+    indentUnit: 2,
+    tabSize: 2,
+    extraKeys: {
+        'Ctrl-Z': 'undo',
+        'Ctrl-Y': 'redo',
+        'Shift-Ctrl-Z': 'redo',
+        'Cmd-Z': 'undo',
+        'Cmd-Y': 'redo',
+    }
+});
+editor.setSize('100%', 556);
+
+// Sync content to hidden textarea before form submit
+document.getElementById('tpl-form').addEventListener('submit', function() {
+    editor.save();
+});
 
 function insertPlaceholder(ph) {
-    const start = htmlTa.selectionStart;
-    const end   = htmlTa.selectionEnd;
-    const val   = htmlTa.value;
-    htmlTa.value = val.substring(0, start) + ph + val.substring(end);
-    htmlTa.selectionStart = htmlTa.selectionEnd = start + ph.length;
-    htmlTa.focus();
+    editor.replaceSelection(ph);
+    editor.focus();
     refreshPreview();
 }
 
@@ -245,12 +274,13 @@ function insertPlaceholder(ph) {
 let previewTimer = null;
 function refreshPreview() {
     const iframe = document.getElementById('html-preview');
-    const html   = htmlTa.value;
-    const demo   = html
+    const demo = editor.getValue()
         .replace(/\{\{offer_title\}\}/g, 'Audyt Energetyczny Zakładu XYZ')
         .replace(/\{\{offer_number\}\}/g, 'OF-2026/0001')
         .replace(/\{\{offer_date\}\}/g, new Date().toLocaleDateString('pl-PL'))
+        .replace(/\{\{offer_subject\}\}/g, 'Przeprowadzenie audytu energetycznego wg EN 16247')
         .replace(/\{\{customer_name\}\}/g, 'Zakłady Przemysłowe Sp. z o.o.')
+        .replace(/\{\{customer_type\}\}/g, 'Firma')
         .replace(/\{\{customer_nip\}\}/g, '123-456-78-90')
         .replace(/\{\{customer_address\}\}/g, 'ul. Fabryczna 12')
         .replace(/\{\{customer_postal_code\}\}/g, '44-100')
@@ -264,32 +294,42 @@ function refreshPreview() {
         .replace(/\{\{travel_hours\}\}/g, '1,5')
         .replace(/\{\{hour_rate\}\}/g, '80,00')
         .replace(/\{\{travel_cost\}\}/g, '600,00')
-        .replace(/\{\{total_price\}\}/g, '10 600,00')
+        .replace(/\{\{total_price_net\}\}/g, '10 000,00')
+        .replace(/\{\{vat_rate\}\}/g, '23%')
+        .replace(/\{\{total_price_vat\}\}/g, '2 300,00')
+        .replace(/\{\{total_price\}\}/g, '12 300,00')
         .replace(/\{\{auditor_hours\}\}/g, '8,0')
-        .replace(/\{\{payment_terms\}\}/g, '<ul><li>100% — płatność po wykonaniu audytu, 14 dni od faktury</li></ul>');
-
+        .replace(/\{\{offer_validity\}\}/g, '30 dni')
+        .replace(/\{\{delivery_deadline\}\}/g, '30 dni roboczych')
+        .replace(/\{\{payment_terms\}\}/g, '<ul><li>100% — płatność po wykonaniu audytu, 14 dni od faktury</li></ul>')
+        .replace(/\{\{enesa_name\}\}/g, 'Enesa Sp. z o.o.')
+        .replace(/\{\{enesa_nip\}\}/g, '123-456-78-90')
+        .replace(/\{\{enesa_street\}\}/g, 'ul. Konarskiego 18C')
+        .replace(/\{\{enesa_city\}\}/g, 'Gliwice')
+        .replace(/\{\{enesa_postal\}\}/g, '44-100')
+        .replace(/\{\{enesa_email\}\}/g, 'biuro@enesa.pl')
+        .replace(/\{\{enesa_phone\}\}/g, '+48 32 123 45 67');
     iframe.srcdoc = demo;
 }
 
-htmlTa.addEventListener('input', function() {
+editor.on('change', function() {
     clearTimeout(previewTimer);
-    previewTimer = setTimeout(refreshPreview, 800);
+    previewTimer = setTimeout(refreshPreview, 600);
 });
 
-// Initial preview
 refreshPreview();
 
 // ─── Default HTML ───
 const DEFAULT_HTML = @json($defaultHtml);
 function loadDefaultHtml() {
-    if (htmlTa.value.trim() && !confirm('Zastąpić obecny kod domyślnym szablonem?')) return;
-    htmlTa.value = DEFAULT_HTML;
+    if (editor.getValue().trim() && !confirm('Zastąpić obecny kod domyślnym szablonem?')) return;
+    editor.setValue(DEFAULT_HTML);
     refreshPreview();
 }
 
 function clearEditor() {
     if (!confirm('Wyczyścić kod HTML?')) return;
-    htmlTa.value = '';
+    editor.setValue('');
     refreshPreview();
 }
 
@@ -297,6 +337,14 @@ function openFullPreview() {
     const w = window.open('', '_blank');
     w.document.write(document.getElementById('html-preview').srcdoc || '<p>Brak podglądu.</p>');
     w.document.close();
+}
+
+function formatHtml() {
+    // Re-indent current document
+    const totalLines = editor.lineCount();
+    for (let i = 0; i < totalLines; i++) {
+        editor.indentLine(i, 'smart');
+    }
 }
 
 // ─── Auto type_code from name ───
