@@ -1,6 +1,7 @@
 <x-layouts.app>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/codemirror.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/theme/dracula.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/addon/dialog/dialog.min.css">
 <style>
 .ot-panel { background:#fff; border:1px solid var(--paper-deep); border-radius:14px; padding:20px; margin-bottom:16px; }
 .ot-label { display:block; font-size:12px; font-weight:700; color:var(--ink-mute); margin-bottom:4px; text-transform:uppercase; letter-spacing:.4px; }
@@ -235,6 +236,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/mode/htmlmixed/htmlmixed.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/addon/edit/closetag.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/addon/dialog/dialog.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/addon/search/searchcursor.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/addon/search/search.min.js"></script>
 <script>
 const editor = CodeMirror.fromTextArea(document.getElementById('html-textarea'), {
     mode: 'htmlmixed',
@@ -252,6 +256,10 @@ const editor = CodeMirror.fromTextArea(document.getElementById('html-textarea'),
         'Shift-Ctrl-Z': 'redo',
         'Cmd-Z': 'undo',
         'Cmd-Y': 'redo',
+        'Ctrl-F': 'findPersistent',
+        'Cmd-F': 'findPersistent',
+        'Ctrl-H': 'replace',
+        'Cmd-H': 'replace',
     }
 });
 editor.setSize('100%', 556);

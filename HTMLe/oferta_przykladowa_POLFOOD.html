@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #1a1a1a;
+    background: #fff;
+    padding: 32px 40px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .hdr {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 3px solid #1A4D3A;
+    padding-bottom: 24px;
+    margin-bottom: 36px;
+  }
+
+  .logo-wrap img {
+    height: 75px;
+    width: auto;
+    display: block;
+  }
+
+  .enesa-addr {
+    text-align: right;
+    font-size: 12px;
+    color: #555;
+    line-height: 1.9;
+  }
+
+  .enesa-addr strong {
+    font-size: 13px;
+    color: #1A4D3A;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  /* Offer title block */
+  .title-block {
+    text-align: center;
+    padding: 32px 0;
+    border-bottom: 1px solid #e4edf3;
+    margin-bottom: 32px;
+  }
+
+  .badge {
+    display: inline-block;
+    background: #1A4D3A;
+    color: #fff;
+    padding: 6px 22px;
+    border-radius: 30px;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .offer-title {
+    font-size: 26px;
+    font-weight: 800;
+    color: #1a1a1a;
+    margin-bottom: 10px;
+  }
+
+  .offer-meta {
+    font-size: 13px;
+    color: #888;
+  }
+
+  .offer-meta span {
+    margin: 0 12px;
+  }
+
+  /* Client block */
+  .client-block {
+    background: #f7faf9;
+    border: 1px solid #c3ddd4;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 32px;
+  }
+
+  .client-block .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #1A4D3A;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .client-block .c-name {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .client-block .c-detail {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.9;
+  }
+
+  /* Section headings */
+  .sec-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1A4D3A;
+    border-left: 4px solid #1A4D3A;
+    padding-left: 12px;
+    margin: 32px 0 14px;
+  }
+
+  /* Description */
+  .description {
+    font-size: 14px;
+    line-height: 1.85;
+    color: #333;
+    margin-bottom: 32px;
+  }
+
+  .description p {
+    margin-bottom: 10px;
+  }
+
+  /* Travel block */
+  .travel-box {
+    background: #eef8f3;
+    border: 1px solid #c3ddd4;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 32px;
+  }
+
+  .travel-box table {
+    width: 100%;
+    font-size: 13px;
+    border-collapse: collapse;
+  }
+
+  .travel-box td {
+    padding: 7px 4px;
+    vertical-align: top;
+  }
+
+  .travel-box td:first-child {
+    color: #555;
+    width: 55%;
+  }
+
+  .travel-box td:last-child {
+    font-weight: 600;
+  }
+
+  .travel-total td {
+    border-top: 2px solid #c3ddd4;
+    padding-top: 12px !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
+    color: #1A4D3A !important;
+  }
+
+  /* Payment */
+  .payment-block {
+    font-size: 14px;
+    line-height: 1.85;
+    margin-bottom: 32px;
+  }
+
+  .payment-block ul {
+    padding-left: 20px;
+  }
+
+  .payment-block li {
+    margin-bottom: 6px;
+  }
+
+  /* Footer */
+  .footer {
+    border-top: 2px solid #e4edf3;
+    margin-top: 40px;
+    padding-top: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-size: 12px;
+    color: #888;
+  }
+
+  .sign-box {
+    text-align: center;
+  }
+
+  .sign-line {
+    border-top: 1px solid #bbb;
+    width: 180px;
+    margin: 48px auto 8px;
+  }
+
+  .footer-center {
+    text-align: center;
+  }
+
+  @media print {
+    body {
+      padding: 0;
+    }
+
+    .footer {
+      page-break-inside: avoid;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ NAGŁÓWEK ═══ -->
+<div class="hdr">
+  <div class="logo-wrap">
+    <img
+      src="http://enesa.pl/wp-content/uploads/2026/03/Logo2.png"
+      alt="ENESA"
+    >
+  </div>
+
+  <div class="enesa-addr">
+    <strong>ENESA Sp. z o.o.</strong>
+    ul. Stanisława Konarskiego 18C<br>
+    44-100 Gliwice<br>
+    NIP: [do uzupełnienia]<br>
+    biuro@enesa.pl | +48 730 808 601
+  </div>
+</div>
+
+<!-- ═══ TYTUŁ OFERTY ═══ -->
+<div class="title-block">
+  <div class="badge">Oferta handlowa</div>
+  <div class="offer-title">Audyt energetyczny przedsiębiorstwa (EED)</div>
+  <div class="offer-meta">
+    <span>Nr oferty: <strong>OF/2026/047</strong></span>
+    <span>Data: <strong>28.05.2026</strong></span>
+    <span>Godzin audytu: <strong>64 h</strong></span>
+  </div>
+</div>
+
+<!-- ═══ ZAMAWIAJĄCY ═══ -->
+<div class="client-block">
+  <div class="label">Zamawiający</div>
+  <div class="c-name">POLFOOD Sp. z o.o.</div>
+  <div class="c-detail">
+    NIP: 634-12-34-567<br>
+    ul. Przemysłowa 42, 44-100 Gliwice<br>
+    Tel: +48 32 555 12 34 &nbsp;|&nbsp; E-mail: biuro@polfood.pl
+  </div>
+</div>
+
+<!-- ═══ OPIS / PRZEDMIOT OFERTY ═══ -->
+<div class="sec-title">Przedmiot oferty</div>
+<div class="description">
+  <p>Przedmiotem oferty jest wykonanie <strong>audytu energetycznego przedsiębiorstwa</strong> zgodnie z wymaganiami ustawy o efektywności energetycznej (transpozycja dyrektywy EED). Audyt obejmuje analizę zużycia energii we wszystkich obszarach działalności zakładu — procesy produkcyjne, systemy sprężonego powietrza, chłodnictwo, oświetlenie oraz gospodarkę cieplną.</p>
+  <p>W ramach prac wykonamy inwentaryzację energetyczną obiektu, analizę nośników energii za okres 12 miesięcy, identyfikację obszarów o największym potencjale oszczędności oraz raport końcowy z wykazem rekomendowanych przedsięwzięć poprawy efektywności energetycznej wraz z oceną opłacalności (SPBT / NPV).</p>
+</div>
+
+<!-- ═══ ZAKRES I WYCENA ═══ -->
+<div class="sec-title">Zakres i wycena</div>
+<table style="width:100%;border-collapse:collapse;font-size:13px;">
+    <thead>
+      <tr style="background:#1A4D3A;color:#fff;">
+        <th style="padding:9px 10px;text-align:left;">Pozycja</th>
+        <th style="padding:9px 10px;text-align:center;white-space:nowrap;">Ilość</th>
+        <th style="padding:9px 10px;text-align:right;white-space:nowrap;">Stawka</th>
+        <th style="padding:9px 10px;text-align:right;white-space:nowrap;">Wartość netto</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #e4edf3;">
+        <td style="padding:9px 10px;">Audyt energetyczny na obiekcie i analiza danych</td>
+        <td style="padding:9px 10px;text-align:center;">64 h</td>
+        <td style="padding:9px 10px;text-align:right;">180,00 zł/h</td>
+        <td style="padding:9px 10px;text-align:right;font-weight:600;">11&nbsp;520,00 zł</td>
+      </tr>
+      <tr style="border-bottom:1px solid #e4edf3;">
+        <td style="padding:9px 10px;">Opracowanie raportu i dokumentacji audytowej</td>
+        <td style="padding:9px 10px;text-align:center;">24 h</td>
+        <td style="padding:9px 10px;text-align:right;">150,00 zł/h</td>
+        <td style="padding:9px 10px;text-align:right;font-weight:600;">3&nbsp;600,00 zł</td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr style="border-top:2px solid #1A4D3A;">
+        <td colspan="3" style="padding:11px 10px;text-align:right;font-weight:700;color:#1A4D3A;">Razem zakres prac (netto):</td>
+        <td style="padding:11px 10px;text-align:right;font-weight:700;font-size:15px;color:#1A4D3A;">15&nbsp;120,00 zł</td>
+      </tr>
+    </tfoot>
+  </table>
+
+<!-- ═══ KOSZTY DOJAZDU ═══ -->
+<div class="sec-title">Koszty dojazdu</div>
+<div class="travel-box">
+  <table>
+    <tr>
+      <td>Odległość od siedziby ENESA (w obie strony):</td>
+      <td>35 km × 2 = <strong>70 km</strong></td>
+    </tr>
+    <tr>
+      <td>Stawka za przejazd:</td>
+      <td>1,50 zł/km</td>
+    </tr>
+    <tr>
+      <td>Czas dojazdu (w obie strony):</td>
+      <td>0,75 h × 2</td>
+    </tr>
+    <tr>
+      <td>Stawka za godzinę jazdy:</td>
+      <td>120,00 zł/h</td>
+    </tr>
+    <tr class="travel-total">
+      <td>Koszt dojazdu łącznie (netto):</td>
+      <td>285,00 zł</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ═══ WARUNKI PŁATNOŚCI ═══ -->
+<div class="sec-title">Warunki płatności</div>
+<div class="payment-block">
+  <p><strong>Wartość zlecenia:</strong> 15&nbsp;405,00 zł netto + 23% VAT (3&nbsp;543,15 zł) = <strong>18&nbsp;948,15 zł brutto</strong> (zakres prac 15&nbsp;120,00 zł + dojazd 285,00 zł).</p>
+  <ul>
+    <li>Zaliczka 30% (5&nbsp;684,45 zł brutto) — po podpisaniu umowy</li>
+    <li>Pozostałe 70% (13&nbsp;263,70 zł brutto) — po przekazaniu raportu końcowego</li>
+    <li>Termin płatności: 14 dni od daty wystawienia faktury</li>
+    <li>Oferta ważna 30 dni od daty wystawienia.</li>
+  </ul>
+</div>
+
+<!-- ═══ STOPKA / PODPISY ═══ -->
+<div class="footer">
+  <div class="sign-box">
+    <div class="sign-line"></div>
+    <div>Sporządził</div>
+  </div>
+
+  <div class="footer-center">
+    ENESA Sp. z o.o. | ul. Stanisława Konarskiego 18C, 44-100 Gliwice<br>
+    biuro@enesa.pl | www.enesa.pl
+  </div>
+
+  <div class="sign-box">
+    <div class="sign-line"></div>
+    <div>Data i podpis Zamawiającego</div>
+  </div>
+</div>
+
+</body>
+</html>
