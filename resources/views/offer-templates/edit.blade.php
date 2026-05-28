@@ -101,58 +101,118 @@
     <h3 style="margin:0 0 14px;font-size:16px;color:#1A4D3A;">Domyślne wartości pól oferty</h3>
     <p style="margin:0 0 14px;font-size:12px;color:var(--ink-mute);">Wartości używane gdy pole nie jest uzupełnione przy tworzeniu oferty. Pola klienta, numer i data oferty, sumy — wypełniane automatycznie z danych oferty.</p>
 
+    @php
+        $cA  = 'background:#f3f8f7;padding:2px 6px;border-radius:4px;font-size:11px;color:#1A4D3A;';
+        $cM  = 'background:#f3f8f7;padding:2px 6px;border-radius:4px;font-size:11px;color:#9ca3af;';
+        $rH  = 'border-bottom:1px solid #e8f0ed;';
+        $rAlt = 'border-bottom:1px solid #e8f0ed;background:#f9fafb;';
+        $tA  = 'padding:8px 12px;color:#9ca3af;font-style:italic;font-size:12px;';
+        $tN  = 'padding:8px 12px;color:#374151;';
+        $tV  = 'padding:8px 12px;color:#9ca3af;font-size:12px;font-style:italic;';
+        $hdr = 'padding:5px 12px;font-size:11px;font-weight:700;color:#1A4D3A;letter-spacing:.5px;text-transform:uppercase;';
+    @endphp
     <table style="width:100%;border-collapse:collapse;font-size:13px;">
         <thead>
             <tr style="background:#f3f8f7;">
-                <th style="padding:8px 12px;text-align:left;font-weight:600;color:#1A4D3A;border-bottom:2px solid #c9d7e3;width:22%;">Pole</th>
+                <th style="padding:8px 12px;text-align:left;font-weight:600;color:#1A4D3A;border-bottom:2px solid #c9d7e3;width:24%;">Pole</th>
                 <th style="padding:8px 12px;text-align:left;font-weight:600;color:#1A4D3A;border-bottom:2px solid #c9d7e3;width:22%;">Zmienna</th>
                 <th style="padding:8px 12px;text-align:left;font-weight:600;color:#1A4D3A;border-bottom:2px solid #c9d7e3;">Wartość domyślna</th>
             </tr>
         </thead>
         <tbody>
-            <tr style="border-bottom:1px solid #e8f0ed;">
-                <td style="padding:8px 12px;color:#374151;">Tytuł oferty</td>
-                <td style="padding:8px 12px;"><code style="background:#f3f8f7;padding:2px 6px;border-radius:4px;font-size:11px;color:#1A4D3A;">@{{offer_title}}</code></td>
+
+            {{-- ══ OFERTA ══ --}}
+            <tr style="background:#e8f3ef;"><td colspan="3" style="{{ $hdr }}">Oferta</td></tr>
+            <tr style="{{ $rH }}">
+                <td style="{{ $tN }}">Tytuł oferty</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{offer_title}}</code></td>
                 <td style="padding:6px 12px;"><input type="text" name="df_offer_title" value="{{ old('df_offer_title', $df['offer_title'] ?? '') }}" class="ot-input" style="margin:0;" placeholder="np. Oferta na audyt energetyczny"></td>
             </tr>
-            <tr style="border-bottom:1px solid #e8f0ed;background:#fafcfb;">
-                <td style="padding:8px 12px;color:#374151;">Przedmiot oferty</td>
-                <td style="padding:8px 12px;"><code style="background:#f3f8f7;padding:2px 6px;border-radius:4px;font-size:11px;color:#1A4D3A;">@{{offer_subject}}</code></td>
+            <tr style="{{ $rAlt }}">
+                <td style="{{ $tN }}">Przedmiot oferty</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{offer_subject}}</code></td>
                 <td style="padding:6px 12px;"><input type="text" name="df_offer_subject" value="{{ old('df_offer_subject', $df['offer_subject'] ?? '') }}" class="ot-input" style="margin:0;" placeholder="np. Przeprowadzenie audytu energetycznego"></td>
             </tr>
-            <tr style="border-bottom:1px solid #e8f0ed;">
-                <td style="padding:8px 12px;color:#374151;">Opis / wstęp oferty</td>
-                <td style="padding:8px 12px;"><code style="background:#f3f8f7;padding:2px 6px;border-radius:4px;font-size:11px;color:#1A4D3A;">@{{description}}</code></td>
-                <td style="padding:6px 12px;"><textarea name="df_offer_description" class="ot-input" rows="2" style="margin:0;" placeholder="Domyślny opis lub wstęp oferty...">{{ old('df_offer_description', $df['offer_description'] ?? '') }}</textarea></td>
+            <tr style="{{ $rH }}">
+                <td style="{{ $tN }}">Opis / wstęp oferty</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{description}}</code></td>
+                <td style="padding:6px 12px;"><textarea name="df_offer_description" class="ot-input" rows="2" style="margin:0;" placeholder="Domyślny opis lub wstęp...">{{ old('df_offer_description', $df['offer_description'] ?? '') }}</textarea></td>
             </tr>
-            <tr style="border-bottom:1px solid #e8f0ed;background:#fafcfb;">
-                <td style="padding:8px 12px;color:#374151;">Rodzaj klienta</td>
-                <td style="padding:8px 12px;"><code style="background:#f3f8f7;padding:2px 6px;border-radius:4px;font-size:11px;color:#1A4D3A;">@{{customer_type}}</code></td>
+            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">Numer oferty</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{offer_number}}</code></td><td style="{{ $tV }}">generowany automatycznie</td></tr>
+            <tr style="{{ $rH }}"><td style="{{ $tA }}">Data oferty</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{offer_date}}</code></td><td style="{{ $tV }}">data wystawienia oferty</td></tr>
+
+            {{-- ══ KLIENT ══ --}}
+            <tr style="background:#e8f3ef;"><td colspan="3" style="{{ $hdr }}">Klient</td></tr>
+            <tr style="{{ $rH }}">
+                <td style="{{ $tN }}">Rodzaj klienta</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{customer_type}}</code></td>
                 <td style="padding:6px 12px;"><input type="text" name="df_customer_type" value="{{ old('df_customer_type', $df['customer_type'] ?? 'Firma') }}" class="ot-input" style="margin:0;" placeholder="np. Firma / Osoba fizyczna"></td>
             </tr>
-            <tr style="border-bottom:1px solid #e8f0ed;">
-                <td style="padding:8px 12px;color:#374151;">Termin ważności oferty</td>
-                <td style="padding:8px 12px;"><code style="background:#f3f8f7;padding:2px 6px;border-radius:4px;font-size:11px;color:#1A4D3A;">@{{offer_validity}}</code></td>
-                <td style="padding:6px 12px;"><input type="text" name="df_offer_validity" value="{{ old('df_offer_validity', $df['offer_validity'] ?? '30 dni') }}" class="ot-input" style="margin:0;" placeholder="np. 30 dni"></td>
-            </tr>
-            <tr style="border-bottom:1px solid #e8f0ed;background:#fafcfb;">
-                <td style="padding:8px 12px;color:#374151;">Termin realizacji</td>
-                <td style="padding:8px 12px;"><code style="background:#f3f8f7;padding:2px 6px;border-radius:4px;font-size:11px;color:#1A4D3A;">@{{delivery_deadline}}</code></td>
-                <td style="padding:6px 12px;"><input type="text" name="df_delivery_deadline" value="{{ old('df_delivery_deadline', $df['delivery_deadline'] ?? '') }}" class="ot-input" style="margin:0;" placeholder="np. 30 dni roboczych"></td>
-            </tr>
-            <tr style="border-bottom:1px solid #e8f0ed;">
-                <td style="padding:8px 12px;color:#374151;">Warunki płatności</td>
-                <td style="padding:8px 12px;"><code style="background:#f3f8f7;padding:2px 6px;border-radius:4px;font-size:11px;color:#1A4D3A;">@{{payment_terms}}</code></td>
-                <td style="padding:6px 12px;"><textarea name="df_payment_terms_text" class="ot-input" rows="2" style="margin:0;" placeholder="np. Płatność 100% po wykonaniu audytu, 14 dni od faktury.">{{ old('df_payment_terms_text', $df['payment_terms_text'] ?? 'Płatność na podstawie faktury VAT, 14 dni od wystawienia.') }}</textarea></td>
-            </tr>
-            <tr style="border-bottom:1px solid #e8f0ed;background:#fafcfb;">
-                <td style="padding:8px 12px;color:#374151;">Stawka VAT %</td>
-                <td style="padding:8px 12px;">
-                    <code style="background:#f3f8f7;padding:2px 6px;border-radius:4px;font-size:11px;color:#1A4D3A;">@{{vat_rate}}</code>
-                    <div style="font-size:10px;color:var(--ink-mute);margin-top:3px;">liczy też @{{total_price_vat}}, @{{total_price}}</div>
-                </td>
+            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">Nazwa klienta</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{customer_name}}</code></td><td style="{{ $tV }}">z danych klienta</td></tr>
+            <tr style="{{ $rH }}"><td style="{{ $tA }}">NIP klienta</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{customer_nip}}</code></td><td style="{{ $tV }}">z danych klienta</td></tr>
+            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">Adres klienta</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{customer_address}}</code></td><td style="{{ $tV }}">z danych klienta</td></tr>
+            <tr style="{{ $rH }}"><td style="{{ $tA }}">Kod pocztowy</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{customer_postal_code}}</code></td><td style="{{ $tV }}">z danych klienta</td></tr>
+            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">Miasto klienta</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{customer_city}}</code></td><td style="{{ $tV }}">z danych klienta</td></tr>
+            <tr style="{{ $rH }}"><td style="{{ $tA }}">Telefon klienta</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{customer_phone}}</code></td><td style="{{ $tV }}">z danych klienta</td></tr>
+            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">E-mail klienta</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{customer_email}}</code></td><td style="{{ $tV }}">z danych klienta</td></tr>
+
+            {{-- ══ POZYCJE ══ --}}
+            <tr style="background:#e8f3ef;"><td colspan="3" style="{{ $hdr }}">Pozycje cenowe</td></tr>
+            <tr style="{{ $rH }}">
+                <td style="{{ $tN }}">Stawka VAT %</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{vat_rate}}</code><div style="font-size:10px;color:var(--ink-mute);margin-top:2px;">→ liczy @{{total_price_vat}}, @{{total_price}}</div></td>
                 <td style="padding:6px 12px;"><input type="number" name="df_vat_rate" value="{{ old('df_vat_rate', $df['vat_rate'] ?? '23') }}" class="ot-input" style="margin:0;max-width:120px;" min="0" max="100" step="1" placeholder="23"></td>
             </tr>
+            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">Tabela pozycji</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{items_table}}</code></td><td style="{{ $tV }}">z pozycji oferty</td></tr>
+            <tr style="{{ $rH }}"><td style="{{ $tA }}">Cena netto</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{total_price_net}}</code></td><td style="{{ $tV }}">suma pozycji oferty</td></tr>
+            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">Kwota VAT</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{total_price_vat}}</code></td><td style="{{ $tV }}">obliczana (netto × VAT%)</td></tr>
+            <tr style="{{ $rH }}"><td style="{{ $tA }}">Cena brutto</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{total_price}}</code></td><td style="{{ $tV }}">obliczana (netto + VAT)</td></tr>
+
+            {{-- ══ WARUNKI ══ --}}
+            <tr style="background:#e8f3ef;"><td colspan="3" style="{{ $hdr }}">Warunki</td></tr>
+            <tr style="{{ $rH }}">
+                <td style="{{ $tN }}">Warunki płatności</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{payment_terms}}</code></td>
+                <td style="padding:6px 12px;"><textarea name="df_payment_terms_text" class="ot-input" rows="2" style="margin:0;">{{ old('df_payment_terms_text', $df['payment_terms_text'] ?? 'Płatność na podstawie faktury VAT, 14 dni od wystawienia.') }}</textarea></td>
+            </tr>
+            <tr style="{{ $rAlt }}">
+                <td style="{{ $tN }}">Termin ważności oferty</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{offer_validity}}</code></td>
+                <td style="padding:6px 12px;"><input type="text" name="df_offer_validity" value="{{ old('df_offer_validity', $df['offer_validity'] ?? '30 dni') }}" class="ot-input" style="margin:0;" placeholder="np. 30 dni"></td>
+            </tr>
+            <tr style="{{ $rH }}">
+                <td style="{{ $tN }}">Termin realizacji</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{delivery_deadline}}</code></td>
+                <td style="padding:6px 12px;"><input type="text" name="df_delivery_deadline" value="{{ old('df_delivery_deadline', $df['delivery_deadline'] ?? '') }}" class="ot-input" style="margin:0;" placeholder="np. 30 dni roboczych"></td>
+            </tr>
+
+            {{-- ══ DOJAZD ══ --}}
+            <tr style="background:#e8f3ef;"><td colspan="3" style="{{ $hdr }}">Dojazd</td></tr>
+            <tr style="{{ $rH }}">
+                <td style="{{ $tN }}">Domyślny dystans (km)</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{distance_km}}</code></td>
+                <td style="padding:6px 12px;"><input type="number" name="df_distance_km" value="{{ old('df_distance_km', $df['distance_km'] ?? '') }}" class="ot-input" style="margin:0;max-width:140px;" min="0" step="1" placeholder="np. 80"></td>
+            </tr>
+            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">Stawka km (zł/km)</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{km_rate}}</code></td><td style="{{ $tV }}">← sekcja „Domyślne stawki" powyżej</td></tr>
+            <tr style="{{ $rH }}">
+                <td style="{{ $tN }}">Domyślny czas jazdy (godz.)</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{travel_hours}}</code></td>
+                <td style="padding:6px 12px;"><input type="number" name="df_travel_hours" value="{{ old('df_travel_hours', $df['travel_hours'] ?? '') }}" class="ot-input" style="margin:0;max-width:140px;" min="0" step="0.5" placeholder="np. 1.5"></td>
+            </tr>
+            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">Stawka godz. jazdy (zł/h)</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{hour_rate}}</code></td><td style="{{ $tV }}">← sekcja „Domyślne stawki" powyżej</td></tr>
+            <tr style="{{ $rH }}"><td style="{{ $tA }}">Koszt dojazdu</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{travel_cost}}</code></td><td style="{{ $tV }}">obliczany automatycznie</td></tr>
+            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">Liczba godz. audytu</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{auditor_hours}}</code></td><td style="{{ $tV }}">← sekcja „Domyślne stawki" powyżej</td></tr>
+
+            {{-- ══ ENESA ══ --}}
+            <tr style="background:#e8f3ef;"><td colspan="3" style="{{ $hdr }}">ENESA — Moja firma</td></tr>
+            <tr style="{{ $rH }}"><td style="{{ $tA }}">Nazwa firmy</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{enesa_name}}</code></td><td style="{{ $tV }}">← ustawienia „Moja firma"</td></tr>
+            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">NIP firmy</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{enesa_nip}}</code></td><td style="{{ $tV }}">← ustawienia „Moja firma"</td></tr>
+            <tr style="{{ $rH }}"><td style="{{ $tA }}">Ulica / adres</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{enesa_street}}</code></td><td style="{{ $tV }}">← ustawienia „Moja firma"</td></tr>
+            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">Miasto</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{enesa_city}}</code></td><td style="{{ $tV }}">← ustawienia „Moja firma"</td></tr>
+            <tr style="{{ $rH }}"><td style="{{ $tA }}">Kod pocztowy</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{enesa_postal}}</code></td><td style="{{ $tV }}">← ustawienia „Moja firma"</td></tr>
+            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">E-mail firmy</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{enesa_email}}</code></td><td style="{{ $tV }}">← ustawienia „Moja firma"</td></tr>
+            <tr style="{{ $rH }}"><td style="{{ $tA }}">Telefon firmy</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{enesa_phone}}</code></td><td style="{{ $tV }}">← ustawienia „Moja firma"</td></tr>
+
         </tbody>
     </table>
 </div>
@@ -324,9 +384,9 @@ function refreshPreview() {
         'customer_phone':       null,
         'customer_email':       null,
         'items_table':          DEMO_ITEMS,
-        'distance_km':          '120',
+        'distance_km':          getV('[name="df_distance_km"]') || '120',
         'km_rate':              null,
-        'travel_hours':         '1,5',
+        'travel_hours':         getV('[name="df_travel_hours"]') || '1,5',
         'hour_rate':            null,
         'travel_cost':          '600,00',
         'total_price_net':      fmt(demoNet),

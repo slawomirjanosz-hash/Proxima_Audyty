@@ -60,9 +60,9 @@ class OfferTemplate extends Model
         $itemsHtml = $this->buildItemsTable($data['items'] ?? []);
 
         // Travel cost
-        $distKm     = (float) ($data['distance_km'] ?? 0);
+        $distKm     = (float) ($data['distance_km'] ?: $df['distance_km'] ?? 0);
         $kmRate     = (float) ($data['km_rate'] ?? $this->default_km_rate);
-        $travelH    = (float) ($data['travel_hours'] ?? 0);
+        $travelH    = (float) ($data['travel_hours'] ?: $df['travel_hours'] ?? 0);
         $hourRate   = (float) ($data['hour_rate'] ?? $this->default_hour_rate);
         $travelCost = ($distKm * $kmRate * 2) + ($travelH * $hourRate * 2);
 
@@ -84,18 +84,18 @@ class OfferTemplate extends Model
 
         $map = [
             '{{offer_number}}'         => e($data['offer_number'] ?? ''),
-            '{{offer_title}}'          => e($data['offer_title'] ?? $df['offer_title'] ?? ''),
+            '{{offer_title}}'          => e($data['offer_title'] ?: $df['offer_title'] ?? ''),
             '{{offer_date}}'           => $data['offer_date'] ?? '',
-            '{{offer_subject}}'        => e($data['offer_subject'] ?? $df['offer_subject'] ?? ''),
+            '{{offer_subject}}'        => e($data['offer_subject'] ?: $df['offer_subject'] ?? ''),
             '{{customer_name}}'        => e($data['customer_name'] ?? ''),
-            '{{customer_type}}'        => e($data['customer_type'] ?? $df['customer_type'] ?? ''),
+            '{{customer_type}}'        => e($data['customer_type'] ?: $df['customer_type'] ?? ''),
             '{{customer_nip}}'         => e($data['customer_nip'] ?? ''),
             '{{customer_address}}'     => e($data['customer_address'] ?? ''),
             '{{customer_postal_code}}' => e($data['customer_postal_code'] ?? ''),
             '{{customer_city}}'        => e($data['customer_city'] ?? ''),
             '{{customer_phone}}'       => e($data['customer_phone'] ?? ''),
             '{{customer_email}}'       => e($data['customer_email'] ?? ''),
-            '{{description}}'          => $data['description'] ?? $df['offer_description'] ?? '',
+            '{{description}}'          => $data['description'] ?: $df['offer_description'] ?? '',
             '{{items_table}}'          => $itemsHtml,
             '{{distance_km}}'          => number_format($distKm, 1, ',', ' '),
             '{{km_rate}}'              => number_format($kmRate, 2, ',', ' '),

@@ -200,7 +200,8 @@ class OfferTemplatesController extends Controller
     private function parseDefaultFields(Request $request): array
     {
         $keys = ['offer_title','offer_subject','offer_description','customer_type',
-                 'payment_terms_text','offer_validity','delivery_deadline','vat_rate'];
+                 'payment_terms_text','offer_validity','delivery_deadline','vat_rate',
+                 'distance_km','travel_hours'];
         $result = [];
         foreach ($keys as $k) {
             $v = $request->input('df_' . $k);
