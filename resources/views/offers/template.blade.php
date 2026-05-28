@@ -95,24 +95,6 @@
     font-size: 15px;
     color: #1A4D3A;
   }
-  .travel-box {
-    background: #eef8f3;
-    border: 1px solid #c3ddd4;
-    border-radius: 12px;
-    padding: 20px 24px;
-    margin-bottom: 32px;
-  }
-  .travel-box table { width: 100%; font-size: 13px; border-collapse: collapse; }
-  .travel-box td { padding: 7px 4px; vertical-align: top; }
-  .travel-box td:first-child { color: #555; width: 65%; }
-  .travel-box td:last-child  { font-weight: 600; }
-  .travel-total td {
-    border-top: 2px solid #c3ddd4;
-    padding-top: 12px !important;
-    font-weight: 700 !important;
-    font-size: 15px !important;
-    color: #1A4D3A !important;
-  }
   .info-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
