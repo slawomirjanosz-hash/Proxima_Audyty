@@ -144,7 +144,14 @@ class OfferTemplate extends Model
             }
         }
 
-        return str_replace(array_keys($map), array_values($map), $html);
+        $rendered = str_replace(array_keys($map), array_values($map), $html);
+
+        // Strip standalone travel section — travel cost is now a line item in items_table
+        $rendered = preg_replace('/<!--[^>]*KOSZTY DOJAZDU[^>]*-->\s*/ui', '', $rendered);
+        $rendered = preg_replace('/<div[^>]*class="[^"]*sec-title[^"]*"[^>]*>\s*Koszty\s+dojazdu\s*<\/div>\s*/ui', '', $rendered);
+        $rendered = preg_replace('/<div[^>]*class="[^"]*travel-box[^"]*">.*?<\/div>\s*<\/div>\s*/us', '', $rendered);
+
+        return $rendered;
     }
 
     private function buildItemsTable(array $allItems): string

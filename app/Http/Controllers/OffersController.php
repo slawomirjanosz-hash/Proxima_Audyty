@@ -243,8 +243,7 @@ class OffersController extends Controller
     public function generatePdf(Offer $offer)
     {
         if ($offer->html_content) {
-            // Use the template-generated HTML directly
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($offer->html_content)
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($this->stripTravelSection($offer->html_content))
                 ->setOptions([
                     'isHtml5ParserEnabled' => true,
                     'isRemoteEnabled'      => false,
@@ -268,10 +267,19 @@ class OffersController extends Controller
     public function previewHtml(Offer $offer)
     {
         if ($offer->html_content) {
-            return response($offer->html_content, 200, ['Content-Type' => 'text/html']);
+            $html = $this->stripTravelSection($offer->html_content);
+            return response($html, 200, ['Content-Type' => 'text/html']);
         }
         $html = view('offers.template', $this->prepareViewData($offer))->render();
         return response($html, 200, ['Content-Type' => 'text/html']);
+    }
+
+    private function stripTravelSection(string $html): string
+    {
+        $html = preg_replace('/<!--[^>]*KOSZTY DOJAZDU[^>]*-->\s*/ui', '', $html);
+        $html = preg_replace('/<div[^>]*class="[^"]*sec-title[^"]*"[^>]*>\s*Koszty\s+dojazdu\s*<\/div>\s*/ui', '', $html);
+        $html = preg_replace('/<div[^>]*class="[^"]*travel-box[^"]*">.*?<\/div>\s*<\/div>\s*/us', '', $html);
+        return $html;
     }
 
     public function regenerateHtml(Offer $offer)

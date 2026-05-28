@@ -343,33 +343,6 @@ class OfferTemplatesController extends Controller
 <div class="sec-title">Zakres i wycena</div>
 {{items_table}}
 
-<!-- ═══ KOSZTY DOJAZDU ═══ -->
-<div class="sec-title">Koszty dojazdu</div>
-<div class="travel-box">
-  <table>
-    <tr>
-      <td>Odległość od siedziby ENESA (w obie strony):</td>
-      <td>{{distance_km}} km × 2 = <strong>{{distance_km}} km</strong></td>
-    </tr>
-    <tr>
-      <td>Stawka za przejazd:</td>
-      <td>{{km_rate}} zł/km</td>
-    </tr>
-    <tr>
-      <td>Czas dojazdu (w obie strony):</td>
-      <td>{{travel_hours}} h × 2</td>
-    </tr>
-    <tr>
-      <td>Stawka za godzinę jazdy:</td>
-      <td>{{hour_rate}} zł/h</td>
-    </tr>
-    <tr class="travel-total">
-      <td>Koszt dojazdu łącznie (netto):</td>
-      <td>{{travel_cost}} zł</td>
-    </tr>
-  </table>
-</div>
-
 <!-- ═══ WARUNKI PŁATNOŚCI ═══ -->
 <div class="sec-title">Warunki płatności</div>
 <div class="payment-block">
