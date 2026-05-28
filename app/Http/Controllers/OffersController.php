@@ -242,35 +242,33 @@ class OffersController extends Controller
 
     public function generatePdf(Offer $offer)
     {
-        if ($offer->html_content) {
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($this->stripTravelSection($offer->html_content))
-                ->setOptions([
-                    'isHtml5ParserEnabled' => true,
-                    'isRemoteEnabled'      => false,
-                    'defaultFont'          => 'DejaVu Sans',
-                    'defaultPaperSize'     => 'a4',
-                    'chroot'               => public_path(),
-                ]);
+        if ($offer->offerTemplate) {
+            $html = $offer->offerTemplate->renderForOffer($this->buildRenderData($offer));
+        } elseif ($offer->html_content) {
+            $html = $this->stripTravelSection($offer->html_content);
         } else {
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('offers.template', $this->prepareViewData($offer))
-                ->setOptions([
-                    'isHtml5ParserEnabled' => true,
-                    'isRemoteEnabled'      => false,
-                    'defaultFont'          => 'DejaVu Sans',
-                    'defaultPaperSize'     => 'a4',
-                    'chroot'               => public_path(),
-                ]);
+            $html = view('offers.template', $this->prepareViewData($offer))->render();
         }
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)
+            ->setOptions([
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled'      => false,
+                'defaultFont'          => 'DejaVu Sans',
+                'defaultPaperSize'     => 'a4',
+                'chroot'               => public_path(),
+            ]);
         return $pdf->download('oferta-' . ($offer->offer_number ?: $offer->id) . '.pdf');
     }
 
     public function previewHtml(Offer $offer)
     {
-        if ($offer->html_content) {
+        if ($offer->offerTemplate) {
+            $html = $offer->offerTemplate->renderForOffer($this->buildRenderData($offer));
+        } elseif ($offer->html_content) {
             $html = $this->stripTravelSection($offer->html_content);
-            return response($html, 200, ['Content-Type' => 'text/html']);
+        } else {
+            $html = view('offers.template', $this->prepareViewData($offer))->render();
         }
-        $html = view('offers.template', $this->prepareViewData($offer))->render();
         return response($html, 200, ['Content-Type' => 'text/html']);
     }
 
@@ -286,22 +284,17 @@ class OffersController extends Controller
         return $html;
     }
 
-    public function regenerateHtml(Offer $offer)
+    private function buildRenderData(Offer $offer): array
     {
-        $template = $offer->offerTemplate;
-        if (!$template) {
-            return back()->with('error', 'Oferta nie ma przypisanego szablonu.');
-        }
-
-        $allItems = array_merge(
+        $template        = $offer->offerTemplate;
+        $paymentTermsRaw = is_array($offer->payment_terms) ? $offer->payment_terms : [];
+        $allItems        = array_merge(
             $offer->services ?? [],
             $offer->works ?? [],
             $offer->materials ?? [],
             ...array_map(fn($cs) => $cs['items'] ?? [], $offer->custom_sections ?? [])
         );
-
-        $paymentTermsRaw = is_array($offer->payment_terms) ? $offer->payment_terms : [];
-        $htmlContent = $template->renderForOffer([
+        return [
             'offer_number'         => $offer->offer_number,
             'offer_title'          => $offer->offer_title,
             'offer_date'           => $offer->offer_date?->format('Y-m-d'),
@@ -315,15 +308,24 @@ class OffersController extends Controller
             'description'          => $offer->offer_description,
             'items'                => $allItems,
             'distance_km'          => $offer->distance_km ?? 0,
-            'km_rate'              => $offer->km_rate ?? $template->default_km_rate,
+            'km_rate'              => $offer->km_rate ?? $template?->default_km_rate,
             'travel_hours'         => $offer->travel_hours ?? 0,
-            'hour_rate'            => $offer->hour_rate ?? $template->default_hour_rate,
+            'hour_rate'            => $offer->hour_rate ?? $template?->default_hour_rate,
             'travel_cost'          => $offer->travel_cost ?? 0,
             'total_price'          => $offer->total_price,
-            'auditor_hours'        => $offer->auditor_hours ?? $template->default_auditor_hours,
+            'auditor_hours'        => $offer->auditor_hours ?? $template?->default_auditor_hours,
             'payment_terms'        => $paymentTermsRaw,
-        ]);
+        ];
+    }
 
+    public function regenerateHtml(Offer $offer)
+    {
+        $template = $offer->offerTemplate;
+        if (!$template) {
+            return back()->with('error', 'Oferta nie ma przypisanego szablonu.');
+        }
+
+        $htmlContent = $template->renderForOffer($this->buildRenderData($offer));
         $offer->update(['html_content' => $htmlContent]);
         return back()->with('status', 'HTML oferty został wygenerowany z szablonu.');
     }
