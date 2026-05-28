@@ -156,33 +156,22 @@ class OfferTemplatesController extends Controller
             return back()->with('error', 'Szablon nie ma zdefiniowanego HTML.');
         }
 
+        // Use template's own default_items + default rates for preview;
+        // text fields (customer, enesa) come from default_fields so edits are visible immediately.
+        $demoItems = $offerTemplate->default_items ?? [
+            ['name' => 'Przykładowa pozycja', 'type' => 'Usługa', 'quantity' => 1, 'price' => 8000, 'value' => 8000],
+        ];
+        $demoTotalNet = array_sum(array_column($demoItems, 'value'));
+
         $demoHtml = $offerTemplate->renderForOffer([
-            'offer_number'        => 'OF-DEMO-001',
-            'offer_title'         => 'Audyt Energetyczny — DEMO',
-            'offer_date'          => now()->format('Y-m-d'),
-            'customer_name'       => 'Zakłady Przemysłowe Sp. z o.o.',
-            'customer_nip'        => '123-456-78-90',
-            'customer_address'    => 'ul. Fabryczna 12',
-            'customer_postal_code'=> '44-100',
-            'customer_city'       => 'Gliwice',
-            'customer_phone'      => '+48 32 123 45 67',
-            'customer_email'      => 'kontakt@firma.pl',
-            'description'         => '<p>Przeprowadzenie pełnego audytu energetycznego zgodnie z normą EN 16247.</p>',
-            'items'               => [
-                ['name' => 'Audyt energetyczny — etap I', 'type' => 'Usługa',   'quantity' => 1, 'price' => 8000, 'value' => 8000],
-                ['name' => 'Raport końcowy z rekomendacjami', 'type' => 'Dokument', 'quantity' => 1, 'price' => 2000, 'value' => 2000],
-            ],
-            'distance_km'         => 120,
-            'km_rate'             => 1.50,
-            'travel_hours'        => 1.5,
-            'hour_rate'           => 80,
-            'travel_cost'         => 600,
-            'total_price'         => 10600,
-            'auditor_hours'       => 8,
-            'payment_terms'       => [
-                ['description' => '100% płatności po wykonaniu audytu', 'percent' => 100, 'deadline' => '14 dni od wystawienia faktury'],
-            ],
-        ]);
+            'offer_number'  => 'OF-DEMO-001',
+            'offer_date'    => now()->format('Y-m-d'),
+            'items'         => $demoItems,
+            'total_price'   => $demoTotalNet,
+            'auditor_hours' => $offerTemplate->default_auditor_hours,
+            'km_rate'       => $offerTemplate->default_km_rate,
+            'hour_rate'     => $offerTemplate->default_hour_rate,
+        ], keepEmptyPlaceholders: true);
 
         return response($demoHtml, 200, ['Content-Type' => 'text/html; charset=utf-8']);
     }

@@ -50,8 +50,11 @@ class OfferTemplate extends Model
         return $this->hasMany(Offer::class);
     }
 
-    /** Generate final HTML by replacing placeholders with offer data. */
-    public function renderForOffer(array $data): string
+    /** Generate final HTML by replacing placeholders with offer data.
+     *  When $keepEmptyPlaceholders is true, unfilled placeholders remain visible as {{key}}
+     *  (used in template preview so designers see what each placeholder will contain).
+     */
+    public function renderForOffer(array $data, bool $keepEmptyPlaceholders = false): string
     {
         $html = $this->html_content ?? '';
         $df   = $this->default_fields ?? [];
@@ -119,6 +122,14 @@ class OfferTemplate extends Model
             '{{enesa_email}}'          => e(SystemSetting::get('company_contact_email', '') ?: $df['enesa_email']  ?? 'biuro@enesa.pl'),
             '{{enesa_phone}}'          => e(SystemSetting::get('enesa_phone',           '') ?: $df['enesa_phone']  ?? ''),
         ];
+
+        if ($keepEmptyPlaceholders) {
+            foreach ($map as $placeholder => $value) {
+                if ((string) $value === '') {
+                    $map[$placeholder] = '<span style="background:#fef3c7;color:#92400e;padding:1px 4px;border-radius:3px;font-size:0.85em;font-family:monospace;">' . e($placeholder) . '</span>';
+                }
+            }
+        }
 
         return str_replace(array_keys($map), array_values($map), $html);
     }
