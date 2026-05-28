@@ -407,6 +407,10 @@ function calcTravel() {
 }
 calcTravel();
 
+@if(!empty($preselectedTemplateId) && $preselectedTemplateId > 0)
+selectTemplate({{ $preselectedTemplateId }});
+@endif
+
 // ─── CRM fill ───
 function fillCustomerFromCrm(select) {
     const opt = select.options[select.selectedIndex];

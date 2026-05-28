@@ -96,7 +96,9 @@ class OffersController extends Controller
             ? ClientInquiry::find($request->integer('inquiry_id'))
             : null;
 
-        return view('offers.create', compact('nextNumber', 'crmDeals', 'crmCompanies', 'prefill', 'fromInquiry', 'offerTemplates'));
+        $preselectedTemplateId = $request->integer('template_id', 0);
+
+        return view('offers.create', compact('nextNumber', 'crmDeals', 'crmCompanies', 'prefill', 'fromInquiry', 'offerTemplates', 'preselectedTemplateId'));
     }
 
     public function store(Request $request)

@@ -149,13 +149,41 @@
                 <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{customer_type}}</code></td>
                 <td style="padding:6px 12px;"><input type="text" name="df_customer_type" value="{{ old('df_customer_type', 'Firma') }}" class="ot-input" style="margin:0;" placeholder="np. Firma / Osoba fizyczna"></td>
             </tr>
-            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">Nazwa klienta</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{customer_name}}</code></td><td style="{{ $tV }}">z danych klienta</td></tr>
-            <tr style="{{ $rH }}"><td style="{{ $tA }}">NIP klienta</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{customer_nip}}</code></td><td style="{{ $tV }}">z danych klienta</td></tr>
-            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">Adres klienta</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{customer_address}}</code></td><td style="{{ $tV }}">z danych klienta</td></tr>
-            <tr style="{{ $rH }}"><td style="{{ $tA }}">Kod pocztowy</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{customer_postal_code}}</code></td><td style="{{ $tV }}">z danych klienta</td></tr>
-            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">Miasto klienta</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{customer_city}}</code></td><td style="{{ $tV }}">z danych klienta</td></tr>
-            <tr style="{{ $rH }}"><td style="{{ $tA }}">Telefon klienta</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{customer_phone}}</code></td><td style="{{ $tV }}">z danych klienta</td></tr>
-            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">E-mail klienta</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{customer_email}}</code></td><td style="{{ $tV }}">z danych klienta</td></tr>
+            <tr style="{{ $rAlt }}">
+                <td style="{{ $tN }}">Nazwa klienta</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{customer_name}}</code></td>
+                <td style="padding:6px 12px;"><input type="text" name="df_customer_name" value="{{ old('df_customer_name') }}" class="ot-input" style="margin:0;" placeholder="Domyślna nazwa klienta..."></td>
+            </tr>
+            <tr style="{{ $rH }}">
+                <td style="{{ $tN }}">NIP klienta</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{customer_nip}}</code></td>
+                <td style="padding:6px 12px;"><input type="text" name="df_customer_nip" value="{{ old('df_customer_nip') }}" class="ot-input" style="margin:0;" placeholder="np. 123-456-78-90"></td>
+            </tr>
+            <tr style="{{ $rAlt }}">
+                <td style="{{ $tN }}">Adres klienta</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{customer_address}}</code></td>
+                <td style="padding:6px 12px;"><input type="text" name="df_customer_address" value="{{ old('df_customer_address') }}" class="ot-input" style="margin:0;" placeholder="ul. Przykładowa 1"></td>
+            </tr>
+            <tr style="{{ $rH }}">
+                <td style="{{ $tN }}">Kod pocztowy</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{customer_postal_code}}</code></td>
+                <td style="padding:6px 12px;"><input type="text" name="df_customer_postal_code" value="{{ old('df_customer_postal_code') }}" class="ot-input" style="margin:0;" placeholder="np. 44-100"></td>
+            </tr>
+            <tr style="{{ $rAlt }}">
+                <td style="{{ $tN }}">Miasto klienta</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{customer_city}}</code></td>
+                <td style="padding:6px 12px;"><input type="text" name="df_customer_city" value="{{ old('df_customer_city') }}" class="ot-input" style="margin:0;" placeholder="np. Gliwice"></td>
+            </tr>
+            <tr style="{{ $rH }}">
+                <td style="{{ $tN }}">Telefon klienta</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{customer_phone}}</code></td>
+                <td style="padding:6px 12px;"><input type="text" name="df_customer_phone" value="{{ old('df_customer_phone') }}" class="ot-input" style="margin:0;" placeholder="+48 ..."></td>
+            </tr>
+            <tr style="{{ $rAlt }}">
+                <td style="{{ $tN }}">E-mail klienta</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{customer_email}}</code></td>
+                <td style="padding:6px 12px;"><input type="email" name="df_customer_email" value="{{ old('df_customer_email') }}" class="ot-input" style="margin:0;" placeholder="kontakt@firma.pl"></td>
+            </tr>
 
             {{-- ══ POZYCJE ══ --}}
             <tr style="background:#e8f3ef;"><td colspan="3" style="{{ $hdr }}">Pozycje cenowe</td></tr>
@@ -206,13 +234,41 @@
 
             {{-- ══ ENESA ══ --}}
             <tr style="background:#e8f3ef;"><td colspan="3" style="{{ $hdr }}">ENESA — Moja firma</td></tr>
-            <tr style="{{ $rH }}"><td style="{{ $tA }}">Nazwa firmy</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{enesa_name}}</code></td><td style="{{ $tV }}">← ustawienia „Moja firma"</td></tr>
-            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">NIP firmy</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{enesa_nip}}</code></td><td style="{{ $tV }}">← ustawienia „Moja firma"</td></tr>
-            <tr style="{{ $rH }}"><td style="{{ $tA }}">Ulica / adres</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{enesa_street}}</code></td><td style="{{ $tV }}">← ustawienia „Moja firma"</td></tr>
-            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">Miasto</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{enesa_city}}</code></td><td style="{{ $tV }}">← ustawienia „Moja firma"</td></tr>
-            <tr style="{{ $rH }}"><td style="{{ $tA }}">Kod pocztowy</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{enesa_postal}}</code></td><td style="{{ $tV }}">← ustawienia „Moja firma"</td></tr>
-            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">E-mail firmy</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{enesa_email}}</code></td><td style="{{ $tV }}">← ustawienia „Moja firma"</td></tr>
-            <tr style="{{ $rH }}"><td style="{{ $tA }}">Telefon firmy</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{enesa_phone}}</code></td><td style="{{ $tV }}">← ustawienia „Moja firma"</td></tr>
+            <tr style="{{ $rH }}">
+                <td style="{{ $tN }}">Nazwa firmy</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{enesa_name}}</code><div style="font-size:10px;color:var(--ink-mute);margin-top:2px;">Fallback gdy brak ustawień „Moja firma"</div></td>
+                <td style="padding:6px 12px;"><input type="text" name="df_enesa_name" value="{{ old('df_enesa_name') }}" class="ot-input" style="margin:0;" placeholder="np. Enesa Sp. z o.o."></td>
+            </tr>
+            <tr style="{{ $rAlt }}">
+                <td style="{{ $tN }}">NIP firmy</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{enesa_nip}}</code></td>
+                <td style="padding:6px 12px;"><input type="text" name="df_enesa_nip" value="{{ old('df_enesa_nip') }}" class="ot-input" style="margin:0;" placeholder="np. 123-456-78-90"></td>
+            </tr>
+            <tr style="{{ $rH }}">
+                <td style="{{ $tN }}">Ulica / adres</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{enesa_street}}</code></td>
+                <td style="padding:6px 12px;"><input type="text" name="df_enesa_street" value="{{ old('df_enesa_street') }}" class="ot-input" style="margin:0;" placeholder="ul. ..."></td>
+            </tr>
+            <tr style="{{ $rAlt }}">
+                <td style="{{ $tN }}">Miasto</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{enesa_city}}</code></td>
+                <td style="padding:6px 12px;"><input type="text" name="df_enesa_city" value="{{ old('df_enesa_city') }}" class="ot-input" style="margin:0;" placeholder="np. Gliwice"></td>
+            </tr>
+            <tr style="{{ $rH }}">
+                <td style="{{ $tN }}">Kod pocztowy</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{enesa_postal}}</code></td>
+                <td style="padding:6px 12px;"><input type="text" name="df_enesa_postal" value="{{ old('df_enesa_postal') }}" class="ot-input" style="margin:0;" placeholder="np. 44-100"></td>
+            </tr>
+            <tr style="{{ $rAlt }}">
+                <td style="{{ $tN }}">E-mail firmy</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{enesa_email}}</code></td>
+                <td style="padding:6px 12px;"><input type="email" name="df_enesa_email" value="{{ old('df_enesa_email') }}" class="ot-input" style="margin:0;" placeholder="biuro@enesa.pl"></td>
+            </tr>
+            <tr style="{{ $rH }}">
+                <td style="{{ $tN }}">Telefon firmy</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{enesa_phone}}</code></td>
+                <td style="padding:6px 12px;"><input type="text" name="df_enesa_phone" value="{{ old('df_enesa_phone') }}" class="ot-input" style="margin:0;" placeholder="+48 ..."></td>
+            </tr>
 
         </tbody>
     </table>

@@ -23,7 +23,13 @@ class OfferTemplatesController extends Controller
 
         $categoryLabel = OfferTemplate::CATEGORIES[$category];
 
-        return view('offer-templates.index', compact('templates', 'category', 'categoryLabel'));
+        $audits = \App\Models\EnergyAudit::with('company')
+            ->whereIn('status', \App\Models\EnergyAudit::ACTIVE_STATUSES)
+            ->orderByDesc('created_at')
+            ->limit(100)
+            ->get();
+
+        return view('offer-templates.index', compact('templates', 'category', 'categoryLabel', 'audits'));
     }
 
     public function create(Request $request)
@@ -201,7 +207,11 @@ class OfferTemplatesController extends Controller
     {
         $keys = ['offer_title','offer_subject','offer_description','customer_type',
                  'payment_terms_text','offer_validity','delivery_deadline','vat_rate',
-                 'distance_km','travel_hours'];
+                 'distance_km','travel_hours',
+                 'customer_name','customer_nip','customer_address','customer_postal_code',
+                 'customer_city','customer_phone','customer_email',
+                 'enesa_name','enesa_nip','enesa_street','enesa_city',
+                 'enesa_postal','enesa_email','enesa_phone'];
         $result = [];
         foreach ($keys as $k) {
             $v = $request->input('df_' . $k);

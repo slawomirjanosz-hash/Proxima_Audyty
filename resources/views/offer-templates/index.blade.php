@@ -128,6 +128,23 @@ $isGlobal = ($category === 'global');
                         </div>
                     </div>
                     @endif
+                    @if($audits->isNotEmpty())
+                    <div style="position:relative;display:inline-block;">
+                        <button type="button" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block'" style="padding:8px 12px;border-radius:8px;background:#059669;color:#fff;border:0;cursor:pointer;font-weight:700;font-size:13px;">
+                            Zastosuj do audytu ▾
+                        </button>
+                        <div style="display:none;position:absolute;right:0;top:calc(100% + 4px);background:#fff;border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.12);min-width:260px;z-index:50;padding:6px;max-height:320px;overflow-y:auto;">
+                            @foreach($audits as $audit)
+                            <a href="{{ route('offers.create', ['from_company' => $audit->company_id, 'template_id' => $tpl->id]) }}"
+                               style="display:block;padding:9px 14px;font-size:13px;border-radius:6px;color:#065f46;text-decoration:none;font-weight:600;"
+                               onmouseover="this.style.background='#d1fae5'" onmouseout="this.style.background='none'">
+                                {{ $audit->title }}
+                                @if($audit->company)<span style="font-weight:400;color:var(--ink-mute);"> — {{ $audit->company->name }}</span>@endif
+                            </a>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
                     @if(!$tpl->offers_count && !$isGlobal)
                     <form method="POST" action="{{ route('offer-templates.destroy', $tpl) }}" onsubmit="return confirm('Usunąć szablon?')">
                         @csrf @method('DELETE')
