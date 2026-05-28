@@ -450,7 +450,57 @@ function getV(selector) {
     return el && el.value.trim() ? el.value.trim() : null;
 }
 
-const DEMO_ITEMS = '<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr><th style="background:#1A4D3A;color:#fff;padding:8px;">Nr</th><th style="background:#1A4D3A;color:#fff;padding:8px;text-align:left;">Pozycja</th><th style="background:#1A4D3A;color:#fff;padding:8px;text-align:right;">Wartość</th></tr></thead><tbody><tr><td style="padding:8px;text-align:center;">1</td><td style="padding:8px;">Audyt energetyczny — etap I</td><td style="padding:8px;text-align:right;">8 000,00 zł</td></tr><tr><td style="padding:8px;text-align:center;background:#f7faf9;">2</td><td style="padding:8px;background:#f7faf9;">Raport końcowy</td><td style="padding:8px;text-align:right;background:#f7faf9;">2 000,00 zł</td></tr></tbody><tfoot><tr><td colspan="2" style="padding:10px;text-align:right;font-weight:700;background:#1A4D3A;color:#fff;">Razem netto</td><td style="padding:10px;text-align:right;font-weight:700;background:#1A4D3A;color:#fff;">10 000,00 zł</td></tr></tfoot></table>';
+function escHtmlPh(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function buildItemsTableHtml() {
+    const rows = document.querySelectorAll('#di-table tr');
+    let items = [];
+    rows.forEach(tr => {
+        const name  = tr.querySelector('[name^="di_name"]')?.value.trim()  || '';
+        const type  = tr.querySelector('[name^="di_type"]')?.value.trim()  || '';
+        const qty   = parseFloat(tr.querySelector('[name^="di_qty"]')?.value)   || 1;
+        const price = parseFloat(tr.querySelector('[name^="di_price"]')?.value) || 0;
+        if (name) items.push({name, type, qty, price, val: qty * price});
+    });
+    if (!items.length) return '<p style="color:#888;font-style:italic;padding:12px 0;">Brak pozycji — dodaj pozycje w sekcji "Domyślne pozycje cenowe" powyżej.</p>';
+    const fmtC = n => n.toLocaleString('pl-PL', {minimumFractionDigits:2, maximumFractionDigits:2});
+    let total = 0, html = '<table style="width:100%;border-collapse:collapse;font-size:13px;">'
+        + '<thead><tr>'
+        + '<th style="background:#1A4D3A;color:#fff;padding:10px;text-align:center;width:40px;">Nr</th>'
+        + '<th style="background:#1A4D3A;color:#fff;padding:10px;text-align:left;">Nazwa pozycji</th>'
+        + '<th style="background:#1A4D3A;color:#fff;padding:10px;text-align:left;">Opis / Typ</th>'
+        + '<th style="background:#1A4D3A;color:#fff;padding:10px;text-align:center;width:60px;">Ilość</th>'
+        + '<th style="background:#1A4D3A;color:#fff;padding:10px;text-align:right;width:110px;">Cena jedn.</th>'
+        + '<th style="background:#1A4D3A;color:#fff;padding:10px;text-align:right;width:110px;">Wartość</th>'
+        + '</tr></thead><tbody>';
+    items.forEach((item, i) => {
+        total += item.val;
+        html += '<tr>'
+            + `<td style="padding:8px 10px;border-bottom:1px solid #e4edf3;text-align:center;">${i+1}</td>`
+            + `<td style="padding:8px 10px;border-bottom:1px solid #e4edf3;font-weight:600;">${escHtmlPh(item.name)}</td>`
+            + `<td style="padding:8px 10px;border-bottom:1px solid #e4edf3;color:#555;">${escHtmlPh(item.type)}</td>`
+            + `<td style="padding:8px 10px;border-bottom:1px solid #e4edf3;text-align:center;">${item.qty}</td>`
+            + `<td style="padding:8px 10px;border-bottom:1px solid #e4edf3;text-align:right;">${fmtC(item.price)} zł</td>`
+            + `<td style="padding:8px 10px;border-bottom:1px solid #e4edf3;text-align:right;font-weight:700;">${fmtC(item.val)} zł</td>`
+            + '</tr>';
+    });
+    html += '</tbody><tfoot><tr>'
+        + '<td colspan="5" style="padding:10px;text-align:right;font-weight:700;background:#1A4D3A;color:#fff;font-size:14px;">Razem (netto)</td>'
+        + `<td style="padding:10px;text-align:right;font-weight:800;font-size:15px;background:#1A4D3A;color:#fff;">${fmtC(total)} zł</td>`
+        + '</tr></tfoot></table>';
+    return html;
+}
+
+function getDiTableTotal() {
+    let total = 0;
+    document.querySelectorAll('#di-table tr').forEach(tr => {
+        const qty   = parseFloat(tr.querySelector('[name^="di_qty"]')?.value)   || 1;
+        const price = parseFloat(tr.querySelector('[name^="di_price"]')?.value) || 0;
+        const name  = tr.querySelector('[name^="di_name"]')?.value.trim() || '';
+        if (name) total += qty * price;
+    });
+    return total;
+}
 
 let previewTimer = null;
 function refreshPreview() {
@@ -466,7 +516,7 @@ function refreshPreview() {
 
     const vatRate   = parseFloat(getV('[name="df_vat_rate"]') || '23') || 23;
     const netInput  = getN('[name="df_total_price_net"]');
-    const demoNet   = netInput || 10000;
+    const demoNet   = netInput || getDiTableTotal() || 10000;
     const calcVat   = Math.round(demoNet * vatRate) / 100;
     const vatAmt    = getN('[name="df_total_price_vat"]') || calcVat;
     const calcGross = demoNet + vatAmt;
@@ -487,7 +537,7 @@ function refreshPreview() {
         'customer_city':        getV('[name="df_customer_city"]'),
         'customer_phone':       getV('[name="df_customer_phone"]'),
         'customer_email':       getV('[name="df_customer_email"]'),
-        'items_table':          DEMO_ITEMS,
+        'items_table':          buildItemsTableHtml(),
         'distance_km':          distKm.toLocaleString('pl-PL', {minimumFractionDigits: 1}),
         'km_rate':              fmt(kmRate),
         'travel_hours':         travelH.toLocaleString('pl-PL', {minimumFractionDigits: 1}),
@@ -530,6 +580,11 @@ document.querySelectorAll('[name^="df_"]').forEach(function(el) {
         previewTimer = setTimeout(refreshPreview, 400);
     });
 });
+// Refresh preview when default items change
+document.getElementById('di-table').addEventListener('input', function() {
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(refreshPreview, 400);
+});
 refreshPreview();
 
 function clearEditor() {
@@ -562,9 +617,10 @@ function addDiRow(name, type, qty, price) {
         <td><input type="text" name="di_type[${idx}]" value="${esc(type||'')}" class="di-input" placeholder="Opis / typ"></td>
         <td><input type="number" name="di_qty[${idx}]" value="${qty||1}" min="0" step="0.01" class="di-input" style="text-align:right;"></td>
         <td><input type="number" name="di_price[${idx}]" value="${price||''}" min="0" step="0.01" class="di-input" style="text-align:right;" placeholder="0,00"></td>
-        <td style="text-align:center;"><button type="button" onclick="this.closest('tr').remove()" style="background:#fee2e2;color:#991b1b;border:0;border-radius:6px;padding:5px 9px;cursor:pointer;">✕</button></td>
+        <td style="text-align:center;"><button type="button" onclick="this.closest('tr').remove();refreshPreview();" style="background:#fee2e2;color:#991b1b;border:0;border-radius:6px;padding:5px 9px;cursor:pointer;">✕</button></td>
     `;
     tbody.appendChild(tr);
+    refreshPreview();
 }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
