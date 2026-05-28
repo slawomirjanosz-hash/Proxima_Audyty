@@ -22,6 +22,12 @@ class OffersController extends Controller
         return view('offers.index');
     }
 
+    public function all(Request $request)
+    {
+        $offers = Offer::with(['company', 'offerTemplate'])->latest()->get();
+        return view('offers.all', compact('offers'));
+    }
+
     public function portfolio()
     {
         $offers = Offer::where('status', 'portfolio')->with(['crmDeal', 'company'])->latest()->get();

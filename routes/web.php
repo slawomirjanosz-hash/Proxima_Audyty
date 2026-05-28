@@ -287,6 +287,7 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/portfolio',         [OffersController::class, 'portfolio'])   ->name('portfolio');
         Route::get('/nowa',              [OffersController::class, 'create'])      ->name('create');
         Route::post('/',                 [OffersController::class, 'store'])       ->name('store');
+        Route::get('/wszystkie',         [OffersController::class, 'all'])         ->name('all');
         Route::post('/szacuj-trase-ai',  [OffersController::class, 'estimateTravelAi'])->name('estimateTravelAi');
         Route::get('/w-toku',            [OffersController::class, 'inprogress'])  ->name('inprogress');
         Route::get('/zarchiwizowane',    [OffersController::class, 'archived'])    ->name('archived');

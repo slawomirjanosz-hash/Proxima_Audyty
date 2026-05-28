@@ -1,206 +1,186 @@
-<x-layouts.app>
-    <section class="panel">
-        <style>
-            .audit-tab-btn { padding: 8px 12px; border-radius: 10px; border: 1px solid #d7e5f0; background: #eef5fb; font-weight: 700; color: #28485f; cursor: pointer; }
-            .audit-tab-btn.active { background: #fff; border-color: var(--green-primary); color: var(--green-primary); }
-            .audit-tab-content { display: none; margin-top: 14px; }
-            .audit-tab-content.active { display: block; }
-            .audit-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-            .audit-form-grid input, .audit-form-grid select { width: 100%; }
-            .audit-actions { display: flex; gap: 8px; align-items: center; }
-            .btn-secondary { background: #dbe9f5; color: var(--green-deep); }
-            .status-pill { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 6px; }
-            .status-pill.completed { background: #d9f6e3; color: #0c5f28; }
-            .audit-list { display:grid; gap:10px; }
-            .audit-list-item { border:1px solid #d7e5f0; border-radius:12px; background:#fbfdff; overflow:hidden; }
-            .audit-list-header { width:100%; border:none; background:#f6fbff; padding:12px; display:flex; justify-content:space-between; align-items:center; gap:10px; cursor:pointer; text-align:left; }
-            .audit-list-header:hover { background:#eef6ff; }
-            .audit-list-item.open .audit-list-header { background:#eaf3ff; }
-            .audit-list-main { display:flex; flex-direction:column; gap:3px; }
-            .audit-list-title { font-weight:800; color:#10344c; }
-            .audit-list-meta { font-size:12px; color:var(--ink-mute); }
-            .audit-list-chevron { color:var(--ink-mute); font-size:16px; transition:transform .2s; }
-            .audit-list-item.open .audit-list-chevron { transform:rotate(180deg); }
-            .audit-list-body { display:none; padding:12px; border-top:1px solid #e0ecf5; }
-            .audit-list-item.open .audit-list-body { display:block; }
-            .audit-list-grid { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:8px; margin-bottom:10px; }
-            .audit-list-grid div { font-size:13px; color:#355468; }
-            .audit-list-grid strong { display:block; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--ink-mute); margin-bottom:2px; }
-            @media (max-width: 900px) {
-                .audit-form-grid { grid-template-columns: 1fr; }
-                .audit-actions { flex-wrap: wrap; }
-                .audit-list-grid { grid-template-columns:1fr; }
-            }
-        </style>
+﻿<x-layouts.app>
+<style>
+.at-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+@media (max-width: 1100px) { .at-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 680px)  { .at-grid { grid-template-columns: 1fr; } }
 
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px;">
-            <h1 style="margin:0;">Rodzaje audytów</h1>
-            <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-                <a href="{{ route('ai.index') }}" class="btn-secondary" style="text-decoration:none; padding:8px 10px; border-radius:9px;">🤖 Pokaż wszystkie rozmowy</a>
-                <a href="{{ route('audits.settings') }}" class="btn-secondary" style="text-decoration:none; padding:8px 10px; border-radius:9px;">⚙️ Ustawienia</a>
+.at-card { border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.06); border: 1px solid #d9e8f3; background: #fff; display: flex; flex-direction: column; }
+.at-card-header { padding: 20px 22px 16px; display: flex; align-items: center; gap: 14px; }
+.at-card-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+.at-card-title { font-size: 17px; font-weight: 800; }
+.at-card-subtitle { font-size: 12px; margin-top: 2px; }
+.at-card-body { padding: 0 16px 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; }
+.at-action { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 12px 14px; border-radius: 12px; text-decoration: none; border: 1px solid #e4edf5; background: #f8fbff; transition: background .15s, border-color .15s; }
+.at-action:hover { background: #eef5ff; border-color: #b0ccde; }
+.at-action-icon { font-size: 20px; }
+.at-action-label { font-size: 13px; font-weight: 700; color: #163f5b; }
+.at-action-desc { font-size: 11px; color: #677d8e; }
+
+.at-card-energy .at-card-header { background: linear-gradient(135deg, #1A4D3A 0%, #2d7a5f 100%); color: #fff; }
+.at-card-energy .at-card-subtitle { color: #a0d4be; }
+.at-card-energy .at-card-icon { background: rgba(255,255,255,.15); }
+.at-card-energy .at-action:hover { border-color: #1A4D3A; }
+
+.at-card-iso .at-card-header { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: #fff; }
+.at-card-iso .at-card-subtitle { color: #bfdbfe; }
+.at-card-iso .at-card-icon { background: rgba(255,255,255,.15); }
+.at-card-iso .at-action:hover { border-color: #3b82f6; }
+
+.at-card-bc .at-card-header { background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: #fff; }
+.at-card-bc .at-card-subtitle { color: #e9d5ff; }
+.at-card-bc .at-card-icon { background: rgba(255,255,255,.15); }
+.at-card-bc .at-action:hover { border-color: #a855f7; }
+
+.at-all-offers { background: #fff; border: 1px solid #d9e8f3; border-radius: 14px; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
+.at-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+</style>
+
+<div class="panel">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:22px;">
+        <div>
+            <h1 style="margin:0;font-size:22px;font-weight:800;">Rodzaje audytów</h1>
+            <p style="margin:4px 0 0;font-size:13px;color:var(--ink-mute);">Zarządzaj szablonami, ofertami, ankietami i agentami AI dla każdego rodzaju audytu.</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <a href="{{ route('offers.all') }}" style="padding:9px 16px;background:#1A4D3A;color:#fff;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px;">📋 Wszystkie oferty</a>
+            <a href="{{ route('audits.settings') }}" style="padding:9px 16px;background:#e2e8f0;color:#374151;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px;">⚙ Ustawienia</a>
+        </div>
+    </div>
+
+    @if(session('status'))
+        <div style="background:#d1fae5;border:1px solid #6ee7b7;border-radius:10px;padding:10px 16px;margin-bottom:16px;color:#065f46;font-size:13px;font-weight:600;">{{ session('status') }}</div>
+    @endif
+
+    <div class="at-grid">
+
+        {{-- ── AUDYT ENERGETYCZNY ─────────────────────────────────────────── --}}
+        <div class="at-card at-card-energy">
+            <div class="at-card-header">
+                <div class="at-card-icon">⚡</div>
+                <div>
+                    <div class="at-card-title">Audyt Energetyczny</div>
+                    <div class="at-card-subtitle">Zakłady przemysłowe · Kompresory · Kotłownia · Budynki</div>
+                </div>
             </div>
-        </div>
-        <p class="muted" style="margin:0 0 14px;">Zarządzanie audytami: tworzenie, prowadzenie i zamykanie.</p>
-
-        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
-            <button type="button" class="audit-tab-btn {{ $activeTab === 'new' ? 'active' : '' }}" onclick="switchAuditTab(event, 'new')">➕ Nowy audyt</button>
-            <button type="button" class="audit-tab-btn {{ $activeTab === 'in-progress' ? 'active' : '' }}" onclick="switchAuditTab(event, 'in-progress')">🛠 Audyty w toku ({{ $inProgressAudits->count() }})</button>
-            <button type="button" class="audit-tab-btn {{ $activeTab === 'completed' ? 'active' : '' }}" onclick="switchAuditTab(event, 'completed')">✅ Audyty zakończone ({{ $completedAudits->count() }})</button>
-        </div>
-
-        <div id="audit-tab-new" class="audit-tab-content {{ $activeTab === 'new' ? 'active' : '' }}">
-            <h3 style="margin:0 0 10px;">Dodaj nowy audyt</h3>
-            @if($auditTypes->isEmpty())
-                <div style="margin-bottom:12px; padding:10px; border:1px solid #cfe2f5; border-radius:10px; background:#eaf5ff; color:#145086;">
-                    Najpierw dodaj rodzaj audytu w Ustawieniach audytów.
-                    <a href="{{ route('audits.settings') }}" style="margin-left:8px; font-weight:700;">Przejdź do ustawień</a>
-                </div>
-            @endif
-            <form method="POST" action="{{ route('audits.store') }}">
-                @csrf
-                <div class="audit-form-grid">
-                    <div style="grid-column:1 / -1;">
-                        <label>Nazwa audytu *</label>
-                        <input type="text" name="title" value="{{ old('title') }}" required>
-                    </div>
-                    <div>
-                        <label>Rodzaj audytu *</label>
-                        <select name="audit_type_id" required>
-                            <option value="">Wybierz rodzaj audytu</option>
-                            @foreach($auditTypes as $type)
-                                <option value="{{ $type->id }}" @selected((string) old('audit_type_id') === (string) $type->id)>{{ $type->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label>Firma</label>
-                        <select name="company_id">
-                            <option value="">Brak</option>
-                            @foreach($companies as $company)
-                                <option value="{{ $company->id }}" @selected((string) old('company_id') === (string) $company->id)>{{ $company->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label>Audytor</label>
-                        <select name="auditor_id">
-                            <option value="">Brak</option>
-                            @foreach($auditors as $auditor)
-                                <option value="{{ $auditor->id }}" @selected((string) old('auditor_id') === (string) $auditor->id)>{{ $auditor->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-                <div style="margin-top:12px; display:flex; justify-content:flex-end;">
-                    <button type="submit">Zapisz audyt</button>
-                </div>
-            </form>
-        </div>
-
-        <div id="audit-tab-in-progress" class="audit-tab-content {{ $activeTab === 'in-progress' ? 'active' : '' }}">
-            <h3 style="margin:0 0 10px;">Audyty w toku</h3>
-            <div class="audit-list">
-                @forelse($inProgressAudits as $audit)
-                    <div class="audit-list-item" id="in-progress-audit-{{ $audit->id }}">
-                        <button type="button" class="audit-list-header" onclick="toggleAuditListItem('in-progress-audit-{{ $audit->id }}')">
-                            <div class="audit-list-main">
-                                <span class="audit-list-title">{{ $loop->iteration }}. {{ $audit->title }}</span>
-                                <span class="audit-list-meta">{{ $audit->auditType?->name ?: $audit->audit_type ?: '—' }} • {{ $audit->company?->name ?? '—' }}</span>
-                            </div>
-                            <span class="audit-list-chevron">&#9660;</span>
-                        </button>
-                        <div class="audit-list-body">
-                            <div class="audit-list-grid">
-                                <div>
-                                    <strong>Rodzaj audytu</strong>
-                                    {{ $audit->auditType?->name ?: $audit->audit_type ?: '—' }}
-                                </div>
-                                <div>
-                                    <strong>Firma</strong>
-                                    {{ $audit->company?->name ?? '—' }}
-                                </div>
-                                <div>
-                                    <strong>Audytor</strong>
-                                    {{ $audit->auditor?->name ?? '—' }}
-                                </div>
-                            </div>
-                            <div class="audit-actions">
-                                <a class="btn-secondary" style="text-decoration:none; padding:8px 10px; border-radius:9px;" href="{{ route('audits.show', $audit) }}">Info</a>
-                                <form method="POST" action="{{ route('audits.complete', $audit) }}" style="display:inline;">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit">Zakończ</button>
-                                </form>
-                                <a class="btn-secondary" style="text-decoration:none; padding:8px 10px; border-radius:9px;" href="{{ route('audits.edit', $audit) }}">Edytuj</a>
-                            </div>
-                        </div>
-                    </div>
-                @empty
-                    <div class="muted">Brak audytów w toku.</div>
-                @endforelse
+            <div class="at-card-body">
+                <a href="{{ route('offer-templates.index') }}?type=energetyczny" class="at-action">
+                    <span class="at-action-icon">📄</span>
+                    <span class="at-action-label">Szablon oferty</span>
+                    <span class="at-action-desc">Szablony dla audytów energetycznych</span>
+                </a>
+                <a href="{{ route('offers.all') }}?type=energetyczny" class="at-action">
+                    <span class="at-action-icon">📋</span>
+                    <span class="at-action-label">Oferty wystawione</span>
+                    <span class="at-action-desc">Oferty audytu energetycznego</span>
+                </a>
+                <a href="{{ route('audits.types', 'energetyczne') }}" class="at-action">
+                    <span class="at-action-icon">📝</span>
+                    <span class="at-action-label">Ankieta / Dane</span>
+                    <span class="at-action-desc">Formularze i kwestionariusze</span>
+                </a>
+                <a href="{{ route('ai.create') }}?context=energy" class="at-action">
+                    <span class="at-action-icon">🤖</span>
+                    <span class="at-action-label">Agent AI</span>
+                    <span class="at-action-desc">Asystent AI dla audytu energetycznego</span>
+                </a>
             </div>
         </div>
 
-        <div id="audit-tab-completed" class="audit-tab-content {{ $activeTab === 'completed' ? 'active' : '' }}">
-            <h3 style="margin:0 0 10px;">Audyty zakończone</h3>
-            <div class="audit-list">
-                @forelse($completedAudits as $audit)
-                    <div class="audit-list-item" id="completed-audit-{{ $audit->id }}">
-                        <button type="button" class="audit-list-header" onclick="toggleAuditListItem('completed-audit-{{ $audit->id }}')">
-                            <div class="audit-list-main">
-                                <span class="audit-list-title">{{ $loop->iteration }}. {{ $audit->title }}</span>
-                                <span class="audit-list-meta">{{ $audit->company?->name ?? '—' }} • {{ $audit->completed_at?->format('Y-m-d H:i') ?? '—' }}</span>
-                            </div>
-                            <span class="audit-list-chevron">&#9660;</span>
-                        </button>
-                        <div class="audit-list-body">
-                            <div class="audit-list-grid">
-                                <div>
-                                    <strong>Rodzaj audytu</strong>
-                                    {{ $audit->auditType?->name ?: $audit->audit_type ?: '—' }}
-                                </div>
-                                <div>
-                                    <strong>Firma</strong>
-                                    {{ $audit->company?->name ?? '—' }}
-                                </div>
-                                <div>
-                                    <strong>Status</strong>
-                                    <span class="status-pill completed">Zakończony</span>
-                                </div>
-                            </div>
-                            <div class="audit-actions">
-                                <a class="btn-secondary" style="text-decoration:none; padding:8px 10px; border-radius:9px;" href="{{ route('audits.show', $audit) }}">Info</a>
-                                <form method="POST" action="{{ route('audits.reopen', $audit) }}" style="display:inline;">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="btn-secondary">W toku</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                @empty
-                    <div class="muted">Brak audytów zakończonych.</div>
-                @endforelse
+        {{-- ── AUDYT ISO 50001 ────────────────────────────────────────────── --}}
+        <div class="at-card at-card-iso">
+            <div class="at-card-header">
+                <div class="at-card-icon">🏭</div>
+                <div>
+                    <div class="at-card-title">Audyt ISO 50001</div>
+                    <div class="at-card-subtitle">System Zarządzania Energią · Norma ISO 50001</div>
+                </div>
+            </div>
+            <div class="at-card-body">
+                <a href="{{ route('offer-templates.index') }}?type=iso" class="at-action">
+                    <span class="at-action-icon">📄</span>
+                    <span class="at-action-label">Szablon oferty</span>
+                    <span class="at-action-desc">Szablony dla audytów ISO 50001</span>
+                </a>
+                <a href="{{ route('offers.all') }}?type=iso" class="at-action">
+                    <span class="at-action-icon">📋</span>
+                    <span class="at-action-label">Oferty wystawione</span>
+                    <span class="at-action-desc">Oferty audytu ISO 50001</span>
+                </a>
+                <a href="{{ route('audits.types', 'iso50001') }}" class="at-action">
+                    <span class="at-action-icon">📝</span>
+                    <span class="at-action-label">Ankieta / Dane</span>
+                    <span class="at-action-desc">Kwestionariusz i etapy ISO</span>
+                </a>
+                <a href="{{ route('ai.create') }}?context=iso" class="at-action">
+                    <span class="at-action-icon">🤖</span>
+                    <span class="at-action-label">Agent AI</span>
+                    <span class="at-action-desc">Asystent AI dla ISO 50001</span>
+                </a>
             </div>
         </div>
 
-        <script>
-            function switchAuditTab(event, tabName) {
-                document.querySelectorAll('.audit-tab-btn').forEach((btn) => btn.classList.remove('active'));
-                document.querySelectorAll('.audit-tab-content').forEach((content) => content.classList.remove('active'));
-                event.target.classList.add('active');
-                const tab = document.getElementById('audit-tab-' + tabName);
-                if (tab) tab.classList.add('active');
-            }
+        {{-- ── BIAŁE CERTYFIKATY ──────────────────────────────────────────── --}}
+        <div class="at-card at-card-bc">
+            <div class="at-card-header">
+                <div class="at-card-icon">🏅</div>
+                <div>
+                    <div class="at-card-title">Białe Certyfikaty</div>
+                    <div class="at-card-subtitle">Świadectwa efektywności energetycznej · URE</div>
+                </div>
+            </div>
+            <div class="at-card-body">
+                <a href="{{ route('offer-templates.index') }}?type=bc" class="at-action">
+                    <span class="at-action-icon">📄</span>
+                    <span class="at-action-label">Szablon oferty</span>
+                    <span class="at-action-desc">Szablony dla białych certyfikatów</span>
+                </a>
+                <a href="{{ route('offers.all') }}?type=bc" class="at-action">
+                    <span class="at-action-icon">📋</span>
+                    <span class="at-action-label">Oferty wystawione</span>
+                    <span class="at-action-desc">Oferty białe certyfikaty</span>
+                </a>
+                <a href="{{ route('audits.types', 'biale-certyfikaty') }}" class="at-action">
+                    <span class="at-action-icon">📝</span>
+                    <span class="at-action-label">Ankieta / Dane</span>
+                    <span class="at-action-desc">Formularze białych certyfikatów</span>
+                </a>
+                <a href="{{ route('ai.create') }}?context=bc" class="at-action">
+                    <span class="at-action-icon">🤖</span>
+                    <span class="at-action-label">Agent AI</span>
+                    <span class="at-action-desc">Asystent AI dla białych certyfikatów</span>
+                </a>
+            </div>
+        </div>
 
-            function toggleAuditListItem(itemId) {
-                const item = document.getElementById(itemId);
-                if (!item) {
-                    return;
-                }
+    </div>
 
-                item.classList.toggle('open');
-            }
-        </script>
-    </section>
+    {{-- ── Skróty ─────────────────────────────────────────────────────────── --}}
+    <div style="margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+
+        <div class="at-all-offers">
+            <div>
+                <div style="font-size:16px;font-weight:800;color:#163f5b;">📋 Wszystkie oferty</div>
+                <div style="font-size:12px;color:var(--ink-mute);margin-top:3px;">Przeglądaj wszystkie wystawione oferty niezależnie od rodzaju audytu</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <a href="{{ route('offers.all') }}" style="padding:8px 16px;background:#1A4D3A;color:#fff;border-radius:9px;text-decoration:none;font-weight:700;font-size:13px;">📋 Przeglądaj</a>
+                <a href="{{ route('offers.create') }}" style="padding:8px 16px;background:#e2f0fb;color:#1A4D3A;border-radius:9px;text-decoration:none;font-weight:700;font-size:13px;">+ Nowa oferta</a>
+            </div>
+        </div>
+
+        <div class="at-all-offers">
+            <div>
+                <div style="font-size:16px;font-weight:800;color:#163f5b;">🛠 Audyty w toku</div>
+                <div style="font-size:12px;color:var(--ink-mute);margin-top:3px;">
+                    W toku: <strong>{{ $inProgressCount }}</strong> &nbsp;·&nbsp; Zakończone: <strong>{{ $completedCount }}</strong>
+                </div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <a href="{{ route('audits.index', ['tab' => 'in-progress']) }}" style="padding:8px 16px;background:#d97706;color:#fff;border-radius:9px;text-decoration:none;font-weight:700;font-size:13px;">🛠 W toku</a>
+                <a href="{{ route('audits.index', ['tab' => 'new']) }}" style="padding:8px 16px;background:#e2f0fb;color:#1A4D3A;border-radius:9px;text-decoration:none;font-weight:700;font-size:13px;">+ Nowy audyt</a>
+            </div>
+        </div>
+
+    </div>
+</div>
 </x-layouts.app>

@@ -29,7 +29,10 @@ class AuditsController extends Controller
 {
     public function index(): View
     {
-        return $this->settings();
+        $inProgressCount = EnergyAudit::where('status', 'in_progress')->count();
+        $completedCount  = EnergyAudit::where('status', 'completed')->count();
+
+        return view('audits.index', compact('inProgressCount', 'completedCount'));
     }
 
     public function store(Request $request): RedirectResponse
