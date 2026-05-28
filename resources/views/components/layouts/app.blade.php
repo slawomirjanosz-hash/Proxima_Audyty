@@ -390,6 +390,7 @@
 
                 @if(!$menuUser->isClient() && $menuUser->canAccessTab(\App\Models\User::TAB_AUDITS))
                     <li><a href="{{ route('dashboard') }}" @class(['menu-active' => request()->routeIs('dashboard'), 'menu-alert' => $dashboardAlertCount > 0])>{{ __('ui.menu.dashboard') }}@if($dashboardAlertCount > 0)<span class="menu-alert-dot" title="{{ $dashboardAlertCount }} nowych powiadomień"></span>@endif</a></li>
+                    <li><a href="{{ route('audits.index') }}" @class(['menu-active' => request()->routeIs('audits.index')])>System Audytów</a></li>
                     @php($inAuditsTypes = request()->routeIs('audits.types'))
                     @php($currentTab = request()->route('tab'))
                     <li>
