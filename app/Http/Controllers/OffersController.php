@@ -253,10 +253,7 @@ class OffersController extends Controller
                     'chroot'               => public_path(),
                 ]);
         } else {
-            $coverHtml = view('offers.cover', compact('offer'))->render();
-            $printHtml = view('offers.print', compact('offer'))->render();
-            $combined  = $coverHtml . '<div style="page-break-after:always;"></div>' . $printHtml;
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($combined)
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('offers.template', $this->prepareViewData($offer))
                 ->setOptions([
                     'isHtml5ParserEnabled' => true,
                     'isRemoteEnabled'      => false,
@@ -273,7 +270,7 @@ class OffersController extends Controller
         if ($offer->html_content) {
             return response($offer->html_content, 200, ['Content-Type' => 'text/html']);
         }
-        $html = view('offers.print', compact('offer'))->render();
+        $html = view('offers.template', $this->prepareViewData($offer))->render();
         return response($html, 200, ['Content-Type' => 'text/html']);
     }
 
@@ -466,6 +463,91 @@ class OffersController extends Controller
             'travel_hours'         => $travelHours ?: null,
             'travel_cost'          => $travelCost ?: null,
             'auditor_hours'        => $auditorHours ?: null,
+        ];
+    }
+
+    private function prepareViewData(Offer $offer): array
+    {
+        $allItems = array_merge(
+            $offer->services ?? [],
+            $offer->works ?? [],
+            $offer->materials ?? [],
+            ...array_map(fn($cs) => $cs['items'] ?? [], $offer->custom_sections ?? [])
+        );
+
+        $items = array_values(array_filter(
+            array_map(fn($item) => [
+                'name'        => $item['name'] ?? '',
+                'unit'        => $item['type'] ?? 'szt.',
+                'qty'         => (float) ($item['quantity'] ?? 1),
+                'price_unit'  => (float) ($item['price'] ?? 0),
+                'price_total' => (float) ($item['value'] ?? 0),
+            ], $allItems),
+            fn($item) => !empty($item['name'])
+        ));
+
+        $totalNet = array_sum(array_column($items, 'price_total'));
+        $df       = $offer->offerTemplate?->default_fields ?? [];
+        $vatRate  = (float) ($df['vat_rate'] ?? 23);
+        $vatAmt   = round($totalNet * $vatRate / 100, 2);
+
+        $kmRate     = $offer->km_rate ?? $offer->offerTemplate?->default_km_rate ?? 1.5;
+        $hourRate   = $offer->hour_rate ?? $offer->offerTemplate?->default_hour_rate ?? 80.0;
+        $distKm     = $offer->distance_km ?? 0;
+        $travelH    = $offer->travel_hours ?? 0;
+        $travelCost = $offer->travel_cost ?? (($distKm * $kmRate * 2) + ($travelH * $hourRate * 2));
+
+        $paymentTermsRaw = is_array($offer->payment_terms) ? $offer->payment_terms : [];
+        $paymentText = '';
+        foreach ($paymentTermsRaw as $pt) {
+            $line = $pt['description'] ?? '';
+            if (!empty($pt['percent'])) $line .= ' (' . $pt['percent'] . '%)';
+            if (!empty($pt['deadline'])) $line .= ' — ' . $pt['deadline'];
+            if ($line) $paymentText .= $line . "\n";
+        }
+        if (!trim($paymentText)) {
+            $paymentText = $df['payment_terms_text'] ?? 'Płatność na podstawie faktury VAT, 14 dni od wystawienia.';
+        }
+
+        return [
+            'offer_title'          => $offer->offer_title,
+            'offer_number'         => $offer->offer_number,
+            'offer_date'           => $offer->offer_date?->format('d.m.Y') ?? '',
+            'offer_validity'       => $df['offer_validity'] ?? '30 dni',
+            'delivery_deadline'    => $df['delivery_deadline'] ?? '',
+            'description'          => $offer->offer_description,
+            'auditor_hours'        => $offer->auditor_hours ?? $offer->offerTemplate?->default_auditor_hours ?? 0,
+
+            'customer_type'        => $df['customer_type'] ?? 'Firma',
+            'customer_name'        => $offer->customer_name,
+            'customer_nip'         => $offer->customer_nip,
+            'customer_address'     => $offer->customer_address,
+            'customer_postal_code' => $offer->customer_postal_code,
+            'customer_city'        => $offer->customer_city,
+            'customer_phone'       => $offer->customer_phone,
+            'customer_email'       => $offer->customer_email,
+
+            'items'             => $items,
+            'vat_rate'          => $vatRate,
+            'total_price_net'   => $totalNet,
+            'total_price_vat'   => $vatAmt,
+            'total_price'       => $totalNet + $vatAmt,
+
+            'distance_km'  => $distKm,
+            'km_rate'      => $kmRate,
+            'travel_hours' => $travelH,
+            'hour_rate'    => $hourRate,
+            'travel_cost'  => $travelCost,
+
+            'payment_terms'     => trim($paymentText),
+
+            'enesa_name'   => SystemSetting::get('enesa_name',   'Enesa Sp. z o.o.'),
+            'enesa_nip'    => SystemSetting::get('enesa_nip',    ''),
+            'enesa_street' => SystemSetting::get('enesa_street', ''),
+            'enesa_city'   => SystemSetting::get('enesa_city',   ''),
+            'enesa_postal' => SystemSetting::get('enesa_postal', ''),
+            'enesa_email'  => SystemSetting::get('enesa_email',  ''),
+            'enesa_phone'  => SystemSetting::get('enesa_phone',  ''),
         ];
     }
 
