@@ -278,7 +278,7 @@ class OffersController extends Controller
     {
         $html = preg_replace('/<!--[^>]*KOSZTY DOJAZDU[^>]*-->\s*/ui', '', $html);
         $html = preg_replace('/<div[^>]*class="[^"]*sec-title[^"]*"[^>]*>\s*Koszty\s+dojazdu\s*<\/div>\s*/ui', '', $html);
-        $html = preg_replace('/<div[^>]*class="[^"]*travel-box[^"]*">.*?<\/div>\s*<\/div>\s*/us', '', $html);
+        $html = preg_replace('/<div[^>]*class="[^"]*travel-box[^"]*">.*?<\/div>\s*/us', '', $html);
         return $html;
     }
 
