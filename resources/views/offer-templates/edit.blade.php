@@ -101,45 +101,60 @@
     <h3 style="margin:0 0 14px;font-size:16px;color:#1A4D3A;">Domyślne wartości pól oferty</h3>
     <p style="margin:0 0 14px;font-size:12px;color:var(--ink-mute);">Wartości używane gdy pole nie jest uzupełnione przy tworzeniu oferty. Pola klienta, numer i data oferty, sumy — wypełniane automatycznie z danych oferty.</p>
 
-    <div class="ot-grid-2" style="margin-bottom:14px;">
-        <div class="ot-form-row" style="margin:0;">
-            <label class="ot-label">Tytuł oferty <code style="font-size:10px;">@{{offer_title}}</code></label>
-            <input type="text" name="df_offer_title" value="{{ old('df_offer_title', $df['offer_title'] ?? '') }}" class="ot-input" placeholder="np. Oferta na audyt energetyczny">
-        </div>
-        <div class="ot-form-row" style="margin:0;">
-            <label class="ot-label">Przedmiot oferty <code style="font-size:10px;">@{{offer_subject}}</code></label>
-            <input type="text" name="df_offer_subject" value="{{ old('df_offer_subject', $df['offer_subject'] ?? '') }}" class="ot-input" placeholder="np. Przeprowadzenie audytu energetycznego">
-        </div>
-    </div>
-    <div class="ot-form-row">
-        <label class="ot-label">Opis / wstęp oferty <code style="font-size:10px;">@{{description}}</code></label>
-        <textarea name="df_offer_description" class="ot-input" rows="3" placeholder="Domyślny opis lub wstęp oferty...">{{ old('df_offer_description', $df['offer_description'] ?? '') }}</textarea>
-    </div>
-    <div class="ot-grid-3" style="margin-bottom:14px;">
-        <div class="ot-form-row" style="margin:0;">
-            <label class="ot-label">Rodzaj klienta <code style="font-size:10px;">@{{customer_type}}</code></label>
-            <input type="text" name="df_customer_type" value="{{ old('df_customer_type', $df['customer_type'] ?? 'Firma') }}" class="ot-input" placeholder="np. Firma / Osoba fizyczna">
-        </div>
-        <div class="ot-form-row" style="margin:0;">
-            <label class="ot-label">Termin ważności oferty <code style="font-size:10px;">@{{offer_validity}}</code></label>
-            <input type="text" name="df_offer_validity" value="{{ old('df_offer_validity', $df['offer_validity'] ?? '30 dni') }}" class="ot-input" placeholder="np. 30 dni">
-        </div>
-        <div class="ot-form-row" style="margin:0;">
-            <label class="ot-label">Termin realizacji <code style="font-size:10px;">@{{delivery_deadline}}</code></label>
-            <input type="text" name="df_delivery_deadline" value="{{ old('df_delivery_deadline', $df['delivery_deadline'] ?? '') }}" class="ot-input" placeholder="np. 30 dni roboczych">
-        </div>
-    </div>
-    <div class="ot-grid-2">
-        <div class="ot-form-row" style="margin:0;">
-            <label class="ot-label">Warunki płatności <code style="font-size:10px;">@{{payment_terms}}</code></label>
-            <textarea name="df_payment_terms_text" class="ot-input" rows="3" placeholder="np. Płatność 100% po wykonaniu audytu, 14 dni od faktury.">{{ old('df_payment_terms_text', $df['payment_terms_text'] ?? 'Płatność na podstawie faktury VAT, 14 dni od wystawienia.') }}</textarea>
-        </div>
-        <div class="ot-form-row" style="margin:0;">
-            <label class="ot-label">Stawka VAT % <code style="font-size:10px;">@{{vat_rate}}</code></label>
-            <input type="number" name="df_vat_rate" value="{{ old('df_vat_rate', $df['vat_rate'] ?? '23') }}" class="ot-input" min="0" max="100" step="1" placeholder="23">
-            <div style="font-size:11px;color:var(--ink-mute);margin-top:4px;">Używana do obliczenia @{{total_price_vat}} i @{{total_price}} (brutto).</div>
-        </div>
-    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+            <tr style="background:#f3f8f7;">
+                <th style="padding:8px 12px;text-align:left;font-weight:600;color:#1A4D3A;border-bottom:2px solid #c9d7e3;width:22%;">Pole</th>
+                <th style="padding:8px 12px;text-align:left;font-weight:600;color:#1A4D3A;border-bottom:2px solid #c9d7e3;width:22%;">Zmienna</th>
+                <th style="padding:8px 12px;text-align:left;font-weight:600;color:#1A4D3A;border-bottom:2px solid #c9d7e3;">Wartość domyślna</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr style="border-bottom:1px solid #e8f0ed;">
+                <td style="padding:8px 12px;color:#374151;">Tytuł oferty</td>
+                <td style="padding:8px 12px;"><code style="background:#f3f8f7;padding:2px 6px;border-radius:4px;font-size:11px;color:#1A4D3A;">@{{offer_title}}</code></td>
+                <td style="padding:6px 12px;"><input type="text" name="df_offer_title" value="{{ old('df_offer_title', $df['offer_title'] ?? '') }}" class="ot-input" style="margin:0;" placeholder="np. Oferta na audyt energetyczny"></td>
+            </tr>
+            <tr style="border-bottom:1px solid #e8f0ed;background:#fafcfb;">
+                <td style="padding:8px 12px;color:#374151;">Przedmiot oferty</td>
+                <td style="padding:8px 12px;"><code style="background:#f3f8f7;padding:2px 6px;border-radius:4px;font-size:11px;color:#1A4D3A;">@{{offer_subject}}</code></td>
+                <td style="padding:6px 12px;"><input type="text" name="df_offer_subject" value="{{ old('df_offer_subject', $df['offer_subject'] ?? '') }}" class="ot-input" style="margin:0;" placeholder="np. Przeprowadzenie audytu energetycznego"></td>
+            </tr>
+            <tr style="border-bottom:1px solid #e8f0ed;">
+                <td style="padding:8px 12px;color:#374151;">Opis / wstęp oferty</td>
+                <td style="padding:8px 12px;"><code style="background:#f3f8f7;padding:2px 6px;border-radius:4px;font-size:11px;color:#1A4D3A;">@{{description}}</code></td>
+                <td style="padding:6px 12px;"><textarea name="df_offer_description" class="ot-input" rows="2" style="margin:0;" placeholder="Domyślny opis lub wstęp oferty...">{{ old('df_offer_description', $df['offer_description'] ?? '') }}</textarea></td>
+            </tr>
+            <tr style="border-bottom:1px solid #e8f0ed;background:#fafcfb;">
+                <td style="padding:8px 12px;color:#374151;">Rodzaj klienta</td>
+                <td style="padding:8px 12px;"><code style="background:#f3f8f7;padding:2px 6px;border-radius:4px;font-size:11px;color:#1A4D3A;">@{{customer_type}}</code></td>
+                <td style="padding:6px 12px;"><input type="text" name="df_customer_type" value="{{ old('df_customer_type', $df['customer_type'] ?? 'Firma') }}" class="ot-input" style="margin:0;" placeholder="np. Firma / Osoba fizyczna"></td>
+            </tr>
+            <tr style="border-bottom:1px solid #e8f0ed;">
+                <td style="padding:8px 12px;color:#374151;">Termin ważności oferty</td>
+                <td style="padding:8px 12px;"><code style="background:#f3f8f7;padding:2px 6px;border-radius:4px;font-size:11px;color:#1A4D3A;">@{{offer_validity}}</code></td>
+                <td style="padding:6px 12px;"><input type="text" name="df_offer_validity" value="{{ old('df_offer_validity', $df['offer_validity'] ?? '30 dni') }}" class="ot-input" style="margin:0;" placeholder="np. 30 dni"></td>
+            </tr>
+            <tr style="border-bottom:1px solid #e8f0ed;background:#fafcfb;">
+                <td style="padding:8px 12px;color:#374151;">Termin realizacji</td>
+                <td style="padding:8px 12px;"><code style="background:#f3f8f7;padding:2px 6px;border-radius:4px;font-size:11px;color:#1A4D3A;">@{{delivery_deadline}}</code></td>
+                <td style="padding:6px 12px;"><input type="text" name="df_delivery_deadline" value="{{ old('df_delivery_deadline', $df['delivery_deadline'] ?? '') }}" class="ot-input" style="margin:0;" placeholder="np. 30 dni roboczych"></td>
+            </tr>
+            <tr style="border-bottom:1px solid #e8f0ed;">
+                <td style="padding:8px 12px;color:#374151;">Warunki płatności</td>
+                <td style="padding:8px 12px;"><code style="background:#f3f8f7;padding:2px 6px;border-radius:4px;font-size:11px;color:#1A4D3A;">@{{payment_terms}}</code></td>
+                <td style="padding:6px 12px;"><textarea name="df_payment_terms_text" class="ot-input" rows="2" style="margin:0;" placeholder="np. Płatność 100% po wykonaniu audytu, 14 dni od faktury.">{{ old('df_payment_terms_text', $df['payment_terms_text'] ?? 'Płatność na podstawie faktury VAT, 14 dni od wystawienia.') }}</textarea></td>
+            </tr>
+            <tr style="border-bottom:1px solid #e8f0ed;background:#fafcfb;">
+                <td style="padding:8px 12px;color:#374151;">Stawka VAT %</td>
+                <td style="padding:8px 12px;">
+                    <code style="background:#f3f8f7;padding:2px 6px;border-radius:4px;font-size:11px;color:#1A4D3A;">@{{vat_rate}}</code>
+                    <div style="font-size:10px;color:var(--ink-mute);margin-top:3px;">liczy też @{{total_price_vat}}, @{{total_price}}</div>
+                </td>
+                <td style="padding:6px 12px;"><input type="number" name="df_vat_rate" value="{{ old('df_vat_rate', $df['vat_rate'] ?? '23') }}" class="ot-input" style="margin:0;max-width:120px;" min="0" max="100" step="1" placeholder="23"></td>
+            </tr>
+        </tbody>
+    </table>
 </div>
 
 {{-- DOMYŚLNE POZYCJE --}}
