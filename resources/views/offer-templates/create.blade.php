@@ -119,7 +119,7 @@
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div>
             <h3 style="margin:0 0 4px;font-size:16px;color:#1A4D3A;">Szablon HTML oferty</h3>
-            <p style="margin:0;font-size:12px;color:var(--ink-mute);">Użyj znaczników <code style="background:#f3f8f7;padding:1px 5px;border-radius:4px;">{{"{{"}}pole{{"}}"}}</code> — zostaną zastąpione danymi oferty przy generowaniu.</p>
+            <p style="margin:0;font-size:12px;color:var(--ink-mute);">Użyj znaczników <code style="background:#f3f8f7;padding:1px 5px;border-radius:4px;">{{"{{"}}pole{!! '}}' !!}</code> — zostaną zastąpione danymi oferty przy generowaniu.</p>
         </div>
         <div style="display:flex;gap:8px;">
             <button type="button" onclick="loadDefaultHtml()" class="ot-btn" style="background:#f3f8f7;color:#1A4D3A;font-size:13px;padding:7px 14px;">↩ Wczytaj domyślny</button>
