@@ -17,9 +17,6 @@
         <a href="{{ route('offers.archived') }}" style="display:flex;align-items:center;gap:8px;padding:14px 22px;background:#718096;color:#fff;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px;">
             Zarchiwizowane
         </a>
-        <a href="{{ route('offer-templates.index', ['category' => 'global']) }}" style="display:flex;align-items:center;gap:8px;padding:14px 22px;background:#1e3a5f;color:#fff;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px;">
-            📄 Szablony globalne
-        </a>
         <a href="{{ route('offers.settings') }}" style="display:flex;align-items:center;gap:8px;padding:14px 22px;background:var(--ink-mute);color:#fff;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px;">
             Ustawienia
         </a>

@@ -168,6 +168,14 @@
             </div>
         </div>
 
+        <div class="at-all-offers" style="border-color:#c7d2fe;">
+            <div>
+                <div style="font-size:16px;font-weight:800;color:#1e3a5f;">📄 Szablony globalne</div>
+                <div style="font-size:12px;color:var(--ink-mute);margin-top:3px;">Biblioteka layoutów HTML ofert — skopiuj do zakładki audytowej</div>
+            </div>
+            <a href="{{ route('offer-templates.index', ['category' => 'global']) }}" style="padding:8px 16px;background:#1e3a5f;color:#fff;border-radius:9px;text-decoration:none;font-weight:700;font-size:13px;white-space:nowrap;">📄 Otwórz</a>
+        </div>
+
         <div class="at-all-offers">
             <div>
                 <div style="font-size:16px;font-weight:800;color:#163f5b;">🛠 Audyty w toku</div>
