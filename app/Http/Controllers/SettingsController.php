@@ -117,7 +117,13 @@ class SettingsController extends Controller
             'co2ElYear'           => (string) SystemSetting::get('co2_el_year', '2024'),
             'co2History'          => $this->getCo2History(),
             'informajePublic'     => (bool) SystemSetting::get('informacje_public', '1'),
-            'companyContactEmail' => (string) SystemSetting::get('company_contact_email', ''),
+            'companyContactEmail' => (string) SystemSetting::get('company_contact_email', 'biuro@enesa.pl'),
+            'enesamName'          => (string) SystemSetting::get('enesa_name',   'Enesa Sp. z o.o.'),
+            'enesamNip'           => (string) SystemSetting::get('enesa_nip',    ''),
+            'enesamStreet'        => (string) SystemSetting::get('enesa_street', 'ul. Konarskiego 18C'),
+            'enesamCity'          => (string) SystemSetting::get('enesa_city',   'Gliwice'),
+            'enesamPostal'        => (string) SystemSetting::get('enesa_postal', '44-100'),
+            'enesamPhone'         => (string) SystemSetting::get('enesa_phone',  ''),
         ]);
     }
 
@@ -704,13 +710,18 @@ class SettingsController extends Controller
 
         $validated = $request->validate([
             'company_contact_email' => ['nullable', 'email', 'max:255'],
+            'enesa_name'            => ['nullable', 'string', 'max:255'],
+            'enesa_nip'             => ['nullable', 'string', 'max:20'],
+            'enesa_street'          => ['nullable', 'string', 'max:255'],
+            'enesa_city'            => ['nullable', 'string', 'max:100'],
+            'enesa_postal'          => ['nullable', 'string', 'max:10'],
+            'enesa_phone'           => ['nullable', 'string', 'max:30'],
         ]);
 
-        SystemSetting::set(
-            'company_contact_email',
-            (string) ($validated['company_contact_email'] ?? ''),
-            $request->user()->id
-        );
+        $uid = $request->user()->id;
+        foreach (['company_contact_email','enesa_name','enesa_nip','enesa_street','enesa_city','enesa_postal','enesa_phone'] as $key) {
+            SystemSetting::set($key, (string) ($validated[$key] ?? ''), $uid);
+        }
 
         return back()->with('my_company_status', 'Dane firmy zostały zapisane.');
     }

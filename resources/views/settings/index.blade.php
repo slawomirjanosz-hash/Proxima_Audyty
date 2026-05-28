@@ -728,31 +728,57 @@
             </button>
             <div class="acc-body">
                 @if($canManage)
-                    <form method="POST" action="{{ route('settings.my-company') }}" style="margin-top:14px; display:flex; flex-direction:column; gap:10px; max-width:480px;">
+                    <form method="POST" action="{{ route('settings.my-company') }}" style="margin-top:14px;">
                         @csrf
                         @method('PATCH')
-                        <div>
-                            <label style="display:block; font-size:12px; font-weight:700; color:var(--ink-mute); margin-bottom:4px;">
-                                E-mail kontaktowy dla klientów
-                            </label>
-                            <input type="email" name="company_contact_email"
-                                value="{{ old('company_contact_email', $companyContactEmail ?? '') }}"
-                                placeholder="np. biuro@enesa.pl"
-                                style="width:100%;">
-                            <div style="font-size:11px; color:#6b8294; margin-top:4px;">
-                                Ten adres będzie wyświetlany klientom w Strefie klienta jako przycisk „Napisz do nas".
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:720px;">
+                            <div>
+                                <label style="display:block;font-size:12px;font-weight:700;color:var(--ink-mute);margin-bottom:4px;">Nazwa firmy</label>
+                                <input type="text" name="enesa_name" value="{{ old('enesa_name', $enesamName ?? '') }}" placeholder="np. Enesa Sp. z o.o." style="width:100%;">
+                            </div>
+                            <div>
+                                <label style="display:block;font-size:12px;font-weight:700;color:var(--ink-mute);margin-bottom:4px;">NIP</label>
+                                <input type="text" name="enesa_nip" value="{{ old('enesa_nip', $enesamNip ?? '') }}" placeholder="np. 000-000-00-00" style="width:100%;">
+                            </div>
+                            <div>
+                                <label style="display:block;font-size:12px;font-weight:700;color:var(--ink-mute);margin-bottom:4px;">Ulica i numer</label>
+                                <input type="text" name="enesa_street" value="{{ old('enesa_street', $enesamStreet ?? '') }}" placeholder="np. ul. Konarskiego 18C" style="width:100%;">
+                            </div>
+                            <div style="display:grid;grid-template-columns:100px 1fr;gap:8px;">
+                                <div>
+                                    <label style="display:block;font-size:12px;font-weight:700;color:var(--ink-mute);margin-bottom:4px;">Kod pocztowy</label>
+                                    <input type="text" name="enesa_postal" value="{{ old('enesa_postal', $enesamPostal ?? '') }}" placeholder="44-100" style="width:100%;">
+                                </div>
+                                <div>
+                                    <label style="display:block;font-size:12px;font-weight:700;color:var(--ink-mute);margin-bottom:4px;">Miasto</label>
+                                    <input type="text" name="enesa_city" value="{{ old('enesa_city', $enesamCity ?? '') }}" placeholder="np. Gliwice" style="width:100%;">
+                                </div>
+                            </div>
+                            <div>
+                                <label style="display:block;font-size:12px;font-weight:700;color:var(--ink-mute);margin-bottom:4px;">E-mail kontaktowy</label>
+                                <input type="email" name="company_contact_email" value="{{ old('company_contact_email', $companyContactEmail ?? '') }}" placeholder="np. biuro@enesa.pl" style="width:100%;">
+                                <div style="font-size:11px;color:#6b8294;margin-top:3px;">Wyświetlany klientom w Strefie klienta jako „Napisz do nas".</div>
+                            </div>
+                            <div>
+                                <label style="display:block;font-size:12px;font-weight:700;color:var(--ink-mute);margin-bottom:4px;">Telefon</label>
+                                <input type="text" name="enesa_phone" value="{{ old('enesa_phone', $enesamPhone ?? '') }}" placeholder="np. +48 32 000 00 00" style="width:100%;">
                             </div>
                         </div>
-                        <div>
+                        <div style="margin-top:14px;">
                             <button type="submit">💾 Zapisz dane firmy</button>
                         </div>
                         @if (session('my_company_status'))
-                            <div class="status" style="margin-top:0;">{{ session('my_company_status') }}</div>
+                            <div class="status" style="margin-top:10px;">{{ session('my_company_status') }}</div>
                         @endif
                     </form>
                 @else
-                    <div class="acc-note" style="margin-top:14px;">
-                        E-mail kontaktowy: <strong>{{ $companyContactEmail ?? '—' }}</strong>
+                    <div class="acc-note" style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:6px;max-width:600px;">
+                        <div><strong>Firma:</strong> {{ $enesamName ?? '—' }}</div>
+                        <div><strong>NIP:</strong> {{ $enesamNip ?? '—' }}</div>
+                        <div><strong>Adres:</strong> {{ $enesamStreet ?? '—' }}</div>
+                        <div><strong>Miasto:</strong> {{ ($enesamPostal ?? '') }} {{ $enesamCity ?? '—' }}</div>
+                        <div><strong>E-mail:</strong> {{ $companyContactEmail ?? '—' }}</div>
+                        <div><strong>Tel:</strong> {{ $enesamPhone ?? '—' }}</div>
                     </div>
                 @endif
             </div>

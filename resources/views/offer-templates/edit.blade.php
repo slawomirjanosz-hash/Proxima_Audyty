@@ -119,10 +119,24 @@
         <button type="button" onclick="refreshPreview()" class="ot-btn ot-btn-blue" style="font-size:13px;padding:7px 14px;">↻ Odśwież podgląd</button>
     </div>
 
-    <div class="placeholder-tags" style="margin-bottom:10px;">
-        <strong style="font-size:11px;color:var(--ink-mute);align-self:center;margin-right:4px;">Wstaw:</strong>
-        @foreach(['offer_title','offer_number','offer_date','auditor_hours','customer_name','customer_nip','customer_address','customer_postal_code','customer_city','customer_phone','customer_email','description','items_table','distance_km','km_rate','travel_hours','hour_rate','travel_cost','total_price','payment_terms'] as $ph)
-        <span onclick="insertPlaceholder('{{"{{"}}{{ $ph }}{!! '}}' !!}')">{{"{{"}}{{ $ph }}{!! '}}' !!}</span>
+    @php
+    $phGroups = [
+        'Oferta'  => ['offer_title','offer_number','offer_date','offer_subject','description'],
+        'Klient'  => ['customer_name','customer_type','customer_nip','customer_address','customer_postal_code','customer_city','customer_phone','customer_email'],
+        'Pozycje' => ['items_table','total_price_net','vat_rate','total_price_vat','total_price'],
+        'Warunki' => ['payment_terms','offer_validity','delivery_deadline'],
+        'Dojazd'  => ['distance_km','km_rate','travel_hours','hour_rate','travel_cost','auditor_hours'],
+        'ENESA'   => ['enesa_name','enesa_nip','enesa_street','enesa_city','enesa_postal','enesa_email','enesa_phone'],
+    ];
+    @endphp
+    <div class="placeholder-tags" style="margin-bottom:10px;flex-direction:column;gap:5px;align-items:stretch;">
+        @foreach($phGroups as $grpLabel => $phs)
+        <div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center;">
+            <span style="font-size:10px;font-weight:700;color:var(--ink-mute);min-width:52px;text-transform:uppercase;letter-spacing:.3px;flex-shrink:0;">{{ $grpLabel }}:</span>
+            @foreach($phs as $ph)
+            <span onclick="insertPlaceholder('{{"{{"}}{{ $ph }}{!! '}}' !!}')">{{"{{"}}{{ $ph }}{!! '}}' !!}</span>
+            @endforeach
+        </div>
         @endforeach
     </div>
 
