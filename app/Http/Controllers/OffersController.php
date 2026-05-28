@@ -7,10 +7,13 @@ use App\Models\CrmCompany;
 use App\Models\CrmDeal;
 use App\Models\Offer;
 use App\Models\OfferTemplate;
+use App\Models\SystemSetting;
 use Illuminate\Http\Request;
 use App\Mail\OfferSentMail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Prism\Prism\Facades\Prism;
+use Prism\Prism\Enums\Provider;
 
 class OffersController extends Controller
 {
@@ -35,6 +38,40 @@ class OffersController extends Controller
     {
         $offers = Offer::where('status', 'archived')->with(['crmDeal', 'company'])->latest()->get();
         return view('offers.archived', compact('offers'));
+    }
+
+    public function estimateTravelAi(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $baseCity   = trim($request->input('base_city', ''));
+        $clientCity = trim($request->input('client_city', ''));
+
+        if (empty($baseCity) || empty($clientCity)) {
+            return response()->json(['error' => 'Podaj oba miasta.'], 422);
+        }
+
+        try {
+            $response = Prism::text()
+                ->using(Provider::OpenAI, 'gpt-4o-mini')
+                ->withSystemPrompt('Jesteś kalkulatorem tras drogowych w Polsce. Odpowiadasz WYŁĄCZNIE w formacie JSON, bez żadnych dodatkowych komentarzy ani formatowania markdown.')
+                ->withPrompt("Oszacuj trasę samochodem z miasta \"{$baseCity}\" do miasta \"{$clientCity}\" w Polsce. Podaj wynik jako JSON:\n{\"distance_km\": <liczba całkowita, odległość w jedną stronę>, \"travel_hours\": <czas przejazdu w jedną stronę, liczba z jednym miejscem po przecinku>, \"note\": \"<krótka uwaga, np. autostrada A1>\"}")
+                ->generate();
+
+            $text = trim($response->text);
+            if (preg_match('/\{.*\}/s', $text, $m)) {
+                $data = json_decode($m[0], true);
+                if ($data && isset($data['distance_km'])) {
+                    SystemSetting::set('company_base_city', $baseCity);
+                    return response()->json([
+                        'distance_km'  => (float) $data['distance_km'],
+                        'travel_hours' => (float) ($data['travel_hours'] ?? round((float) $data['distance_km'] / 90, 1)),
+                        'note'         => $data['note'] ?? '',
+                    ]);
+                }
+            }
+            return response()->json(['error' => 'Nieoczekiwany format odpowiedzi AI.'], 422);
+        } catch (\Throwable $e) {
+            return response()->json(['error' => 'Błąd AI: ' . $e->getMessage()], 500);
+        }
     }
 
     public function create(Request $request)

@@ -213,7 +213,10 @@
 
 {{-- ④ KOSZTY DOJAZDU --}}
 <div class="o-travel-box">
-    <h3 style="margin:0 0 14px;font-size:16px;color:#1A4D3A;">🚗 Koszty dojazdu</h3>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <h3 style="margin:0;font-size:16px;color:#1A4D3A;">🚗 Koszty dojazdu</h3>
+        <button type="button" onclick="openTravelAiModal()" class="o-btn" style="background:#1A4D3A;color:#fff;font-size:13px;padding:6px 14px;">🤖 Oszacuj trasę AI</button>
+    </div>
     <div class="o-grid-4" style="margin-bottom:14px;">
         <div>
             <label class="o-label">Odległość (km, jedna strona)</label>
@@ -748,5 +751,78 @@ document.addEventListener('DOMContentLoaded', function() {
     updateBuiltInProfit();
     updateProfitFromPercent();
 });
+
+// ── AI Travel Modal ──────────────────────────────────────────────────────────
+function openTravelAiModal() {
+    const clientCity = document.getElementById('customer_city')?.value || '{{ $offer->customer_city ?? '' }}';
+    document.getElementById('ai-base-city').value   = '{{ \App\Models\SystemSetting::get('company_base_city', 'Wrocław') }}';
+    document.getElementById('ai-client-city').value = clientCity;
+    document.getElementById('ai-travel-note').textContent  = '';
+    document.getElementById('ai-travel-error').textContent = '';
+    document.getElementById('ai-travel-modal').style.display = 'flex';
+}
+function closeTravelAiModal() {
+    document.getElementById('ai-travel-modal').style.display = 'none';
+}
+async function runTravelAiEstimate() {
+    const baseCity   = document.getElementById('ai-base-city').value.trim();
+    const clientCity = document.getElementById('ai-client-city').value.trim();
+    const btn        = document.getElementById('ai-estimate-btn');
+    const noteEl     = document.getElementById('ai-travel-note');
+    const errEl      = document.getElementById('ai-travel-error');
+
+    errEl.textContent  = '';
+    noteEl.textContent = '';
+
+    if (!baseCity || !clientCity) { errEl.textContent = 'Uzupełnij oba miasta.'; return; }
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Szacuję…';
+
+    try {
+        const res = await fetch('{{ route('offers.estimateTravelAi') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content || '{{ csrf_token() }}',
+            },
+            body: JSON.stringify({ base_city: baseCity, client_city: clientCity }),
+        });
+        const json = await res.json();
+        if (!res.ok || json.error) { errEl.textContent = json.error || 'Błąd serwera.'; return; }
+
+        document.getElementById('distance_km').value   = json.distance_km;
+        document.getElementById('travel_hours').value  = json.travel_hours;
+        calcTravel();
+        noteEl.textContent = json.note ? '💡 ' + json.note : '';
+        closeTravelAiModal();
+    } catch(e) {
+        errEl.textContent = 'Błąd połączenia: ' + e.message;
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '🤖 Oblicz';
+    }
+}
 </script>
+
+{{-- AI Travel Modal --}}
+<div id="ai-travel-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:16px;padding:28px 32px;width:100%;max-width:440px;box-shadow:0 8px 40px rgba(0,0,0,.18);">
+        <h3 style="margin:0 0 18px;font-size:17px;color:#1A4D3A;">🤖 Oszacuj trasę AI</h3>
+        <div style="margin-bottom:12px;">
+            <label class="o-label">Miasto startowe (Twoja firma)</label>
+            <input type="text" id="ai-base-city" class="o-input" placeholder="np. Wrocław">
+        </div>
+        <div style="margin-bottom:18px;">
+            <label class="o-label">Miasto klienta</label>
+            <input type="text" id="ai-client-city" class="o-input" placeholder="np. Warszawa">
+        </div>
+        <div id="ai-travel-error" style="color:#dc2626;font-size:13px;margin-bottom:8px;"></div>
+        <div id="ai-travel-note"  style="color:#059669;font-size:13px;margin-bottom:14px;"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button type="button" onclick="closeTravelAiModal()" class="o-btn o-btn-gray">Anuluj</button>
+            <button type="button" id="ai-estimate-btn" onclick="runTravelAiEstimate()" class="o-btn" style="background:#1A4D3A;color:#fff;">🤖 Oblicz</button>
+        </div>
+    </div>
+</div>
 </x-layouts.app>
