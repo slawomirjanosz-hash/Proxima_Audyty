@@ -60,6 +60,7 @@ class OfferTemplatesController extends Controller
             'default_hour_rate'     => $request->input('default_hour_rate', 80.00),
             'default_auditor_hours' => $request->input('default_auditor_hours', 8.00),
             'default_items'         => $this->parseDefaultItems($request),
+            'default_fields'        => $this->parseDefaultFields($request),
             'is_active'             => $request->boolean('is_active', true),
             'created_by'            => auth()->id(),
         ]);
@@ -93,6 +94,7 @@ class OfferTemplatesController extends Controller
             'default_hour_rate'     => $request->input('default_hour_rate', 80.00),
             'default_auditor_hours' => $request->input('default_auditor_hours', 8.00),
             'default_items'         => $this->parseDefaultItems($request),
+            'default_fields'        => $this->parseDefaultFields($request),
             'is_active'             => $request->boolean('is_active', true),
         ]);
 
@@ -194,6 +196,20 @@ class OfferTemplatesController extends Controller
     }
 
     // ─────────────────────── Helpers ───────────────────────────
+
+    private function parseDefaultFields(Request $request): array
+    {
+        $keys = ['offer_title','offer_subject','offer_description','customer_type',
+                 'payment_terms_text','offer_validity','delivery_deadline','vat_rate'];
+        $result = [];
+        foreach ($keys as $k) {
+            $v = $request->input('df_' . $k);
+            if ($v !== null && $v !== '') {
+                $result[$k] = $k === 'vat_rate' ? (float) $v : (string) $v;
+            }
+        }
+        return $result;
+    }
 
     private function parseDefaultItems(Request $request): ?array
     {

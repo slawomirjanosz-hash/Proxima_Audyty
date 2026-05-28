@@ -93,6 +93,52 @@
     </div>
 </div>
 
+{{-- DOMYŚLNE WARTOŚCI PÓL --}}
+<div class="ot-panel">
+    <h3 style="margin:0 0 14px;font-size:16px;color:#1A4D3A;">Domyślne wartości pól oferty</h3>
+    <p style="margin:0 0 14px;font-size:12px;color:var(--ink-mute);">Wartości używane gdy pole nie jest uzupełnione przy tworzeniu oferty. Pola klienta, numer i data oferty, sumy — wypełniane automatycznie z danych oferty.</p>
+
+    <div class="ot-grid-2" style="margin-bottom:14px;">
+        <div class="ot-form-row" style="margin:0;">
+            <label class="ot-label">Tytuł oferty <code style="font-size:10px;">{{offer_title}}</code></label>
+            <input type="text" name="df_offer_title" value="{{ old('df_offer_title') }}" class="ot-input" placeholder="np. Oferta na audyt energetyczny">
+        </div>
+        <div class="ot-form-row" style="margin:0;">
+            <label class="ot-label">Przedmiot oferty <code style="font-size:10px;">{{offer_subject}}</code></label>
+            <input type="text" name="df_offer_subject" value="{{ old('df_offer_subject') }}" class="ot-input" placeholder="np. Przeprowadzenie audytu energetycznego">
+        </div>
+    </div>
+    <div class="ot-form-row">
+        <label class="ot-label">Opis / wstęp oferty <code style="font-size:10px;">{{description}}</code></label>
+        <textarea name="df_offer_description" class="ot-input" rows="3" placeholder="Domyślny opis lub wstęp oferty...">{{ old('df_offer_description') }}</textarea>
+    </div>
+    <div class="ot-grid-3" style="margin-bottom:14px;">
+        <div class="ot-form-row" style="margin:0;">
+            <label class="ot-label">Rodzaj klienta <code style="font-size:10px;">{{customer_type}}</code></label>
+            <input type="text" name="df_customer_type" value="{{ old('df_customer_type', 'Firma') }}" class="ot-input" placeholder="np. Firma / Osoba fizyczna">
+        </div>
+        <div class="ot-form-row" style="margin:0;">
+            <label class="ot-label">Termin ważności oferty <code style="font-size:10px;">{{offer_validity}}</code></label>
+            <input type="text" name="df_offer_validity" value="{{ old('df_offer_validity', '30 dni') }}" class="ot-input" placeholder="np. 30 dni">
+        </div>
+        <div class="ot-form-row" style="margin:0;">
+            <label class="ot-label">Termin realizacji <code style="font-size:10px;">{{delivery_deadline}}</code></label>
+            <input type="text" name="df_delivery_deadline" value="{{ old('df_delivery_deadline') }}" class="ot-input" placeholder="np. 30 dni roboczych">
+        </div>
+    </div>
+    <div class="ot-grid-2">
+        <div class="ot-form-row" style="margin:0;">
+            <label class="ot-label">Warunki płatności <code style="font-size:10px;">{{payment_terms}}</code></label>
+            <textarea name="df_payment_terms_text" class="ot-input" rows="3" placeholder="np. Płatność 100% po wykonaniu audytu, 14 dni od faktury.">{{ old('df_payment_terms_text', 'Płatność na podstawie faktury VAT, 14 dni od wystawienia.') }}</textarea>
+        </div>
+        <div class="ot-form-row" style="margin:0;">
+            <label class="ot-label">Stawka VAT % <code style="font-size:10px;">{{vat_rate}}</code></label>
+            <input type="number" name="df_vat_rate" value="{{ old('df_vat_rate', '23') }}" class="ot-input" min="0" max="100" step="1" placeholder="23">
+            <div style="font-size:11px;color:var(--ink-mute);margin-top:4px;">Używana do obliczenia {{total_price_vat}} i {{total_price}} (brutto).</div>
+        </div>
+    </div>
+</div>
+
 {{-- DOMYŚLNE POZYCJE CENOWE --}}
 <div class="ot-panel">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\SystemSetting;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -25,13 +26,15 @@ class OfferTemplate extends Model
         'default_hour_rate',
         'default_auditor_hours',
         'default_items',
+        'default_fields',
         'is_active',
         'created_by',
     ];
 
     protected $casts = [
-        'default_items'  => 'array',
-        'is_active'      => 'boolean',
+        'default_items'         => 'array',
+        'default_fields'        => 'array',
+        'is_active'             => 'boolean',
         'default_km_rate'      => 'float',
         'default_hour_rate'    => 'float',
         'default_auditor_hours' => 'float',
@@ -51,44 +54,70 @@ class OfferTemplate extends Model
     public function renderForOffer(array $data): string
     {
         $html = $this->html_content ?? '';
+        $df   = $this->default_fields ?? [];
 
         // Build items table HTML
         $itemsHtml = $this->buildItemsTable($data['items'] ?? []);
 
         // Travel cost
-        $distKm      = (float) ($data['distance_km'] ?? 0);
-        $kmRate      = (float) ($data['km_rate'] ?? $this->default_km_rate);
-        $travelH     = (float) ($data['travel_hours'] ?? 0);
-        $hourRate    = (float) ($data['hour_rate'] ?? $this->default_hour_rate);
-        $travelCost  = ($distKm * $kmRate * 2) + ($travelH * $hourRate * 2);
+        $distKm     = (float) ($data['distance_km'] ?? 0);
+        $kmRate     = (float) ($data['km_rate'] ?? $this->default_km_rate);
+        $travelH    = (float) ($data['travel_hours'] ?? 0);
+        $hourRate   = (float) ($data['hour_rate'] ?? $this->default_hour_rate);
+        $travelCost = ($distKm * $kmRate * 2) + ($travelH * $hourRate * 2);
+
+        // VAT calc
+        $totalNet   = (float) ($data['total_price'] ?? 0);
+        $vatRate    = (float) ($data['vat_rate'] ?? $df['vat_rate'] ?? 23);
+        $vatAmt     = round($totalNet * $vatRate / 100, 2);
+        $totalGross = $totalNet + $vatAmt;
 
         $paymentHtml = '';
         foreach ($data['payment_terms'] ?? [] as $pt) {
             $paymentHtml .= '<li>' . e($pt['description'] ?? '') . ($pt['percent'] ? ' (' . $pt['percent'] . '%)' : '') . ($pt['deadline'] ? ' — ' . $pt['deadline'] : '') . '</li>';
         }
-        $paymentHtml = $paymentHtml ? '<ul>' . $paymentHtml . '</ul>' : '<p>Płatność na podstawie faktury VAT, 14 dni od wystawienia.</p>';
+        if (!$paymentHtml) {
+            $paymentHtml = $df['payment_terms_text'] ?? 'Płatność na podstawie faktury VAT, 14 dni od wystawienia.';
+        } else {
+            $paymentHtml = '<ul>' . $paymentHtml . '</ul>';
+        }
 
         $map = [
-            '{{offer_number}}'        => e($data['offer_number'] ?? ''),
-            '{{offer_title}}'         => e($data['offer_title'] ?? ''),
-            '{{offer_date}}'          => $data['offer_date'] ?? '',
-            '{{customer_name}}'       => e($data['customer_name'] ?? ''),
-            '{{customer_nip}}'        => e($data['customer_nip'] ?? ''),
-            '{{customer_address}}'    => e($data['customer_address'] ?? ''),
-            '{{customer_postal_code}}'=> e($data['customer_postal_code'] ?? ''),
-            '{{customer_city}}'       => e($data['customer_city'] ?? ''),
-            '{{customer_phone}}'      => e($data['customer_phone'] ?? ''),
-            '{{customer_email}}'      => e($data['customer_email'] ?? ''),
-            '{{description}}'         => $data['description'] ?? '',
-            '{{items_table}}'         => $itemsHtml,
-            '{{distance_km}}'         => number_format($distKm, 1, ',', ' '),
-            '{{km_rate}}'             => number_format($kmRate, 2, ',', ' '),
-            '{{travel_hours}}'        => number_format($travelH, 1, ',', ' '),
-            '{{hour_rate}}'           => number_format($hourRate, 2, ',', ' '),
-            '{{travel_cost}}'         => number_format($travelCost, 2, ',', ' '),
-            '{{total_price}}'         => number_format((float)($data['total_price'] ?? 0), 2, ',', ' '),
-            '{{auditor_hours}}'       => number_format((float)($data['auditor_hours'] ?? $this->default_auditor_hours), 1, ',', ' '),
-            '{{payment_terms}}'       => $paymentHtml,
+            '{{offer_number}}'         => e($data['offer_number'] ?? ''),
+            '{{offer_title}}'          => e($data['offer_title'] ?? $df['offer_title'] ?? ''),
+            '{{offer_date}}'           => $data['offer_date'] ?? '',
+            '{{offer_subject}}'        => e($data['offer_subject'] ?? $df['offer_subject'] ?? ''),
+            '{{customer_name}}'        => e($data['customer_name'] ?? ''),
+            '{{customer_type}}'        => e($data['customer_type'] ?? $df['customer_type'] ?? ''),
+            '{{customer_nip}}'         => e($data['customer_nip'] ?? ''),
+            '{{customer_address}}'     => e($data['customer_address'] ?? ''),
+            '{{customer_postal_code}}' => e($data['customer_postal_code'] ?? ''),
+            '{{customer_city}}'        => e($data['customer_city'] ?? ''),
+            '{{customer_phone}}'       => e($data['customer_phone'] ?? ''),
+            '{{customer_email}}'       => e($data['customer_email'] ?? ''),
+            '{{description}}'          => $data['description'] ?? $df['offer_description'] ?? '',
+            '{{items_table}}'          => $itemsHtml,
+            '{{distance_km}}'          => number_format($distKm, 1, ',', ' '),
+            '{{km_rate}}'              => number_format($kmRate, 2, ',', ' '),
+            '{{travel_hours}}'         => number_format($travelH, 1, ',', ' '),
+            '{{hour_rate}}'            => number_format($hourRate, 2, ',', ' '),
+            '{{travel_cost}}'          => number_format($travelCost, 2, ',', ' '),
+            '{{total_price_net}}'      => number_format($totalNet, 2, ',', ' '),
+            '{{vat_rate}}'             => $vatRate . '%',
+            '{{total_price_vat}}'      => number_format($vatAmt, 2, ',', ' '),
+            '{{total_price}}'          => number_format($totalGross, 2, ',', ' '),
+            '{{auditor_hours}}'        => number_format((float) ($data['auditor_hours'] ?? $this->default_auditor_hours), 1, ',', ' '),
+            '{{payment_terms}}'        => $paymentHtml,
+            '{{offer_validity}}'       => e($data['offer_validity'] ?? $df['offer_validity'] ?? '30 dni'),
+            '{{delivery_deadline}}'    => e($data['delivery_deadline'] ?? $df['delivery_deadline'] ?? ''),
+            // ENESA data from SystemSetting
+            '{{enesa_name}}'           => e(SystemSetting::get('enesa_name',           'Enesa Sp. z o.o.')),
+            '{{enesa_nip}}'            => e(SystemSetting::get('enesa_nip',            '')),
+            '{{enesa_street}}'         => e(SystemSetting::get('enesa_street',         'ul. Konarskiego 18C')),
+            '{{enesa_city}}'           => e(SystemSetting::get('enesa_city',           'Gliwice')),
+            '{{enesa_postal}}'         => e(SystemSetting::get('enesa_postal',         '44-100')),
+            '{{enesa_email}}'          => e(SystemSetting::get('company_contact_email', 'biuro@enesa.pl')),
+            '{{enesa_phone}}'          => e(SystemSetting::get('enesa_phone',          '')),
         ];
 
         return str_replace(array_keys($map), array_values($map), $html);
