@@ -126,7 +126,7 @@ class OfferTemplate extends Model
         if ($keepEmptyPlaceholders) {
             foreach ($map as $placeholder => $value) {
                 if ((string) $value === '') {
-                    $map[$placeholder] = '<span style="background:#fef3c7;color:#92400e;padding:1px 4px;border-radius:3px;font-size:0.85em;font-family:monospace;">' . e($placeholder) . '</span>';
+                    $map[$placeholder] = $placeholder; // leave {{key}} visible as-is
                 }
             }
         }
