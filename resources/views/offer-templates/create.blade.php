@@ -279,50 +279,86 @@ function insertPlaceholder(ph) {
 }
 
 // ─── Live preview ───
+// ph() renders an unfilled variable as a highlighted badge
+function ph(name) {
+    return '<span style="display:inline;background:#fef9c3;color:#78350f;padding:1px 6px;border-radius:3px;font-family:monospace;font-size:.88em;border:1px dashed #f59e0b;">' + '{{' + name + '}}' + '</span>';
+}
+// getV() reads a form input value, returns null if empty
+function getV(selector) {
+    const el = document.querySelector(selector);
+    return el && el.value.trim() ? el.value.trim() : null;
+}
+
+const DEMO_ITEMS = '<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr><th style="background:#1A4D3A;color:#fff;padding:8px;">Nr</th><th style="background:#1A4D3A;color:#fff;padding:8px;text-align:left;">Pozycja</th><th style="background:#1A4D3A;color:#fff;padding:8px;text-align:right;">Wartość</th></tr></thead><tbody><tr><td style="padding:8px;text-align:center;">1</td><td style="padding:8px;">Audyt energetyczny — etap I</td><td style="padding:8px;text-align:right;">8 000,00 zł</td></tr><tr><td style="padding:8px;text-align:center;background:#f7faf9;">2</td><td style="padding:8px;background:#f7faf9;">Raport końcowy</td><td style="padding:8px;text-align:right;background:#f7faf9;">2 000,00 zł</td></tr></tbody><tfoot><tr><td colspan="2" style="padding:10px;text-align:right;font-weight:700;background:#1A4D3A;color:#fff;">Razem netto</td><td style="padding:10px;text-align:right;font-weight:700;background:#1A4D3A;color:#fff;">10 000,00 zł</td></tr></tfoot></table>';
+
 let previewTimer = null;
 function refreshPreview() {
     const iframe = document.getElementById('html-preview');
-    const demo = editor.getValue()
-        .replace(/\{\{offer_title\}\}/g, 'Audyt Energetyczny Zakładu XYZ')
-        .replace(/\{\{offer_number\}\}/g, 'OF-2026/0001')
-        .replace(/\{\{offer_date\}\}/g, new Date().toLocaleDateString('pl-PL'))
-        .replace(/\{\{offer_subject\}\}/g, 'Przeprowadzenie audytu energetycznego wg EN 16247')
-        .replace(/\{\{customer_name\}\}/g, 'Zakłady Przemysłowe Sp. z o.o.')
-        .replace(/\{\{customer_type\}\}/g, 'Firma')
-        .replace(/\{\{customer_nip\}\}/g, '123-456-78-90')
-        .replace(/\{\{customer_address\}\}/g, 'ul. Fabryczna 12')
-        .replace(/\{\{customer_postal_code\}\}/g, '44-100')
-        .replace(/\{\{customer_city\}\}/g, 'Gliwice')
-        .replace(/\{\{customer_phone\}\}/g, '+48 32 123 45 67')
-        .replace(/\{\{customer_email\}\}/g, 'kontakt@firma.pl')
-        .replace(/\{\{description\}\}/g, '<p>Niniejsza oferta dotyczy przeprowadzenia audytu energetycznego zgodnie z wymaganiami normy EN 16247.</p>')
-        .replace(/\{\{items_table\}\}/g, '<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr><th style="background:#1A4D3A;color:#fff;padding:8px;">Nr</th><th style="background:#1A4D3A;color:#fff;padding:8px;text-align:left;">Pozycja</th><th style="background:#1A4D3A;color:#fff;padding:8px;text-align:right;">Wartość</th></tr></thead><tbody><tr><td style="padding:8px;text-align:center;">1</td><td style="padding:8px;">Audyt energetyczny — etap I</td><td style="padding:8px;text-align:right;">8 000,00 zł</td></tr><tr><td style="padding:8px;text-align:center;background:#f7faf9;">2</td><td style="padding:8px;background:#f7faf9;">Raport końcowy</td><td style="padding:8px;text-align:right;background:#f7faf9;">2 000,00 zł</td></tr></tbody><tfoot><tr><td colspan="2" style="padding:10px;text-align:right;font-weight:700;background:#1A4D3A;color:#fff;">Razem</td><td style="padding:10px;text-align:right;font-weight:700;background:#1A4D3A;color:#fff;">10 000,00 zł</td></tr></tfoot></table>')
-        .replace(/\{\{distance_km\}\}/g, '120')
-        .replace(/\{\{km_rate\}\}/g, '1,50')
-        .replace(/\{\{travel_hours\}\}/g, '1,5')
-        .replace(/\{\{hour_rate\}\}/g, '80,00')
-        .replace(/\{\{travel_cost\}\}/g, '600,00')
-        .replace(/\{\{total_price_net\}\}/g, '10 000,00')
-        .replace(/\{\{vat_rate\}\}/g, '23%')
-        .replace(/\{\{total_price_vat\}\}/g, '2 300,00')
-        .replace(/\{\{total_price\}\}/g, '12 300,00')
-        .replace(/\{\{auditor_hours\}\}/g, '8,0')
-        .replace(/\{\{offer_validity\}\}/g, '30 dni')
-        .replace(/\{\{delivery_deadline\}\}/g, '30 dni roboczych')
-        .replace(/\{\{payment_terms\}\}/g, '<ul><li>100% — płatność po wykonaniu audytu, 14 dni od faktury</li></ul>')
-        .replace(/\{\{enesa_name\}\}/g, 'Enesa Sp. z o.o.')
-        .replace(/\{\{enesa_nip\}\}/g, '123-456-78-90')
-        .replace(/\{\{enesa_street\}\}/g, 'ul. Konarskiego 18C')
-        .replace(/\{\{enesa_city\}\}/g, 'Gliwice')
-        .replace(/\{\{enesa_postal\}\}/g, '44-100')
-        .replace(/\{\{enesa_email\}\}/g, 'biuro@enesa.pl')
-        .replace(/\{\{enesa_phone\}\}/g, '+48 32 123 45 67');
-    iframe.srcdoc = demo;
+    const vatRate = parseFloat(getV('[name="df_vat_rate"]') || '23') || 23;
+    const demoNet = 10000;
+    const vatAmt  = Math.round(demoNet * vatRate) / 100;
+    const gross   = demoNet + vatAmt;
+    const fmt     = n => n.toLocaleString('pl-PL', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+    // Values from form inputs; null = show placeholder badge
+    const vals = {
+        'offer_title':          getV('[name="df_offer_title"]'),
+        'offer_number':         'OF-2026/0001',
+        'offer_date':           new Date().toLocaleDateString('pl-PL'),
+        'offer_subject':        getV('[name="df_offer_subject"]'),
+        'description':          getV('[name="df_offer_description"]'),
+        'customer_name':        null,
+        'customer_type':        getV('[name="df_customer_type"]'),
+        'customer_nip':         null,
+        'customer_address':     null,
+        'customer_postal_code': null,
+        'customer_city':        null,
+        'customer_phone':       null,
+        'customer_email':       null,
+        'items_table':          DEMO_ITEMS,
+        'distance_km':          '120',
+        'km_rate':              null,
+        'travel_hours':         '1,5',
+        'hour_rate':            null,
+        'travel_cost':          '600,00',
+        'total_price_net':      fmt(demoNet),
+        'vat_rate':             vatRate + '%',
+        'total_price_vat':      fmt(vatAmt),
+        'total_price':          fmt(gross),
+        'auditor_hours':        null,
+        'offer_validity':       getV('[name="df_offer_validity"]'),
+        'delivery_deadline':    getV('[name="df_delivery_deadline"]'),
+        'payment_terms':        getV('[name="df_payment_terms_text"]'),
+        'enesa_name':           null,
+        'enesa_nip':            null,
+        'enesa_street':         null,
+        'enesa_city':           null,
+        'enesa_postal':         null,
+        'enesa_email':          null,
+        'enesa_phone':          null,
+    };
+
+    let html = editor.getValue();
+    Object.entries(vals).forEach(([key, val]) => {
+        const re = new RegExp('\\{\\{' + key + '\\}\\}', 'g');
+        html = html.replace(re, (val !== null && val !== '') ? val : ph(key));
+    });
+    // Any remaining unknown {{...}} — show as placeholder
+    html = html.replace(/\{\{([a-zA-Z0-9_]+)\}\}/g, (_, n) => ph(n));
+
+    iframe.srcdoc = html;
 }
 
 editor.on('change', function() {
     clearTimeout(previewTimer);
     previewTimer = setTimeout(refreshPreview, 600);
+});
+// Auto-refresh when default field values change
+document.querySelectorAll('[name^="df_"]').forEach(function(el) {
+    el.addEventListener('input', function() {
+        clearTimeout(previewTimer);
+        previewTimer = setTimeout(refreshPreview, 400);
+    });
 });
 
 refreshPreview();
