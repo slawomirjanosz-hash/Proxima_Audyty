@@ -51,7 +51,7 @@ class OffersController extends Controller
 
         try {
             $response = Prism::text()
-                ->using(Provider::OpenAI, 'gpt-4o-mini')
+                ->using(Provider::Anthropic, 'claude-haiku-20240307')
                 ->withSystemPrompt('Jesteś kalkulatorem tras drogowych w Polsce. Odpowiadasz WYŁĄCZNIE w formacie JSON, bez żadnych dodatkowych komentarzy ani formatowania markdown.')
                 ->withPrompt("Oszacuj trasę samochodem z miasta \"{$baseCity}\" do miasta \"{$clientCity}\" w Polsce. Podaj wynik jako JSON:\n{\"distance_km\": <liczba całkowita, odległość w jedną stronę>, \"travel_hours\": <czas przejazdu w jedną stronę, liczba z jednym miejscem po przecinku>, \"note\": \"<krótka uwaga, np. autostrada A1>\"}")
                 ->generate();
