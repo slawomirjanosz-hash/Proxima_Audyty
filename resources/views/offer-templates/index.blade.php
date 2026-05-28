@@ -1,11 +1,13 @@
 ﻿<x-layouts.app>
 @php
 $catConfig = [
-    'energetyczny'      => ['label' => 'Audyt Energetyczny',  'icon' => "\u{26A1}", 'color' => '#1A4D3A', 'gradient' => 'linear-gradient(135deg,#1A4D3A,#2d7a5f)', 'badge' => '#d1fae5', 'badgeText' => '#065f46'],
-    'iso50001'          => ['label' => 'Audyt ISO 50001',      'icon' => "\u{1F3ED}", 'color' => '#1e40af', 'gradient' => 'linear-gradient(135deg,#1e40af,#3b82f6)', 'badge' => '#dbeafe', 'badgeText' => '#1e40af'],
-    'biale_certyfikaty' => ['label' => "Bia\u{0142}e Certyfikaty", 'icon' => "\u{1F4DC}", 'color' => '#7c3aed', 'gradient' => 'linear-gradient(135deg,#7c3aed,#a855f7)', 'badge' => '#ede9fe', 'badgeText' => '#5b21b6'],
+    'global'            => ['label' => 'Szablony globalne',   'icon' => "\u{1F4C4}", 'color' => '#1e3a5f', 'gradient' => 'linear-gradient(135deg,#1e3a5f,#2d5f8f)', 'badge' => '#dbeafe', 'badgeText' => '#1e3a5f', 'backRoute' => 'offers.index', 'backLabel' => "\u{2190} Oferty"],
+    'energetyczny'      => ['label' => 'Audyt Energetyczny',  'icon' => "\u{26A1}",  'color' => '#1A4D3A', 'gradient' => 'linear-gradient(135deg,#1A4D3A,#2d7a5f)', 'badge' => '#d1fae5', 'badgeText' => '#065f46',  'backRoute' => 'audits.index', 'backLabel' => "\u{2190} System Audyt\u{00F3}w"],
+    'iso50001'          => ['label' => 'Audyt ISO 50001',      'icon' => "\u{1F3ED}", 'color' => '#1e40af', 'gradient' => 'linear-gradient(135deg,#1e40af,#3b82f6)', 'badge' => '#dbeafe', 'badgeText' => '#1e40af',  'backRoute' => 'audits.index', 'backLabel' => "\u{2190} System Audyt\u{00F3}w"],
+    'biale_certyfikaty' => ['label' => "Bia\u{0142}e Certyfikaty", 'icon' => "\u{1F4DC}", 'color' => '#7c3aed', 'gradient' => 'linear-gradient(135deg,#7c3aed,#a855f7)', 'badge' => '#ede9fe', 'badgeText' => '#5b21b6', 'backRoute' => 'audits.index', 'backLabel' => "\u{2190} System Audyt\u{00F3}w"],
 ];
-$cfg = $catConfig[$category] ?? $catConfig['energetyczny'];
+$cfg = $catConfig[$category] ?? $catConfig['global'];
+$isGlobal = ($category === 'global');
 @endphp
 <style>
 .ot-header { background: {{ $cfg['gradient'] }}; border-radius: 16px; padding: 24px 28px; color: #fff; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
@@ -39,7 +41,7 @@ $cfg = $catConfig[$category] ?? $catConfig['energetyczny'];
             </div>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <a href="{{ route('audits.index') }}" class="ot-btn-back">&larr; System Audytow</a>
+            <a href="{{ route($cfg['backRoute']) }}" class="ot-btn-back">{!! $cfg['backLabel'] !!}</a>
             <a href="{{ route('offer-templates.create', ['category' => $category]) }}" class="ot-btn-new">+ Nowy szablon</a>
         </div>
     </div>
@@ -101,11 +103,42 @@ $cfg = $catConfig[$category] ?? $catConfig['energetyczny'];
                 </div>
                 <div class="ot-card-footer">
                     <a href="{{ route('offer-templates.edit', $tpl) }}" style="flex:1;text-align:center;padding:8px;border-radius:8px;background:#f3f8f7;color:{{ $cfg['color'] }};text-decoration:none;font-weight:700;font-size:13px;">Edytuj</a>
-                    <a href="{{ route('offer-templates.preview', $tpl) }}" target="_blank" style="padding:8px 12px;border-radius:8px;background:#eff6ff;color:#1d4ed8;text-decoration:none;font-weight:600;font-size:13px;">Podglad</a>
-                    @if(!$tpl->offers_count)
-                    <form method="POST" action="{{ route('offer-templates.destroy', $tpl) }}" onsubmit="return confirm('Usunac szablon?')">
+                    <a href="{{ route('offer-templates.preview', $tpl) }}" target="_blank" style="padding:8px 12px;border-radius:8px;background:#eff6ff;color:#1d4ed8;text-decoration:none;font-weight:600;font-size:13px;">Podgląd</a>
+                    @if($isGlobal)
+                    <div style="position:relative;display:inline-block;">
+                        <button type="button" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block'" style="padding:8px 12px;border-radius:8px;background:#1e3a5f;color:#fff;border:0;cursor:pointer;font-weight:700;font-size:13px;">
+                            Kopiuj do ▾
+                        </button>
+                        <div style="display:none;position:absolute;right:0;top:calc(100% + 4px);background:#fff;border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.12);min-width:200px;z-index:50;padding:6px;">
+                            <form method="POST" action="{{ route('offer-templates.duplicate', $tpl) }}">
+                                @csrf
+                                <input type="hidden" name="target_category" value="energetyczny">
+                                <button type="submit" style="width:100%;text-align:left;padding:9px 14px;background:none;border:0;cursor:pointer;font-size:13px;border-radius:6px;color:#1A4D3A;font-weight:600;" onmouseover="this.style.background='#d1fae5'" onmouseout="this.style.background='none'">⚡ Audyt Energetyczny</button>
+                            </form>
+                            <form method="POST" action="{{ route('offer-templates.duplicate', $tpl) }}">
+                                @csrf
+                                <input type="hidden" name="target_category" value="iso50001">
+                                <button type="submit" style="width:100%;text-align:left;padding:9px 14px;background:none;border:0;cursor:pointer;font-size:13px;border-radius:6px;color:#1e40af;font-weight:600;" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='none'">🏭 Audyt ISO 50001</button>
+                            </form>
+                            <form method="POST" action="{{ route('offer-templates.duplicate', $tpl) }}">
+                                @csrf
+                                <input type="hidden" name="target_category" value="biale_certyfikaty">
+                                <button type="submit" style="width:100%;text-align:left;padding:9px 14px;background:none;border:0;cursor:pointer;font-size:13px;border-radius:6px;color:#7c3aed;font-weight:600;" onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='none'">📜 Białe Certyfikaty</button>
+                            </form>
+                        </div>
+                    </div>
+                    @endif
+                    @if(!$tpl->offers_count && !$isGlobal)
+                    <form method="POST" action="{{ route('offer-templates.destroy', $tpl) }}" onsubmit="return confirm('Usunąć szablon?')">
                         @csrf @method('DELETE')
-                        <button type="submit" style="padding:8px 12px;border-radius:8px;background:#fee2e2;color:#991b1b;border:0;cursor:pointer;font-weight:600;font-size:13px;">Usun</button>
+                        <button type="submit" style="padding:8px 12px;border-radius:8px;background:#fee2e2;color:#991b1b;border:0;cursor:pointer;font-weight:600;font-size:13px;">🗑</button>
+                    </form>
+                    @elseif(!$isGlobal)
+                    @endif
+                    @if($isGlobal && !$tpl->offers_count)
+                    <form method="POST" action="{{ route('offer-templates.destroy', $tpl) }}" onsubmit="return confirm('Usunąć szablon?')">
+                        @csrf @method('DELETE')
+                        <button type="submit" style="padding:8px 12px;border-radius:8px;background:#fee2e2;color:#991b1b;border:0;cursor:pointer;font-weight:600;font-size:13px;">🗑</button>
                     </form>
                     @endif
                     <span style="font-size:11px;color:var(--ink-mute);white-space:nowrap;">{{ $tpl->offers_count }} {{ $tpl->offers_count === 1 ? 'oferta' : ($tpl->offers_count < 5 ? 'oferty' : 'ofert') }}</span>

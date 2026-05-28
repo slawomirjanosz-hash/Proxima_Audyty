@@ -315,7 +315,8 @@ Route::middleware('auth')->group(function (): void {
         Route::put('/{offerTemplate}',         [OfferTemplatesController::class, 'update']) ->name('update');
         Route::delete('/{offerTemplate}',      [OfferTemplatesController::class, 'destroy'])->name('destroy');
         Route::get('/{offerTemplate}/podglad', [OfferTemplatesController::class, 'preview'])->name('preview');
-        Route::get('/{offerTemplate}/api',     [OfferTemplatesController::class, 'apiGet']) ->name('api-get');
+        Route::get('/{offerTemplate}/api',     [OfferTemplatesController::class, 'apiGet'])      ->name('api-get');
+        Route::post('/{offerTemplate}/duplikuj', [OfferTemplatesController::class, 'duplicate']) ->name('duplicate');
     });
 
     // ── Zapytania klientów ───────────────────────────────────────────────

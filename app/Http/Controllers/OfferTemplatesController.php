@@ -111,6 +111,36 @@ class OfferTemplatesController extends Controller
             ->with('status', 'Szablon został usunięty.');
     }
 
+    /** Duplicate a global template into an audit category */
+    public function duplicate(Request $request, OfferTemplate $offerTemplate)
+    {
+        $targetCategory = $request->input('target_category');
+        $validCategories = ['energetyczny', 'iso50001', 'biale_certyfikaty'];
+
+        if (!in_array($targetCategory, $validCategories)) {
+            return back()->with('error', 'Nieprawidłowa kategoria docelowa.');
+        }
+
+        $categoryLabel = OfferTemplate::CATEGORIES[$targetCategory] ?? $targetCategory;
+
+        OfferTemplate::create([
+            'name'                  => $offerTemplate->name . ' (kopia — ' . $categoryLabel . ')',
+            'type_code'             => $offerTemplate->type_code . '_' . $targetCategory . '_' . time(),
+            'audit_category'        => $targetCategory,
+            'description'           => $offerTemplate->description,
+            'html_content'          => $offerTemplate->html_content,
+            'default_km_rate'       => $offerTemplate->default_km_rate,
+            'default_hour_rate'     => $offerTemplate->default_hour_rate,
+            'default_auditor_hours' => $offerTemplate->default_auditor_hours,
+            'default_items'         => $offerTemplate->default_items,
+            'is_active'             => true,
+            'created_by'            => auth()->id(),
+        ]);
+
+        return redirect()->route('offer-templates.index', ['category' => $targetCategory])
+            ->with('status', 'Szablon skopiowany do: ' . $categoryLabel . '.');
+    }
+
     /** HTML preview of the template with demo data */
     public function preview(OfferTemplate $offerTemplate)
     {

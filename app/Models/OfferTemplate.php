@@ -9,8 +9,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class OfferTemplate extends Model
 {
     const CATEGORIES = [
-        'energetyczny'     => 'Audyt Energetyczny',
-        'iso50001'         => 'Audyt ISO 50001',
+        'global'            => 'Szablony globalne',
+        'energetyczny'      => 'Audyt Energetyczny',
+        'iso50001'          => 'Audyt ISO 50001',
         'biale_certyfikaty' => 'Białe Certyfikaty',
     ];
 
