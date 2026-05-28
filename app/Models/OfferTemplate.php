@@ -59,19 +59,29 @@ class OfferTemplate extends Model
         $html = $this->html_content ?? '';
         $df   = $this->default_fields ?? [];
 
-        // Build items table HTML
-        $itemsHtml = $this->buildItemsTable($data['items'] ?? []);
-
-        // Travel cost
+        // Travel cost — computed first so it can be appended as a line item
         $distKm     = (float) ($data['distance_km'] ?: $df['distance_km'] ?? 0);
         $kmRate     = (float) (($data['km_rate'] ?? '') ?: ($df['km_rate'] ?? $this->default_km_rate));
         $travelH    = (float) ($data['travel_hours'] ?: $df['travel_hours'] ?? 0);
         $hourRate   = (float) (($data['hour_rate'] ?? '') ?: ($df['hour_rate'] ?? $this->default_hour_rate));
-        $calcTravelCost = ($distKm * $kmRate * 2) + ($travelH * $hourRate * 2);
-        $travelCost = (float) (($data['travel_cost'] ?? '') ?: ($df['travel_cost'] ?? $calcTravelCost));
+        $travelCost = (float) (($data['travel_cost'] ?? '') ?: ($df['travel_cost'] ?? ($travelH * $hourRate + $distKm * $kmRate)));
 
-        // VAT calc
-        $totalNet   = (float) (($data['total_price'] ?? '') ?: ($df['total_price_net'] ?? 0));
+        // Build items table, appending travel cost as last row
+        $itemsForTable = $data['items'] ?? [];
+        if ($travelCost > 0) {
+            $itemsForTable[] = [
+                'name'     => 'Koszty dojazdu i delegacji',
+                'type'     => 'usł.',
+                'quantity' => 1,
+                'price'    => $travelCost,
+                'value'    => $travelCost,
+            ];
+        }
+        $itemsHtml = $this->buildItemsTable($itemsForTable);
+
+        // VAT calc — base on items sum (includes travel) for consistency
+        $totalNet   = array_sum(array_column($itemsForTable, 'value'))
+                      ?: (float) (($data['total_price'] ?? '') ?: ($df['total_price_net'] ?? 0));
         $vatRate    = (float) ($data['vat_rate'] ?? $df['vat_rate'] ?? 23);
         $calcVat    = round($totalNet * $vatRate / 100, 2);
         $vatAmt     = (float) (($data['total_price_vat'] ?? '') ?: ($df['total_price_vat'] ?? $calcVat));

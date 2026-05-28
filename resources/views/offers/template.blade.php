@@ -241,31 +241,6 @@
 </table>
 @endif
 
-{{-- KOSZTY DOJAZDU --}}
-@if($distance_km || $travel_hours)
-<div class="sec-title">Koszty dojazdu</div>
-<div class="travel-box">
-  <table>
-    @if($distance_km)
-    <tr>
-      <td>Przejazd:</td>
-      <td>{{ number_format($distance_km, 0, ',', ' ') }} km × {{ number_format($km_rate, 2, ',', ' ') }} zł/km = {{ number_format($distance_km * $km_rate, 2, ',', ' ') }} zł</td>
-    </tr>
-    @endif
-    @if($travel_hours)
-    <tr>
-      <td>Czas dojazdu:</td>
-      <td>{{ number_format($travel_hours, 1, ',', ' ') }} h × {{ number_format($hour_rate, 2, ',', ' ') }} zł/h = {{ number_format($travel_hours * $hour_rate, 2, ',', ' ') }} zł</td>
-    </tr>
-    @endif
-    <tr class="travel-total">
-      <td>Koszt dojazdu łącznie (netto):</td>
-      <td>{{ number_format($travel_cost, 2, ',', ' ') }} zł</td>
-    </tr>
-  </table>
-</div>
-@endif
-
 {{-- WARUNKI --}}
 <div class="sec-title">Warunki</div>
 <div class="info-grid">

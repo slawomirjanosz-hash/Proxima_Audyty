@@ -486,16 +486,28 @@ class OffersController extends Controller
             fn($item) => !empty($item['name'])
         ));
 
-        $totalNet = array_sum(array_column($items, 'price_total'));
         $df       = $offer->offerTemplate?->default_fields ?? [];
         $vatRate  = (float) ($df['vat_rate'] ?? 23);
-        $vatAmt   = round($totalNet * $vatRate / 100, 2);
 
         $kmRate     = $offer->km_rate ?? $offer->offerTemplate?->default_km_rate ?? 1.5;
         $hourRate   = $offer->hour_rate ?? $offer->offerTemplate?->default_hour_rate ?? 80.0;
         $distKm     = $offer->distance_km ?? 0;
         $travelH    = $offer->travel_hours ?? 0;
-        $travelCost = $offer->travel_cost ?? (($distKm * $kmRate * 2) + ($travelH * $hourRate * 2));
+        $travelCost = $offer->travel_cost ?? ($travelH * $hourRate + $distKm * $kmRate);
+
+        // Append travel as last item so totals include it
+        if ($travelCost > 0) {
+            $items[] = [
+                'name'        => 'Koszty dojazdu i delegacji',
+                'unit'        => 'usł.',
+                'qty'         => 1.0,
+                'price_unit'  => $travelCost,
+                'price_total' => $travelCost,
+            ];
+        }
+
+        $totalNet = array_sum(array_column($items, 'price_total'));
+        $vatAmt   = round($totalNet * $vatRate / 100, 2);
 
         $paymentTermsRaw = is_array($offer->payment_terms) ? $offer->payment_terms : [];
         $paymentText = '';

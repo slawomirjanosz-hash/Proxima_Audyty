@@ -462,8 +462,17 @@ function buildItemsTableHtml() {
         const price = parseFloat(tr.querySelector('[name^="di_price"]')?.value) || 0;
         if (name) items.push({name, type, qty, price, val: qty * price});
     });
-    if (!items.length) return '<p style="color:#888;font-style:italic;padding:12px 0;">Brak pozycji — dodaj pozycje w sekcji "Domyślne pozycje cenowe" powyżej.</p>';
     const fmtC = n => n.toLocaleString('pl-PL', {minimumFractionDigits:2, maximumFractionDigits:2});
+    const getN = sel => parseFloat(document.querySelector(sel)?.value) || 0;
+    const kmRate   = getN('[name="df_km_rate"]')   || 1.5;
+    const hourRate = getN('[name="df_hour_rate"]')  || 80;
+    const distKm   = getN('[name="df_distance_km"]')|| 0;
+    const travelH  = getN('[name="df_travel_hours"]')|| 0;
+    const travelCost = getN('[name="df_travel_cost"]') || (travelH * hourRate + distKm * kmRate);
+    if (travelCost > 0) {
+        items.push({name: 'Koszty dojazdu i delegacji', type: 'usł.', qty: 1, price: travelCost, val: travelCost});
+    }
+    if (!items.length) return '<p style="color:#888;font-style:italic;padding:12px 0;">Brak pozycji — dodaj pozycje w sekcji "Domyślne pozycje cenowe" powyżej.</p>';
     let total = 0, html = '<table style="width:100%;border-collapse:collapse;font-size:13px;">'
         + '<thead><tr>'
         + '<th style="background:#1A4D3A;color:#fff;padding:10px;text-align:center;width:40px;">Nr</th>'
@@ -499,7 +508,13 @@ function getDiTableTotal() {
         const name  = tr.querySelector('[name^="di_name"]')?.value.trim() || '';
         if (name) total += qty * price;
     });
-    return total;
+    const getN = sel => parseFloat(document.querySelector(sel)?.value) || 0;
+    const kmRate   = getN('[name="df_km_rate"]')    || 1.5;
+    const hourRate = getN('[name="df_hour_rate"]')   || 80;
+    const distKm   = getN('[name="df_distance_km"]') || 0;
+    const travelH  = getN('[name="df_travel_hours"]')|| 0;
+    const travelCost = getN('[name="df_travel_cost"]') || (travelH * hourRate + distKm * kmRate);
+    return total + travelCost;
 }
 
 let previewTimer = null;
