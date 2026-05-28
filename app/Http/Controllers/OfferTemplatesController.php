@@ -200,12 +200,18 @@ class OfferTemplatesController extends Controller
                  'customer_name','customer_nip','customer_address','customer_postal_code',
                  'customer_city','customer_phone','customer_email',
                  'enesa_name','enesa_nip','enesa_street','enesa_city',
-                 'enesa_postal','enesa_email','enesa_phone'];
+                 'enesa_postal','enesa_email','enesa_phone',
+                 'offer_number','offer_date',
+                 'total_price_net','total_price_vat','total_price',
+                 'km_rate','hour_rate','travel_cost','auditor_hours'];
+        $numericKeys = ['vat_rate','total_price_net','total_price_vat','total_price',
+                        'km_rate','hour_rate','travel_cost','auditor_hours',
+                        'distance_km','travel_hours'];
         $result = [];
         foreach ($keys as $k) {
             $v = $request->input('df_' . $k);
             if ($v !== null && $v !== '') {
-                $result[$k] = $k === 'vat_rate' ? (float) $v : (string) $v;
+                $result[$k] = in_array($k, $numericKeys) ? (float) $v : (string) $v;
             }
         }
         return $result;

@@ -64,16 +64,19 @@ class OfferTemplate extends Model
 
         // Travel cost
         $distKm     = (float) ($data['distance_km'] ?: $df['distance_km'] ?? 0);
-        $kmRate     = (float) ($data['km_rate'] ?? $this->default_km_rate);
+        $kmRate     = (float) (($data['km_rate'] ?? '') ?: ($df['km_rate'] ?? $this->default_km_rate));
         $travelH    = (float) ($data['travel_hours'] ?: $df['travel_hours'] ?? 0);
-        $hourRate   = (float) ($data['hour_rate'] ?? $this->default_hour_rate);
-        $travelCost = ($distKm * $kmRate * 2) + ($travelH * $hourRate * 2);
+        $hourRate   = (float) (($data['hour_rate'] ?? '') ?: ($df['hour_rate'] ?? $this->default_hour_rate));
+        $calcTravelCost = ($distKm * $kmRate * 2) + ($travelH * $hourRate * 2);
+        $travelCost = (float) (($data['travel_cost'] ?? '') ?: ($df['travel_cost'] ?? $calcTravelCost));
 
         // VAT calc
-        $totalNet   = (float) ($data['total_price'] ?? 0);
+        $totalNet   = (float) (($data['total_price'] ?? '') ?: ($df['total_price_net'] ?? 0));
         $vatRate    = (float) ($data['vat_rate'] ?? $df['vat_rate'] ?? 23);
-        $vatAmt     = round($totalNet * $vatRate / 100, 2);
-        $totalGross = $totalNet + $vatAmt;
+        $calcVat    = round($totalNet * $vatRate / 100, 2);
+        $vatAmt     = (float) (($data['total_price_vat'] ?? '') ?: ($df['total_price_vat'] ?? $calcVat));
+        $calcGross  = $totalNet + $vatAmt;
+        $totalGross = (float) (($data['total_price_gross'] ?? '') ?: ($df['total_price'] ?? $calcGross));
 
         $paymentHtml = '';
         foreach ($data['payment_terms'] ?? [] as $pt) {
@@ -86,9 +89,9 @@ class OfferTemplate extends Model
         }
 
         $map = [
-            '{{offer_number}}'         => e($data['offer_number'] ?? ''),
+            '{{offer_number}}'         => e(($data['offer_number'] ?? '') ?: ($df['offer_number'] ?? '')),
             '{{offer_title}}'          => e(($data['offer_title'] ?? '') ?: ($df['offer_title'] ?? '')),
-            '{{offer_date}}'           => $data['offer_date'] ?? '',
+            '{{offer_date}}'           => ($data['offer_date'] ?? '') ?: ($df['offer_date'] ?? ''),
             '{{offer_subject}}'        => e(($data['offer_subject'] ?? '') ?: ($df['offer_subject'] ?? '')),
             '{{customer_name}}'        => e(($data['customer_name'] ?? '') ?: ($df['customer_name'] ?? '')),
             '{{customer_type}}'        => e(($data['customer_type'] ?? '') ?: ($df['customer_type'] ?? '')),
@@ -109,7 +112,7 @@ class OfferTemplate extends Model
             '{{vat_rate}}'             => $vatRate . '%',
             '{{total_price_vat}}'      => number_format($vatAmt, 2, ',', ' '),
             '{{total_price}}'          => number_format($totalGross, 2, ',', ' '),
-            '{{auditor_hours}}'        => number_format((float) ($data['auditor_hours'] ?? $this->default_auditor_hours), 1, ',', ' '),
+            '{{auditor_hours}}'        => number_format((float) (($data['auditor_hours'] ?? '') ?: ($df['auditor_hours'] ?? $this->default_auditor_hours)), 1, ',', ' '),
             '{{payment_terms}}'        => $paymentHtml,
             '{{offer_validity}}'       => e($data['offer_validity'] ?? $df['offer_validity'] ?? '30 dni'),
             '{{delivery_deadline}}'    => e($data['delivery_deadline'] ?? $df['delivery_deadline'] ?? ''),

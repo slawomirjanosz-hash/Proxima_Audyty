@@ -100,7 +100,7 @@
 {{-- DOMYŚLNE WARTOŚCI PÓL --}}
 <div class="ot-panel">
     <h3 style="margin:0 0 14px;font-size:16px;color:#1A4D3A;">Domyślne wartości pól oferty</h3>
-    <p style="margin:0 0 14px;font-size:12px;color:var(--ink-mute);">Wartości używane gdy pole nie jest uzupełnione przy tworzeniu oferty. Pola klienta, numer i data oferty, sumy — wypełniane automatycznie z danych oferty.</p>
+    <p style="margin:0 0 14px;font-size:12px;color:var(--ink-mute);">Wartości domyślne używane gdy pole nie jest uzupełnione przy tworzeniu oferty.</p>
 
     @php
         $cA  = 'background:#f3f8f7;padding:2px 6px;border-radius:4px;font-size:11px;color:#1A4D3A;';
@@ -139,8 +139,16 @@
                 <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{description}}</code></td>
                 <td style="padding:6px 12px;"><textarea name="df_offer_description" class="ot-input" rows="2" style="margin:0;" placeholder="Domyślny opis lub wstęp...">{{ old('df_offer_description') }}</textarea></td>
             </tr>
-            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">Numer oferty</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{offer_number}}</code></td><td style="{{ $tV }}">generowany automatycznie</td></tr>
-            <tr style="{{ $rH }}"><td style="{{ $tA }}">Data oferty</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{offer_date}}</code></td><td style="{{ $tV }}">data wystawienia oferty</td></tr>
+            <tr style="{{ $rAlt }}">
+                <td style="{{ $tN }}">Numer oferty</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{offer_number}}</code></td>
+                <td style="padding:6px 12px;"><input type="text" name="df_offer_number" value="{{ old('df_offer_number') }}" class="ot-input" style="margin:0;" placeholder="np. OF-2026/001"></td>
+            </tr>
+            <tr style="{{ $rH }}">
+                <td style="{{ $tN }}">Data oferty</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{offer_date}}</code></td>
+                <td style="padding:6px 12px;"><input type="text" name="df_offer_date" value="{{ old('df_offer_date') }}" class="ot-input" style="margin:0;" placeholder="np. 2026-01-01"></td>
+            </tr>
 
             {{-- ══ KLIENT ══ --}}
             <tr style="background:#e8f3ef;"><td colspan="3" style="{{ $hdr }}">Klient</td></tr>
@@ -192,10 +200,22 @@
                 <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{vat_rate}}</code><div style="font-size:10px;color:var(--ink-mute);margin-top:2px;">→ liczy @{{total_price_vat}}, @{{total_price}}</div></td>
                 <td style="padding:6px 12px;"><input type="number" name="df_vat_rate" value="{{ old('df_vat_rate', '23') }}" class="ot-input" style="margin:0;max-width:120px;" min="0" max="100" step="1" placeholder="23"></td>
             </tr>
-            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">Tabela pozycji</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{items_table}}</code></td><td style="{{ $tV }}">z pozycji oferty</td></tr>
-            <tr style="{{ $rH }}"><td style="{{ $tA }}">Cena netto</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{total_price_net}}</code></td><td style="{{ $tV }}">suma pozycji oferty</td></tr>
-            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">Kwota VAT</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{total_price_vat}}</code></td><td style="{{ $tV }}">obliczana (netto × VAT%)</td></tr>
-            <tr style="{{ $rH }}"><td style="{{ $tA }}">Cena brutto</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{total_price}}</code></td><td style="{{ $tV }}">obliczana (netto + VAT)</td></tr>
+            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">Tabela pozycji</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{items_table}}</code></td><td style="{{ $tV }}">generowana z pozycji oferty (sekcja poniżej)</td></tr>
+            <tr style="{{ $rH }}">
+                <td style="{{ $tN }}">Cena netto</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{total_price_net}}</code></td>
+                <td style="padding:6px 12px;"><input type="number" name="df_total_price_net" value="{{ old('df_total_price_net') }}" class="ot-input" style="margin:0;max-width:160px;" min="0" step="0.01" placeholder="np. 10000"></td>
+            </tr>
+            <tr style="{{ $rAlt }}">
+                <td style="{{ $tN }}">Kwota VAT</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{total_price_vat}}</code></td>
+                <td style="padding:6px 12px;"><input type="number" name="df_total_price_vat" value="{{ old('df_total_price_vat') }}" class="ot-input" style="margin:0;max-width:160px;" min="0" step="0.01" placeholder="np. 2300"></td>
+            </tr>
+            <tr style="{{ $rH }}">
+                <td style="{{ $tN }}">Cena brutto</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{total_price}}</code></td>
+                <td style="padding:6px 12px;"><input type="number" name="df_total_price" value="{{ old('df_total_price') }}" class="ot-input" style="margin:0;max-width:160px;" min="0" step="0.01" placeholder="np. 12300"></td>
+            </tr>
 
             {{-- ══ WARUNKI ══ --}}
             <tr style="background:#e8f3ef;"><td colspan="3" style="{{ $hdr }}">Warunki</td></tr>
@@ -222,15 +242,31 @@
                 <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{distance_km}}</code></td>
                 <td style="padding:6px 12px;"><input type="number" name="df_distance_km" value="{{ old('df_distance_km') }}" class="ot-input" style="margin:0;max-width:140px;" min="0" step="1" placeholder="np. 80"></td>
             </tr>
-            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">Stawka km (zł/km)</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{km_rate}}</code></td><td style="{{ $tV }}">← sekcja „Domyślne stawki" powyżej</td></tr>
+            <tr style="{{ $rAlt }}">
+                <td style="{{ $tN }}">Stawka km (zł/km)</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{km_rate}}</code></td>
+                <td style="padding:6px 12px;"><input type="number" name="df_km_rate" value="{{ old('df_km_rate') }}" class="ot-input" style="margin:0;max-width:140px;" min="0" step="0.01" placeholder="np. 1.50"></td>
+            </tr>
             <tr style="{{ $rH }}">
                 <td style="{{ $tN }}">Domyślny czas jazdy (godz.)</td>
                 <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{travel_hours}}</code></td>
                 <td style="padding:6px 12px;"><input type="number" name="df_travel_hours" value="{{ old('df_travel_hours') }}" class="ot-input" style="margin:0;max-width:140px;" min="0" step="0.5" placeholder="np. 1.5"></td>
             </tr>
-            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">Stawka godz. jazdy (zł/h)</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{hour_rate}}</code></td><td style="{{ $tV }}">← sekcja „Domyślne stawki" powyżej</td></tr>
-            <tr style="{{ $rH }}"><td style="{{ $tA }}">Koszt dojazdu</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{travel_cost}}</code></td><td style="{{ $tV }}">obliczany automatycznie</td></tr>
-            <tr style="{{ $rAlt }}"><td style="{{ $tA }}">Liczba godz. audytu</td><td style="padding:8px 12px;"><code style="{{ $cM }}">@{{auditor_hours}}</code></td><td style="{{ $tV }}">← sekcja „Domyślne stawki" powyżej</td></tr>
+            <tr style="{{ $rAlt }}">
+                <td style="{{ $tN }}">Stawka godz. jazdy (zł/h)</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{hour_rate}}</code></td>
+                <td style="padding:6px 12px;"><input type="number" name="df_hour_rate" value="{{ old('df_hour_rate') }}" class="ot-input" style="margin:0;max-width:140px;" min="0" step="0.01" placeholder="np. 80"></td>
+            </tr>
+            <tr style="{{ $rH }}">
+                <td style="{{ $tN }}">Koszt dojazdu</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{travel_cost}}</code></td>
+                <td style="padding:6px 12px;"><input type="number" name="df_travel_cost" value="{{ old('df_travel_cost') }}" class="ot-input" style="margin:0;max-width:160px;" min="0" step="0.01" placeholder="np. 600"></td>
+            </tr>
+            <tr style="{{ $rAlt }}">
+                <td style="{{ $tN }}">Liczba godz. audytu</td>
+                <td style="padding:8px 12px;"><code style="{{ $cA }}">@{{auditor_hours}}</code></td>
+                <td style="padding:6px 12px;"><input type="number" name="df_auditor_hours" value="{{ old('df_auditor_hours') }}" class="ot-input" style="margin:0;max-width:140px;" min="0" step="0.5" placeholder="np. 8"></td>
+            </tr>
 
             {{-- ══ ENESA ══ --}}
             <tr style="background:#e8f3ef;"><td colspan="3" style="{{ $hdr }}">ENESA — Moja firma</td></tr>
