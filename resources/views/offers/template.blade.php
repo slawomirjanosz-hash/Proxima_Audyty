@@ -215,9 +215,9 @@
     <tr>
       <td>{{ $index + 1 }}</td>
       <td>{{ $item['name'] }}</td>
-      <td>{{ $item['unit'] ?? 'szt.' }}</td>
-      <td>{{ $item['qty'] ?? 1 }}</td>
-      <td>{{ number_format($item['price_unit'], 2, ',', ' ') }} zł</td>
+      <td>{{ $item['unit'] ?? '' }}</td>
+      <td>{{ ($item['qty'] ?? '') !== '' ? $item['qty'] : '' }}</td>
+      <td>{{ ($item['price_unit'] ?? '') !== '' && (float)$item['price_unit'] > 0 ? number_format((float)$item['price_unit'], 2, ',', ' ').' zł' : '' }}</td>
       <td>{{ number_format($item['price_total'], 2, ',', ' ') }} zł</td>
     </tr>
     @endforeach

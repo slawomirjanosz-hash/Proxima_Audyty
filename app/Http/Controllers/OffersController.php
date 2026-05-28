@@ -276,9 +276,13 @@ class OffersController extends Controller
 
     private function stripTravelSection(string $html): string
     {
-        $html = preg_replace('/<!--[^>]*KOSZTY DOJAZDU[^>]*-->\s*/ui', '', $html);
-        $html = preg_replace('/<div[^>]*class="[^"]*sec-title[^"]*"[^>]*>\s*Koszty\s+dojazdu\s*<\/div>\s*/ui', '', $html);
-        $html = preg_replace('/<div[^>]*class="[^"]*travel-box[^"]*">.*?<\/div>\s*/us', '', $html);
+        $startKey = '<!-- ═══ KOSZTY DOJAZDU';
+        $endKey   = '<!-- ═══ WARUNKI';
+        $sPos = strpos($html, $startKey);
+        $ePos = $sPos !== false ? strpos($html, $endKey, $sPos) : false;
+        if ($sPos !== false && $ePos !== false) {
+            $html = substr($html, 0, $sPos) . substr($html, $ePos);
+        }
         return $html;
     }
 
@@ -507,9 +511,9 @@ class OffersController extends Controller
         if ($travelCost > 0) {
             $items[] = [
                 'name'        => 'Koszty dojazdu i delegacji',
-                'unit'        => 'usł.',
-                'qty'         => 1.0,
-                'price_unit'  => $travelCost,
+                'unit'        => 'Delegacje',
+                'qty'         => '',
+                'price_unit'  => '',
                 'price_total' => $travelCost,
             ];
         }

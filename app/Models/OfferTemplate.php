@@ -71,9 +71,9 @@ class OfferTemplate extends Model
         if ($travelCost > 0) {
             $itemsForTable[] = [
                 'name'     => 'Koszty dojazdu i delegacji',
-                'type'     => 'usł.',
-                'quantity' => 1,
-                'price'    => $travelCost,
+                'type'     => 'Delegacje',
+                'quantity' => '',
+                'price'    => '',
                 'value'    => $travelCost,
             ];
         }
@@ -147,9 +147,13 @@ class OfferTemplate extends Model
         $rendered = str_replace(array_keys($map), array_values($map), $html);
 
         // Strip standalone travel section — travel cost is now a line item in items_table
-        $rendered = preg_replace('/<!--[^>]*KOSZTY DOJAZDU[^>]*-->\s*/ui', '', $rendered);
-        $rendered = preg_replace('/<div[^>]*class="[^"]*sec-title[^"]*"[^>]*>\s*Koszty\s+dojazdu\s*<\/div>\s*/ui', '', $rendered);
-        $rendered = preg_replace('/<div[^>]*class="[^"]*travel-box[^"]*">.*?<\/div>\s*/us', '', $rendered);
+        $startKey = '<!-- ═══ KOSZTY DOJAZDU';
+        $endKey   = '<!-- ═══ WARUNKI';
+        $sPos = strpos($rendered, $startKey);
+        $ePos = $sPos !== false ? strpos($rendered, $endKey, $sPos) : false;
+        if ($sPos !== false && $ePos !== false) {
+            $rendered = substr($rendered, 0, $sPos) . substr($rendered, $ePos);
+        }
 
         return $rendered;
     }
@@ -165,12 +169,14 @@ class OfferTemplate extends Model
         foreach ($allItems as $i => $item) {
             $val    = (float) ($item['value'] ?? 0);
             $total += $val;
+            $qty   = $item['quantity'] ?? 1;
+            $price = $item['price'] ?? 0;
             $rows  .= '<tr>'
                 . '<td style="padding:8px 10px;border-bottom:1px solid #e4edf3;text-align:center;">' . ($i + 1) . '</td>'
                 . '<td style="padding:8px 10px;border-bottom:1px solid #e4edf3;font-weight:600;">' . e($item['name'] ?? '') . '</td>'
                 . '<td style="padding:8px 10px;border-bottom:1px solid #e4edf3;color:#555;">' . e($item['type'] ?? '') . '</td>'
-                . '<td style="padding:8px 10px;border-bottom:1px solid #e4edf3;text-align:center;">' . ($item['quantity'] ?? 1) . '</td>'
-                . '<td style="padding:8px 10px;border-bottom:1px solid #e4edf3;text-align:right;">' . number_format((float)($item['price'] ?? 0), 2, ',', ' ') . ' zł</td>'
+                . '<td style="padding:8px 10px;border-bottom:1px solid #e4edf3;text-align:center;">' . ($qty !== '' && $qty !== null ? $qty : '') . '</td>'
+                . '<td style="padding:8px 10px;border-bottom:1px solid #e4edf3;text-align:right;">' . ($price !== '' && $price !== null && (float)$price > 0 ? number_format((float)$price, 2, ',', ' ') . ' zł' : '') . '</td>'
                 . '<td style="padding:8px 10px;border-bottom:1px solid #e4edf3;text-align:right;font-weight:700;">' . number_format($val, 2, ',', ' ') . ' zł</td>'
                 . '</tr>';
         }
